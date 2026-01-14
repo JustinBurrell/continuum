@@ -10,7 +10,7 @@
 
 ## 📋 Project Understanding
 
-📄 **Related Documents**: [Product Requirements Document](./product/product_requirements_document.md) | [Proof of Concept](./product/proof_of_concept.md)
+📄 **Related Documents**: [Product Requirements Document](./product/product_requirements_document.md) | [Proof of Concept](./product/proof_of_concept.md) | [Design Breakdown](./design/design_breakdown.md) | [Cheat Sheet](./design/continuum_cheat_sheet.md)
 
 ### Core Problem
 Students manage their academic and professional lives across 8-12 disconnected applications, causing:
@@ -373,12 +373,6 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 - **Sprint 5**: Can simplify to note sharing only, defer shared tasks
 - **Sprint 6**: Can defer offline sync, keep DMs simple
 - **Sprint 7**: Can simplify to resume upload only, defer AI feedback
-
-### Daily Workflow Guidelines
-- **Morning**: Pick 2-3 commit goals from sprint plan
-- **Focus Time**: 4-6 hours of deep work
-- **Evening**: Test, commit, push, update progress
-- **Target**: 3-4 meaningful commits per day (~20-25 per week)
 
 ### Using the Detailed Sprint Plans
 Each sprint has a detailed plan in `docs/sprint_planning/` with:
