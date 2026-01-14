@@ -1,7 +1,7 @@
 # Continuum - Development Planning & Progress Tracker
 
 **Project**: All-in-one educational platform unifying Google Docs, AI study tools, task management, and career tracking  
-**Timeline**: February 16 - April 10, 2026 (8 weeks)  
+**Timeline**: Design Sprint (Pre-Sprint) → February 16 - April 10, 2026 (8 development weeks)  
 **Stack**: MERN (MongoDB, Express, React, Node.js) + React Native with Expo  
 **Developer**: Solo full-stack development  
 **Showcase**: April 10, 2026
@@ -43,21 +43,144 @@ Continuum unifies:
 
 ## 🎯 Overall Progress
 
-**Total Sprints**: 8  
-**Completed Sprints**: 0/8  
-**Total Tickets**: 94  
+**Total Sprints**: 9 (1 Design Sprint + 8 Development Sprints)  
+**Completed Sprints**: 0/9  
+**Total Tickets**: 94 (Development) + Design tasks  
 **Completed Tickets**: 0/94  
-**Current Sprint**: Sprint 1 - Foundation Layer
+**Current Sprint**: Sprint 0 - Design & Planning
 
 ---
 
 ## 📍 Current Status
 
-**Current Ticket**: #1 - `feat: initialize express server with cors and body-parser`  
-**Sprint**: Sprint 1 - Foundation Layer  
+**Current Ticket**: Design Phase 1 - Core User Flow  
+**Sprint**: Sprint 0 - Design & Planning  
 **Status**: Not Started
 
 *Update this section as you progress through tickets*
+
+---
+
+## 🎨 Sprint 0: Design & Planning
+**Pre-Sprint | Figma Design Creation**  
+📖 [Design Breakdown Reference](./design/design_breakdown.md)
+
+### 🎯 Sprint Objectives
+Create complete Figma designs for all web and mobile pages before starting development. This ensures clear visual direction and reduces design decisions during coding.
+
+### Progress: 0/3 design phases
+
+#### Phase 1: Core User Flow (MVP Priority)
+**Total**: 9 web pages + 9 mobile screens = 18 designs
+
+**Web Pages**:
+- [ ] Landing Page
+- [ ] Login Page
+- [ ] Sign Up Page
+- [ ] Dashboard/Home
+- [ ] Notes Dashboard
+- [ ] Note Viewer
+- [ ] Tasks Dashboard
+- [ ] Calendar View
+- [ ] Task Creation Modal
+
+**Mobile Screens**:
+- [ ] Landing Page
+- [ ] Login Page
+- [ ] Sign Up Page
+- [ ] Dashboard/Home
+- [ ] Notes Dashboard
+- [ ] Note Viewer
+- [ ] Tasks Dashboard
+- [ ] Calendar View
+- [ ] Task Creation Modal
+
+**Shared Components** (design once):
+- [ ] Buttons (primary, secondary, icon)
+- [ ] Input fields
+- [ ] Cards (note cards, task cards)
+- [ ] Navigation components
+- [ ] Loading states
+- [ ] Error states
+- [ ] Empty states
+
+---
+
+#### Phase 2: Essential Features
+**Total**: 8 web pages + 8 mobile screens = 16 designs
+
+**Web Pages**:
+- [ ] Note Editor
+- [ ] Google Drive Import
+- [ ] Flashcard Study Interface
+- [ ] Flashcard Editor
+- [ ] Task Detail View
+- [ ] Social Feed
+- [ ] Friends Management
+- [ ] Shared Note View
+
+**Mobile Screens**:
+- [ ] Note Editor
+- [ ] Google Drive Import
+- [ ] Flashcard Study Interface
+- [ ] Flashcard Editor
+- [ ] Task Detail View
+- [ ] Social Feed
+- [ ] Friends Management
+- [ ] Shared Note View
+
+**Additional Components**:
+- [ ] Modals/Dialogs
+- [ ] Status badges
+- [ ] Avatars
+
+---
+
+#### Phase 3: Collaboration & Career
+**Total**: 14 web pages + 14 mobile screens = 28 designs
+
+**Web Pages**:
+- [ ] User Search
+- [ ] Messaging Inbox
+- [ ] Chat View
+- [ ] Career Dashboard
+- [ ] Resume Management
+- [ ] Resume Upload
+- [ ] Resume Feedback
+- [ ] Application Dashboard
+- [ ] Application Detail/Form
+- [ ] Application List
+- [ ] Settings/Profile
+- [ ] About Page
+- [ ] Contact Page
+- [ ] Forgot Password Page
+
+**Mobile Screens**:
+- [ ] User Search
+- [ ] Messaging Inbox
+- [ ] Chat View
+- [ ] Career Dashboard
+- [ ] Resume Management
+- [ ] Resume Upload
+- [ ] Resume Feedback
+- [ ] Application Dashboard
+- [ ] Application Detail/Form
+- [ ] Application List
+- [ ] Settings/Profile
+- [ ] About Page
+- [ ] Contact Page
+- [ ] Forgot Password Page
+
+---
+
+### ✅ Design Sprint Checkpoint
+- [ ] Phase 1 designs complete (18 designs)
+- [ ] Phase 2 designs complete (16 designs)
+- [ ] Phase 3 designs complete (28 designs)
+- [ ] All shared components designed
+- [ ] Design system documented (colors, typography, spacing)
+- [ ] Designs reviewed and approved
+- [ ] Figma files organized and ready for development
 
 ---
 
@@ -335,6 +458,7 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 ## 📊 Progress Summary
 
 ### Sprint Completion
+- [ ] Sprint 0: Design & Planning (0/3 phases)
 - [ ] Sprint 1: Foundation Layer (0/13)
 - [ ] Sprint 2: Content Foundation (0/11)
 - [ ] Sprint 3: Active Learning (0/12)
@@ -345,6 +469,9 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 - [ ] Sprint 8: Polish & Launch (0/14 tickets)
 
 ### Key Milestones
+- [ ] **Design Phase 1 complete** (Core user flow designs ready)
+- [ ] **Design Phase 2 complete** (Essential features designed)
+- [ ] **Design Phase 3 complete** (All designs finalized)
 - [ ] Authentication working on web and mobile
 - [ ] Google Docs import functional
 - [ ] AI summaries and flashcards working
@@ -405,4 +532,4 @@ Each sprint succeeds when:
 ---
 
 *Last Updated: [Date]*  
-*Current Status: Ticket #1 - Sprint 1 - Foundation Layer*
+*Current Status: Sprint 0 - Design & Planning (Phase 1)*
