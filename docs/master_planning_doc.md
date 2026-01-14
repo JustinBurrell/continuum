@@ -53,7 +53,7 @@ Continuum unifies:
 
 ## 📍 Current Status
 
-**Current Ticket**: Design Phase 1 - Core User Flow  
+**Current Ticket**: Page 1 - Core Flows (Auth, Notes, Flashcards, Tasks)  
 **Sprint**: Sprint 0 - Design & Planning  
 **Status**: Not Started
 
@@ -63,121 +63,130 @@ Continuum unifies:
 
 ## 🎨 Sprint 0: Design & Planning
 **Pre-Sprint | Figma Design Creation**  
-📖 [Design Breakdown Reference](./design/design_breakdown.md)
+📖 [Design Breakdown Reference](./design/design_breakdown.md) | [Figma Breakdown](./design/figma_breakdown.md)
 
 ### 🎯 Sprint Objectives
 Create complete Figma designs for all web and mobile pages before starting development. This ensures clear visual direction and reduces design decisions during coding.
 
-### Progress: 0/3 design phases
+**Total Screens**: 56 (28 Mobile + 28 Web)  
+**Figma Pages**: 2  
+**Progress**: 0/2 pages
 
-#### Phase 1: Core User Flow (MVP Priority)
-**Total**: 9 web pages + 9 mobile screens = 18 designs
+---
 
-**Web Pages**:
-- [ ] Landing Page
-- [ ] Login Page
-- [ ] Sign Up Page
-- [ ] Dashboard/Home
-- [ ] Notes Dashboard
-- [ ] Note Viewer
-- [ ] Tasks Dashboard
-- [ ] Calendar View
-- [ ] Task Creation Modal
+## 📄 Page 1: Core Flows (Auth, Notes, Flashcards, Tasks)
+**Total**: 15 web screens + 15 mobile screens = 30 designs
 
-**Mobile Screens**:
-- [ ] Landing Page
-- [ ] Login Page
-- [ ] Sign Up Page
-- [ ] Dashboard/Home
-- [ ] Notes Dashboard
-- [ ] Note Viewer
-- [ ] Tasks Dashboard
-- [ ] Calendar View
-- [ ] Task Creation Modal
+### Mobile Screens (15)
+- [ ] Mobile - Landing Page
+- [ ] Mobile - Signup
+- [ ] Mobile - Login
+- [ ] Mobile - Dashboard Home
+- [ ] Mobile - Notes Dashboard
+- [ ] Mobile - Note Viewer
+- [ ] Mobile - Note Editor
+- [ ] Mobile - Note Import
+- [ ] Mobile - Flashcards Dashboard
+- [ ] Mobile - Flashcards Viewer
+- [ ] Mobile - Flashcards Creation
+- [ ] Mobile - Tasks Dashboard
+- [ ] Mobile - Tasks Creation
+- [ ] Mobile - Tasks Editor
+- [ ] Mobile - Calendar View
 
-**Shared Components** (design once):
+### Web Screens (15)
+- [ ] Web - Landing Page
+- [ ] Web - Login
+- [ ] Web - Signup
+- [ ] Web - Dashboard Home
+- [ ] Web - Notes Dashboard
+- [ ] Web - Note Viewer
+- [ ] Web - Note Editor
+- [ ] Web - Note Import
+- [ ] Web - Flashcards Dashboard
+- [ ] Web - Flashcards Viewer
+- [ ] Web - Flashcards Creation
+- [ ] Web - Tasks Dashboard
+- [ ] Web - Tasks Creation
+- [ ] Web - Tasks Editor
+- [ ] Web - Calendar View
+
+---
+
+## 📄 Page 2: Social, Career & Settings
+**Total**: 13 web screens + 13 mobile screens = 26 designs
+
+### Mobile Screens (13)
+- [ ] Mobile - Social Dashboard
+- [ ] Mobile - User Search
+- [ ] Mobile - Friends List
+- [ ] Mobile - Shared Note View
+- [ ] Mobile - DM Inbox
+- [ ] Mobile - Chat Screen
+- [ ] Mobile - Career Dashboard
+- [ ] Mobile - Resume Management
+- [ ] Mobile - Resume Upload
+- [ ] Mobile - Resume Feedback
+- [ ] Mobile - Application Dashboard
+- [ ] Mobile - Application Detail
+- [ ] Mobile - Settings Profile
+
+### Web Screens (13)
+- [ ] Web - Social Dashboard
+- [ ] Web - Friends List
+- [ ] Web - User Search
+- [ ] Web - Shared Note View
+- [ ] Web - DM Inbox
+- [ ] Web - Chat Screen
+- [ ] Web - Career Dashboard
+- [ ] Web - Resume Management
+- [ ] Web - Resume Upload
+- [ ] Web - Resume Feedback
+- [ ] Web - Application Dashboard
+- [ ] Web - Application Detail
+- [ ] Web - Settings Profile
+
+---
+
+## 🧩 Shared Components
+**Design once and reuse across all screens**:
 - [ ] Buttons (primary, secondary, icon)
 - [ ] Input fields
-- [ ] Cards (note cards, task cards)
+- [ ] Cards (note cards, task cards, application cards)
+- [ ] Modals/Dialogs
 - [ ] Navigation components
 - [ ] Loading states
 - [ ] Error states
 - [ ] Empty states
-
----
-
-#### Phase 2: Essential Features
-**Total**: 8 web pages + 8 mobile screens = 16 designs
-
-**Web Pages**:
-- [ ] Note Editor
-- [ ] Google Drive Import
-- [ ] Flashcard Study Interface
-- [ ] Flashcard Editor
-- [ ] Task Detail View
-- [ ] Social Feed
-- [ ] Friends Management
-- [ ] Shared Note View
-
-**Mobile Screens**:
-- [ ] Note Editor
-- [ ] Google Drive Import
-- [ ] Flashcard Study Interface
-- [ ] Flashcard Editor
-- [ ] Task Detail View
-- [ ] Social Feed
-- [ ] Friends Management
-- [ ] Shared Note View
-
-**Additional Components**:
-- [ ] Modals/Dialogs
 - [ ] Status badges
 - [ ] Avatars
 
 ---
 
-#### Phase 3: Collaboration & Career
-**Total**: 14 web pages + 14 mobile screens = 28 designs
+## ✅ Design Checklist
 
-**Web Pages**:
-- [ ] User Search
-- [ ] Messaging Inbox
-- [ ] Chat View
-- [ ] Career Dashboard
-- [ ] Resume Management
-- [ ] Resume Upload
-- [ ] Resume Feedback
-- [ ] Application Dashboard
-- [ ] Application Detail/Form
-- [ ] Application List
-- [ ] Settings/Profile
-- [ ] About Page
-- [ ] Contact Page
-- [ ] Forgot Password Page
+### Before Building Each Screen:
+- [ ] Frame created with correct dimensions (Web: 1440 x 900px, Mobile: 390 x 844px)
+- [ ] Named using convention: `[Platform] - [Screen Name]`
+- [ ] Auto Layout enabled on main container
+- [ ] All nested elements have descriptive names
+- [ ] Consistent spacing (4/8/12/16/24/32/48px)
+- [ ] Colors match design system (#6B21A8, #F8F9FA, etc.)
+- [ ] Components use Hug/Fill appropriately
+- [ ] No absolute positioning inside Auto Layout
 
-**Mobile Screens**:
-- [ ] User Search
-- [ ] Messaging Inbox
-- [ ] Chat View
-- [ ] Career Dashboard
-- [ ] Resume Management
-- [ ] Resume Upload
-- [ ] Resume Feedback
-- [ ] Application Dashboard
-- [ ] Application Detail/Form
-- [ ] Application List
-- [ ] Settings/Profile
-- [ ] About Page
-- [ ] Contact Page
-- [ ] Forgot Password Page
+### For MCP Compatibility:
+- [ ] All layers descriptively named (no "Frame 182")
+- [ ] Auto Layout on all containers
+- [ ] Consistent component patterns
+- [ ] Clear hierarchy in layer structure
 
 ---
 
 ### ✅ Design Sprint Checkpoint
-- [ ] Phase 1 designs complete (18 designs)
-- [ ] Phase 2 designs complete (16 designs)
-- [ ] Phase 3 designs complete (28 designs)
-- [ ] All shared components designed
+- [ ] Page 1 designs complete (30 screens)
+- [ ] Page 2 designs complete (26 screens)
+- [ ] All shared components designed (10 components)
 - [ ] Design system documented (colors, typography, spacing)
 - [ ] Designs reviewed and approved
 - [ ] Figma files organized and ready for development
@@ -458,7 +467,7 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 ## 📊 Progress Summary
 
 ### Sprint Completion
-- [ ] Sprint 0: Design & Planning (0/3 phases)
+- [ ] Sprint 0: Design & Planning (0/2 pages, 0/56 screens)
 - [ ] Sprint 1: Foundation Layer (0/13)
 - [ ] Sprint 2: Content Foundation (0/11)
 - [ ] Sprint 3: Active Learning (0/12)
@@ -469,9 +478,9 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 - [ ] Sprint 8: Polish & Launch (0/14 tickets)
 
 ### Key Milestones
-- [ ] **Design Phase 1 complete** (Core user flow designs ready)
-- [ ] **Design Phase 2 complete** (Essential features designed)
-- [ ] **Design Phase 3 complete** (All designs finalized)
+- [ ] **Page 1 complete** (Core Flows: Auth, Notes, Flashcards, Tasks - 30 screens)
+- [ ] **Page 2 complete** (Social, Career & Settings - 26 screens)
+- [ ] **All shared components designed** (10 components)
 - [ ] Authentication working on web and mobile
 - [ ] Google Docs import functional
 - [ ] AI summaries and flashcards working
@@ -532,4 +541,4 @@ Each sprint succeeds when:
 ---
 
 *Last Updated: [Date]*  
-*Current Status: Sprint 0 - Design & Planning (Phase 1)*
+*Current Status: Sprint 0 - Design & Planning (Page 1: Core Flows)*
