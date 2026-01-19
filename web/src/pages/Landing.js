@@ -74,15 +74,15 @@ function Landing() {
       {/* Features Headline */}
       <section
         id="product"
-        className="flex flex-col md:flex-row items-center justify-between px-4 sm:px-6 md:px-12 py-4 gap-6 md:gap-8"
+        className="flex flex-col md:flex-row items-center justify-between px-4 sm:px-6 md:px-12 py-4 gap-6 md:gap-8 md:pl-16 lg:pl-20"
       >
-        <div className="bg-[#6b21a8] rounded-xl px-6 sm:px-8 py-4 sm:py-6 w-64 sm:w-80 md:w-96 shadow-lg hover:shadow-xl transition-shadow">
-          <h2 className="font-inter font-bold text-3xl sm:text-4xl md:text-5xl text-white text-center">
+        <div className="bg-[#6b21a8] rounded-xl px-5 sm:px-6 py-3 sm:py-4 w-52 sm:w-64 md:w-72 shadow-lg hover:shadow-xl transition-shadow">
+          <h2 className="font-inter font-bold text-2xl sm:text-3xl md:text-4xl text-white text-center">
             Features
           </h2>
         </div>
 
-        <p className="font-inter text-base sm:text-lg md:text-xl lg:text-2xl text-black max-w-2xl leading-relaxed text-center md:text-left">
+        <p className="font-inter text-sm sm:text-base md:text-lg lg:text-xl text-black max-w-2xl leading-relaxed text-center md:text-left">
           Our features allow you to import notes from Google Docs, generate
           AI-powered flashcards, manage tasks with integrated calendars,
           collaborate with friends, and track your entire career journey.
@@ -183,9 +183,9 @@ function HeroImage({ womanImg, calendarImg, briefcaseImg, googleDocsImg, indexCa
 // Feature Card Component
 function FeatureCard({ title, description }) {
   return (
-    <div className="flex-1 bg-[#ede9fe] px-6 sm:px-8 md:px-11 py-6 sm:py-7 md:py-9 shadow-md rounded-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:bg-[#e4d4fc] cursor-pointer">
-      <h3 className="font-dm font-medium text-2xl sm:text-3xl md:text-4xl text-black mb-2 sm:mb-3 md:mb-4">{title}</h3>
-      <p className="font-work text-sm sm:text-base text-black leading-relaxed">
+    <div className="flex-1 bg-[#ede9fe] px-5 sm:px-6 md:px-8 py-5 sm:py-6 md:py-7 shadow-md rounded-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:bg-[#e4d4fc] cursor-pointer">
+      <h3 className="font-dm font-medium text-xl sm:text-2xl md:text-3xl text-black mb-2 sm:mb-2.5 md:mb-3">{title}</h3>
+      <p className="font-work text-xs sm:text-sm text-black leading-relaxed">
         {description}
       </p>
     </div>

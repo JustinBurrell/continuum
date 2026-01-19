@@ -5,7 +5,7 @@ const continuumLogo = '/assets/images/continuum-full-logo.png';
 
 function Navbar() {
   return (
-    <nav className="flex items-center justify-between w-full h-16 sm:h-20">
+    <nav className="sticky top-0 z-50 bg-[#f8f9fa] flex items-center justify-between w-full h-14 sm:h-16">
       {/* Logo */}
       <Link to="/" className="flex items-center">
         <img
@@ -16,7 +16,7 @@ function Navbar() {
       </Link>
 
       {/* Nav Links */}
-      <div className="flex items-center gap-4 sm:gap-6 md:gap-10 lg:gap-14 text-sm sm:text-base md:text-lg lg:text-xl text-black font-inter">
+      <div className="flex items-center gap-4 sm:gap-6 md:gap-10 lg:gap-14 text-xs sm:text-sm md:text-base lg:text-lg text-black font-inter">
         <a href="#product" className="hover:text-[#6b21a8] transition-colors">
           Product
         </a>
