@@ -45,8 +45,8 @@ Continuum unifies:
 
 **Total Sprints**: 9 (1 Design Sprint + 8 Development Sprints)  
 **Completed Sprints**: 0/9  
-**Total Tickets**: 94 (Development) + Design tasks  
-**Completed Tickets**: 0/94  
+**Total Tickets**: 92 (Development) + Design tasks + 4 Project Setup  
+**Completed Tickets**: 0/96  
 **Current Sprint**: Sprint 0 - Design & Planning
 
 ---
@@ -62,15 +62,17 @@ Continuum unifies:
 ---
 
 ## 🎨 Sprint 0: Design & Planning
-**Pre-Sprint | Figma Design Creation**  
+**Pre-Sprint | Figma Design Creation & Project Setup**  
 📖 [Design Breakdown Reference](./design/design_breakdown.md) | [Figma Breakdown](./design/figma_breakdown.md)
 
 ### 🎯 Sprint Objectives
-Create complete Figma designs for all web and mobile pages before starting development. This ensures clear visual direction and reduces design decisions during coding.
+1. Create complete Figma designs for all web and mobile pages before starting development
+2. Set up base project structure for backend, web, and mobile applications
+3. Initialize all three projects with proper configuration
 
 **Total Screens**: 56 (28 Mobile + 28 Web)  
 **Figma Pages**: 2  
-**Progress**: 0/2 pages
+**Progress**: 0/2 pages + 0/4 project setups
 
 ---
 
@@ -183,13 +185,57 @@ Create complete Figma designs for all web and mobile pages before starting devel
 
 ---
 
-### ✅ Design Sprint Checkpoint
+## 🛠️ Project Setup
+
+### Backend Setup
+1. [ ] `feat: initialize express server with cors and body-parser`
+   - Initialize Node.js project with `npm init`
+   - Install Express, CORS, body-parser, dotenv
+   - Create `server.js` entry point
+   - Set up basic Express app with middleware
+   - Configure environment variables
+   - Add health check endpoint
+
+2. [ ] `feat: add mongodb connection and basic setup`
+   - Install mongoose
+   - Create database connection utility
+   - Test MongoDB connection
+   - Set up basic project structure (`/routes`, `/models`, `/middleware`, `/config`)
+
+### Web Frontend Setup
+3. [ ] `feat: initialize react app with router`
+   - Create React app with Vite or Create React App
+   - Install React Router DOM
+   - Set up basic route structure
+   - Create project folder structure (`/components`, `/pages`, `/hooks`, `/utils`, `/context`)
+   - Configure routing with BrowserRouter
+
+### Mobile App Setup
+4. [ ] `feat: initialize expo react native project`
+   - Install Expo CLI
+   - Create new Expo project
+   - Set up project structure (`/screens`, `/components`, `/navigation`, `/utils`, `/context`)
+   - Configure app.json
+   - Test on iOS simulator/Android emulator
+
+---
+
+### ✅ Sprint 0 Checkpoint
+**Design:**
 - [ ] Page 1 designs complete (30 screens)
 - [ ] Page 2 designs complete (26 screens)
 - [ ] All shared components designed (10 components)
 - [ ] Design system documented (colors, typography, spacing)
 - [ ] Designs reviewed and approved
 - [ ] Figma files organized and ready for development
+
+**Projects:**
+- [ ] Backend Express server runs and responds to health check
+- [ ] MongoDB connection established
+- [ ] React web app runs and displays basic routes
+- [ ] Expo mobile app runs on simulator/emulator
+- [ ] All three projects have proper folder structure
+- [ ] Git repository initialized with proper `.gitignore`
 
 ---
 
@@ -200,26 +246,23 @@ Create complete Figma designs for all web and mobile pages before starting devel
 ### 🎯 Sprint Objectives
 Build the foundational authentication and infrastructure that everything else depends on. Get basic app running on web and mobile.
 
-### Progress: 0/13 tickets
+### Progress: 0/10 tickets
 
 #### Backend Setup
-1. [ ] `feat: initialize express server with cors and body-parser`
-2. [ ] `feat: add mongodb connection and user model`
-3. [ ] `feat: implement jwt authentication endpoints`
-4. [ ] `feat: add google oauth integration`
-5. [ ] `feat: add jwt verification middleware`
+1. [ ] `feat: add user model with password hashing`
+2. [ ] `feat: implement jwt authentication endpoints`
+3. [ ] `feat: add google oauth integration`
+4. [ ] `feat: add jwt verification middleware`
 
 #### Web Frontend
-6. [ ] `feat: initialize react app with router`
-7. [ ] `feat: add login and registration forms`
-8. [ ] `feat: add auth context and protected routing`
-9. [ ] `feat: create dashboard shell with navigation`
+5. [ ] `feat: add login and registration forms`
+6. [ ] `feat: add auth context and protected routing`
+7. [ ] `feat: create dashboard shell with navigation`
 
 #### Mobile App
-10. [ ] `feat: initialize expo react native project`
-11. [ ] `feat: configure react navigation with auth flow`
-12. [ ] `feat: add login screen with google oauth`
-13. [ ] `feat: add secure token storage with async storage`
+8. [ ] `feat: configure react navigation with auth flow`
+9. [ ] `feat: add login screen with google oauth`
+10. [ ] `feat: add secure token storage with async storage`
 
 ### ✅ Demo Checkpoint
 - [ ] User registers/logs in via email or Google on web and mobile
@@ -237,21 +280,21 @@ Connect to Google Drive, import docs as notes, and build note viewing/management
 ### Progress: 0/11 tickets
 
 #### Backend Development
-14. [ ] `feat: add google drive api client integration`
-15. [ ] `feat: add note model and crud endpoints`
-16. [ ] `feat: implement google doc import as note snapshot`
-17. [ ] `feat: add note refresh from google docs`
+11. [ ] `feat: add google drive api client integration`
+12. [ ] `feat: add note model and crud endpoints`
+13. [ ] `feat: implement google doc import as note snapshot`
+14. [ ] `feat: add note refresh from google docs`
 
 #### Web Frontend
-18. [ ] `feat: add google drive file picker component`
-19. [ ] `feat: create notes list with search and filters`
-20. [ ] `feat: add scrollable note viewer`
-21. [ ] `feat: implement note editing and tag management`
+15. [ ] `feat: add google drive file picker component`
+16. [ ] `feat: create notes list with search and filters`
+17. [ ] `feat: add scrollable note viewer`
+18. [ ] `feat: implement note editing and tag management`
 
 #### Mobile Development
-22. [ ] `feat: add mobile document list screen`
-23. [ ] `feat: create mobile scrollable note viewer`
-24. [ ] `feat: implement note import and refresh on mobile`
+19. [ ] `feat: add mobile document list screen`
+20. [ ] `feat: create mobile scrollable note viewer`
+21. [ ] `feat: implement note import and refresh on mobile`
 
 ### ✅ Demo Checkpoint
 - [ ] User browses Google Drive, imports docs as notes
@@ -269,21 +312,21 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 ### Progress: 0/12 tickets
 
 #### Backend Development
-25. [ ] `feat: integrate llm api for summary generation`
-26. [ ] `feat: add note summary generation endpoint`
-27. [ ] `feat: implement ai flashcard generation`
-28. [ ] `feat: add flashcard model and crud endpoints`
+22. [ ] `feat: integrate llm api for summary generation`
+23. [ ] `feat: add note summary generation endpoint`
+24. [ ] `feat: implement ai flashcard generation`
+25. [ ] `feat: add flashcard model and crud endpoints`
 
 #### Web Frontend
-29. [ ] `feat: add summary generation ui with loading states`
-30. [ ] `feat: create manual flashcard editor`
-31. [ ] `feat: build flashcard study view with flip animation`
-32. [ ] `feat: add keyboard shortcuts for flashcard study`
+26. [ ] `feat: add summary generation ui with loading states`
+27. [ ] `feat: create manual flashcard editor`
+28. [ ] `feat: build flashcard study view with flip animation`
+29. [ ] `feat: add keyboard shortcuts for flashcard study`
 
 #### Mobile Development
-33. [ ] `feat: create mobile flashcard study screen`
-34. [ ] `feat: implement swipe gestures for flashcard navigation`
-35. [ ] `feat: add offline caching for flashcards`
+30. [ ] `feat: create mobile flashcard study screen`
+31. [ ] `feat: implement swipe gestures for flashcard navigation`
+32. [ ] `feat: add offline caching for flashcards`
 
 ### ✅ Demo Checkpoint
 - [ ] User generates summaries and flashcards from notes
@@ -301,21 +344,21 @@ Build task management with calendar views to track assignments and deadlines.
 ### Progress: 0/11 tickets
 
 #### Backend Development
-36. [ ] `feat: add task model with note linking`
-37. [ ] `feat: implement task crud endpoints`
-38. [ ] `feat: create calendar aggregation endpoint`
-39. [ ] `feat: add overdue task detection`
+33. [ ] `feat: add task model with note linking`
+34. [ ] `feat: implement task crud endpoints`
+35. [ ] `feat: create calendar aggregation endpoint`
+36. [ ] `feat: add overdue task detection`
 
 #### Web Frontend
-40. [ ] `feat: add task creation modal with date picker`
-41. [ ] `feat: create task list with status filters`
-42. [ ] `feat: build calendar grid view component`
-43. [ ] `feat: implement inline task editing`
+37. [ ] `feat: add task creation modal with date picker`
+38. [ ] `feat: create task list with status filters`
+39. [ ] `feat: build calendar grid view component`
+40. [ ] `feat: implement inline task editing`
 
 #### Mobile Development
-44. [ ] `feat: add mobile task creation form`
-45. [ ] `feat: implement mobile calendar view`
-46. [ ] `feat: add swipe actions for task status`
+41. [ ] `feat: add mobile task creation form`
+42. [ ] `feat: implement mobile calendar view`
+43. [ ] `feat: add swipe actions for task status`
 
 ### ✅ Demo Checkpoint
 - [ ] User creates tasks linked to notes
@@ -334,22 +377,22 @@ Enable social features - friend system, sharing notes, comments, and shared task
 ### Progress: 0/12 tickets
 
 #### Backend Development
-47. [ ] `feat: add friendship and friend request models`
-48. [ ] `feat: implement friend request send and respond`
-49. [ ] `feat: create comment and like models`
-50. [ ] `feat: add note sharing with visibility controls`
-51. [ ] `feat: implement shared tasks with participants`
+44. [ ] `feat: add friendship and friend request models`
+45. [ ] `feat: implement friend request send and respond`
+46. [ ] `feat: create comment and like models`
+47. [ ] `feat: add note sharing with visibility controls`
+48. [ ] `feat: implement shared tasks with participants`
 
 #### Web Frontend
-52. [ ] `feat: add user search and friend request ui`
-53. [ ] `feat: create friends activity feed`
-54. [ ] `feat: implement comments and likes on shared notes`
-55. [ ] `feat: display shared tasks in calendar view`
+49. [ ] `feat: add user search and friend request ui`
+50. [ ] `feat: create friends activity feed`
+51. [ ] `feat: implement comments and likes on shared notes`
+52. [ ] `feat: display shared tasks in calendar view`
 
 #### Mobile Development
-56. [ ] `feat: add mobile friends management screen`
-57. [ ] `feat: implement shared note viewing on mobile`
-58. [ ] `feat: build mobile comment interface`
+53. [ ] `feat: add mobile friends management screen`
+54. [ ] `feat: implement shared note viewing on mobile`
+55. [ ] `feat: build mobile comment interface`
 
 ### ✅ Demo Checkpoint
 - [ ] User adds friends
@@ -369,20 +412,20 @@ Add direct messaging and implement offline functionality for uninterrupted use.
 ### Progress: 0/12 tickets
 
 #### Backend Development
-59. [ ] `feat: add conversation and message models`
-60. [ ] `feat: implement dm send and retrieve endpoints`
-61. [ ] `feat: create sync checkpoint for offline support`
+56. [ ] `feat: add conversation and message models`
+57. [ ] `feat: implement dm send and retrieve endpoints`
+58. [ ] `feat: create sync checkpoint for offline support`
 
 #### Web Frontend
-62. [ ] `feat: add direct message inbox ui`
-63. [ ] `feat: implement chat view with message bubbles`
-64. [ ] `feat: build message input with emoji support`
+59. [ ] `feat: add direct message inbox ui`
+60. [ ] `feat: implement chat view with message bubbles`
+61. [ ] `feat: build message input with emoji support`
 
 #### Mobile Development
-65. [ ] `feat: add mobile messaging interface`
-66. [ ] `feat: add offline storage for notes and tasks`
-67. [ ] `feat: implement sync on reconnect`
-68. [ ] `feat: show offline/sync status in ui`
+62. [ ] `feat: add mobile messaging interface`
+63. [ ] `feat: add offline storage for notes and tasks`
+64. [ ] `feat: implement sync on reconnect`
+65. [ ] `feat: show offline/sync status in ui`
 
 ### ✅ Demo Checkpoint
 - [ ] User sends messages to friends
@@ -401,22 +444,22 @@ Add career management features - resume uploads with AI feedback and application
 ### Progress: 0/12 tickets
 
 #### Backend Development
-69. [ ] `feat: add resume pdf upload endpoint`
-70. [ ] `feat: add resume and feedback models`
-71. [ ] `feat: implement ai resume analysis`
-72. [ ] `feat: add application tracking model and endpoints`
-73. [ ] `feat: create applications dashboard endpoint`
+66. [ ] `feat: add resume pdf upload endpoint`
+67. [ ] `feat: add resume and feedback models`
+68. [ ] `feat: implement ai resume analysis`
+69. [ ] `feat: add application tracking model and endpoints`
+70. [ ] `feat: create applications dashboard endpoint`
 
 #### Web Frontend
-74. [ ] `feat: create resume upload with drag and drop`
-75. [ ] `feat: build resume feedback display component`
-76. [ ] `feat: implement application pipeline dashboard`
-77. [ ] `feat: add application detail modal with networking`
+71. [ ] `feat: create resume upload with drag and drop`
+72. [ ] `feat: build resume feedback display component`
+73. [ ] `feat: implement application pipeline dashboard`
+74. [ ] `feat: add application detail modal with networking`
 
 #### Mobile Development
-78. [ ] `feat: add mobile resume management screen`
-79. [ ] `feat: implement mobile application tracking`
-80. [ ] `feat: build application status update ui`
+75. [ ] `feat: add mobile resume management screen`
+76. [ ] `feat: implement mobile application tracking`
+77. [ ] `feat: build application status update ui`
 
 ### ✅ Demo Checkpoint
 - [ ] User uploads resumes
@@ -436,26 +479,26 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 ### Progress: 0/14 tickets
 
 #### Backend Hardening
-81. [ ] `feat: implement api rate limiting`
-82. [ ] `refactor: standardize error responses`
-83. [ ] `perf: add indexes and optimize queries`
+78. [ ] `feat: implement api rate limiting`
+79. [ ] `refactor: standardize error responses`
+80. [ ] `perf: add indexes and optimize queries`
 
 #### Frontend Polish
-84. [ ] `ui: add loading skeletons and spinners`
-85. [ ] `feat: add error boundaries with fallback ui`
-86. [ ] `fix: responsive layout improvements`
-87. [ ] `ui: smooth animations and transitions`
+81. [ ] `ui: add loading skeletons and spinners`
+82. [ ] `feat: add error boundaries with fallback ui`
+83. [ ] `fix: responsive layout improvements`
+84. [ ] `ui: smooth animations and transitions`
 
 #### Testing & QA
-88. [ ] `test: add integration test suite`
-89. [ ] `fix: resolve [specific bug description]`
-90. [ ] `test: verify offline sync edge cases`
+85. [ ] `test: add integration test suite`
+86. [ ] `fix: resolve [specific bug description]`
+87. [ ] `test: verify offline sync edge cases`
 
 #### Showcase Preparation
-91. [ ] `docs: prepare demo script`
-92. [ ] `feat: create sample data for demo`
-93. [ ] `docs: record backup demo video`
-94. [ ] `test: verify functionality on multiple devices`
+88. [ ] `docs: prepare demo script`
+89. [ ] `feat: create sample data for demo`
+90. [ ] `docs: record backup demo video`
+91. [ ] `test: verify functionality on multiple devices`
 
 ### ✅ Showcase - April 10
 - [ ] Complete product demo showing full student workflow
@@ -467,8 +510,8 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 ## 📊 Progress Summary
 
 ### Sprint Completion
-- [ ] Sprint 0: Design & Planning (0/2 pages, 0/56 screens)
-- [ ] Sprint 1: Foundation Layer (0/13)
+- [ ] Sprint 0: Design & Planning (0/2 pages, 0/56 screens, 0/4 project setups)
+- [ ] Sprint 1: Foundation Layer (0/10)
 - [ ] Sprint 2: Content Foundation (0/11)
 - [ ] Sprint 3: Active Learning (0/12)
 - [ ] Sprint 4: Time Management (0/11)

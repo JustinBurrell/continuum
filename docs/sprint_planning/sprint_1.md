@@ -4,6 +4,8 @@
 ## 🎯 Sprint Objectives
 Build the foundational authentication and infrastructure that everything else depends on. Get basic app running on web and mobile.
 
+**Prerequisites**: Sprint 0 must be complete - all three projects (backend, web, mobile) should be initialized and running.
+
 **Key Learning Goals:**
 - Understand JWT authentication flow
 - Set up MongoDB with Mongoose schemas
@@ -16,53 +18,22 @@ Build the foundational authentication and infrastructure that everything else de
 
 ## 📋 Detailed Task Breakdown
 
-### Backend Setup (Tickets 1-5)
+### Backend Setup (Tickets 1-4)
 
-#### Ticket 1: Initialize Express Server
-**Commit**: `feat: initialize express server with cors and body-parser`
-
-**What to Learn:**
-- Express.js middleware architecture
-- CORS configuration for cross-origin requests
-- Body parsing for JSON and URL-encoded data
-
-**Implementation Steps:**
-1. Initialize Node.js project with `npm init`
-2. Install Express, CORS, body-parser, dotenv
-3. Create `server.js` entry point
-4. Set up basic Express app with middleware
-5. Configure environment variables
-6. Add health check endpoint
-
-**Acceptance Criteria:**
-- Server starts on configured port
-- CORS allows requests from frontend origin
-- JSON and form data parsing works
-- Health endpoint returns 200
-
-**Resources:**
-- Express.js documentation
-- CORS middleware docs
-- Environment variable best practices
-
----
-
-#### Ticket 2: MongoDB Connection & User Model
-**Commit**: `feat: add mongodb connection and user model`
+#### Ticket 1: User Model with Password Hashing
+**Commit**: `feat: add user model with password hashing`
 
 **What to Learn:**
-- MongoDB connection patterns
 - Mongoose schema design
 - User authentication data modeling
 - Password hashing with bcrypt
 
 **Implementation Steps:**
-1. Install mongoose and bcrypt
-2. Create database connection utility
-3. Design User schema (email, password hash, name, createdAt)
-4. Add password hashing middleware
-5. Create user model methods (comparePassword)
-6. Test connection and model creation
+1. Install bcrypt (mongoose should already be installed from Sprint 0)
+2. Design User schema (email, password hash, name, createdAt)
+3. Add password hashing middleware
+4. Create user model methods (comparePassword)
+5. Test model creation and password hashing
 
 **Acceptance Criteria:**
 - Database connects successfully
@@ -77,7 +48,7 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-#### Ticket 3: JWT Authentication Endpoints
+#### Ticket 2: JWT Authentication Endpoints
 **Commit**: `feat: implement jwt authentication endpoints`
 
 **What to Learn:**
@@ -108,7 +79,7 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-#### Ticket 4: Google OAuth Integration
+#### Ticket 3: Google OAuth Integration
 **Commit**: `feat: add google oauth integration`
 
 **What to Learn:**
@@ -139,7 +110,7 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-#### Ticket 5: JWT Verification Middleware
+#### Ticket 4: JWT Verification Middleware
 **Commit**: `feat: add jwt verification middleware`
 
 **What to Learn:**
@@ -169,39 +140,9 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-### Web Frontend (Tickets 6-9)
+### Web Frontend (Tickets 5-7)
 
-#### Ticket 6: Initialize React App with Router
-**Commit**: `feat: initialize react app with router`
-
-**What to Learn:**
-- React app structure and organization
-- React Router setup and configuration
-- Component architecture patterns
-- Project folder structure
-
-**Implementation Steps:**
-1. Create React app with Vite or Create React App
-2. Install React Router DOM
-3. Set up route structure (/, /login, /register, /dashboard)
-4. Create basic layout components
-5. Configure routing with BrowserRouter
-6. Add navigation structure
-
-**Acceptance Criteria:**
-- App runs without errors
-- Routes navigate correctly
-- Basic layout renders
-- Router history works
-
-**Resources:**
-- React Router documentation
-- React project structure guides
-- Vite/React setup tutorials
-
----
-
-#### Ticket 7: Login and Registration Forms
+#### Ticket 5: Login and Registration Forms
 **Commit**: `feat: add login and registration forms`
 
 **What to Learn:**
@@ -232,7 +173,7 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-#### Ticket 8: Auth Context and Protected Routing
+#### Ticket 6: Auth Context and Protected Routing
 **Commit**: `feat: add auth context and protected routing`
 
 **What to Learn:**
@@ -263,7 +204,7 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-#### Ticket 9: Dashboard Shell with Navigation
+#### Ticket 7: Dashboard Shell with Navigation
 **Commit**: `feat: create dashboard shell with navigation`
 
 **What to Learn:**
@@ -293,39 +234,9 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-### Mobile App (Tickets 10-13)
+### Mobile App (Tickets 8-10)
 
-#### Ticket 10: Initialize Expo React Native Project
-**Commit**: `feat: initialize expo react native project`
-
-**What to Learn:**
-- Expo CLI and project structure
-- React Native basics
-- Mobile app architecture
-- Development workflow
-
-**Implementation Steps:**
-1. Install Expo CLI
-2. Create new Expo project
-3. Understand project structure
-4. Set up development environment
-5. Test on iOS simulator/Android emulator
-6. Configure app.json
-
-**Acceptance Criteria:**
-- Expo app runs on simulator
-- Hot reload works
-- Project structure is organized
-- App displays basic screen
-
-**Resources:**
-- Expo documentation
-- React Native basics
-- Expo development workflow
-
----
-
-#### Ticket 11: Configure React Navigation with Auth Flow
+#### Ticket 8: Configure React Navigation with Auth Flow
 **Commit**: `feat: configure react navigation with auth flow`
 
 **What to Learn:**
@@ -355,7 +266,7 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-#### Ticket 12: Login Screen with Google OAuth
+#### Ticket 9: Login Screen with Google OAuth
 **Commit**: `feat: add login screen with google oauth`
 
 **What to Learn:**
@@ -387,7 +298,7 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-#### Ticket 13: Secure Token Storage
+#### Ticket 10: Secure Token Storage
 **Commit**: `feat: add secure token storage with async storage`
 
 **What to Learn:**
