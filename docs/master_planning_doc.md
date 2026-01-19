@@ -10,7 +10,7 @@
 
 ## Project Understanding
 
-**Related Documents**: [Product Requirements Document](./product/product_requirements_document.md) | [Proof of Concept](./product/proof_of_concept.md) | [Design Breakdown](./design/design_breakdown.md) | [Cheat Sheet](./design/continuum_cheat_sheet.md)
+**Related Documents**: [Product Requirements Document](./product/product_requirements_document.md) | [Proof of Concept](./product/proof_of_concept.md) | [Design Breakdown](./design/design_breakdown.md) | [Cheat Sheet](./design/continuum_cheat_sheet.md) | [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) | [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md)
 
 ### Core Problem
 Students manage their academic and professional lives across 8-12 disconnected applications, causing:
@@ -198,7 +198,7 @@ Continuum unifies:
 
 2. [ ] `feat: add mongodb connection and basic setup`
    - Install mongoose
-   - Create database connection utility
+   - Create database connection utility (see [Database Connection Setup](./database/mongodb_schema_implementation_order.md#database-connection-setup))
    - Test MongoDB connection
    - Set up basic project structure (`/routes`, `/models`, `/middleware`, `/config`)
 
@@ -241,10 +241,19 @@ Continuum unifies:
 
 ## Sprint 1: Foundation Layer
 **February 16-22 | Core Infrastructure**  
-[Detailed Sprint Plan](./sprint_planning/sprint_1.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_1.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-1-foundation-week-1)
 
 ### Sprint Objectives
 Build the foundational authentication and infrastructure that everything else depends on. Get basic app running on web and mobile.
+
+### Database
+**Models to implement**: 1
+
+| Model | File | Purpose |
+|-------|------|---------|
+| User | `src/models/User.js` | Authentication, profiles, Google OAuth (email, username, passwordHash, googleId, settings, deletedAt). Pre-save: bcrypt hash. Indexes: email, username, googleId (sparse). |
+
+See [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md#authentication-sprint-1) for data flow and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-1-foundation-week-1) for full schema.
 
 ### Progress: 0/10 tickets
 
@@ -272,10 +281,20 @@ Build the foundational authentication and infrastructure that everything else de
 
 ## Sprint 2: Content Foundation
 **February 23 - March 1 | Google Docs & Notes**  
-[Detailed Sprint Plan](./sprint_planning/sprint_2.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_2.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-2-content-foundation-week-2)
 
 ### Sprint Objectives
 Connect to Google Drive, import docs as notes, and build note viewing/management features.
+
+### Database
+**Models to implement**: 2
+
+| Model | File | Purpose |
+|-------|------|---------|
+| Note | `src/models/Note.js` | Google Docs imports, native notes (userId, title, content, googleDocId, tags, visibility, sharedWith, hasSummary, hasFlashcards, deletedAt). Text index on title, content, tags. |
+| NoteSummary | `src/models/NoteSummary.js` | AI summaries per note (noteId, userId, quickSummary, detailedSummary, generatedAt, model, deletedAt). Index: noteId. |
+
+See [Notes & Content (Sprint 2)](./database/mongodb_schema_explaination.md#notes--content-sprint-2) and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-2-content-foundation-week-2).
 
 ### Progress: 0/11 tickets
 
@@ -304,10 +323,20 @@ Connect to Google Drive, import docs as notes, and build note viewing/management
 
 ## Sprint 3: Active Learning
 **March 2-8 | AI Summaries & Flashcards**  
-[Detailed Sprint Plan](./sprint_planning/sprint_3.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_3.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-3-active-learning-week-3)
 
 ### Sprint Objectives
 Add AI-powered study tools - summaries and flashcards with study interface.
+
+### Database
+**Models to implement**: 2
+
+| Model | File | Purpose |
+|-------|------|---------|
+| FlashcardSet | `src/models/FlashcardSet.js` | Container for flashcards (userId, noteId, title, totalCards, visibility, isAIGenerated, deletedAt). Virtual: flashcards. |
+| Flashcard | `src/models/Flashcard.js` | Cards with study progress (setId, front, back, userProgress[], order, deletedAt). Indexes: setId+order, userProgress.userId. |
+
+See [AI Learning (Sprint 3)](./database/mongodb_schema_explaination.md#ai-learning-sprint-3) and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-3-active-learning-week-3).
 
 ### Progress: 0/12 tickets
 
@@ -336,10 +365,19 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 
 ## Sprint 4: Time Management
 **March 9-15 | Tasks & Calendar**  
-[Detailed Sprint Plan](./sprint_planning/sprint_4.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_4.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-4-time-management-week-4)
 
 ### Sprint Objectives
 Build task management with calendar views to track assignments and deadlines.
+
+### Database
+**Models to implement**: 1
+
+| Model | File | Purpose |
+|-------|------|---------|
+| Task | `src/models/Task.js` | Tasks and calendar (userId, noteId, title, dueDate, type, priority, status, isShared, participants, completedAt, deletedAt). Virtual: isOverdue. Pre-save: set completedAt when status=completed. Indexes: userId+dueDate, participants+isShared, dueDate+status. |
+
+See [Tasks & Calendar (Sprint 4)](./database/mongodb_schema_explaination.md#tasks--calendar-sprint-4) and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-4-time-management-week-4).
 
 ### Progress: 0/11 tickets
 
@@ -369,10 +407,20 @@ Build task management with calendar views to track assignments and deadlines.
 
 ## Sprint 5: Collaboration Layer
 **March 16-22 | Friends & Sharing**  
-[Detailed Sprint Plan](./sprint_planning/sprint_5.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_5.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-5-collaboration-layer-week-5)
 
 ### Sprint Objectives
 Enable social features - friend system, sharing notes, comments, and shared tasks.
+
+### Database
+**Models to implement**: 2
+
+| Model | File | Purpose |
+|-------|------|---------|
+| Friendship | `src/models/Friendship.js` | Friend requests and relationships (user1, user2 with user1&lt;user2, requestedBy, status: pending/accepted/rejected/blocked, deletedAt). Pre-save: enforce user1&lt;user2. Unique compound: user1+user2. |
+| Comment | `src/models/Comment.js` | Comments on notes/flashcard sets (targetId, targetType, userId, content, parentId, likes, userSnapshot, deletedAt). Pre-save: snapshot user. Indexes: targetId+targetType, userId. |
+
+See [Social Features (Sprint 5)](./database/mongodb_schema_explaination.md#social-features-sprint-5) and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-5-collaboration-layer-week-5).
 
 ### Progress: 0/12 tickets
 
@@ -404,10 +452,21 @@ Enable social features - friend system, sharing notes, comments, and shared task
 
 ## Sprint 6: Messaging & Offline
 **March 23-29 | DMs & Offline Support**  
-[Detailed Sprint Plan](./sprint_planning/sprint_6.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_6.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-6-messaging--offline-week-6)
 
 ### Sprint Objectives
 Add direct messaging and implement offline functionality for uninterrupted use.
+
+### Database
+**Models to implement**: 3
+
+| Model | File | Purpose |
+|-------|------|---------|
+| Conversation | `src/models/Conversation.js` | DM containers (participants[2], lastMessage {senderId, content, sentAt}, unreadCounts[], deletedAt). Denormalized lastMessage for inbox. |
+| Message | `src/models/Message.js` | Messages in conversations (conversationId, senderId, content, readBy[], clientTimestamp, syncStatus, deletedAt). Indexes: conversationId+createdAt, senderId. |
+| SyncQueue | `src/models/SyncQueue.js` | Offline operation queue (userId, operation, collection, documentId, data, status, clientTimestamp, processedAt). Indexes: userId+status+clientTimestamp, status+createdAt. |
+
+See [Messaging (Sprint 6)](./database/mongodb_schema_explaination.md#messaging-sprint-6), [Offline Sync (Sprint 6)](./database/mongodb_schema_explaination.md#offline-sync-sprint-6), and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-6-messaging--offline-week-6).
 
 ### Progress: 0/12 tickets
 
@@ -436,10 +495,21 @@ Add direct messaging and implement offline functionality for uninterrupted use.
 
 ## Sprint 7: Career Tools
 **March 30 - April 5 | Resumes & Applications**  
-[Detailed Sprint Plan](./sprint_planning/sprint_7.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_7.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-7-career-tools-week-7)
 
 ### Sprint Objectives
 Add career management features - resume uploads with AI feedback and application tracking dashboard.
+
+### Database
+**Models to implement**: 3
+
+| Model | File | Purpose |
+|-------|------|---------|
+| Resume | `src/models/Resume.js` | Resume files (userId, fileName, fileUrl, fileSize, version, targetRole, hasFeedback, deletedAt). Virtual: latestFeedback. |
+| ResumeFeedback | `src/models/ResumeFeedback.js` | AI resume analysis (resumeId, userId, overallScore, strengths, improvements, sections[], keywordOptimization, model, generatedAt, deletedAt). |
+| Application | `src/models/Application.js` | Job tracking (userId, company, position, status, appliedAt, contacts[], notes, resumeUsed, followUpReminders[], deletedAt). Indexes: userId+status, userId+deadlineDate. |
+
+See [Career Tools (Sprint 7)](./database/mongodb_schema_explaination.md#career-tools-sprint-7) and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-7-career-tools-week-7).
 
 ### Progress: 0/12 tickets
 
@@ -471,10 +541,19 @@ Add career management features - resume uploads with AI feedback and application
 
 ## Sprint 8: Polish & Launch
 **April 6-10 | Final Testing & Showcase Prep**  
-[Detailed Sprint Plan](./sprint_planning/sprint_8.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_8.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-8-polish-week-8)
 
 ### Sprint Objectives
 Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
+
+### Database
+**Models to implement**: 1 (optional)
+
+| Model | File | Purpose |
+|-------|------|---------|
+| Activity | `src/models/Activity.js` | Social activity feed (userId, type, targetId, targetType, visibleTo[], metadata, createdAt). TTL index: expire after 90 days. Indexes: visibleTo+createdAt, userId+type+createdAt. |
+
+See [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-8-polish-week-8). No dedicated data-flow section in Schema Explanation; Activity supports the social/activity feed.
 
 ### Progress: 0/14 tickets
 
@@ -560,6 +639,8 @@ Each sprint has a detailed plan in `docs/sprint_planning/` with:
 - **Acceptance Criteria**: How to know it's done
 - **Resources**: Links and documentation
 - **Common Issues**: Troubleshooting tips
+
+**Database**: Each sprint's models, schemas, and data flow are in [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) and [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md). The master doc's Database subsection per sprint links to the relevant sections.
 
 **Workflow**: 
 1. Check current ticket number in "Current Status"
