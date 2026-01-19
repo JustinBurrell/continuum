@@ -8,9 +8,9 @@
 
 ---
 
-## 📋 Project Understanding
+## Project Understanding
 
-📄 **Related Documents**: [Product Requirements Document](./product/product_requirements_document.md) | [Proof of Concept](./product/proof_of_concept.md) | [Design Breakdown](./design/design_breakdown.md) | [Cheat Sheet](./design/continuum_cheat_sheet.md)
+**Related Documents**: [Product Requirements Document](./product/product_requirements_document.md) | [Proof of Concept](./product/proof_of_concept.md) | [Design Breakdown](./design/design_breakdown.md) | [Cheat Sheet](./design/continuum_cheat_sheet.md)
 
 ### Core Problem
 Students manage their academic and professional lives across 8-12 disconnected applications, causing:
@@ -41,7 +41,7 @@ Continuum unifies:
 
 ---
 
-## 🎯 Overall Progress
+## Overall Progress
 
 **Total Sprints**: 9 (1 Design Sprint + 8 Development Sprints)  
 **Completed Sprints**: 0/9  
@@ -51,7 +51,7 @@ Continuum unifies:
 
 ---
 
-## 📍 Current Status
+## Current Status
 
 **Current Ticket**: Page 1 - Core Flows (Auth, Notes, Flashcards, Tasks)  
 **Sprint**: Sprint 0 - Design & Planning  
@@ -61,11 +61,11 @@ Continuum unifies:
 
 ---
 
-## 🎨 Sprint 0: Design & Planning
+## Sprint 0: Design & Planning
 **Pre-Sprint | Figma Design Creation & Project Setup**  
-📖 [Design Breakdown Reference](./design/design_breakdown.md) | [Figma Breakdown](./design/figma_breakdown.md)
+[Design Breakdown Reference](./design/design_breakdown.md) | [Figma Breakdown](./design/figma_breakdown.md)
 
-### 🎯 Sprint Objectives
+### Sprint Objectives
 1. Create complete Figma designs for all web and mobile pages before starting development
 2. Set up base project structure for backend, web, and mobile applications
 3. Initialize all three projects with proper configuration
@@ -76,7 +76,7 @@ Continuum unifies:
 
 ---
 
-## 📄 Page 1: Core Flows (Auth, Notes, Flashcards, Tasks)
+## Page 1: Core Flows (Auth, Notes, Flashcards, Tasks)
 **Total**: 15 web screens + 15 mobile screens = 30 designs
 
 ### Mobile Screens (15)
@@ -115,7 +115,7 @@ Continuum unifies:
 
 ---
 
-## 📄 Page 2: Social, Career & Settings
+## Page 2: Social, Career & Settings
 **Total**: 13 web screens + 13 mobile screens = 26 designs
 
 ### Mobile Screens (13)
@@ -150,7 +150,7 @@ Continuum unifies:
 
 ---
 
-## 🧩 Shared Components
+## Shared Components
 **Design once and reuse across all screens**:
 - [ ] Buttons (primary, secondary, icon)
 - [ ] Input fields
@@ -165,7 +165,7 @@ Continuum unifies:
 
 ---
 
-## ✅ Design Checklist
+## Design Checklist
 
 ### Before Building Each Screen:
 - [ ] Frame created with correct dimensions (Web: 1440 x 900px, Mobile: 390 x 844px)
@@ -185,10 +185,10 @@ Continuum unifies:
 
 ---
 
-## 🛠️ Project Setup
+## Project Setup
 
 ### Backend Setup
-1. [ ] `feat: initialize express server with cors and body-parser`
+1. [x] `feat: initialize express server with cors and body-parser`
    - Initialize Node.js project with `npm init`
    - Install Express, CORS, body-parser, dotenv
    - Create `server.js` entry point
@@ -203,7 +203,7 @@ Continuum unifies:
    - Set up basic project structure (`/routes`, `/models`, `/middleware`, `/config`)
 
 ### Web Frontend Setup
-3. [ ] `feat: initialize react app with router`
+3. [x] `feat: initialize react app with router`
    - Create React app with Vite or Create React App
    - Install React Router DOM
    - Set up basic route structure
@@ -211,7 +211,7 @@ Continuum unifies:
    - Configure routing with BrowserRouter
 
 ### Mobile App Setup
-4. [ ] `feat: initialize expo react native project`
+4. [x] `feat: initialize expo react native project`
    - Install Expo CLI
    - Create new Expo project
    - Set up project structure (`/screens`, `/components`, `/navigation`, `/utils`, `/context`)
@@ -220,7 +220,7 @@ Continuum unifies:
 
 ---
 
-### ✅ Sprint 0 Checkpoint
+### Sprint 0 Checkpoint
 **Design:**
 - [ ] Page 1 designs complete (30 screens)
 - [ ] Page 2 designs complete (26 screens)
@@ -239,11 +239,11 @@ Continuum unifies:
 
 ---
 
-## 🏗️ Sprint 1: Foundation Layer
+## Sprint 1: Foundation Layer
 **February 16-22 | Core Infrastructure**  
-📖 [Detailed Sprint Plan](./sprint_planning/sprint_1.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_1.md)
 
-### 🎯 Sprint Objectives
+### Sprint Objectives
 Build the foundational authentication and infrastructure that everything else depends on. Get basic app running on web and mobile.
 
 ### Progress: 0/10 tickets
@@ -264,17 +264,17 @@ Build the foundational authentication and infrastructure that everything else de
 9. [ ] `feat: add login screen with google oauth`
 10. [ ] `feat: add secure token storage with async storage`
 
-### ✅ Demo Checkpoint
+### Demo Checkpoint
 - [ ] User registers/logs in via email or Google on web and mobile
 - [ ] Session persists across restarts
 
 ---
 
-## 📚 Sprint 2: Content Foundation
+## Sprint 2: Content Foundation
 **February 23 - March 1 | Google Docs & Notes**  
-📖 [Detailed Sprint Plan](./sprint_planning/sprint_2.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_2.md)
 
-### 🎯 Sprint Objectives
+### Sprint Objectives
 Connect to Google Drive, import docs as notes, and build note viewing/management features.
 
 ### Progress: 0/11 tickets
@@ -296,17 +296,17 @@ Connect to Google Drive, import docs as notes, and build note viewing/management
 20. [ ] `feat: create mobile scrollable note viewer`
 21. [ ] `feat: implement note import and refresh on mobile`
 
-### ✅ Demo Checkpoint
+### Demo Checkpoint
 - [ ] User browses Google Drive, imports docs as notes
 - [ ] User views/edits notes on web and mobile
 
 ---
 
-## 🧠 Sprint 3: Active Learning
+## Sprint 3: Active Learning
 **March 2-8 | AI Summaries & Flashcards**  
-📖 [Detailed Sprint Plan](./sprint_planning/sprint_3.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_3.md)
 
-### 🎯 Sprint Objectives
+### Sprint Objectives
 Add AI-powered study tools - summaries and flashcards with study interface.
 
 ### Progress: 0/12 tickets
@@ -328,17 +328,17 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 31. [ ] `feat: implement swipe gestures for flashcard navigation`
 32. [ ] `feat: add offline caching for flashcards`
 
-### ✅ Demo Checkpoint
+### Demo Checkpoint
 - [ ] User generates summaries and flashcards from notes
 - [ ] User studies using interactive flip interface
 
 ---
 
-## 📅 Sprint 4: Time Management
+## Sprint 4: Time Management
 **March 9-15 | Tasks & Calendar**  
-📖 [Detailed Sprint Plan](./sprint_planning/sprint_4.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_4.md)
 
-### 🎯 Sprint Objectives
+### Sprint Objectives
 Build task management with calendar views to track assignments and deadlines.
 
 ### Progress: 0/11 tickets
@@ -360,18 +360,18 @@ Build task management with calendar views to track assignments and deadlines.
 42. [ ] `feat: implement mobile calendar view`
 43. [ ] `feat: add swipe actions for task status`
 
-### ✅ Demo Checkpoint
+### Demo Checkpoint
 - [ ] User creates tasks linked to notes
 - [ ] User views tasks in calendar
 - [ ] User marks tasks complete
 
 ---
 
-## 🤝 Sprint 5: Collaboration Layer
+## Sprint 5: Collaboration Layer
 **March 16-22 | Friends & Sharing**  
-📖 [Detailed Sprint Plan](./sprint_planning/sprint_5.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_5.md)
 
-### 🎯 Sprint Objectives
+### Sprint Objectives
 Enable social features - friend system, sharing notes, comments, and shared tasks.
 
 ### Progress: 0/12 tickets
@@ -394,7 +394,7 @@ Enable social features - friend system, sharing notes, comments, and shared task
 54. [ ] `feat: implement shared note viewing on mobile`
 55. [ ] `feat: build mobile comment interface`
 
-### ✅ Demo Checkpoint
+### Demo Checkpoint
 - [ ] User adds friends
 - [ ] User shares notes
 - [ ] User comments on shared content
@@ -402,11 +402,11 @@ Enable social features - friend system, sharing notes, comments, and shared task
 
 ---
 
-## 💬 Sprint 6: Messaging & Offline
+## Sprint 6: Messaging & Offline
 **March 23-29 | DMs & Offline Support**  
-📖 [Detailed Sprint Plan](./sprint_planning/sprint_6.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_6.md)
 
-### 🎯 Sprint Objectives
+### Sprint Objectives
 Add direct messaging and implement offline functionality for uninterrupted use.
 
 ### Progress: 0/12 tickets
@@ -427,18 +427,18 @@ Add direct messaging and implement offline functionality for uninterrupted use.
 64. [ ] `feat: implement sync on reconnect`
 65. [ ] `feat: show offline/sync status in ui`
 
-### ✅ Demo Checkpoint
+### Demo Checkpoint
 - [ ] User sends messages to friends
 - [ ] User uses app fully offline (notes, flashcards, tasks)
 - [ ] App syncs when back online
 
 ---
 
-## 💼 Sprint 7: Career Tools
+## Sprint 7: Career Tools
 **March 30 - April 5 | Resumes & Applications**  
-📖 [Detailed Sprint Plan](./sprint_planning/sprint_7.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_7.md)
 
-### 🎯 Sprint Objectives
+### Sprint Objectives
 Add career management features - resume uploads with AI feedback and application tracking dashboard.
 
 ### Progress: 0/12 tickets
@@ -461,7 +461,7 @@ Add career management features - resume uploads with AI feedback and application
 76. [ ] `feat: implement mobile application tracking`
 77. [ ] `feat: build application status update ui`
 
-### ✅ Demo Checkpoint
+### Demo Checkpoint
 - [ ] User uploads resumes
 - [ ] User receives AI feedback
 - [ ] User creates application entries
@@ -469,11 +469,11 @@ Add career management features - resume uploads with AI feedback and application
 
 ---
 
-## 🚀 Sprint 8: Polish & Launch
+## Sprint 8: Polish & Launch
 **April 6-10 | Final Testing & Showcase Prep**  
-📖 [Detailed Sprint Plan](./sprint_planning/sprint_8.md)
+[Detailed Sprint Plan](./sprint_planning/sprint_8.md)
 
-### 🎯 Sprint Objectives
+### Sprint Objectives
 Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 
 ### Progress: 0/14 tickets
@@ -500,14 +500,14 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 90. [ ] `docs: record backup demo video`
 91. [ ] `test: verify functionality on multiple devices`
 
-### ✅ Showcase - April 10
+### Showcase - April 10
 - [ ] Complete product demo showing full student workflow
 - [ ] Demo: Google Docs import → AI learning → Task management → Collaboration → Career tools
 - [ ] Offline functionality demonstration
 
 ---
 
-## 📊 Progress Summary
+## Progress Summary
 
 ### Sprint Completion
 - [ ] Sprint 0: Design & Planning (0/2 pages, 0/56 screens, 0/4 project setups)
@@ -539,7 +539,7 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 
 ---
 
-## 📝 Notes & Adjustments
+## Notes & Adjustments
 
 ### Priority Order (if time runs short)
 1. **Must Have**: Auth, Notes, Tasks, Basic sharing
@@ -571,13 +571,13 @@ Each sprint has a detailed plan in `docs/sprint_planning/` with:
 
 ---
 
-## 🎯 Success Criteria
+## Success Criteria
 
 Each sprint succeeds when:
-- ✅ Demo checkpoint can be executed smoothly
-- ✅ Core functionality works on both web and mobile
-- ✅ No critical bugs in completed features
-- ✅ Code is committed and pushed to repository
+- Demo checkpoint can be executed smoothly
+- Core functionality works on both web and mobile
+- No critical bugs in completed features
+- Code is committed and pushed to repository
 
 **Remember**: Better to have fewer features working well than many features half-done. Focus on the demo story!
 

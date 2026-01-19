@@ -1,7 +1,7 @@
 # Sprint 6: Messaging & Offline
 **March 23-29 | DMs & Offline Support**
 
-## 🎯 Sprint Objectives
+## Sprint Objectives
 Add direct messaging and implement offline functionality for uninterrupted use.
 
 **Key Learning Goals:**
@@ -14,7 +14,7 @@ Add direct messaging and implement offline functionality for uninterrupted use.
 
 ---
 
-## 📋 Detailed Task Breakdown
+## Detailed Task Breakdown
 
 ### Backend Development (Tickets 59-61)
 
@@ -338,7 +338,7 @@ Add direct messaging and implement offline functionality for uninterrupted use.
 
 ---
 
-## ✅ Demo Checkpoint
+## Demo Checkpoint
 
 **What to Demonstrate:**
 1. User can send direct messages
@@ -358,7 +358,7 @@ Add direct messaging and implement offline functionality for uninterrupted use.
 
 ---
 
-## 📚 Learning Resources
+## Learning Resources
 
 ### Messaging Systems
 - Chat UI patterns
@@ -393,7 +393,7 @@ Add direct messaging and implement offline functionality for uninterrupted use.
 
 ---
 
-## 📝 Notes
+## Notes
 
 - Offline-first is complex - start simple
 - Sync conflicts need good UX

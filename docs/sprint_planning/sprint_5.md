@@ -1,7 +1,7 @@
 # Sprint 5: Collaboration Layer
 **March 16-22 | Friends & Sharing**
 
-## 🎯 Sprint Objectives
+## Sprint Objectives
 Enable social features - friend system, sharing notes, comments, and shared tasks.
 
 **Key Learning Goals:**
@@ -14,7 +14,7 @@ Enable social features - friend system, sharing notes, comments, and shared task
 
 ---
 
-## 📋 Detailed Task Breakdown
+## Detailed Task Breakdown
 
 ### Backend Development (Tickets 47-51)
 
@@ -396,7 +396,7 @@ Enable social features - friend system, sharing notes, comments, and shared task
 
 ---
 
-## ✅ Demo Checkpoint
+## Demo Checkpoint
 
 **What to Demonstrate:**
 1. User can search for other users
@@ -417,7 +417,7 @@ Enable social features - friend system, sharing notes, comments, and shared task
 
 ---
 
-## 📚 Learning Resources
+## Learning Resources
 
 ### Social Features
 - Friend system patterns
@@ -452,7 +452,7 @@ Enable social features - friend system, sharing notes, comments, and shared task
 
 ---
 
-## 📝 Notes
+## Notes
 
 - Focus on permission system - security is important
 - Friend requests need good UX

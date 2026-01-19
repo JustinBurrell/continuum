@@ -1,7 +1,7 @@
 # Sprint 7: Career Tools
 **March 30 - April 5 | Resumes & Applications**
 
-## 🎯 Sprint Objectives
+## Sprint Objectives
 Add career management features - resume uploads with AI feedback and application tracking dashboard.
 
 **Key Learning Goals:**
@@ -14,7 +14,7 @@ Add career management features - resume uploads with AI feedback and application
 
 ---
 
-## 📋 Detailed Task Breakdown
+## Detailed Task Breakdown
 
 ### Backend Development (Tickets 69-73)
 
@@ -406,7 +406,7 @@ Add career management features - resume uploads with AI feedback and application
 
 ---
 
-## ✅ Demo Checkpoint
+## Demo Checkpoint
 
 **What to Demonstrate:**
 1. User can upload resume PDF
@@ -426,7 +426,7 @@ Add career management features - resume uploads with AI feedback and application
 
 ---
 
-## 📚 Learning Resources
+## Learning Resources
 
 ### File Handling
 - File upload patterns
@@ -461,7 +461,7 @@ Add career management features - resume uploads with AI feedback and application
 
 ---
 
-## 📝 Notes
+## Notes
 
 - File uploads need good error handling
 - AI feedback should be actionable

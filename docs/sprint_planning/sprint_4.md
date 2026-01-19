@@ -1,7 +1,7 @@
 # Sprint 4: Time Management
 **March 9-15 | Tasks & Calendar**
 
-## 🎯 Sprint Objectives
+## Sprint Objectives
 Build task management with calendar views to track assignments and deadlines.
 
 **Key Learning Goals:**
@@ -14,7 +14,7 @@ Build task management with calendar views to track assignments and deadlines.
 
 ---
 
-## 📋 Detailed Task Breakdown
+## Detailed Task Breakdown
 
 ### Backend Development (Tickets 36-39)
 
@@ -370,7 +370,7 @@ Build task management with calendar views to track assignments and deadlines.
 
 ---
 
-## ✅ Demo Checkpoint
+## Demo Checkpoint
 
 **What to Demonstrate:**
 1. User can create tasks with due dates
@@ -390,7 +390,7 @@ Build task management with calendar views to track assignments and deadlines.
 
 ---
 
-## 📚 Learning Resources
+## Learning Resources
 
 ### Task Management
 - Task modeling patterns
@@ -425,7 +425,7 @@ Build task management with calendar views to track assignments and deadlines.
 
 ---
 
-## 📝 Notes
+## Notes
 
 - Focus on date handling - timezones are tricky
 - Calendar UI can be complex - consider using a library

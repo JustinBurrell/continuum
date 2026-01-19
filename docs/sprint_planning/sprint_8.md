@@ -1,7 +1,7 @@
 # Sprint 8: Polish & Launch
 **April 6-10 | Final Testing & Showcase Prep**
 
-## 🎯 Sprint Objectives
+## Sprint Objectives
 Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 
 **Key Learning Goals:**
@@ -14,7 +14,7 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 
 ---
 
-## 📋 Detailed Task Breakdown
+## Detailed Task Breakdown
 
 ### Backend Hardening (Tickets 81-83)
 
@@ -472,7 +472,7 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 
 ---
 
-## ✅ Showcase - April 10
+## Showcase - April 10
 
 **What to Demonstrate:**
 1. Complete product demo showing full student workflow
@@ -490,7 +490,7 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 
 ---
 
-## 📚 Learning Resources
+## Learning Resources
 
 ### Performance
 - Performance optimization
@@ -525,7 +525,7 @@ Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
 
 ---
 
-## 📝 Notes
+## Notes
 
 - Focus on polish and user experience
 - Performance is critical for demo

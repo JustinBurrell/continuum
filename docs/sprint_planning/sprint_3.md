@@ -1,7 +1,7 @@
 # Sprint 3: Active Learning
 **March 2-8 | AI Summaries & Flashcards**
 
-## 🎯 Sprint Objectives
+## Sprint Objectives
 Add AI-powered study tools - summaries and flashcards with study interface.
 
 **Key Learning Goals:**
@@ -14,7 +14,7 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 
 ---
 
-## 📋 Detailed Task Breakdown
+## Detailed Task Breakdown
 
 ### Backend Development (Tickets 25-28)
 
@@ -368,7 +368,7 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 
 ---
 
-## ✅ Demo Checkpoint
+## Demo Checkpoint
 
 **What to Demonstrate:**
 1. User can generate AI summary from a note
@@ -387,7 +387,7 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 
 ---
 
-## 📚 Learning Resources
+## Learning Resources
 
 ### AI/LLM Integration
 - OpenAI API documentation
@@ -422,7 +422,7 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 
 ---
 
-## 📝 Notes
+## Notes
 
 - Focus on prompt engineering for quality outputs
 - Cache aggressively to reduce API costs

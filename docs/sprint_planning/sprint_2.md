@@ -1,7 +1,7 @@
 # Sprint 2: Content Foundation
 **February 23 - March 1 | Google Docs & Notes**
 
-## 🎯 Sprint Objectives
+## Sprint Objectives
 Connect to Google Drive, import docs as notes, and build note viewing/management features.
 
 **Key Learning Goals:**
@@ -14,7 +14,7 @@ Connect to Google Drive, import docs as notes, and build note viewing/management
 
 ---
 
-## 📋 Detailed Task Breakdown
+## Detailed Task Breakdown
 
 ### Backend Development (Tickets 14-17)
 
@@ -378,7 +378,7 @@ Connect to Google Drive, import docs as notes, and build note viewing/management
 
 ---
 
-## ✅ Demo Checkpoint
+## Demo Checkpoint
 
 **What to Demonstrate:**
 1. User can browse their Google Drive documents
@@ -398,7 +398,7 @@ Connect to Google Drive, import docs as notes, and build note viewing/management
 
 ---
 
-## 📚 Learning Resources
+## Learning Resources
 
 ### Google APIs
 - Google Drive API documentation
@@ -433,7 +433,7 @@ Connect to Google Drive, import docs as notes, and build note viewing/management
 
 ---
 
-## 📝 Notes
+## Notes
 
 - Focus on understanding API integration patterns
 - Test with various document sizes and formats

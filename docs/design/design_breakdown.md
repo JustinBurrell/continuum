@@ -7,7 +7,7 @@ This document outlines all pages/screens needed for the Continuum application, o
 
 ---
 
-## 🎯 Design Overview
+## Design Overview
 
 **Total Screens**: 56 (28 Mobile + 28 Web)  
 **Figma Pages**: 2  
@@ -20,7 +20,7 @@ This document outlines all pages/screens needed for the Continuum application, o
 
 ---
 
-## 📄 Page 1: Core Flows (Auth, Notes, Flashcards, Tasks)
+## Page 1: Core Flows (Auth, Notes, Flashcards, Tasks)
 
 ### Mobile Screens (15)
 
@@ -60,7 +60,7 @@ This document outlines all pages/screens needed for the Continuum application, o
 
 ---
 
-## 📄 Page 2: Social, Career & Settings
+## Page 2: Social, Career & Settings
 
 ### Mobile Screens (13)
 
@@ -112,7 +112,7 @@ This document outlines all pages/screens needed for the Continuum application, o
 
 ---
 
-## 🎨 Layout Strategy
+## Layout Strategy
 
 ### Page Organization
 ```
@@ -131,7 +131,7 @@ Left Column (Web)          Gap (200px)          Right Column (Mobile)
 
 ---
 
-## ✅ Design Checklist
+## Design Checklist
 
 ### Before Building Each Screen:
 - [ ] Frame created with correct dimensions
@@ -151,7 +151,7 @@ Left Column (Web)          Gap (200px)          Right Column (Mobile)
 
 ---
 
-## 🚀 Build Priority
+## Build Priority
 
 ### Phase 1 (Week 1-2): Authentication & Notes
 - Landing, Login, Signup
@@ -180,7 +180,7 @@ Left Column (Web)          Gap (200px)          Right Column (Mobile)
 
 ---
 
-## 📊 Design Summary by Priority
+## Design Summary by Priority
 
 ### Phase 1: Core User Flow (MVP Priority)
 **Total**: 9 web pages + 9 mobile screens = 18 designs
@@ -305,7 +305,7 @@ Left Column (Web)          Gap (200px)          Right Column (Mobile)
 
 ---
 
-## 📝 Notes for Figma Design
+## Notes for Figma Design
 
 1. **Start with Design System**: Create color palette, typography, spacing, component library first
 2. **Mobile-First Approach**: Consider mobile constraints, then adapt to web

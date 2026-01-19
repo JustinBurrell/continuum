@@ -21,7 +21,7 @@
 
 ---
 
-## 📄 Google Integration & Notes
+##  Google Integration & Notes
 
 ### **Google Drive Integration**
 - `GET /google/drive/docs` - List available Google Docs for import
@@ -53,7 +53,7 @@
 
 ---
 
-## ✅ Task & Calendar Management
+##  Task & Calendar Management
 
 ### **Task Operations**
 - `POST /tasks` - Create task with due date, priority, duration, and optional note link
@@ -96,7 +96,7 @@
 
 ---
 
-## 💬 Direct Messaging
+##  Direct Messaging
 
 ### **Conversations**
 - `GET /dm/conversations` - List user's direct message conversations
@@ -109,7 +109,7 @@
 
 ---
 
-## 💼 Career Management
+##  Career Management
 
 ### **Resume Management**
 - `POST /resumes` - Upload resume PDF with label and target role (multipart/form-data)

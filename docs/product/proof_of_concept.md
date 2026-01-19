@@ -138,29 +138,29 @@ Testing integrated throughout (not just at end). Each sprint has clear demo chec
 ## MVP Feature Scope
 
 ### Must-Have (Weeks 1-4)
-✅ Google Docs import and note management  
-✅ AI summaries and flashcard generation  
-✅ Task creation and calendar visualization  
-✅ Basic authentication and data persistence
+Included Google Docs import and note management  
+Included AI summaries and flashcard generation  
+Included Task creation and calendar visualization  
+Included Basic authentication and data persistence
 
 ### Should-Have (Weeks 5-6)
-✅ Friend system and content sharing  
-✅ Comments and social interactions  
-✅ Direct messaging  
-✅ Offline functionality
+Included Friend system and content sharing  
+Included Comments and social interactions  
+Included Direct messaging  
+Included Offline functionality
 
 ### Nice-to-Have (Weeks 7-8)
-✅ Resume upload and AI feedback  
-✅ Application tracking dashboard  
-✅ Advanced calendar features  
-✅ UI polish and animations
+Included Resume upload and AI feedback  
+Included Application tracking dashboard  
+Included Advanced calendar features  
+Included UI polish and animations
 
 ### Explicitly Out of Scope
-❌ Real-time collaborative editing  
-❌ Continuous Google Docs sync  
-❌ LinkedIn integration  
-❌ Public social feeds  
-❌ Browser extensions
+Excluded Real-time collaborative editing  
+Excluded Continuous Google Docs sync  
+Excluded LinkedIn integration  
+Excluded Public social feeds  
+Excluded Browser extensions
 
 ---
 

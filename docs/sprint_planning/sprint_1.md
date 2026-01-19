@@ -1,7 +1,7 @@
 # Sprint 1: Foundation Layer
 **February 16-22 | Core Infrastructure**
 
-## 🎯 Sprint Objectives
+## Sprint Objectives
 Build the foundational authentication and infrastructure that everything else depends on. Get basic app running on web and mobile.
 
 **Prerequisites**: Sprint 0 must be complete - all three projects (backend, web, mobile) should be initialized and running.
@@ -16,7 +16,7 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-## 📋 Detailed Task Breakdown
+## Detailed Task Breakdown
 
 ### Backend Setup (Tickets 1-4)
 
@@ -328,7 +328,7 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-## ✅ Demo Checkpoint
+## Demo Checkpoint
 
 **What to Demonstrate:**
 1. User can register with email/password on web
@@ -346,7 +346,7 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-## 📚 Learning Resources
+## Learning Resources
 
 ### Authentication
 - JWT.io - Understanding JSON Web Tokens
@@ -386,7 +386,7 @@ Build the foundational authentication and infrastructure that everything else de
 
 ---
 
-## 📝 Notes
+## Notes
 
 - Focus on understanding the authentication flow, not just making it work
 - Test each commit before moving to the next

@@ -11,10 +11,10 @@ const connectDB = async () => {
       // Remove useNewUrlParser and useUnifiedTopology as they're default in Mongoose 6+
     });
 
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error(`❌ Error connecting to MongoDB: ${error.message}`);
-    console.log(`⚠️  Server will continue without database connection (for testing)`);
+    console.error(`Error connecting to MongoDB: ${error.message}`);
+    console.log(`Warning: Server will continue without database connection (for testing)`);
     // Don't exit in development - allows testing health endpoint without MongoDB
     if (process.env.NODE_ENV === 'production') {
       process.exit(1);

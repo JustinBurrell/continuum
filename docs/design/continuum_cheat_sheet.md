@@ -101,26 +101,26 @@ Every design decision should consider all users, including those with disabiliti
 ### Recommended Structure
 ```
 📁 Continuum Design System
-  📄 00 - Cover & Brand Guide
-  📄 01 - Colors & Typography
-  📄 02 - Components Library
-  📄 03 - Icons & Assets
+  Page 00 - Cover & Brand Guide
+  Page 01 - Colors & Typography
+  Page 02 - Components Library
+  Page 03 - Icons & Assets
   
 📁 Web Designs
-  📄 01 - Landing & Auth
-  📄 02 - Dashboard & Navigation
-  📄 03 - Notes & Learning
-  📄 04 - Tasks & Calendar
-  📄 05 - Social & Collaboration
-  📄 06 - Career & Applications
+  Page 01 - Landing & Auth
+  Page 02 - Dashboard & Navigation
+  Page 03 - Notes & Learning
+  Page 04 - Tasks & Calendar
+  Page 05 - Social & Collaboration
+  Page 06 - Career & Applications
   
 📁 Mobile Designs
-  📄 01 - Auth & Onboarding
-  📄 02 - Main Navigation
-  📄 03 - Notes & Learning
-  📄 04 - Tasks & Calendar
-  📄 05 - Social Features
-  📄 06 - Career Features
+  Page 01 - Auth & Onboarding
+  Page 02 - Main Navigation
+  Page 03 - Notes & Learning
+  Page 04 - Tasks & Calendar
+  Page 05 - Social Features
+  Page 06 - Career Features
 ```
 
 ---
