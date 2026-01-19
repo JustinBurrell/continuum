@@ -6,7 +6,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "emulator": "./start-android-emulator.sh",
+    "android:dev": "./start-android-emulator.sh && expo start --android"
   },
   "dependencies": {
     "expo": "~54.0.31",

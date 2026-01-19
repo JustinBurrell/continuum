@@ -1,0 +1,12 @@
+{
+  "name": "continuum",
+  "version": "1.0.0",
+  "description": "All-in-one educational platform unifying Google Docs, AI study tools, task management, and career tracking",
+  "private": true,
+  "workspaces": [],
+  "scripts": {
+    "web": "cd web && npm start",
+    "mobile": "cd mobile && npm start",
+    "backend": "cd backend && npm start"
+  }
+}
