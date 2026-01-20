@@ -196,7 +196,7 @@ Continuum unifies:
    - Configure environment variables
    - Add health check endpoint
 
-2. [ ] `feat: add mongodb connection and basic setup`
+2. [x] `feat: add mongodb connection and basic setup`
    - Install mongoose
    - Create database connection utility (see [Database Connection Setup](./database/mongodb_schema_implementation_order.md#database-connection-setup))
    - Test MongoDB connection
@@ -230,12 +230,12 @@ Continuum unifies:
 - [ ] Figma files organized and ready for development
 
 **Projects:**
-- [ ] Backend Express server runs and responds to health check
-- [ ] MongoDB connection established
-- [ ] React web app runs and displays basic routes
-- [ ] Expo mobile app runs on simulator/emulator
-- [ ] All three projects have proper folder structure
-- [ ] Git repository initialized with proper `.gitignore`
+- [x] Backend Express server runs and responds to health check
+- [x] MongoDB connection established
+- [x] React web app runs and displays basic routes
+- [x] Expo mobile app runs on simulator/emulator
+- [x] All three projects have proper folder structure
+- [x] Git repository initialized with proper `.gitignore`
 
 ---
 

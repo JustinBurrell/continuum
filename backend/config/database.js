@@ -6,19 +6,18 @@ const mongoose = require('mongoose');
  */
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      // These options are recommended for Mongoose 6+
-      // Remove useNewUrlParser and useUnifiedTopology as they're default in Mongoose 6+
-    });
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log(`Database: ${conn.connection.name}`);
+
+    // Enable query debugging in development
+    if (process.env.NODE_ENV === 'development') {
+      mongoose.set('debug', true);
+    }
   } catch (error) {
     console.error(`Error connecting to MongoDB: ${error.message}`);
-    console.log(`Warning: Server will continue without database connection (for testing)`);
-    // Don't exit in development - allows testing health endpoint without MongoDB
-    if (process.env.NODE_ENV === 'production') {
-      process.exit(1);
-    }
+    process.exit(1);
   }
 };
 

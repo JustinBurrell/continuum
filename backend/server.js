@@ -2,6 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const connectDB = require('./config/database');
+
+// Connect to MongoDB
+connectDB();
 
 // Initialize Express app
 const app = express();
