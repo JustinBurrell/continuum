@@ -198,7 +198,7 @@ const note = await Note.findById(noteId)
 1. User generates summary
    └─> POST /api/notes/:noteId/summary
    └─> Extract note.content
-   └─> Call LLM API (GPT-4, Claude, etc.)
+   └─> Call Groq API (Llama 3.1 70B)
    └─> NoteSummary.create({
        noteId,
        userId,
@@ -210,7 +210,7 @@ const note = await Note.findById(noteId)
 2. User generates flashcards
    └─> POST /api/notes/:noteId/flashcards
    └─> Extract note.content
-   └─> Call LLM API with "extract Q&A pairs" prompt
+   └─> Call Groq API (Llama 3.1 8B) with "extract Q&A pairs" prompt
    └─> FlashcardSet.create({ noteId, userId, title, isAIGenerated: true })
    └─> Flashcard.insertMany(cards.map(c => ({
        setId,
@@ -569,7 +569,7 @@ for (const item of pending) {
 2. Generate AI feedback
    └─> POST /api/resumes/:resumeId/feedback
    └─> Extract text from PDF (using pdf-parse or similar)
-   └─> Call LLM API with resume analysis prompt
+   └─> Call Groq API (Llama 3.1 70B) with resume analysis prompt
    └─> ResumeFeedback.create({
        resumeId,
        userId,

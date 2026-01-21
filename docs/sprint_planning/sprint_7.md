@@ -87,15 +87,15 @@ Add career management features - resume uploads with AI feedback and application
 
 **What to Learn:**
 - PDF text extraction
-- LLM analysis prompts
+- Groq API analysis prompts (Llama 3.1 70B)
 - Structured feedback
-- Cost management
+- Rate limit management
 
 **Implementation Steps:**
 1. Install PDF parsing library
 2. Extract text from PDF
 3. Design analysis prompt
-4. Call LLM API with resume text
+4. Call Groq API (Llama 3.1 70B) with resume text
 5. Parse structured feedback
 6. Store feedback in database
 7. Return feedback to client
@@ -105,11 +105,11 @@ Add career management features - resume uploads with AI feedback and application
 - Generates feedback
 - Feedback is structured
 - Stored correctly
-- Cost-effective
+- Respects rate limits
 
 **Resources:**
 - PDF parsing libraries
-- LLM analysis prompts
+- Groq AI Integration Strategy (../database/groq_ai_integration.md)
 - Text extraction
 
 ---
@@ -434,7 +434,7 @@ Add career management features - resume uploads with AI feedback and application
 - Storage solutions
 
 ### AI Analysis
-- LLM analysis prompts
+- Groq API prompts (Llama 3.1 70B)
 - Text extraction
 - Feedback generation
 

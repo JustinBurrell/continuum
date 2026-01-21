@@ -149,7 +149,7 @@ Continuum is designed to work seamlessly offline, with intelligent sync when con
 - **Web Frontend**: React with modern hooks and context
 - **Mobile**: React Native with Expo for iOS and Android
 - **External APIs**: Google Drive API, Google Docs API
-- **AI Integration**: LLM API for summaries, flashcards, and resume analysis
+- **AI Integration**: Groq API (Llama 3.1 models) for summaries, flashcards, and resume analysis
 - **Authentication**: JWT tokens with Google OAuth support
 
 ### Data Model Principles

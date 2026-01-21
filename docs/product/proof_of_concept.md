@@ -60,7 +60,7 @@ Store resume versions with AI-powered feedback on each iteration. Track every ap
 - **Database**: MongoDB with Mongoose ODM for flexible schemas
 - **Authentication**: JWT tokens + Google OAuth 2.0 integration
 - **File Storage**: Cloud storage (AWS S3 or similar) for resume PDFs
-- **AI Integration**: OpenAI API or Anthropic Claude for summaries, flashcards, and resume feedback
+- **AI Integration**: Groq API (Llama 3.1 models) for summaries, flashcards, and resume feedback
 
 **Frontend Development**
 - **Web Application**: React 18 with hooks and context for state management
@@ -72,7 +72,7 @@ Store resume versions with AI-powered feedback on each iteration. Track every ap
 **External Integrations**
 - **Google Drive API**: Document listing and retrieval
 - **Google Docs API**: Content extraction and parsing
-- **LLM APIs**: Text generation for educational content
+- **Groq API**: Text generation for educational content (Llama 3.1 70B/8B)
 
 **Development Tools**
 - **Version Control**: Git with conventional commits
@@ -122,7 +122,7 @@ Add resume management with AI feedback and application tracking dashboard. Final
 
 **Technical Risks**  
 Google API rate limits → Implement caching and request batching  
-LLM API costs → Set usage limits, cache responses aggressively  
+Groq API rate limits → Leverage free tier (14,400 requests/day), cache responses aggressively  
 Offline sync complexity → Use proven patterns, test extensively
 
 **Scope Risks**  

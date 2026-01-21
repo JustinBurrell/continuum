@@ -5,7 +5,7 @@
 Add AI-powered study tools - summaries and flashcards with study interface.
 
 **Key Learning Goals:**
-- LLM API integration (OpenAI/Anthropic)
+- Groq API integration (Llama 3.1 models)
 - Prompt engineering for educational content
 - Response caching strategies
 - Flashcard generation algorithms
@@ -18,34 +18,34 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 
 ### Backend Development (Tickets 25-28)
 
-#### Ticket 25: Integrate LLM API for Summary Generation
-**Commit**: `feat: integrate llm api for summary generation`
+#### Ticket 25: Integrate Groq API for Summary Generation
+**Commit**: `feat: integrate groq api for summary generation`
 
 **What to Learn:**
-- LLM API client setup
+- Groq API client setup (OpenAI-compatible format)
 - API key management
 - Request/response handling
 - Error handling and retries
-- Cost management
+- Rate limit management (14,400 requests/day free tier)
 
 **Implementation Steps:**
-1. Choose LLM provider (OpenAI or Anthropic)
-2. Install API client library
-3. Set up API key in environment
-4. Create LLM service utility
+1. Install Groq SDK or use OpenAI-compatible client
+2. Set up GROQ_API_KEY in environment
+3. Create Groq service utility
+4. Configure model selection (Llama 3.1 70B for summaries, 8B for flashcards)
 5. Implement basic API call function
 6. Add error handling and retries
 7. Add rate limiting protection
 
 **Acceptance Criteria:**
-- Can make API calls successfully
+- Can make Groq API calls successfully
 - Errors handled gracefully
 - API keys secure
 - Rate limiting respected
 
 **Resources:**
-- OpenAI API documentation
-- Anthropic API documentation
+- Groq API documentation (https://console.groq.com/docs)
+- Groq AI Integration Strategy (../database/groq_ai_integration.md)
 - API key security best practices
 
 ---
@@ -64,7 +64,7 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 2. Create POST /notes/:id/ai/summary endpoint
 3. Fetch note content
 4. Construct prompt with note content
-5. Call LLM API
+5. Call Groq API (Llama 3.1 70B)
 6. Parse and format response
 7. Cache summary in database
 8. Return summary to client
@@ -78,7 +78,7 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 **Resources:**
 - Prompt engineering guides
 - Caching strategies
-- LLM response parsing
+- Groq response parsing
 
 ---
 
@@ -86,7 +86,7 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 **Commit**: `feat: implement ai flashcard generation`
 
 **What to Learn:**
-- Structured output from LLMs
+- Structured output from Groq (Llama 3.1 8B)
 - Concept extraction
 - Question-answer pair generation
 - JSON parsing and validation
@@ -95,7 +95,7 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 1. Design flashcard generation prompt
 2. Create POST /notes/:id/ai/flashcards endpoint
 3. Extract key concepts from note
-4. Generate Q&A pairs via LLM
+4. Generate Q&A pairs via Groq API (Llama 3.1 8B for faster processing)
 5. Parse structured response (JSON)
 6. Validate flashcard format
 7. Store flashcards in database
@@ -108,7 +108,7 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 - Handles parsing errors
 
 **Resources:**
-- Structured LLM outputs
+- Structured Groq outputs
 - Concept extraction techniques
 - JSON schema validation
 
@@ -389,10 +389,10 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 
 ## Learning Resources
 
-### AI/LLM Integration
-- OpenAI API documentation
+### Groq AI Integration
+- Groq API documentation (https://console.groq.com/docs)
+- Groq AI Integration Strategy (../database/groq_ai_integration.md)
 - Prompt engineering guides
-- Cost optimization strategies
 
 ### Study Interfaces
 - Quizlet-style UI patterns
@@ -408,8 +408,8 @@ Add AI-powered study tools - summaries and flashcards with study interface.
 
 ## 🐛 Common Issues & Solutions
 
-**Issue**: LLM API rate limits
-- **Solution**: Implement caching, add retry logic, respect rate limits
+**Issue**: Groq API rate limits
+- **Solution**: Implement caching, add retry logic, respect rate limits (14,400 requests/day free tier)
 
 **Issue**: Flashcard generation quality
 - **Solution**: Refine prompts, add validation, allow manual editing

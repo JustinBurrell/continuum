@@ -10,7 +10,7 @@
 
 ## Project Understanding
 
-**Related Documents**: [Product Requirements Document](./product/product_requirements_document.md) | [Proof of Concept](./product/proof_of_concept.md) | [Design Breakdown](./design/design_breakdown.md) | [Cheat Sheet](./design/continuum_cheat_sheet.md) | [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) | [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md)
+**Related Documents**: [Product Requirements Document](./product/product_requirements_document.md) | [Proof of Concept](./product/proof_of_concept.md) | [Design Breakdown](./design/design_breakdown.md) | [Cheat Sheet](./design/continuum_cheat_sheet.md) | [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) | [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md) | [Groq AI Integration](./database/groq_ai_integration.md)
 
 ### Core Problem
 Students manage their academic and professional lives across 8-12 disconnected applications, causing:
@@ -341,7 +341,7 @@ See [AI Learning (Sprint 3)](./database/mongodb_schema_explaination.md#ai-learni
 ### Progress: 0/12 tickets
 
 #### Backend Development
-22. [ ] `feat: integrate llm api for summary generation`
+22. [ ] `feat: integrate groq api for summary generation`
 23. [ ] `feat: add note summary generation endpoint`
 24. [ ] `feat: implement ai flashcard generation`
 25. [ ] `feat: add flashcard model and crud endpoints`
