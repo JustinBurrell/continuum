@@ -16,7 +16,7 @@ function Navbar() {
       </Link>
 
       {/* Nav Links */}
-      <div className="flex items-center gap-4 sm:gap-6 md:gap-10 lg:gap-14 text-xs sm:text-sm md:text-base lg:text-lg text-black font-inter">
+      <div className="flex items-center gap-4 sm:gap-6 md:gap-10 lg:gap-14 text-xs sm:text-xs md:text-sm lg:text-base text-black font-inter">
         <a href="#product" className="hover:text-[#6b21a8] transition-colors">
           Product
         </a>
