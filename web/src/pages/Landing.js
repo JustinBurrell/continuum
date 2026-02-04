@@ -76,7 +76,7 @@ function Landing() {
       </div>
 
       {/* Navbar - uses its own sticky positioning */}
-      <div className="sticky top-0 z-50 bg-[#f8f9fa]/95 backdrop-blur-sm border-b border-purple-100/30 px-4 sm:px-6 md:px-10 py-2">
+      <div className="sticky top-0 z-50 bg-[#f8f9fa] border-b border-purple-100/30 px-4 sm:px-6 md:px-10 py-2">
         <Navbar />
       </div>
 
