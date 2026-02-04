@@ -17,12 +17,12 @@ function Navbar() {
 
       {/* Nav Links */}
       <div className="flex items-center gap-4 sm:gap-6 md:gap-10 lg:gap-14 text-xs sm:text-xs md:text-sm lg:text-base text-black font-inter">
-        <a href="#product" className="hover:text-[#6b21a8] transition-colors">
+        <Link to="/product" className="hover:text-[#6b21a8] transition-colors">
           Product
-        </a>
-        <a href="#about" className="hover:text-[#6b21a8] transition-colors hidden sm:block">
+        </Link>
+        <Link to="/about" className="hover:text-[#6b21a8] transition-colors hidden sm:block">
           About
-        </a>
+        </Link>
         <Link to="/login" className="hover:text-[#6b21a8] transition-colors">
           Log In
         </Link>
