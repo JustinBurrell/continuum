@@ -97,9 +97,9 @@ Continuum unifies:
 - [ ] Mobile - Calendar View
 
 ### Web Screens (15)
-- [ ] Web - Landing Page
-- [ ] Web - Login
-- [ ] Web - Signup
+- [x] Web - Landing Page
+- [x] Web - Login
+- [x] Web - Signup
 - [ ] Web - Dashboard Home
 - [ ] Web - Notes Dashboard
 - [ ] Web - Note Viewer

@@ -130,7 +130,7 @@ function Product() {
             </p>
           </div>
 
-          {/* Problem Cards */}
+          {/* Problem Cards - First Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
             <ProblemCard
               icon={problemIcons.cognitive}
@@ -150,18 +150,26 @@ function Product() {
               description="Notes remain static documents instead of becoming active learning materials. Converting them into study materials requires manual effort across multiple tools."
               delay="200"
             />
-            <ProblemCard
-              icon={problemIcons.career}
-              title="Career Management Chaos"
-              description="Job applications lack proper tracking, leading to missed follow-ups and lost opportunities. Excel spreadsheets aren't cutting it anymore."
-              delay="300"
-            />
-            <ProblemCard
-              icon={problemIcons.collaboration}
-              title="Collaboration Friction"
-              description="Sharing resources and coordinating with peers requires multiple tools and manual effort. 'Which group chat was that in?' shouldn't be a daily question."
-              delay="400"
-            />
+          </div>
+
+          {/* Problem Cards - Second Row (Centered) */}
+          <div className="flex flex-col md:flex-row justify-center gap-6 md:gap-8 max-w-6xl mx-auto mt-6 md:mt-8">
+            <div className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
+              <ProblemCard
+                icon={problemIcons.career}
+                title="Career Management Chaos"
+                description="Job applications lack proper tracking, leading to missed follow-ups and lost opportunities. Excel spreadsheets aren't cutting it anymore."
+                delay="300"
+              />
+            </div>
+            <div className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
+              <ProblemCard
+                icon={problemIcons.collaboration}
+                title="Collaboration Friction"
+                description="Sharing resources and coordinating with peers requires multiple tools and manual effort. 'Which group chat was that in?' shouldn't be a daily question."
+                delay="400"
+              />
+            </div>
           </div>
 
           {/* The Insight */}
