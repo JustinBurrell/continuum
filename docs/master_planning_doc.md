@@ -85,7 +85,7 @@ This means you won't have a working UI until Phase 3, but your backend will be r
 
 ## Current Status
 
-**Current Ticket**: DB-1: User model with password hashing
+**Current Ticket**: DB-2: Note Model
 **Phase**: Phase 1 - Database Layer
 **Status**: Merged
 
@@ -154,7 +154,7 @@ DB-1. [x] `feat: add user model with password hashing`
    - Indexes: email (unique), username (unique), googleId (sparse)
    - See [Schema Explanation - Auth](./database/mongodb_schema_explaination.md#authentication)
 
-DB-2. [ ] `feat: add note model with embedded summary`
+DB-2. [x] `feat: add note model with embedded summary`
    - Note schema: userId, title, content, googleDocId, tags, visibility, sharedWith, summary (embedded: quickSummary, detailedSummary, generatedAt, model), hasFlashcards, deletedAt
    - Text index on title, content, tags
    - See [Schema Explanation - Notes](./database/mongodb_schema_explaination.md#notes--content)
