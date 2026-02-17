@@ -123,7 +123,9 @@ await Comment.updateMany(
 ```
 1. User registers (email/password)
    └─> User.create({ email, username, password })
+   └─> Mongoose validates password: min 8 chars, 1 letter, 1 number, 1 special character
    └─> password auto-hashed via pre-save hook
+   └─> createdAt auto-set by Mongoose timestamps (tracks when user joined)
    └─> Google NOT linked yet — user.googleId is null
 
 2. User registers/logs in via Google OAuth

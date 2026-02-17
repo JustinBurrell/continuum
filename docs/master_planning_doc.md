@@ -78,7 +78,7 @@ This means you won't have a working UI until Phase 3, but your backend will be r
 **Total Phases**: 4
 **Completed Phases**: 0/4
 **Total Tickets**: 62 (must-ship) + stretch
-**Completed Tickets**: 0/62
+**Completed Tickets**: 1/62
 **Current Phase**: Phase 1 - Database Layer
 
 ---
@@ -87,7 +87,7 @@ This means you won't have a working UI until Phase 3, but your backend will be r
 
 **Current Ticket**: DB-1: User model with password hashing
 **Phase**: Phase 1 - Database Layer
-**Status**: Not Started
+**Status**: Merged
 
 *Update this section as you progress through tickets*
 
@@ -146,8 +146,8 @@ Nice to have but cut if time is short:
 
 #### Tickets
 
-DB-1. [ ] `feat: add user model with password hashing`
-   - Schema: email, username, password (hashed via pre-save), googleId, googleAccessToken, googleRefreshToken, passwordResetToken, passwordResetExpires, settings, deletedAt
+DB-1. [x] `feat: add user model with password hashing`
+   - Schema: email, username, password (hashed via pre-save), createdAt (auto — tracks registration date), googleId, googleAccessToken, googleRefreshToken, passwordResetToken, passwordResetExpires, settings, deletedAt
    - Pre-save hook: bcrypt password hashing
    - Methods: comparePassword, createPasswordResetToken
    - Virtuals: fullName, hasGoogleLinked

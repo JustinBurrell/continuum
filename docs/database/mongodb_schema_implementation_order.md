@@ -17,7 +17,8 @@
   // Authentication
   email: String (unique, indexed),
   username: String (unique, indexed),
-  password: String (select: false), // pre-save hook hashes with bcrypt
+  password: String (select: false, minlength: 8, validate: 1 letter + 1 number + 1 special char), // pre-save hook hashes with bcrypt
+  createdAt: Date (auto — tracks when user registered),
 
   // Profile
   firstName: String,
@@ -36,11 +37,11 @@
   passwordResetExpires: Date,
 
   // Settings (embedded — small, always needed)
-  settings: {
-    emailNotifications: Boolean,
-    pushNotifications: Boolean,
-    theme: String (enum: 'light', 'dark', 'auto'),
-    defaultNotePrivacy: String (enum: 'private', 'friends')
+  // Note: email/push notifications are schema-ready but not implemented yet — MVP uses in-app notifications only
+  // Note: note privacy (private/friends) is set per-note on the Note model, not globally here
+  sett ings: {
+    emailNotifications: Boolean (default: true),
+    pushNotifications: Boolean (default: true),
   },
 
   // Metadata
