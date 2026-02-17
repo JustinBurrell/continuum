@@ -249,7 +249,7 @@ erDiagram
 
     %% Task relationships
     Task ||--o{ Comment : "receives"
-    Task ||--o{ Task : "recurrence instances"
+    %% Task self-reference: recurrence.parentTaskId links to parent Task (not supported in Mermaid ER)
 
     %% Social relationships
     User ||--o{ Friendship : "user1"
@@ -262,8 +262,7 @@ erDiagram
     %% Career relationships (feedback is embedded in Resume)
     Resume ||--o{ Application : "used in"
 
-    %% Comment threading
-    Comment ||--o{ Comment : "replies"
+    %% Comment threading: parentId links to parent Comment (not supported in Mermaid ER)
 ```
 
 ## Quick Reference
