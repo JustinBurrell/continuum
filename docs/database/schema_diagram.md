@@ -4,12 +4,12 @@ View this diagram at [mermaid.live](https://mermaid.live) or in VS Code with Mer
 
 ```mermaid
 erDiagram
-    %% ===== SPRINT 1: FOUNDATION =====
+    %% ===== MUST-SHIP: AUTH =====
     User {
         ObjectId _id PK
         String email UK
-        String username UK4
-        String passwordHash
+        String username UK
+        String password
         String firstName
         String lastName
         String avatarUrl
@@ -18,6 +18,8 @@ erDiagram
         String googleAccessToken
         String googleRefreshToken
         Date googleTokenExpiry
+        String passwordResetToken
+        Date passwordResetExpires
         Object settings
         Date lastLoginAt
         Boolean emailVerified
@@ -26,7 +28,7 @@ erDiagram
         Date updatedAt
     }
 
-    %% ===== SPRINT 2: CONTENT =====
+    %% ===== MUST-SHIP: NOTES (summary embedded) =====
     Note {
         ObjectId _id PK
         ObjectId userId FK
@@ -41,7 +43,7 @@ erDiagram
         String folder
         String visibility
         Array sharedWith
-        Boolean hasSummary
+        Object summary "embedded quickSummary detailedSummary"
         Boolean hasFlashcards
         Boolean isPinned
         Number viewCount
@@ -51,21 +53,7 @@ erDiagram
         Date updatedAt
     }
 
-    NoteSummary {
-        ObjectId _id PK
-        ObjectId noteId FK
-        ObjectId userId FK
-        String quickSummary
-        String detailedSummary
-        Date generatedAt
-        String model
-        Number tokenCount
-        Date deletedAt
-        Date createdAt
-        Date updatedAt
-    }
-
-    %% ===== SPRINT 3: LEARNING =====
+    %% ===== MUST-SHIP: LEARNING =====
     FlashcardSet {
         ObjectId _id PK
         ObjectId userId FK
@@ -96,7 +84,7 @@ erDiagram
         Date updatedAt
     }
 
-    %% ===== SPRINT 4: TASKS =====
+    %% ===== MUST-SHIP: TASKS =====
     Task {
         ObjectId _id PK
         ObjectId userId FK
@@ -109,19 +97,20 @@ erDiagram
         String type
         String priority
         String status
+        Object recurrence "frequency interval daysOfWeek endDate parentTaskId"
         Boolean isShared
-        Array participants
+        Array participants "userId status completedAt per participant"
         Date completedAt
         Date deletedAt
         Date createdAt
         Date updatedAt
     }
 
-    %% ===== SPRINT 5: SOCIAL =====
+    %% ===== MUST-SHIP: SOCIAL =====
     Friendship {
         ObjectId _id PK
-        ObjectId user1 FK
-        ObjectId user2 FK
+        ObjectId user1 FK "user1 < user2"
+        ObjectId user2 FK "user1 < user2"
         ObjectId requestedBy FK
         String status
         Date requestedAt
@@ -139,52 +128,13 @@ erDiagram
         String content
         ObjectId parentId FK
         Array likes
-        Object userSnapshot
+        Object userSnapshot "embedded username avatarUrl"
         Date deletedAt
         Date createdAt
         Date updatedAt
     }
 
-    %% ===== SPRINT 6: MESSAGING =====
-    Conversation {
-        ObjectId _id PK
-        Array participants
-        Object lastMessage
-        Array unreadCounts
-        Date deletedAt
-        Date createdAt
-        Date updatedAt
-    }
-
-    Message {
-        ObjectId _id PK
-        ObjectId conversationId FK
-        ObjectId senderId FK
-        String content
-        Array readBy
-        Date clientTimestamp
-        String syncStatus
-        Date deletedAt
-        Date createdAt
-        Date updatedAt
-    }
-
-    SyncQueue {
-        ObjectId _id PK
-        ObjectId userId FK
-        String operation
-        String collection
-        ObjectId documentId
-        Object data
-        String status
-        String errorMessage
-        Date clientTimestamp
-        Date processedAt
-        Date createdAt
-        Date updatedAt
-    }
-
-    %% ===== SPRINT 7: CAREER =====
+    %% ===== MUST-SHIP: CAREER (feedback embedded) =====
     Resume {
         ObjectId _id PK
         ObjectId userId FK
@@ -194,24 +144,9 @@ erDiagram
         String mimeType
         String version
         String targetRole
-        Boolean hasFeedback
+        Array feedback "embedded overallScore strengths improvements"
+        String extractedText "cached PDF text for AI"
         Date uploadedAt
-        Date deletedAt
-        Date createdAt
-        Date updatedAt
-    }
-
-    ResumeFeedback {
-        ObjectId _id PK
-        ObjectId resumeId FK
-        ObjectId userId FK
-        Number overallScore
-        Array strengths
-        Array improvements
-        Array sections
-        Object keywordOptimization
-        String model
-        Date generatedAt
         Date deletedAt
         Date createdAt
         Date updatedAt
@@ -238,7 +173,47 @@ erDiagram
         Date updatedAt
     }
 
-    %% ===== SPRINT 8: ACTIVITY (Optional) =====
+    %% ===== STRETCH: MESSAGING =====
+    Conversation {
+        ObjectId _id PK
+        Array participants
+        Object lastMessage "embedded senderId content sentAt"
+        Array unreadCounts
+        Date deletedAt
+        Date createdAt
+        Date updatedAt
+    }
+
+    Message {
+        ObjectId _id PK
+        ObjectId conversationId FK
+        ObjectId senderId FK
+        String content
+        Array readBy
+        Date clientTimestamp
+        String syncStatus
+        Date deletedAt
+        Date createdAt
+        Date updatedAt
+    }
+
+    %% ===== STRETCH: OFFLINE =====
+    SyncQueue {
+        ObjectId _id PK
+        ObjectId userId FK
+        String operation
+        String collection
+        ObjectId documentId
+        Object data
+        String status
+        String errorMessage
+        Date clientTimestamp
+        Date processedAt
+        Date createdAt
+        Date updatedAt
+    }
+
+    %% ===== STRETCH: ACTIVITY FEED =====
     Activity {
         ObjectId _id PK
         ObjectId userId FK
@@ -254,7 +229,6 @@ erDiagram
 
     %% User owns everything
     User ||--o{ Note : "owns"
-    User ||--o{ NoteSummary : "owns"
     User ||--o{ FlashcardSet : "owns"
     User ||--o{ Task : "owns"
     User ||--o{ Resume : "owns"
@@ -264,25 +238,28 @@ erDiagram
     User ||--o{ SyncQueue : "queues"
     User ||--o{ Activity : "generates"
 
-    %% Note relationships
-    Note ||--o| NoteSummary : "has"
+    %% Note relationships (summary is embedded, not a separate entity)
     Note ||--o{ FlashcardSet : "generates"
     Note ||--o{ Task : "linked to"
     Note ||--o{ Comment : "receives"
 
     %% Flashcard relationships
     FlashcardSet ||--o{ Flashcard : "contains"
+    FlashcardSet ||--o{ Comment : "receives"
+
+    %% Task relationships
+    Task ||--o{ Comment : "receives"
+    Task ||--o{ Task : "recurrence instances"
 
     %% Social relationships
     User ||--o{ Friendship : "user1"
     User ||--o{ Friendship : "user2"
 
-    %% Messaging relationships
+    %% Messaging relationships (stretch)
     Conversation ||--o{ Message : "contains"
     User }o--o{ Conversation : "participates"
 
-    %% Career relationships
-    Resume ||--o{ ResumeFeedback : "receives"
+    %% Career relationships (feedback is embedded in Resume)
     Resume ||--o{ Application : "used in"
 
     %% Comment threading
@@ -291,28 +268,39 @@ erDiagram
 
 ## Quick Reference
 
-### Collections by Sprint
+### Collections by Category
 
-| Sprint | Collections | Purpose |
-|--------|-------------|---------|
-| 1 | User | Authentication & profiles |
-| 2 | Note, NoteSummary | Content management |
-| 3 | FlashcardSet, Flashcard | Study tools |
-| 4 | Task | Time management |
-| 5 | Friendship, Comment | Social features |
-| 6 | Conversation, Message, SyncQueue | Messaging & offline |
-| 7 | Resume, ResumeFeedback, Application | Career tools |
-| 8 | Activity | Activity feed (optional) |
+| Category | Collections | Must-Ship |
+|----------|-------------|-----------|
+| Auth | User | Yes |
+| Notes | Note (summary embedded) | Yes |
+| Learning | FlashcardSet, Flashcard | Yes |
+| Tasks | Task | Yes |
+| Social | Friendship, Comment | Yes |
+| Career | Resume (feedback embedded), Application | Yes |
+| Messaging | Conversation, Message | Stretch |
+| Offline | SyncQueue | Stretch |
+| Feed | Activity | Stretch |
+
+**Total: 13 collections (9 must-ship + 4 stretch)**
+
+### What Changed (Consolidation)
+
+| Before | After | Why |
+|--------|-------|-----|
+| Note + NoteSummary (2 collections) | Note with embedded `summary` field | 1:1 relationship, always viewed together |
+| Resume + ResumeFeedback (2 collections) | Resume with embedded `feedback[]` array | 1:few relationship, always viewed together |
+| `passwordHash` field name | `password` field (hashed via pre-save) | Clearer naming — field stores plain input, hook hashes it |
 
 ### Key Relationships
 
 - **User-centric**: Every collection references `userId` for ownership
-- **Note hub**: Notes link to summaries, flashcards, tasks, and comments
+- **Note hub**: Notes link to flashcards, tasks, and comments. Summary is embedded.
+- **Resume hub**: Resumes link to applications. Feedback is embedded.
 - **Soft deletes**: All collections have `deletedAt` for recovery
-- **Denormalized**: `lastMessage` in Conversation, `userSnapshot` in Comment
+- **Denormalized**: `lastMessage` in Conversation, `userSnapshot` in Comment, `summary` in Note, `feedback` in Resume
 
 ### Relationship Types
 
 - `||--o{` = One to Many (User has many Notes)
-- `||--o|` = One to One (Note has one Summary)
 - `}o--o{` = Many to Many (Users in Conversations)

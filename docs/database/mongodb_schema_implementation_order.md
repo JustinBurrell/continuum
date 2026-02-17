@@ -1,15 +1,15 @@
 # MongoDB Schema Implementation Guide
-**Continuum Database - Sprint-by-Sprint Implementation**
+**Continuum Database - Phase-Based Implementation**
 
 ---
 
 ## Implementation Order
 
-### Sprint 1: Foundation (Week 1)
-**Models to Implement**: 1
+### Phase 1, Session 1: Core Models
+**Models to Implement**: 6 (User, Note, FlashcardSet, Flashcard, Task)
 
 #### 1. User Model
-**File**: `src/models/User.js`  
+**File**: `src/models/User.js`
 **Purpose**: Authentication, user profiles, Google OAuth
 
 ```javascript
@@ -17,40 +17,46 @@
   // Authentication
   email: String (unique, indexed),
   username: String (unique, indexed),
-  passwordHash: String (select: false),
-  
+  password: String (select: false), // pre-save hook hashes with bcrypt
+
   // Profile
   firstName: String,
   lastName: String,
   avatarUrl: String,
   bio: String,
-  
-  // Google OAuth
+
+  // Google OAuth (linked separately or via Google sign-in)
   googleId: String (unique, sparse index),
   googleAccessToken: String (encrypted, select: false),
   googleRefreshToken: String (encrypted, select: false),
   googleTokenExpiry: Date,
-  
-  // Settings
+
+  // Password Reset
+  passwordResetToken: String (select: false),
+  passwordResetExpires: Date,
+
+  // Settings (embedded — small, always needed)
   settings: {
     emailNotifications: Boolean,
     pushNotifications: Boolean,
     theme: String (enum: 'light', 'dark', 'auto'),
     defaultNotePrivacy: String (enum: 'private', 'friends')
   },
-  
+
   // Metadata
   lastLoginAt: Date,
   emailVerified: Boolean,
   deletedAt: Date (soft delete),
-  
+
   timestamps: true (createdAt, updatedAt)
 }
 ```
 
 **Key Methods**:
-- `comparePassword(candidate)` - Verify login password
+- `comparePassword(candidate)` - Verify login password via bcrypt
+- `createPasswordResetToken()` - Generate hashed reset token, set expiry (1 hour)
 - Virtual: `fullName` - Returns `firstName + lastName`
+- Virtual: `hasGoogleLinked` - Returns `!!this.googleId`
 
 **Indexes**:
 ```javascript
@@ -63,55 +69,62 @@
 
 ---
 
-### Sprint 2: Content Foundation (Week 2)
-**Models to Implement**: 2
-
 #### 2. Note Model
-**File**: `src/models/Note.js`  
-**Purpose**: Google Docs imports, native notes, content management
+**File**: `src/models/Note.js`
+**Purpose**: Google Docs imports, native notes, content management, **embedded AI summaries**
 
 ```javascript
 {
   // Ownership
   userId: ObjectId (ref: 'User', indexed),
-  
+
   // Content
   title: String (max 200),
   content: String (HTML/Markdown),
   contentType: String (enum: 'html', 'markdown', 'plain'),
-  
+
   // Google Docs Integration
   googleDocId: String (unique, sparse index),
   googleDocUrl: String,
   lastSyncedAt: Date,
-  
+
   // Organization
   tags: [String] (lowercase),
   subject: String,
   folder: String (default: 'default'),
-  
+
   // Sharing
   visibility: String (enum: 'private', 'friends', 'specific', indexed),
   sharedWith: [ObjectId] (ref: 'User'),
-  
+
+  // Embedded AI Summary (was separate NoteSummary collection)
+  summary: {
+    quickSummary: String,        // 2-3 sentences
+    detailedSummary: String,     // 1-2 paragraphs
+    generatedAt: Date,
+    model: String,               // e.g., 'llama-3.1-70b'
+    tokenCount: Number
+  },
+
   // Denormalized Flags
-  hasSummary: Boolean,
   hasFlashcards: Boolean,
-  
+
   // Metadata
   isPinned: Boolean,
   viewCount: Number,
   lastViewedAt: Date,
   deletedAt: Date,
-  
+
   timestamps: true
 }
 ```
 
+**Why Embed Summary?**: Summaries are 1:1 with notes and always viewed together. Embedding eliminates an extra query and a whole collection.
+
 **Virtuals**:
-- `summary` - Populates from NoteSummary collection
 - `flashcardSets` - Populates from FlashcardSet collection
 - `commentsCount` - Count from Comment collection
+- `hasSummary` - Returns `!!this.summary?.quickSummary`
 
 **Indexes**:
 ```javascript
@@ -124,68 +137,35 @@
 { title: 'text', content: 'text', tags: 'text' }
 ```
 
-#### 3. NoteSummary Model
-**File**: `src/models/NoteSummary.js`  
-**Purpose**: AI-generated summaries (separate for performance)
-
-```javascript
-{
-  noteId: ObjectId (ref: 'Note', unique, indexed),
-  userId: ObjectId (ref: 'User', indexed),
-  
-  // AI Summaries
-  quickSummary: String (2-3 sentences),
-  detailedSummary: String (1-2 paragraphs),
-  
-  // Metadata
-  generatedAt: Date,
-  model: String (e.g., 'gpt-4', 'claude-sonnet-4'),
-  tokenCount: Number,
-  deletedAt: Date,
-  
-  timestamps: true
-}
-```
-
-**Why Separate?**: Summaries are optional and large. Keeping them separate keeps Note documents lean.
-
-**Indexes**:
-```javascript
-{ noteId: 1, deletedAt: 1 }
-```
-
 ---
 
-### Sprint 3: Active Learning (Week 3)
-**Models to Implement**: 2
-
-#### 4. FlashcardSet Model
-**File**: `src/models/FlashcardSet.js`  
+#### 3. FlashcardSet Model
+**File**: `src/models/FlashcardSet.js`
 **Purpose**: Container for flashcard collections
 
 ```javascript
 {
   userId: ObjectId (ref: 'User', indexed),
   noteId: ObjectId (ref: 'Note', indexed, nullable),
-  
+
   // Content
   title: String (max 200),
   description: String (max 1000),
-  
+
   // Study Metadata
   totalCards: Number,
   lastStudiedAt: Date,
   studySessionCount: Number,
-  
+
   // Sharing
   visibility: String (enum: 'private', 'friends', 'specific'),
   sharedWith: [ObjectId] (ref: 'User'),
-  
+
   // AI Generation
   isAIGenerated: Boolean,
   generatedAt: Date,
   deletedAt: Date,
-  
+
   timestamps: true
 }
 ```
@@ -199,18 +179,18 @@
 { noteId: 1, deletedAt: 1 }
 ```
 
-#### 5. Flashcard Model
-**File**: `src/models/Flashcard.js`  
+#### 4. Flashcard Model
+**File**: `src/models/Flashcard.js`
 **Purpose**: Individual flashcard pairs with study progress
 
 ```javascript
 {
   setId: ObjectId (ref: 'FlashcardSet', indexed),
-  
+
   // Content
   front: String (question/term),
   back: String (answer/definition),
-  
+
   // User Progress (supports shared sets)
   userProgress: [{
     userId: ObjectId (ref: 'User'),
@@ -219,16 +199,16 @@
     incorrectCount: Number,
     confidence: String (enum: 'low', 'medium', 'high')
   }],
-  
+
   // Order
   order: Number (position in set),
   deletedAt: Date,
-  
+
   timestamps: true
 }
 ```
 
-**Why Separate?**: Sets can have 50-100+ cards. Individual card updates are common. User progress tracking per card.
+**Why Separate from FlashcardSet?**: Sets can have 50-100+ cards. Individual card updates (progress tracking) are frequent. Embedding would make the parent document too large.
 
 **Indexes**:
 ```javascript
@@ -238,50 +218,64 @@
 
 ---
 
-### Sprint 4: Time Management (Week 4)
-**Models to Implement**: 1
-
-#### 6. Task Model
-**File**: `src/models/Task.js`  
+#### 5. Task Model
+**File**: `src/models/Task.js`
 **Purpose**: Task management, calendar integration, group tasks
 
 ```javascript
 {
   userId: ObjectId (ref: 'User', indexed),
-  
+
   // Content
   title: String (max 200),
   description: String (max 2000),
-  
+
   // Linked Note (optional)
   noteId: ObjectId (ref: 'Note', indexed, nullable),
-  
+
   // Scheduling
   dueDate: Date (indexed, required),
   duration: Number (minutes, default: 60),
   reminderMinutes: Number (default: 30),
-  
+
   // Categorization
   type: String (enum: 'homework', 'study', 'project', 'exam', 'other', indexed),
   priority: String (enum: 'low', 'medium', 'high', indexed),
   status: String (enum: 'todo', 'in_progress', 'completed', indexed),
-  
+
+  // Recurrence
+  recurrence: {
+    frequency: String (enum: 'none', 'daily', 'weekly', 'monthly'),
+    interval: Number (default: 1),      // every N days/weeks/months
+    daysOfWeek: [Number],               // 0=Sun, 1=Mon, ..., 6=Sat (for weekly)
+    endDate: Date (nullable),           // null = no end
+    parentTaskId: ObjectId (nullable),  // links to original recurring task
+  },
+
   // Collaboration (Shared Tasks)
   isShared: Boolean (indexed),
-  participants: [ObjectId] (ref: 'User', includes creator),
-  
+  participants: [{
+    userId: ObjectId (ref: 'User'),
+    status: String (enum: 'todo', 'in_progress', 'completed', default: 'todo'),
+    completedAt: Date
+  }],
+
   // Completion
   completedAt: Date,
   deletedAt: Date,
-  
+
   timestamps: true
 }
 ```
 
+**Recurrence Strategy**: When a recurring task is marked complete, auto-generate the next occurrence based on the recurrence rule. The new task links back to the original via `parentTaskId`. Individual occurrences can be modified independently. Deleting the parent does NOT delete generated instances.
+
+**Participants**: Each participant tracks their own status independently. Only the task owner (`userId`) can edit task details (title, description, dueDate). Participants can only update their own status entry.
+
 **Virtuals**:
 - `isOverdue` - Computed: `status !== 'completed' && dueDate < now`
 
-**Pre-Save Hook**: Set `completedAt` when status changes to 'completed'
+**Pre-Save Hook**: Set `completedAt` when status changes to 'completed'. If task has recurrence, generate next occurrence.
 
 **Indexes**:
 ```javascript
@@ -293,11 +287,11 @@
 
 ---
 
-### Sprint 5: Collaboration Layer (Week 5)
-**Models to Implement**: 2
+### Phase 1, Session 2: Social & Career Models
+**Models to Implement**: 4 (Friendship, Comment, Resume, Application)
 
-#### 7. Friendship Model
-**File**: `src/models/Friendship.js`  
+#### 6. Friendship Model
+**File**: `src/models/Friendship.js`
 **Purpose**: Friend requests, friend relationships
 
 ```javascript
@@ -305,21 +299,21 @@
   // Unordered Relationship (user1 < user2)
   user1: ObjectId (ref: 'User', indexed),
   user2: ObjectId (ref: 'User', indexed),
-  
+
   // Request Flow
   requestedBy: ObjectId (ref: 'User'),
   status: String (enum: 'pending', 'accepted', 'rejected', 'blocked', indexed),
-  
+
   // Timestamps
   requestedAt: Date,
   respondedAt: Date,
   deletedAt: Date,
-  
+
   timestamps: true
 }
 ```
 
-**Pre-Save Hook**: Ensure `user1 < user2` for consistent ordering (prevents duplicates)
+**Pre-Save Hook**: Ensure `user1 < user2` for consistent ordering (prevents duplicate friendships)
 
 **Indexes**:
 ```javascript
@@ -329,37 +323,38 @@
 { requestedBy: 1, status: 1 }
 ```
 
-**Why Unordered?**: Prevents duplicate friendships (A→B and B→A). Simplifies queries.
+**Why Unordered?**: Prevents duplicate friendships (A→B and B→A). Always store the smaller ObjectId as user1.
 
-#### 8. Comment Model
-**File**: `src/models/Comment.js`  
+#### 7. Comment Model
+**File**: `src/models/Comment.js`
 **Purpose**: Comments on notes, flashcard sets (polymorphic)
 
 ```javascript
 {
   // Polymorphic Target
   targetId: ObjectId (indexed),
-  targetType: String (enum: 'note', 'flashcardSet', indexed),
-  
+  targetType: String (enum: 'note', 'flashcardSet', 'task', indexed),
+
   // Author
   userId: ObjectId (ref: 'User', indexed),
-  
+
   // Content
   content: String (max 2000),
-  
+
   // Threading (optional for MVP)
   parentId: ObjectId (ref: 'Comment', indexed, nullable),
-  
+
   // Reactions
   likes: [ObjectId] (ref: 'User'),
-  
+
   // Denormalized User Info (performance)
   userSnapshot: {
     username: String,
-    fullName: String,
+    firstName: String,
+    lastName: String,
     avatarUrl: String
   },
-  
+
   deletedAt: Date,
   timestamps: true
 }
@@ -374,225 +369,95 @@
 { parentId: 1 }
 ```
 
-**Why Denormalize User?**: Comments are read frequently. Denormalizing user info avoids extra lookups.
-
 ---
 
-### Sprint 6: Messaging & Offline (Week 6)
-**Models to Implement**: 3
-
-#### 9. Conversation Model
-**File**: `src/models/Conversation.js`  
-**Purpose**: DM conversation containers
-
-```javascript
-{
-  // Participants (always 2 for DMs)
-  participants: [ObjectId] (ref: 'User', indexed, length: 2),
-  
-  // Last Message (denormalized for inbox performance)
-  lastMessage: {
-    senderId: ObjectId (ref: 'User'),
-    content: String (max 200, truncated preview),
-    sentAt: Date
-  },
-  
-  // Unread Counts (per participant)
-  unreadCounts: [{
-    userId: ObjectId (ref: 'User'),
-    count: Number
-  }],
-  
-  deletedAt: Date,
-  timestamps: true
-}
-```
-
-**Why Denormalize `lastMessage`?**: Avoids expensive aggregation when listing conversations in inbox.
-
-**Indexes**:
-```javascript
-{ participants: 1, deletedAt: 1 }
-{ participants: 1, 'lastMessage.sentAt': -1 }
-```
-
-#### 10. Message Model
-**File**: `src/models/Message.js`  
-**Purpose**: Individual messages within conversations
-
-```javascript
-{
-  conversationId: ObjectId (ref: 'Conversation', indexed),
-  senderId: ObjectId (ref: 'User', indexed),
-  
-  // Content
-  content: String (max 5000),
-  
-  // Read Status
-  readBy: [{
-    userId: ObjectId (ref: 'User'),
-    readAt: Date
-  }],
-  
-  // Offline Sync
-  clientTimestamp: Date (when created offline),
-  syncStatus: String (enum: 'pending', 'synced', 'failed'),
-  
-  deletedAt: Date,
-  timestamps: true
-}
-```
-
-**Offline Support**: `clientTimestamp` and `syncStatus` handle offline message sending.
-
-**Indexes**:
-```javascript
-{ conversationId: 1, createdAt: -1 }
-{ senderId: 1, createdAt: -1 }
-```
-
-#### 11. SyncQueue Model
-**File**: `src/models/SyncQueue.js`  
-**Purpose**: Queue offline operations for server sync
+#### 8. Resume Model
+**File**: `src/models/Resume.js`
+**Purpose**: Resume file storage, version management, **embedded AI feedback**
 
 ```javascript
 {
   userId: ObjectId (ref: 'User', indexed),
-  
-  // Operation Details
-  operation: String (enum: 'create', 'update', 'delete'),
-  collection: String (enum: 'notes', 'tasks', 'flashcards', 'messages'),
-  documentId: ObjectId,
-  
-  // Data
-  data: Mixed (operation payload),
-  
-  // Status
-  status: String (enum: 'pending', 'processing', 'completed', 'failed', indexed),
-  errorMessage: String,
-  
-  // Timestamps
-  clientTimestamp: Date (when operation was queued),
-  processedAt: Date,
-  
-  timestamps: true
-}
-```
 
-**Offline Strategy**: Client queues changes. Server processes on reconnect.
-
-**Indexes**:
-```javascript
-{ userId: 1, status: 1, clientTimestamp: 1 }
-{ status: 1, createdAt: 1 }
-```
-
----
-
-### Sprint 7: Career Tools (Week 7)
-**Models to Implement**: 3
-
-#### 12. Resume Model
-**File**: `src/models/Resume.js`  
-**Purpose**: Resume file storage, version management
-
-```javascript
-{
-  userId: ObjectId (ref: 'User', indexed),
-  
   // File Info
   fileName: String,
-  fileUrl: String (S3/cloud storage URL),
+  fileUrl: String (cloud storage URL),
   fileSize: Number (bytes),
   mimeType: String (default: 'application/pdf'),
-  
+
   // Version Management
   version: String (e.g., 'Software Engineer v2'),
   targetRole: String (e.g., 'Full-Stack Developer'),
-  
-  // AI Feedback
-  hasFeedback: Boolean,
-  
+
+  // Embedded AI Feedback (was separate ResumeFeedback collection)
+  feedback: [{
+    overallScore: Number (0-100),
+    strengths: [String],
+    improvements: [String],
+
+    sections: [{
+      name: String (e.g., 'Experience', 'Skills'),
+      feedback: String,
+      score: Number (0-100)
+    }],
+
+    keywordOptimization: {
+      presentKeywords: [String],
+      missingKeywords: [String]
+    },
+
+    model: String (AI model used),
+    generatedAt: Date
+  }],
+
+  // Extracted Text (cached on upload for AI processing)
+  extractedText: String (select: false),
+
   // Metadata
   uploadedAt: Date,
   deletedAt: Date,
-  
+
   timestamps: true
 }
 ```
 
+**Why Embed Feedback?**: Feedback is 1:few (a user might regenerate 2-3 times per resume version). It's always viewed with the resume. Embedding eliminates a whole collection and avoids extra queries.
+
+**Why Cache extractedText?**: PDF text extraction happens once on upload (using `pdf-parse`). Storing the result means AI feedback requests are instant — no re-parsing the PDF each time. Field is `select: false` to avoid loading large text on normal queries.
+
 **Virtuals**:
-- `latestFeedback` - Populates most recent ResumeFeedback
+- `hasFeedback` - Returns `this.feedback.length > 0`
+- `latestFeedback` - Returns `this.feedback[this.feedback.length - 1]`
 
 **Indexes**:
 ```javascript
 { userId: 1, deletedAt: 1, createdAt: -1 }
 ```
 
-#### 13. ResumeFeedback Model
-**File**: `src/models/ResumeFeedback.js`  
-**Purpose**: AI-generated resume analysis
-
-```javascript
-{
-  resumeId: ObjectId (ref: 'Resume', indexed),
-  userId: ObjectId (ref: 'User', indexed),
-  
-  // AI Feedback
-  overallScore: Number (0-100),
-  strengths: [String],
-  improvements: [String],
-  
-  sections: [{
-    name: String (e.g., 'Experience', 'Skills'),
-    feedback: String,
-    score: Number (0-100)
-  }],
-  
-  keywordOptimization: {
-    presentKeywords: [String],
-    missingKeywords: [String]
-  },
-  
-  // Metadata
-  model: String (AI model used),
-  generatedAt: Date,
-  deletedAt: Date,
-  
-  timestamps: true
-}
-```
-
-**Indexes**:
-```javascript
-{ resumeId: 1, createdAt: -1 }
-{ userId: 1, createdAt: -1 }
-```
-
-#### 14. Application Model
-**File**: `src/models/Application.js`  
+#### 9. Application Model
+**File**: `src/models/Application.js`
 **Purpose**: Job/internship application tracking
 
 ```javascript
 {
   userId: ObjectId (ref: 'User', indexed),
-  
+
   // Job Info
   company: String,
   position: String,
   location: String,
   jobUrl: String,
-  
+
   // Status Pipeline
   status: String (enum: 'draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn', indexed),
-  
+
   // Timeline
   appliedAt: Date,
   interviewDates: [Date],
   offerReceivedAt: Date,
   deadlineDate: Date,
-  
-  // Networking
+
+  // Networking (embedded — bounded, always needed)
   contacts: [{
     name: String,
     role: String,
@@ -601,18 +466,18 @@
     lastContactDate: Date,
     notes: String
   }],
-  
+
   // Notes & Prep
   notes: String (max 5000, interview prep, company research),
   resumeUsed: ObjectId (ref: 'Resume', nullable),
-  
-  // Reminders
+
+  // Reminders (embedded — bounded)
   followUpReminders: [{
     date: Date,
     description: String,
     completed: Boolean
   }],
-  
+
   deletedAt: Date,
   timestamps: true
 }
@@ -627,30 +492,130 @@
 
 ---
 
-### Sprint 8: Polish (Week 8)
-**Models to Implement**: 1 (Optional)
+### Stretch Models (Build if time permits)
+**Models**: 4 (Conversation, Message, SyncQueue, Activity)
 
-#### 15. Activity Model (Optional)
-**File**: `src/models/Activity.js`  
+#### 10. Conversation Model
+**File**: `src/models/Conversation.js`
+**Purpose**: DM conversation containers
+
+```javascript
+{
+  // Participants (always 2 for DMs)
+  participants: [ObjectId] (ref: 'User', indexed, length: 2),
+
+  // Last Message (denormalized for inbox performance)
+  lastMessage: {
+    senderId: ObjectId (ref: 'User'),
+    content: String (max 200, truncated preview),
+    sentAt: Date
+  },
+
+  // Unread Counts (per participant)
+  unreadCounts: [{
+    userId: ObjectId (ref: 'User'),
+    count: Number
+  }],
+
+  deletedAt: Date,
+  timestamps: true
+}
+```
+
+**Indexes**:
+```javascript
+{ participants: 1, deletedAt: 1 }
+{ participants: 1, 'lastMessage.sentAt': -1 }
+```
+
+#### 11. Message Model
+**File**: `src/models/Message.js`
+**Purpose**: Individual messages within conversations
+
+```javascript
+{
+  conversationId: ObjectId (ref: 'Conversation', indexed),
+  senderId: ObjectId (ref: 'User', indexed),
+
+  // Content
+  content: String (max 5000),
+
+  // Read Status
+  readBy: [{
+    userId: ObjectId (ref: 'User'),
+    readAt: Date
+  }],
+
+  // Offline Sync
+  clientTimestamp: Date,
+  syncStatus: String (enum: 'pending', 'synced', 'failed'),
+
+  deletedAt: Date,
+  timestamps: true
+}
+```
+
+**Indexes**:
+```javascript
+{ conversationId: 1, createdAt: -1 }
+{ senderId: 1, createdAt: -1 }
+```
+
+#### 12. SyncQueue Model
+**File**: `src/models/SyncQueue.js`
+**Purpose**: Queue offline operations for server sync
+
+```javascript
+{
+  userId: ObjectId (ref: 'User', indexed),
+
+  // Operation Details
+  operation: String (enum: 'create', 'update', 'delete'),
+  collection: String (enum: 'notes', 'tasks', 'flashcards', 'messages'),
+  documentId: ObjectId,
+
+  // Data
+  data: Mixed (operation payload),
+
+  // Status
+  status: String (enum: 'pending', 'processing', 'completed', 'failed', indexed),
+  errorMessage: String,
+
+  // Timestamps
+  clientTimestamp: Date,
+  processedAt: Date,
+
+  timestamps: true
+}
+```
+
+**Indexes**:
+```javascript
+{ userId: 1, status: 1, clientTimestamp: 1 }
+{ status: 1, createdAt: 1 }
+```
+
+#### 13. Activity Model (Optional)
+**File**: `src/models/Activity.js`
 **Purpose**: Social activity feed for friends
 
 ```javascript
 {
   userId: ObjectId (ref: 'User', indexed),
-  
+
   // Activity Type
   type: String (enum: 'note_shared', 'flashcard_shared', 'task_created', 'comment_added', 'like_added', indexed),
-  
+
   // Target Resource
   targetId: ObjectId,
   targetType: String (enum: 'note', 'flashcardSet', 'task', 'comment'),
-  
+
   // Visibility
   visibleTo: [ObjectId] (ref: 'User', friends who should see),
-  
+
   // Metadata
   metadata: Mixed (additional context),
-  
+
   createdAt: Date (indexed)
 }
 ```
@@ -668,18 +633,25 @@
 
 ---
 
-## Summary by Sprint
+## Summary
 
-| Sprint | Models Added | Total Models | Purpose |
-|--------|--------------|--------------|---------|
-| Sprint 1 | User (1) | 1 | Authentication |
-| Sprint 2 | Note, NoteSummary (2) | 3 | Content management |
-| Sprint 3 | FlashcardSet, Flashcard (2) | 5 | AI learning tools |
-| Sprint 4 | Task (1) | 6 | Time management |
-| Sprint 5 | Friendship, Comment (2) | 8 | Social features |
-| Sprint 6 | Conversation, Message, SyncQueue (3) | 11 | Messaging & offline |
-| Sprint 7 | Resume, ResumeFeedback, Application (3) | 14 | Career tools |
-| Sprint 8 | Activity (1, optional) | 15 | Activity feed |
+| # | Model | File | Category | Must-Ship |
+|---|-------|------|----------|-----------|
+| 1 | User | `src/models/User.js` | Auth | Yes |
+| 2 | Note | `src/models/Note.js` | Notes (summary embedded) | Yes |
+| 3 | FlashcardSet | `src/models/FlashcardSet.js` | Learning | Yes |
+| 4 | Flashcard | `src/models/Flashcard.js` | Learning | Yes |
+| 5 | Task | `src/models/Task.js` | Tasks | Yes |
+| 6 | Friendship | `src/models/Friendship.js` | Social | Yes |
+| 7 | Comment | `src/models/Comment.js` | Social | Yes |
+| 8 | Resume | `src/models/Resume.js` | Career (feedback embedded) | Yes |
+| 9 | Application | `src/models/Application.js` | Career | Yes |
+| 10 | Conversation | `src/models/Conversation.js` | Stretch: DMs | No |
+| 11 | Message | `src/models/Message.js` | Stretch: DMs | No |
+| 12 | SyncQueue | `src/models/SyncQueue.js` | Stretch: Offline | No |
+| 13 | Activity | `src/models/Activity.js` | Stretch: Feed | No |
+
+**9 must-ship models** (down from 11 — consolidated NoteSummary into Note, ResumeFeedback into Resume)
 
 ---
 
@@ -692,13 +664,10 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
+
     console.log(`MongoDB Connected: ${conn.connection.host}`);
-    
+
     // Enable debugging in development
     if (process.env.NODE_ENV === 'development') {
       mongoose.set('debug', true);
@@ -729,19 +698,18 @@ MONGODB_URI=mongodb://localhost:27017/continuum
 module.exports = {
   User: require('./User'),
   Note: require('./Note'),
-  NoteSummary: require('./NoteSummary'),
   FlashcardSet: require('./FlashcardSet'),
   Flashcard: require('./Flashcard'),
   Task: require('./Task'),
   Friendship: require('./Friendship'),
   Comment: require('./Comment'),
-  Conversation: require('./Conversation'),
-  Message: require('./Message'),
-  SyncQueue: require('./SyncQueue'),
   Resume: require('./Resume'),
-  ResumeFeedback: require('./ResumeFeedback'),
   Application: require('./Application'),
-  Activity: require('./Activity'),
+  // Stretch models — uncomment when implemented
+  // Conversation: require('./Conversation'),
+  // Message: require('./Message'),
+  // SyncQueue: require('./SyncQueue'),
+  // Activity: require('./Activity'),
 };
 ```
 
@@ -775,8 +743,8 @@ Always scope queries by user to prevent data leakage:
 const note = await Note.findOne({
   _id: noteId,
   $or: [
-    { userId: req.user._id }, // Owner
-    { sharedWith: req.user._id } // Shared with user
+    { userId: req.user._id },       // Owner
+    { sharedWith: req.user._id }     // Shared with user
   ],
   deletedAt: null
 });
@@ -827,49 +795,25 @@ userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 
 // Populate in query
 const note = await Note.findById(noteId)
-  .populate('userId', 'username fullName avatarUrl');
+  .populate('userId', 'username firstName lastName avatarUrl');
 ```
 
 ---
 
 ## Implementation Checklist
 
-### Before Starting Each Sprint:
-- [ ] Review models needed for this sprint
-- [ ] Create model files in `src/models/`
-- [ ] Define schema with all fields
-- [ ] Add indexes for performance
+### For Each Model:
+- [ ] Create model file in `src/models/`
+- [ ] Define schema with all fields and types
+- [ ] Add indexes for common queries
 - [ ] Add pre/post hooks if needed
 - [ ] Add virtual properties if needed
-- [ ] Test model creation/querying
 - [ ] Export from `src/models/index.js`
-
-### Testing Models:
-```javascript
-// Example: Test User model
-describe('User Model', () => {
-  it('should hash password on save', async () => {
-    const user = await User.create({
-      email: 'test@example.com',
-      username: 'testuser',
-      firstName: 'Test',
-      lastName: 'User',
-      passwordHash: 'plainPassword123'
-    });
-    
-    expect(user.passwordHash).not.toBe('plainPassword123');
-  });
-  
-  it('should compare password correctly', async () => {
-    const user = await User.findOne({ email: 'test@example.com' });
-    const isMatch = await user.comparePassword('plainPassword123');
-    expect(isMatch).toBe(true);
-  });
-});
-```
+- [ ] Write seed data to test
+- [ ] Verify queries work as expected
 
 ---
 
-**Last Updated**: January 2026  
-**Total Models**: 15 (14 required + 1 optional)  
-**Implementation Timeline**: 8 weeks (1-3 models per sprint)
+**Last Updated**: February 2026
+**Total Models**: 13 (9 must-ship + 4 stretch)
+**Implementation Timeline**: Phase 1 (Sessions 1-2)

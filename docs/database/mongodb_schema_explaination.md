@@ -32,13 +32,15 @@ User uploads Resume → Resume.userId = User._id
 - Large or unbounded data: Notes, Tasks, Messages
 - Many-to-many relationships: Friendships
 - Shared across documents: Users
+- Large collections with independent access patterns: Flashcards
 
 **Embedded (Within Documents)**:
 - Small, bounded arrays: User.settings, Task.participants
-- Always needed together: Comment.userSnapshot
+- Always needed together: Comment.userSnapshot, Note.summary, Resume.feedback
 - Performance optimization: Conversation.lastMessage
+- 1:1 or 1:few relationships: Note ↔ Summary, Resume ↔ Feedback
 
-**Decision Rule**: If data is >100 items or shared, reference. If data is <20 items and always needed, embed.
+**Decision Rule**: If data is >100 items or shared across documents, reference. If data is <20 items and always accessed together, embed.
 
 ---
 
@@ -70,7 +72,8 @@ Note.find({ userId, deletedAt: null })
 Examples:
 - **Comment.userSnapshot**: Store username/avatar to avoid lookups
 - **Conversation.lastMessage**: Display inbox without aggregating messages
-- **Note.hasSummary**: Check existence without querying NoteSummary
+- **Note.summary embedded**: Always viewed with the note, avoids extra query
+- **Resume.feedback embedded**: Always viewed with the resume
 - **FlashcardSet.totalCards**: Count cached to avoid counting flashcards
 
 **Trade-off**: Faster reads, slightly slower writes, potential stale data.
@@ -89,28 +92,76 @@ await Comment.updateMany(
 
 ---
 
+## Model Overview (13 total)
+
+| # | Model | Collection | Category | Must-Ship |
+|---|-------|-----------|----------|-----------|
+| 1 | User | users | Auth | Yes |
+| 2 | Note | notes | Notes (includes embedded summary) | Yes |
+| 3 | FlashcardSet | flashcardsets | Learning | Yes |
+| 4 | Flashcard | flashcards | Learning | Yes |
+| 5 | Task | tasks | Tasks | Yes |
+| 6 | Friendship | friendships | Social | Yes |
+| 7 | Comment | comments | Social | Yes |
+| 8 | Resume | resumes | Career (includes embedded feedback) | Yes |
+| 9 | Application | applications | Career | Yes |
+| 10 | Conversation | conversations | Stretch: DMs | No |
+| 11 | Message | messages | Stretch: DMs | No |
+| 12 | SyncQueue | syncqueues | Stretch: Offline | No |
+| 13 | Activity | activities | Stretch: Feed | No |
+
+**9 must-ship models** + 4 stretch models
+
+---
+
 ## Data Flow by Feature
 
-### Authentication (Sprint 1)
+### Authentication
 
-**Flow**: Registration → Login → Session Management
+**Flow**: Registration → Login → Session Management → Google Linking
 
 ```
-1. User registers
-   └─> User.create({ email, username, passwordHash })
-   └─> passwordHash auto-hashed via pre-save hook
+1. User registers (email/password)
+   └─> User.create({ email, username, password })
+   └─> password auto-hashed via pre-save hook
+   └─> Google NOT linked yet — user.googleId is null
 
-2. User logs in
-   └─> User.findOne({ email })
-   └─> user.comparePassword(password) // bcrypt compare
+2. User registers/logs in via Google OAuth
+   └─> Find or create User by googleId or email
+   └─> Store googleAccessToken, googleRefreshToken on User
+   └─> Google IS linked — Drive/Docs features available immediately
+
+3. User logs in (email/password)
+   └─> User.findOne({ email }).select('+password')
+   └─> user.comparePassword(candidatePassword) // bcrypt compare
    └─> Generate JWT token
    └─> Return token to client
 
-3. Authenticated requests
+4. Authenticated requests
    └─> Client sends JWT in Authorization header
    └─> Middleware verifies JWT → extracts userId
    └─> req.user = decoded user from token
+
+5. Link Google (for email/password users)
+   └─> POST /api/me/google/link → triggers OAuth consent flow
+   └─> Stores googleId, googleAccessToken, googleRefreshToken on existing User
+   └─> Now user.hasGoogleLinked = true → Drive/Docs unlocked
+
+6. Unlink Google
+   └─> DELETE /api/me/google/link { keepNotes: true/false }
+   └─> If keepNotes=false: soft-delete notes with googleDocId
+   └─> If keepNotes=true: keep notes but clear googleDocId (standalone copies)
+   └─> Clear googleId, googleAccessToken, googleRefreshToken from User
+
+7. Forgot password
+   └─> POST /api/auth/forgot-password { email }
+   └─> user.createPasswordResetToken() → hashed token + 1hr expiry
+   └─> Send reset link via email (Resend)
+   └─> POST /api/auth/reset-password { token, newPassword }
+   └─> Verify token not expired → hash new password → clear reset fields
 ```
+
+**Google Link Tracking**: `user.hasGoogleLinked` virtual checks if `googleId` exists. Frontend uses this to show/hide Google Docs features and prompt linking.
 
 **Google OAuth Flow**:
 ```
@@ -132,21 +183,21 @@ await Comment.updateMany(
 
 ---
 
-### Notes & Content (Sprint 2)
+### Notes & Content
 
-**Flow**: Import Google Doc → Store as Note → View/Edit
+**Flow**: Import Google Doc → Store as Note → View/Edit → Generate Summary
 
 ```
 1. User connects Google Drive
    └─> OAuth flow stores googleAccessToken in User
 
 2. User browses Google Drive
-   └─> GET /api/google-drive/files
+   └─> GET /api/google/files
    └─> Use googleAccessToken to call Drive API
    └─> Return list of documents
 
 3. User imports document
-   └─> GET /api/google-docs/:docId/content
+   └─> POST /api/notes/import
    └─> Fetch document content via Docs API
    └─> Parse HTML/Markdown
    └─> Note.create({
@@ -159,14 +210,27 @@ await Comment.updateMany(
      })
 
 4. User refreshes note
+   └─> PUT /api/notes/:id/refresh
    └─> Fetch latest content from Google Docs
    └─> Note.findOneAndUpdate(
        { _id: noteId, userId },
        { content: newContent, lastSyncedAt: now }
      )
+
+5. User generates AI summary
+   └─> POST /api/notes/:id/summary
+   └─> Call Groq API with note.content
+   └─> Note.findByIdAndUpdate(noteId, {
+       summary: {
+         quickSummary: aiResponse.quick,
+         detailedSummary: aiResponse.detailed,
+         generatedAt: now,
+         model: 'llama-3.1-70b'
+       }
+     })
 ```
 
-**Query Pattern**:
+**Query Patterns**:
 ```javascript
 // Get user's notes
 const notes = await Note.find({
@@ -183,32 +247,24 @@ const results = await Note.find({
   deletedAt: null
 });
 
-// Get note with summary
-const note = await Note.findById(noteId)
-  .populate('summary'); // Virtual populate from NoteSummary
+// Get note (summary is already embedded — no populate needed)
+const note = await Note.findOne({
+  _id: noteId,
+  userId: req.user._id,
+  deletedAt: null
+});
+// note.summary.quickSummary is immediately available
 ```
 
 ---
 
-### AI Learning (Sprint 3)
+### AI Learning
 
-**Flow**: Note → AI Summary → Flashcard Generation → Study
+**Flow**: Note → Flashcard Generation → Study
 
 ```
-1. User generates summary
-   └─> POST /api/notes/:noteId/summary
-   └─> Extract note.content
-   └─> Call Groq API (Llama 3.1 70B)
-   └─> NoteSummary.create({
-       noteId,
-       userId,
-       quickSummary: aiResponse.quick,
-       detailedSummary: aiResponse.detailed
-     })
-   └─> Note.findByIdAndUpdate(noteId, { hasSummary: true })
-
-2. User generates flashcards
-   └─> POST /api/notes/:noteId/flashcards
+1. User generates flashcards from note
+   └─> POST /api/notes/:noteId/flashcards/generate
    └─> Extract note.content
    └─> Call Groq API (Llama 3.1 8B) with "extract Q&A pairs" prompt
    └─> FlashcardSet.create({ noteId, userId, title, isAIGenerated: true })
@@ -220,13 +276,13 @@ const note = await Note.findById(noteId)
      })))
    └─> Note.findByIdAndUpdate(noteId, { hasFlashcards: true })
 
-3. User studies flashcards
-   └─> GET /api/flashcard-sets/:setId/flashcards
-   └─> Flashcard.find({ setId }).sort({ order: 1 })
+2. User studies flashcards
+   └─> GET /api/flashcard-sets/:setId
+   └─> FlashcardSet + Flashcard.find({ setId }).sort({ order: 1 })
    └─> Client displays flip interface
 
-4. User marks card correct/incorrect
-   └─> POST /api/flashcards/:cardId/progress
+3. User marks card correct/incorrect
+   └─> PUT /api/flashcard-sets/:setId/cards/:cardId/progress
    └─> Flashcard.findOneAndUpdate(
        { _id: cardId, 'userProgress.userId': userId },
        { $inc: { 'userProgress.$.correctCount': 1 } }
@@ -244,7 +300,7 @@ flashcard.userProgress = [
 
 ---
 
-### Tasks & Calendar (Sprint 4)
+### Tasks & Calendar
 
 **Flow**: Create Task → Link to Note → View in Calendar
 
@@ -261,7 +317,7 @@ flashcard.userProgress = [
      })
 
 2. Calendar view query
-   └─> GET /api/tasks/calendar?start=2026-03-01&end=2026-03-31
+   └─> GET /api/calendar?start=2026-03-01&end=2026-03-31
    └─> Task.find({
        userId,
        dueDate: { $gte: startDate, $lte: endDate },
@@ -269,10 +325,10 @@ flashcard.userProgress = [
      }).sort({ dueDate: 1 })
 
 3. Mark task complete
-   └─> PATCH /api/tasks/:taskId
+   └─> PATCH /api/tasks/:taskId/status
    └─> Task.findOneAndUpdate(
        { _id: taskId, userId },
-       { status: 'completed', completedAt: now }
+       { status: 'completed' }
      )
    └─> Pre-save hook auto-sets completedAt
 
@@ -291,21 +347,9 @@ flashcard.userProgress = [
        })
 ```
 
-**Overdue Detection**:
-```javascript
-// Scheduled job (runs daily)
-const overdueTasks = await Task.find({
-  dueDate: { $lt: new Date() },
-  status: { $in: ['todo', 'in_progress'] },
-  deletedAt: null
-});
-
-// Send reminders via email/push notifications
-```
-
 ---
 
-### Social Features (Sprint 5)
+### Social Features
 
 **Flow**: Add Friend → Share Note → Comment → Like
 
@@ -321,7 +365,7 @@ const overdueTasks = await Task.find({
      })
 
 2. Send friend request
-   └─> POST /api/friendships
+   └─> POST /api/friends/request
    └─> Friendship.create({
        user1: Math.min(senderId, receiverId), // Ordered
        user2: Math.max(senderId, receiverId),
@@ -330,9 +374,9 @@ const overdueTasks = await Task.find({
      })
 
 3. Accept friend request
-   └─> PATCH /api/friendships/:id/accept
+   └─> PUT /api/friends/request/:id
    └─> Friendship.findOneAndUpdate(
-       { _id, user2: userId }, // Only receiver can accept
+       { _id, status: 'pending' },
        { status: 'accepted', respondedAt: now }
      )
 
@@ -341,10 +385,10 @@ const overdueTasks = await Task.find({
        $or: [{ user1: userId }, { user2: userId }],
        status: 'accepted'
      })
-     .populate('user1 user2', 'username fullName avatarUrl')
+     .populate('user1 user2', 'username firstName lastName avatarUrl')
 
 5. Share note
-   └─> PATCH /api/notes/:noteId/share
+   └─> PUT /api/notes/:noteId/share
    └─> Note.findOneAndUpdate(
        { _id: noteId, userId },
        { visibility: 'friends' }
@@ -361,11 +405,11 @@ const overdueTasks = await Task.find({
        targetType: 'note',
        userId,
        content,
-       userSnapshot: { username, fullName, avatarUrl }
+       userSnapshot: { username, firstName, lastName, avatarUrl }
      })
 
 7. Like comment
-   └─> PATCH /api/comments/:commentId/like
+   └─> POST /api/comments/:commentId/like
    └─> Comment.findOneAndUpdate(
        { _id: commentId },
        { $addToSet: { likes: userId } } // Prevents duplicates
@@ -384,202 +428,39 @@ const friendship = await Friendship.findOne({
 
 ---
 
-### Messaging (Sprint 6)
-
-**Flow**: Start Conversation → Send Message → Read Message
-
-```
-1. Start conversation (or find existing)
-   └─> Conversation.findOne({
-       participants: { $all: [user1, user2] }
-     })
-   └─> If not found: Conversation.create({
-       participants: [user1, user2],
-       unreadCounts: [
-         { userId: user1, count: 0 },
-         { userId: user2, count: 0 }
-       ]
-     })
-
-2. Send message
-   └─> POST /api/messages
-   └─> Message.create({
-       conversationId,
-       senderId: userId,
-       content
-     })
-   └─> Update conversation:
-       Conversation.findByIdAndUpdate(conversationId, {
-         lastMessage: {
-           senderId: userId,
-           content: content.substring(0, 200), // Preview
-           sentAt: now
-         },
-         $inc: { 'unreadCounts.$[elem].count': 1 }
-       }, {
-         arrayFilters: [{ 'elem.userId': { $ne: userId } }] // Increment for receiver only
-       })
-
-3. Get conversation messages
-   └─> GET /api/conversations/:id/messages?cursor=lastMessageId
-   └─> Message.find({
-       conversationId,
-       _id: { $gt: cursor } // Cursor pagination
-     })
-     .sort({ createdAt: -1 })
-     .limit(50)
-
-4. Mark messages as read
-   └─> PATCH /api/conversations/:id/read
-   └─> Message.updateMany(
-       { conversationId, 'readBy.userId': { $ne: userId } },
-       { $push: { readBy: { userId, readAt: now } } }
-     )
-   └─> Conversation.findOneAndUpdate(
-       { _id: conversationId },
-       { $set: { 'unreadCounts.$[elem].count': 0 } },
-       { arrayFilters: [{ 'elem.userId': userId }] }
-     )
-```
-
-**Inbox Query** (fast with denormalized lastMessage):
-```javascript
-const conversations = await Conversation.find({
-  participants: userId,
-  deletedAt: null
-})
-.sort({ 'lastMessage.sentAt': -1 })
-.populate('participants', 'username avatarUrl')
-.limit(50);
-
-// Without denormalization, would need expensive aggregation:
-// Conversation.aggregate([
-//   { $lookup: { from: 'messages', ... } },
-//   { $sort: { 'messages.createdAt': -1 } },
-//   { $limit: 1 } // Last message per conversation
-// ]) // Much slower!
-```
-
----
-
-### Offline Sync (Sprint 6)
-
-**Flow**: Offline Operation → Queue → Reconnect → Sync
-
-```
-1. User goes offline
-   └─> Client detects network loss
-   └─> Switch to offline mode (local storage)
-
-2. User creates note offline
-   └─> Client saves to IndexedDB/AsyncStorage
-   └─> Client queues sync operation:
-       {
-         operation: 'create',
-         collection: 'notes',
-         data: { title, content, ... },
-         clientTimestamp: now
-       }
-
-3. User reconnects
-   └─> Client detects network
-   └─> POST /api/sync/queue (batch)
-   └─> Server processes queue:
-       
-       for (const op of queue) {
-         if (op.operation === 'create') {
-           await Note.create({
-             ...op.data,
-             userId: req.user._id
-           });
-         }
-         else if (op.operation === 'update') {
-           await Note.findByIdAndUpdate(op.documentId, op.data);
-         }
-         else if (op.operation === 'delete') {
-           await Note.findByIdAndUpdate(op.documentId, {
-             deletedAt: new Date()
-           });
-         }
-       }
-
-4. Conflict resolution (last-write-wins)
-   └─> If server has newer version:
-       - Compare updatedAt timestamps
-       - Keep most recent
-       - Notify client of conflict
-
-5. Client receives synced data
-   └─> Update local storage with server IDs
-   └─> Clear sync queue
-```
-
-**SyncQueue Collection** (optional, for complex sync):
-```javascript
-// Server-side queue
-SyncQueue.create({
-  userId,
-  operation: 'create',
-  collection: 'messages',
-  documentId: null, // Generated after creation
-  data: messageData,
-  clientTimestamp,
-  status: 'pending'
-});
-
-// Process queue (background job)
-const pending = await SyncQueue.find({ status: 'pending' })
-  .sort({ clientTimestamp: 1 });
-
-for (const item of pending) {
-  try {
-    // Execute operation
-    const result = await executeOperation(item);
-    
-    // Mark as completed
-    item.status = 'completed';
-    item.processedAt = new Date();
-    await item.save();
-  } catch (error) {
-    item.status = 'failed';
-    item.errorMessage = error.message;
-    await item.save();
-  }
-}
-```
-
----
-
-### Career Tools (Sprint 7)
+### Career Tools
 
 **Flow**: Upload Resume → AI Feedback → Track Applications
 
 ```
 1. User uploads resume
-   └─> POST /api/resumes (multipart/form-data)
-   └─> Upload file to S3/cloud storage
+   └─> POST /api/resumes/upload (multipart/form-data)
+   └─> Upload file to cloud storage
    └─> Resume.create({
        userId,
        fileName,
-       fileUrl: s3Url,
+       fileUrl: storageUrl,
        version: 'SWE Intern v1',
        targetRole: 'Software Engineer Intern'
      })
 
 2. Generate AI feedback
    └─> POST /api/resumes/:resumeId/feedback
-   └─> Extract text from PDF (using pdf-parse or similar)
+   └─> Extract text from PDF (using pdf-parse)
    └─> Call Groq API (Llama 3.1 70B) with resume analysis prompt
-   └─> ResumeFeedback.create({
-       resumeId,
-       userId,
-       overallScore: aiResponse.score,
-       strengths: aiResponse.strengths,
-       improvements: aiResponse.improvements,
-       sections: aiResponse.sectionScores,
-       keywordOptimization: aiResponse.keywords
+   └─> Resume.findByIdAndUpdate(resumeId, {
+       $push: {
+         feedback: {
+           overallScore: aiResponse.score,
+           strengths: aiResponse.strengths,
+           improvements: aiResponse.improvements,
+           sections: aiResponse.sectionScores,
+           keywordOptimization: aiResponse.keywords,
+           model: 'llama-3.1-70b',
+           generatedAt: now
+         }
+       }
      })
-   └─> Resume.findByIdAndUpdate(resumeId, { hasFeedback: true })
 
 3. Create job application
    └─> POST /api/applications
@@ -592,14 +473,14 @@ for (const item of pending) {
      })
 
 4. Update application status
-   └─> PATCH /api/applications/:id
+   └─> PUT /api/applications/:id
    └─> Application.findOneAndUpdate(
        { _id: appId, userId },
        { status: 'applied', appliedAt: now }
      )
 
 5. Add networking contact
-   └─> PATCH /api/applications/:id/contacts
+   └─> POST /api/applications/:id/contacts
    └─> Application.findOneAndUpdate(
        { _id: appId, userId },
        { $push: {
@@ -626,11 +507,64 @@ for (const item of pending) {
    └─> Returns: { draft: 3, applied: 12, interview: 5, offer: 1, rejected: 8 }
 ```
 
-**Application Pipeline Visualization**:
-```javascript
-// Frontend displays as columns:
-Draft     Applied    Interview    Offer    Rejected
-  3         12          5          1         8
+---
+
+### Messaging (Stretch)
+
+**Flow**: Start Conversation → Send Message → Read Message
+
+```
+1. Start conversation (or find existing)
+   └─> Conversation.findOne({
+       participants: { $all: [user1, user2] }
+     })
+   └─> If not found: Conversation.create({
+       participants: [user1, user2],
+       unreadCounts: [
+         { userId: user1, count: 0 },
+         { userId: user2, count: 0 }
+       ]
+     })
+
+2. Send message
+   └─> POST /api/conversations/:id/messages
+   └─> Message.create({
+       conversationId,
+       senderId: userId,
+       content
+     })
+   └─> Update conversation:
+       Conversation.findByIdAndUpdate(conversationId, {
+         lastMessage: {
+           senderId: userId,
+           content: content.substring(0, 200),
+           sentAt: now
+         },
+         $inc: { 'unreadCounts.$[elem].count': 1 }
+       }, {
+         arrayFilters: [{ 'elem.userId': { $ne: userId } }]
+       })
+
+3. Get conversation messages
+   └─> GET /api/conversations/:id/messages?cursor=lastMessageId
+   └─> Message.find({
+       conversationId,
+       _id: { $gt: cursor }
+     })
+     .sort({ createdAt: -1 })
+     .limit(50)
+
+4. Mark messages as read
+   └─> PUT /api/messages/:id/read
+   └─> Message.updateMany(
+       { conversationId, 'readBy.userId': { $ne: userId } },
+       { $push: { readBy: { userId, readAt: now } } }
+     )
+   └─> Conversation.findOneAndUpdate(
+       { _id: conversationId },
+       { $set: { 'unreadCounts.$[elem].count': 0 } },
+       { arrayFilters: [{ 'elem.userId': userId }] }
+     )
 ```
 
 ---
@@ -655,9 +589,9 @@ const note = await Note.findOne({
 const note = await Note.findOne({
   _id: noteId,
   $or: [
-    { userId: req.user._id }, // Owner
-    { sharedWith: req.user._id }, // Shared with
-    { visibility: 'friends' } // + check friendship
+    { userId: req.user._id },     // Owner
+    { sharedWith: req.user._id },  // Shared with
+    { visibility: 'friends' }      // + check friendship
   ],
   deletedAt: null
 });
@@ -667,10 +601,9 @@ const note = await Note.findOne({
 
 **Cursor-based** (recommended for large datasets):
 ```javascript
-// Get tasks after cursor
 const tasks = await Task.find({
   userId,
-  _id: { $gt: lastSeenId }, // Cursor
+  _id: { $gt: lastSeenId },
   deletedAt: null
 })
 .limit(20)
@@ -709,11 +642,11 @@ const user = await User.findById(userId);
 
 // Returns only needed fields
 const user = await User.findById(userId)
-  .select('username fullName avatarUrl');
+  .select('username firstName lastName avatarUrl');
 
 // Exclude sensitive fields
 const user = await User.findById(userId)
-  .select('-passwordHash -googleAccessToken');
+  .select('-password -googleAccessToken');
 ```
 
 ### 5. Batch Operations
@@ -729,32 +662,6 @@ await Note.updateMany(
   { _id: { $in: noteIds }, userId },
   { $set: { isPinned: true } }
 );
-```
-
-### 6. Aggregation Pipelines (Complex Queries)
-
-```javascript
-// Get notes with comment counts
-const notesWithComments = await Note.aggregate([
-  { $match: { userId: mongoose.Types.ObjectId(userId), deletedAt: null } },
-  {
-    $lookup: {
-      from: 'comments',
-      localField: '_id',
-      foreignField: 'targetId',
-      as: 'comments'
-    }
-  },
-  {
-    $project: {
-      title: 1,
-      createdAt: 1,
-      commentsCount: { $size: '$comments' }
-    }
-  },
-  { $sort: { commentsCount: -1 } },
-  { $limit: 10 }
-]);
 ```
 
 ---
@@ -782,11 +689,11 @@ const query = clean(req.body.query);
 
 ```javascript
 // Schema definition
-passwordHash: { type: String, select: false }
+password: { type: String, select: false }
 googleAccessToken: { type: String, select: false }
 
 // Must explicitly select to retrieve
-const user = await User.findById(userId).select('+passwordHash');
+const user = await User.findById(userId).select('+password');
 ```
 
 ### 3. Authorization Checks
@@ -821,24 +728,20 @@ if (!friendship) {
 ### 1. **User-Centric Design**
 Everything belongs to a user. All queries are scoped by `userId`.
 
-### 2. **References for Scalability**
-Large collections (Notes, Tasks, Messages) are separate. Small data (settings, contacts) is embedded.
+### 2. **Embed What Belongs Together**
+Summary lives inside Note. Feedback lives inside Resume. No extra queries for 1:1 data.
 
-### 3. **Denormalization for Speed**
+### 3. **Reference What Scales Independently**
+Flashcards are separate from FlashcardSets (50-100+ cards per set). Messages are separate from Conversations.
+
+### 4. **Denormalize for Speed**
 Cache frequently-accessed data (user snapshots, last message, counts) to avoid expensive lookups.
 
-### 4. **Soft Deletes for Recovery**
+### 5. **Soft Deletes for Recovery**
 Never hard-delete user content. Use `deletedAt` for undo and audit trails.
 
-### 5. **Indexes for Performance**
+### 6. **Indexes for Performance**
 All common queries have compound indexes. Text search enabled on searchable fields.
-
-### 6. **Offline-First Architecture**
-Client timestamps and sync queues enable offline operation with eventual consistency.
 
 ### 7. **Security First**
 Always validate input, scope queries by user, exclude sensitive fields, check authorization.
-
----
-
-This schema design supports **rapid development**, **performance at scale**, and **user privacy** — perfect for your 8-week MERN sprint! 

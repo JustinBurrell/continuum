@@ -82,6 +82,40 @@ All AI interactions will be asynchronous with appropriate loading states in the 
 
 ---
 
+## Handling Long Content
+
+Llama 3.1 70B on Groq supports up to 128K tokens (~96K words). Most notes will fit entirely in a single request. For the rare cases where content exceeds limits:
+
+### Chunking Strategy
+
+```
+1. Measure content length (approximate tokens = words × 1.3)
+2. If content fits in context window (< 90K tokens with room for prompt):
+   → Send entire content in one request
+3. If content exceeds limit:
+   → Split into overlapping chunks (~6K words each, 500-word overlap)
+   → Process each chunk independently
+   → Combine results:
+     - Summaries: summarize each chunk, then summarize the summaries
+     - Flashcards: generate from each chunk, deduplicate, combine into one set
+```
+
+### Per-Feature Limits
+
+| Feature | Model | Max Input | Strategy |
+|---------|-------|-----------|----------|
+| Note Summary | Llama 3.1 70B | ~90K tokens | Single request for most notes. Chunk + combine for very long docs. |
+| Flashcard Generation | Llama 3.1 8B | ~90K tokens | Cap at ~30 flashcards per generation. Chunk if needed. |
+| Resume Feedback | Llama 3.1 70B | ~90K tokens | Resumes are short (1-3 pages). Always fits in one request. |
+
+### Error Handling
+
+- If Groq returns a rate limit error → retry after delay (exponential backoff, max 3 retries)
+- If Groq is completely down → return error to user: "AI features temporarily unavailable. Try again later."
+- Never block the user from using the app because AI is down — notes, tasks, etc. all work without AI
+
+---
+
 ## Scaling Considerations
 
 For the 8-week MVP and initial user testing phase, Groq's free tier provides more than adequate capacity. Typical usage patterns:

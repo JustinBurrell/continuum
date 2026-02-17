@@ -1,16 +1,33 @@
 # Continuum - Development Planning & Progress Tracker
 
-**Project**: All-in-one educational platform unifying Google Docs, AI study tools, task management, and career tracking  
-**Timeline**: Design Sprint (Pre-Sprint) → February 16 - April 10, 2026 (8 development weeks)  
-**Stack**: MERN (MongoDB, Express, React, Node.js) + React Native with Expo  
-**Developer**: Solo full-stack development  
-**Showcase**: April 10, 2026
+**Project**: All-in-one educational platform unifying Google Docs, AI study tools, task management, and career tracking
+**Timeline**: February 23 - April 17, 2026 (8 development sessions + Showcase)
+**Stack**: MERN (MongoDB, Express, React, Node.js) + React Native with Expo
+**Developer**: Solo full-stack development
+**Showcase**: April 17, 2026
+**Program**: Google Play TEI
+
+---
+
+## Program Timeline
+
+| Session | Date | Phase |
+|---------|------|-------|
+| Session 1 | 2/23 (Mon) 5:30-7:30pm ET | Phase 1: Database Layer |
+| Session 2 | 3/2 (Mon) 5:30-7:30pm ET | Phase 1: Database Layer |
+| Session 3 | 3/9 (Mon) 5:30-7:30pm ET | Phase 2: Backend APIs |
+| Session 4 | 3/16 (Mon) 5:30-7:30pm ET | Phase 2: Backend APIs |
+| Session 5 | 3/23 (Mon) 5:30-7:30pm ET | Phase 2: Backend APIs |
+| Session 6 | 3/30 (Mon) 5:30-7:30pm ET | Phase 3: Frontend (Web + Mobile) |
+| Session 7 | 4/6 (Mon) 5:30-7:30pm ET | Phase 3: Frontend (Web + Mobile) |
+| Session 8 | 4/13 (Mon) 5:30-7:30pm ET | Phase 4: Polish & Showcase Prep |
+| Showcase | 4/17 (Fri) 5:30-7:30pm ET | Showcase (subject to change) |
 
 ---
 
 ## Project Understanding
 
-**Related Documents**: [Product Requirements Document](./product/product_requirements_document.md) | [Proof of Concept](./product/proof_of_concept.md) | [Design Breakdown](./design/design_breakdown.md) | [Cheat Sheet](./design/continuum_cheat_sheet.md) | [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) | [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md) | [Groq AI Integration](./database/groq_ai_integration.md)
+**Related Documents**: [Product Requirements Document](./product/product_requirements_document.md) | [Backend User Flows](./backend/backend_user_flows.md) | [Proof of Concept](./product/proof_of_concept.md) | [API Reference Guide](./backend/api_reference_guide.md) | [Backend Architecture](./backend/backend_architecture.md) | [Design Breakdown](./design/design_breakdown.md) | [Cheat Sheet](./design/continuum_cheat_sheet.md) | [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) | [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md) | [Schema Diagram](./database/schema_diagram.md) | [Groq AI Integration](./backend/groq_ai_integration.md)
 
 ### Core Problem
 Students manage their academic and professional lives across 8-12 disconnected applications, causing:
@@ -23,640 +40,601 @@ Continuum unifies:
 1. **Content Management**: Google Docs import and note organization
 2. **AI-Powered Learning**: Auto-generated summaries and flashcards
 3. **Task & Calendar**: Integrated task management with calendar views
-4. **Collaboration**: Friends, sharing, comments, and direct messaging
+4. **Collaboration**: Friends, sharing, comments
 5. **Career Tools**: Resume management with AI feedback and application tracking
-6. **Offline Support**: Full functionality without internet connection
 
 ### Key Technical Decisions
 - **MERN Stack**: JavaScript across entire stack for rapid solo development
-- **React Native + Expo**: 70-80% code sharing between iOS/Android
+- **React Native + Expo**: Cross-platform mobile with Android SDK for Google Play
 - **MongoDB**: Flexible schemas for rapid iteration
-- **Offline-First**: Local caching with sync on reconnect
+- **Cloudinary**: Resume PDF storage (cloud-hosted, no local file system)
+- **Groq API**: AI-powered summaries, flashcards, and resume feedback (Llama 3.1)
+- **Deployment**: Railway or Render (backend) + Vercel (web) + EAS Build (mobile)
+- **Layered Development**: Database → Backend → Frontend to deeply learn each layer
 
 ### Success Metrics
 - 160+ commits across 8 weeks
 - 80%+ backend test coverage
-- Functional on both web and mobile
+- Functional on both web and mobile (Android required for Google Play)
 - Sub-2s load times for core features
+
+---
+
+## Development Approach
+
+**Learning-first, layered development.** Instead of vertical slices (full stack per feature), we build horizontally:
+
+1. **Database Layer** — Learn MongoDB/Mongoose deeply. Design all schemas, understand indexing, relationships, and data flow.
+2. **Backend APIs** — Learn Express, JWT, middleware, REST design. Build and test every endpoint with Postman before any frontend exists.
+3. **Frontend** — Wire up existing web UI to APIs. Build mobile with Expo/React Native in parallel. React → React Native is a natural learning progression.
+4. **Polish** — Bug fixes, performance, Google Play prep, showcase demo.
+
+This means you won't have a working UI until Phase 3, but your backend will be rock-solid and fully tested.
 
 ---
 
 ## Overall Progress
 
-**Total Sprints**: 9 (1 Design Sprint + 8 Development Sprints)  
-**Completed Sprints**: 0/9  
-**Total Tickets**: 92 (Development) + Design tasks + 4 Project Setup  
-**Completed Tickets**: 0/96  
-**Current Sprint**: Sprint 0 - Design & Planning
+**Total Phases**: 4
+**Completed Phases**: 0/4
+**Total Tickets**: 62 (must-ship) + stretch
+**Completed Tickets**: 0/62
+**Current Phase**: Phase 1 - Database Layer
 
 ---
 
 ## Current Status
 
-**Current Ticket**: Page 1 - Core Flows (Auth, Notes, Flashcards, Tasks)  
-**Sprint**: Sprint 0 - Design & Planning  
+**Current Ticket**: DB-1: User model with password hashing
+**Phase**: Phase 1 - Database Layer
 **Status**: Not Started
 
 *Update this section as you progress through tickets*
 
 ---
 
-## Sprint 0: Design & Planning
-**Pre-Sprint | Figma Design Creation & Project Setup**  
-[Design Breakdown Reference](./design/design_breakdown.md) | [Figma Breakdown](./design/figma_breakdown.md)
+## Feature Priority
 
-### Sprint Objectives
-1. Create complete Figma designs for all web and mobile pages before starting development
-2. Set up base project structure for backend, web, and mobile applications
-3. Initialize all three projects with proper configuration
+### Must Ship
+Everything needed for a complete showcase demo:
+- Authentication (JWT + Google OAuth)
+- Notes + Google Docs import
+- AI summaries and flashcards (Groq)
+- Tasks and calendar
+- Friends, sharing, and comments
+- Career tools (resume upload, AI feedback, application tracking)
 
-**Total Screens**: 56 (28 Mobile + 28 Web)  
-**Figma Pages**: 2  
-**Progress**: 0/2 pages + 0/4 project setups
-
----
-
-## Page 1: Core Flows (Auth, Notes, Flashcards, Tasks)
-**Total**: 15 web screens + 15 mobile screens = 30 designs
-
-### Mobile Screens (15)
-- [ ] Mobile - Landing Page
-- [ ] Mobile - Signup
-- [ ] Mobile - Login
-- [ ] Mobile - Dashboard Home
-- [ ] Mobile - Notes Dashboard
-- [ ] Mobile - Note Viewer
-- [ ] Mobile - Note Editor
-- [ ] Mobile - Note Import
-- [ ] Mobile - Flashcards Dashboard
-- [ ] Mobile - Flashcards Viewer
-- [ ] Mobile - Flashcards Creation
-- [ ] Mobile - Tasks Dashboard
-- [ ] Mobile - Tasks Creation
-- [ ] Mobile - Tasks Editor
-- [ ] Mobile - Calendar View
-
-### Web Screens (15)
-- [x] Web - Landing Page
-- [x] Web - Login
-- [x] Web - Signup
-- [ ] Web - Dashboard Home
-- [ ] Web - Notes Dashboard
-- [ ] Web - Note Viewer
-- [ ] Web - Note Editor
-- [ ] Web - Note Import
-- [ ] Web - Flashcards Dashboard
-- [ ] Web - Flashcards Viewer
-- [ ] Web - Flashcards Creation
-- [ ] Web - Tasks Dashboard
-- [ ] Web - Tasks Creation
-- [ ] Web - Tasks Editor
-- [ ] Web - Calendar View
+### Stretch Goals
+Nice to have but cut if time is short:
+- Direct messaging
+- Offline sync support
+- Activity feed
 
 ---
 
-## Page 2: Social, Career & Settings
-**Total**: 13 web screens + 13 mobile screens = 26 designs
+## Phase 1: Database Layer
+**Sessions 1-2 | February 23 - March 2**
+**Focus**: MongoDB, Mongoose, schema design, indexing, data relationships
 
-### Mobile Screens (13)
-- [ ] Mobile - Social Dashboard
-- [ ] Mobile - User Search
-- [ ] Mobile - Friends List
-- [ ] Mobile - Shared Note View
-- [ ] Mobile - DM Inbox
-- [ ] Mobile - Chat Screen
-- [ ] Mobile - Career Dashboard
-- [ ] Mobile - Resume Management
-- [ ] Mobile - Resume Upload
-- [ ] Mobile - Resume Feedback
-- [ ] Mobile - Application Dashboard
-- [ ] Mobile - Application Detail
-- [ ] Mobile - Settings Profile
+### Learning Goals
+- Understand MongoDB document model vs relational databases
+- Master Mongoose schema definition, validation, and middleware (pre-save hooks)
+- Learn indexing strategies: compound indexes, text indexes, sparse indexes
+- Understand soft deletes, virtual fields, and schema design patterns
+- Practice testing schemas with seed data
 
-### Web Screens (13)
-- [ ] Web - Social Dashboard
-- [ ] Web - Friends List
-- [ ] Web - User Search
-- [ ] Web - Shared Note View
-- [ ] Web - DM Inbox
-- [ ] Web - Chat Screen
-- [ ] Web - Career Dashboard
-- [ ] Web - Resume Management
-- [ ] Web - Resume Upload
-- [ ] Web - Resume Feedback
-- [ ] Web - Application Dashboard
-- [ ] Web - Application Detail
-- [ ] Web - Settings Profile
+### All Models (13 total — 9 must-ship + 4 stretch)
 
----
+| # | Model | File | Category |
+|---|-------|------|----------|
+| 1 | User | `src/models/User.js` | Auth |
+| 2 | Note | `src/models/Note.js` | Notes (summary embedded) |
+| 3 | FlashcardSet | `src/models/FlashcardSet.js` | Learning |
+| 4 | Flashcard | `src/models/Flashcard.js` | Learning |
+| 5 | Task | `src/models/Task.js` | Tasks |
+| 6 | Friendship | `src/models/Friendship.js` | Social |
+| 7 | Comment | `src/models/Comment.js` | Social |
+| 8 | Resume | `src/models/Resume.js` | Career (feedback embedded) |
+| 9 | Application | `src/models/Application.js` | Career |
+| 10 | Conversation | `src/models/Conversation.js` | Stretch: DMs |
+| 11 | Message | `src/models/Message.js` | Stretch: DMs |
+| 12 | SyncQueue | `src/models/SyncQueue.js` | Stretch: Offline |
+| 13 | Activity | `src/models/Activity.js` | Stretch: Feed |
 
-## Shared Components
-**Design once and reuse across all screens**:
-- [ ] Buttons (primary, secondary, icon)
-- [ ] Input fields
-- [ ] Cards (note cards, task cards, application cards)
-- [ ] Modals/Dialogs
-- [ ] Navigation components
-- [ ] Loading states
-- [ ] Error states
-- [ ] Empty states
-- [ ] Status badges
-- [ ] Avatars
+### Session 1 (2/23): Core Models
+**Models 1-6 — Auth, Notes, Learning, Tasks**
 
----
+#### Tickets
 
-## Design Checklist
+DB-1. [ ] `feat: add user model with password hashing`
+   - Schema: email, username, password (hashed via pre-save), googleId, googleAccessToken, googleRefreshToken, passwordResetToken, passwordResetExpires, settings, deletedAt
+   - Pre-save hook: bcrypt password hashing
+   - Methods: comparePassword, createPasswordResetToken
+   - Virtuals: fullName, hasGoogleLinked
+   - Indexes: email (unique), username (unique), googleId (sparse)
+   - See [Schema Explanation - Auth](./database/mongodb_schema_explaination.md#authentication)
 
-### Before Building Each Screen:
-- [ ] Frame created with correct dimensions (Web: 1440 x 900px, Mobile: 390 x 844px)
-- [ ] Named using convention: `[Platform] - [Screen Name]`
-- [ ] Auto Layout enabled on main container
-- [ ] All nested elements have descriptive names
-- [ ] Consistent spacing (4/8/12/16/24/32/48px)
-- [ ] Colors match design system (#6B21A8, #F8F9FA, etc.)
-- [ ] Components use Hug/Fill appropriately
-- [ ] No absolute positioning inside Auto Layout
+DB-2. [ ] `feat: add note model with embedded summary`
+   - Note schema: userId, title, content, googleDocId, tags, visibility, sharedWith, summary (embedded: quickSummary, detailedSummary, generatedAt, model), hasFlashcards, deletedAt
+   - Text index on title, content, tags
+   - See [Schema Explanation - Notes](./database/mongodb_schema_explaination.md#notes--content)
 
-### For MCP Compatibility:
-- [ ] All layers descriptively named (no "Frame 182")
-- [ ] Auto Layout on all containers
-- [ ] Consistent component patterns
-- [ ] Clear hierarchy in layer structure
+DB-3. [ ] `feat: add flashcard set and flashcard models`
+   - FlashcardSet schema: userId, noteId, title, totalCards, visibility, sharedWith, isAIGenerated, deletedAt
+   - Flashcard schema: setId, front, back, userProgress[] (userId, correctCount, incorrectCount, confidence), order, deletedAt
+   - Study tracking: simple correct/incorrect for MVP; schema supports spaced repetition fields for post-showcase
+   - Virtual: flashcards on FlashcardSet
+   - Indexes: setId+order, userProgress.userId
+   - See [Schema Explanation - Learning](./database/mongodb_schema_explaination.md#ai-learning)
 
----
+DB-4. [ ] `feat: add task model with recurrence and shared participants`
+   - Schema: userId, noteId, title, dueDate, type, priority, status, recurrence (frequency, interval, daysOfWeek, endDate, parentTaskId), isShared, participants[] (userId, status, completedAt), completedAt, deletedAt
+   - Virtual: isOverdue
+   - Pre-save: set completedAt when status=completed; generate next occurrence for recurring tasks
+   - Participants track their own status independently; only owner can edit task details
+   - Indexes: userId+dueDate, participants.userId+isShared, dueDate+status, recurrence.parentTaskId
+   - See [Schema Explanation - Tasks](./database/mongodb_schema_explaination.md#tasks--calendar)
 
-## Project Setup
+DB-5. [ ] `test: create seed script for core models`
+   - Create seed data for Users, Notes, NoteSummaries, FlashcardSets, Flashcards, Tasks
+   - Validate all schemas work correctly
+   - Test indexes and queries
+   - Verify pre-save hooks fire correctly
 
-### Backend Setup
-1. [x] `feat: initialize express server with cors and body-parser`
-   - Initialize Node.js project with `npm init`
-   - Install Express, CORS, body-parser, dotenv
-   - Create `server.js` entry point
-   - Set up basic Express app with middleware
-   - Configure environment variables
-   - Add health check endpoint
+### Session 2 (3/2): Social & Career Models
+**Models 7-11 — Social, Career + Stretch models if time permits**
 
-2. [x] `feat: add mongodb connection and basic setup`
-   - Install mongoose
-   - Create database connection utility (see [Database Connection Setup](./database/mongodb_schema_implementation_order.md#database-connection-setup))
-   - Test MongoDB connection
-   - Set up basic project structure (`/routes`, `/models`, `/middleware`, `/config`)
+#### Tickets
 
-### Web Frontend Setup
-3. [x] `feat: initialize react app with router`
-   - Create React app with Vite or Create React App
-   - Install React Router DOM
-   - Set up basic route structure
-   - Create project folder structure (`/components`, `/pages`, `/hooks`, `/utils`, `/context`)
-   - Configure routing with BrowserRouter
+DB-6. [ ] `feat: add friendship model with request system`
+   - Schema: user1, user2 (user1<user2), requestedBy, status (pending/accepted/rejected/blocked), deletedAt
+   - Pre-save: enforce user1<user2 ordering
+   - Unique compound index: user1+user2
+   - See [Schema Explanation - Social](./database/mongodb_schema_explaination.md#social-features-sprint-5)
 
-### Mobile App Setup
-4. [x] `feat: initialize expo react native project`
-   - Install Expo CLI
-   - Create new Expo project
-   - Set up project structure (`/screens`, `/components`, `/navigation`, `/utils`, `/context`)
-   - Configure app.json
-   - Test on iOS simulator/Android emulator
+DB-7. [ ] `feat: add comment model with user snapshots`
+   - Schema: targetId, targetType (note, flashcardSet, task), userId, content, parentId, likes, userSnapshot, deletedAt
+   - Pre-save: snapshot user data
+   - Indexes: targetId+targetType, userId
+   - See [Schema Explanation - Social](./database/mongodb_schema_explaination.md#social-features)
 
----
+DB-8. [ ] `feat: add resume model with embedded feedback and cached text`
+   - Resume schema: userId, fileName, fileUrl, fileSize, version, targetRole, extractedText (select: false, cached on upload), feedback[] (embedded: overallScore, strengths, improvements, sections[], keywordOptimization, model, generatedAt), deletedAt
+   - Virtuals: hasFeedback, latestFeedback
+   - extractedText parsed from PDF on upload for instant AI feedback
+   - See [Schema Explanation - Career](./database/mongodb_schema_explaination.md#career-tools)
 
-### Sprint 0 Checkpoint
-**Design:**
-- [ ] Page 1 designs complete (30 screens)
-- [ ] Page 2 designs complete (26 screens)
-- [ ] All shared components designed (10 components)
-- [ ] Design system documented (colors, typography, spacing)
-- [ ] Designs reviewed and approved
-- [ ] Figma files organized and ready for development
+DB-9. [ ] `feat: add application tracking model`
+   - Schema: userId, company, position, status, appliedAt, contacts[], notes, resumeUsed, followUpReminders[], deletedAt
+   - Indexes: userId+status, userId+deadlineDate
+   - See [Schema Explanation - Career](./database/mongodb_schema_explaination.md#career-tools-sprint-7)
 
-**Projects:**
-- [x] Backend Express server runs and responds to health check
-- [x] MongoDB connection established
-- [x] React web app runs and displays basic routes
-- [x] Expo mobile app runs on simulator/emulator
-- [x] All three projects have proper folder structure
-- [x] Git repository initialized with proper `.gitignore`
+DB-10. [ ] `test: create seed script for social and career models`
+   - Seed data for Friendships, Comments, Resumes, ResumeFeedback, Applications
+   - Test relationships between models
+   - Validate compound indexes work correctly
+
+DB-11. [ ] `feat: add stretch models (conversation, message, syncqueue, activity)` *(stretch)*
+   - Conversation schema: participants[2], lastMessage, unreadCounts[], deletedAt
+   - Message schema: conversationId, senderId, content, readBy[], clientTimestamp, syncStatus, deletedAt
+   - SyncQueue schema: userId, operation, collection, documentId, data, status, clientTimestamp, processedAt
+   - Activity schema: userId, type, targetId, targetType, visibleTo[], metadata, createdAt (TTL: 90 days)
+   - See [Schema Explanation - Messaging](./database/mongodb_schema_explaination.md#messaging-sprint-6) and [Offline Sync](./database/mongodb_schema_explaination.md#offline-sync-sprint-6)
+
+### Phase 1 Checkpoint
+- [ ] All 9 must-ship models created and validated
+- [ ] Seed scripts run successfully
+- [ ] All indexes verified
+- [ ] Pre-save hooks tested (bcrypt, user1<user2, completedAt, user snapshot)
+- [ ] Virtual fields working (isOverdue, flashcards, latestFeedback)
+- [ ] Understand data flow between related models
 
 ---
 
-## Sprint 1: Foundation Layer
-**February 16-22 | Core Infrastructure**  
-[Detailed Sprint Plan](./sprint_planning/sprint_1.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-1-foundation-week-1)
+## Phase 2: Backend APIs
+**Sessions 3-5 | March 9-23**
+**Focus**: Express.js, REST API design, JWT authentication, middleware, Groq AI integration
 
-### Sprint Objectives
-Build the foundational authentication and infrastructure that everything else depends on. Get basic app running on web and mobile.
+### Learning Goals
+- Master Express routing, middleware chains, and error handling
+- Understand JWT authentication flow (sign, verify, refresh)
+- Learn Google OAuth integration
+- Practice RESTful API design patterns
+- Integrate third-party APIs (Google Drive, Groq)
+- Test all endpoints with Postman/Thunder Client before any frontend
 
-### Database
-**Models to implement**: 1
+### Session 3 (3/9): Auth & Notes APIs
+**Authentication system + Notes CRUD + Google Docs integration**
 
-| Model | File | Purpose |
-|-------|------|---------|
-| User | `src/models/User.js` | Authentication, profiles, Google OAuth (email, username, passwordHash, googleId, settings, deletedAt). Pre-save: bcrypt hash. Indexes: email, username, googleId (sparse). |
+#### Tickets
 
-See [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md#authentication-sprint-1) for data flow and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-1-foundation-week-1) for full schema.
+API-1. [ ] `feat: implement jwt authentication endpoints`
+   - POST /api/auth/register — create user, return JWT
+   - POST /api/auth/login — validate credentials, return JWT
+   - GET /api/auth/me — get current user from token
+   - POST /api/auth/forgot-password — send reset email via Resend
+   - POST /api/auth/reset-password — verify token, set new password
+   - Implement password validation, error handling
 
-### Progress: 0/10 tickets
+API-2. [ ] `feat: add google oauth integration`
+   - GET /api/auth/google — initiate OAuth flow (login/register)
+   - GET /api/auth/google/callback — handle OAuth callback, create/find user, return JWT
+   - POST /api/me/google/link — link Google account to existing user
+   - DELETE /api/me/google/link — unlink Google (keepNotes: true/false)
+   - Store Google tokens securely, track hasGoogleLinked state
 
-#### Backend Setup
-1. [ ] `feat: add user model with password hashing`
-2. [ ] `feat: implement jwt authentication endpoints`
-3. [ ] `feat: add google oauth integration`
-4. [ ] `feat: add jwt verification middleware`
+API-3. [ ] `feat: add jwt verification middleware`
+   - Create auth middleware that verifies JWT on protected routes
+   - Extract user from token and attach to request
+   - Handle expired tokens, invalid tokens, missing tokens
 
-#### Web Frontend
-5. [ ] `feat: add login and registration forms`
-6. [ ] `feat: add auth context and protected routing`
-7. [ ] `feat: create dashboard shell with navigation`
+API-4. [ ] `feat: add note crud endpoints`
+   - POST /api/notes — create note
+   - GET /api/notes — list user's notes (with search, filters, pagination)
+   - GET /api/notes/:id — get single note
+   - PUT /api/notes/:id — update note
+   - DELETE /api/notes/:id — soft delete note
 
-#### Mobile App
-8. [ ] `feat: configure react navigation with auth flow`
-9. [ ] `feat: add login screen with google oauth`
-10. [ ] `feat: add secure token storage with async storage`
+API-5. [ ] `feat: add google drive api client integration`
+   - Set up Google Drive API client
+   - GET /api/google/files — list user's Google Drive files
+   - Implement OAuth token refresh
 
-### Demo Checkpoint
-- [ ] User registers/logs in via email or Google on web and mobile
-- [ ] Session persists across restarts
+API-6. [ ] `feat: implement google doc import and refresh`
+   - POST /api/notes/import — import Google Doc as note snapshot
+   - PUT /api/notes/:id/refresh — refresh note from Google Docs
+   - Parse Google Doc content into note format
 
----
+### Session 4 (3/16): AI, Flashcards & Tasks APIs
+**Groq integration + Flashcard CRUD + Task management**
 
-## Sprint 2: Content Foundation
-**February 23 - March 1 | Google Docs & Notes**  
-[Detailed Sprint Plan](./sprint_planning/sprint_2.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-2-content-foundation-week-2)
+#### Tickets
 
-### Sprint Objectives
-Connect to Google Drive, import docs as notes, and build note viewing/management features.
+API-7. [ ] `feat: integrate groq api for summary generation`
+   - Set up Groq API client with Llama 3.1
+   - Create prompt templates for summary generation
+   - POST /api/notes/:id/summary — generate AI summary
+   - See [Groq AI Integration](./backend/groq_ai_integration.md)
 
-### Database
-**Models to implement**: 2
+API-8. [ ] `feat: implement ai flashcard generation`
+   - Create prompt templates for flashcard extraction
+   - POST /api/notes/:id/flashcards/generate — generate flashcards from note
+   - Parse AI response into flashcard format
 
-| Model | File | Purpose |
-|-------|------|---------|
-| Note | `src/models/Note.js` | Google Docs imports, native notes (userId, title, content, googleDocId, tags, visibility, sharedWith, hasSummary, hasFlashcards, deletedAt). Text index on title, content, tags. |
-| NoteSummary | `src/models/NoteSummary.js` | AI summaries per note (noteId, userId, quickSummary, detailedSummary, generatedAt, model, deletedAt). Index: noteId. |
+API-9. [ ] `feat: add flashcard set and flashcard crud endpoints`
+   - POST /api/flashcard-sets — create set
+   - GET /api/flashcard-sets — list user's sets
+   - GET /api/flashcard-sets/:id — get set with flashcards
+   - POST /api/flashcard-sets/:id/cards — add card
+   - PUT /api/flashcard-sets/:setId/cards/:cardId — update card
+   - PUT /api/flashcard-sets/:setId/cards/:cardId/progress — update study progress
+   - DELETE /api/flashcard-sets/:id — soft delete set
 
-See [Notes & Content (Sprint 2)](./database/mongodb_schema_explaination.md#notes--content-sprint-2) and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-2-content-foundation-week-2).
+API-10. [ ] `feat: implement task crud endpoints`
+   - POST /api/tasks — create task (with optional note linking)
+   - GET /api/tasks — list tasks (with status filters, date range)
+   - PUT /api/tasks/:id — update task
+   - DELETE /api/tasks/:id — soft delete task
+   - PATCH /api/tasks/:id/status — quick status update
 
-### Progress: 0/11 tickets
+API-11. [ ] `feat: create calendar aggregation endpoint`
+   - GET /api/calendar — aggregate tasks by date range
+   - Support week and month views
+   - Include overdue task detection
 
-#### Backend Development
-11. [ ] `feat: add google drive api client integration`
-12. [ ] `feat: add note model and crud endpoints`
-13. [ ] `feat: implement google doc import as note snapshot`
-14. [ ] `feat: add note refresh from google docs`
+API-12. [ ] `test: test all session 3-4 endpoints with postman`
+   - Create Postman collection for all endpoints
+   - Test happy paths and error cases
+   - Verify auth middleware protects routes
+   - Test pagination and filtering
 
-#### Web Frontend
-15. [ ] `feat: add google drive file picker component`
-16. [ ] `feat: create notes list with search and filters`
-17. [ ] `feat: add scrollable note viewer`
-18. [ ] `feat: implement note editing and tag management`
+### Session 5 (3/23): Social & Career APIs
+**Friends, sharing, comments + Resume upload and AI feedback + Application tracking**
 
-#### Mobile Development
-19. [ ] `feat: add mobile document list screen`
-20. [ ] `feat: create mobile scrollable note viewer`
-21. [ ] `feat: implement note import and refresh on mobile`
+#### Tickets
 
-### Demo Checkpoint
-- [ ] User browses Google Drive, imports docs as notes
-- [ ] User views/edits notes on web and mobile
+API-13. [ ] `feat: implement friend request endpoints`
+   - POST /api/friends/request — send friend request
+   - PUT /api/friends/request/:id — accept/reject request
+   - GET /api/friends — list friends
+   - DELETE /api/friends/:id — remove friend
+   - GET /api/users/search — search users by username/email
 
----
+API-14. [ ] `feat: add note sharing with visibility controls`
+   - PUT /api/notes/:id/share — share note with friends
+   - GET /api/notes/shared — list notes shared with user
+   - Update note visibility (private/friends/specific users)
 
-## Sprint 3: Active Learning
-**March 2-8 | AI Summaries & Flashcards**  
-[Detailed Sprint Plan](./sprint_planning/sprint_3.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-3-active-learning-week-3)
+API-15. [ ] `feat: add comment and like endpoints`
+   - POST /api/comments — add comment on note/flashcard set
+   - GET /api/comments/:targetType/:targetId — get comments
+   - POST /api/comments/:id/like — toggle like
+   - DELETE /api/comments/:id — soft delete comment
 
-### Sprint Objectives
-Add AI-powered study tools - summaries and flashcards with study interface.
+API-16. [ ] `feat: add resume upload and ai feedback endpoints`
+   - POST /api/resumes/upload — upload resume PDF (with file validation)
+   - GET /api/resumes — list user's resumes
+   - POST /api/resumes/:id/feedback — generate AI feedback via Groq
+   - GET /api/resumes/:id/feedback — get feedback history
 
-### Database
-**Models to implement**: 2
+API-17. [ ] `feat: add application tracking endpoints`
+   - POST /api/applications — create application entry
+   - GET /api/applications — list applications (with status filters)
+   - PUT /api/applications/:id — update application
+   - GET /api/applications/dashboard — pipeline summary (counts by status)
+   - POST /api/applications/:id/contacts — add networking contact
+   - POST /api/applications/:id/reminders — add follow-up reminder
 
-| Model | File | Purpose |
-|-------|------|---------|
-| FlashcardSet | `src/models/FlashcardSet.js` | Container for flashcards (userId, noteId, title, totalCards, visibility, isAIGenerated, deletedAt). Virtual: flashcards. |
-| Flashcard | `src/models/Flashcard.js` | Cards with study progress (setId, front, back, userProgress[], order, deletedAt). Indexes: setId+order, userProgress.userId. |
+API-18. [ ] `feat: implement shared tasks with participants`
+   - Update task endpoints to support isShared and participants
+   - GET /api/tasks/shared — list tasks shared with user
+   - Shared tasks appear in all participants' calendars
 
-See [AI Learning (Sprint 3)](./database/mongodb_schema_explaination.md#ai-learning-sprint-3) and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-3-active-learning-week-3).
+API-19. [ ] `test: test all session 5 endpoints with postman`
+   - Test friend request flow end-to-end
+   - Test sharing and visibility
+   - Test file upload
+   - Verify all protected routes
 
-### Progress: 0/12 tickets
+API-20. [ ] `feat: add stretch api endpoints (messaging)` *(stretch)*
+   - POST /api/conversations — start conversation
+   - GET /api/conversations — list conversations (inbox)
+   - POST /api/conversations/:id/messages — send message
+   - GET /api/conversations/:id/messages — get messages (paginated)
+   - PUT /api/messages/:id/read — mark as read
 
-#### Backend Development
-22. [ ] `feat: integrate groq api for summary generation`
-23. [ ] `feat: add note summary generation endpoint`
-24. [ ] `feat: implement ai flashcard generation`
-25. [ ] `feat: add flashcard model and crud endpoints`
-
-#### Web Frontend
-26. [ ] `feat: add summary generation ui with loading states`
-27. [ ] `feat: create manual flashcard editor`
-28. [ ] `feat: build flashcard study view with flip animation`
-29. [ ] `feat: add keyboard shortcuts for flashcard study`
-
-#### Mobile Development
-30. [ ] `feat: create mobile flashcard study screen`
-31. [ ] `feat: implement swipe gestures for flashcard navigation`
-32. [ ] `feat: add offline caching for flashcards`
-
-### Demo Checkpoint
-- [ ] User generates summaries and flashcards from notes
-- [ ] User studies using interactive flip interface
-
----
-
-## Sprint 4: Time Management
-**March 9-15 | Tasks & Calendar**  
-[Detailed Sprint Plan](./sprint_planning/sprint_4.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-4-time-management-week-4)
-
-### Sprint Objectives
-Build task management with calendar views to track assignments and deadlines.
-
-### Database
-**Models to implement**: 1
-
-| Model | File | Purpose |
-|-------|------|---------|
-| Task | `src/models/Task.js` | Tasks and calendar (userId, noteId, title, dueDate, type, priority, status, isShared, participants, completedAt, deletedAt). Virtual: isOverdue. Pre-save: set completedAt when status=completed. Indexes: userId+dueDate, participants+isShared, dueDate+status. |
-
-See [Tasks & Calendar (Sprint 4)](./database/mongodb_schema_explaination.md#tasks--calendar-sprint-4) and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-4-time-management-week-4).
-
-### Progress: 0/11 tickets
-
-#### Backend Development
-33. [ ] `feat: add task model with note linking`
-34. [ ] `feat: implement task crud endpoints`
-35. [ ] `feat: create calendar aggregation endpoint`
-36. [ ] `feat: add overdue task detection`
-
-#### Web Frontend
-37. [ ] `feat: add task creation modal with date picker`
-38. [ ] `feat: create task list with status filters`
-39. [ ] `feat: build calendar grid view component`
-40. [ ] `feat: implement inline task editing`
-
-#### Mobile Development
-41. [ ] `feat: add mobile task creation form`
-42. [ ] `feat: implement mobile calendar view`
-43. [ ] `feat: add swipe actions for task status`
-
-### Demo Checkpoint
-- [ ] User creates tasks linked to notes
-- [ ] User views tasks in calendar
-- [ ] User marks tasks complete
-
----
-
-## Sprint 5: Collaboration Layer
-**March 16-22 | Friends & Sharing**  
-[Detailed Sprint Plan](./sprint_planning/sprint_5.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-5-collaboration-layer-week-5)
-
-### Sprint Objectives
-Enable social features - friend system, sharing notes, comments, and shared tasks.
-
-### Database
-**Models to implement**: 2
-
-| Model | File | Purpose |
-|-------|------|---------|
-| Friendship | `src/models/Friendship.js` | Friend requests and relationships (user1, user2 with user1&lt;user2, requestedBy, status: pending/accepted/rejected/blocked, deletedAt). Pre-save: enforce user1&lt;user2. Unique compound: user1+user2. |
-| Comment | `src/models/Comment.js` | Comments on notes/flashcard sets (targetId, targetType, userId, content, parentId, likes, userSnapshot, deletedAt). Pre-save: snapshot user. Indexes: targetId+targetType, userId. |
-
-See [Social Features (Sprint 5)](./database/mongodb_schema_explaination.md#social-features-sprint-5) and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-5-collaboration-layer-week-5).
-
-### Progress: 0/12 tickets
-
-#### Backend Development
-44. [ ] `feat: add friendship and friend request models`
-45. [ ] `feat: implement friend request send and respond`
-46. [ ] `feat: create comment and like models`
-47. [ ] `feat: add note sharing with visibility controls`
-48. [ ] `feat: implement shared tasks with participants`
-
-#### Web Frontend
-49. [ ] `feat: add user search and friend request ui`
-50. [ ] `feat: create friends activity feed`
-51. [ ] `feat: implement comments and likes on shared notes`
-52. [ ] `feat: display shared tasks in calendar view`
-
-#### Mobile Development
-53. [ ] `feat: add mobile friends management screen`
-54. [ ] `feat: implement shared note viewing on mobile`
-55. [ ] `feat: build mobile comment interface`
-
-### Demo Checkpoint
-- [ ] User adds friends
-- [ ] User shares notes
-- [ ] User comments on shared content
-- [ ] User creates shared tasks visible to all participants
+### Phase 2 Checkpoint
+- [ ] All auth endpoints working (register, login, Google OAuth, JWT middleware)
+- [ ] Notes CRUD + Google Docs import working
+- [ ] AI summaries and flashcard generation working via Groq
+- [ ] Flashcard CRUD with study progress working
+- [ ] Task CRUD with calendar aggregation working
+- [ ] Friend system working end-to-end
+- [ ] Note sharing and comments working
+- [ ] Resume upload and AI feedback working
+- [ ] Application tracking working
+- [ ] All endpoints tested via Postman collection
+- [ ] Error handling consistent across all routes
 
 ---
 
-## Sprint 6: Messaging & Offline
-**March 23-29 | DMs & Offline Support**  
-[Detailed Sprint Plan](./sprint_planning/sprint_6.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-6-messaging--offline-week-6)
+## Phase 3: Frontend Integration
+**Sessions 6-7 | March 30 - April 6**
+**Focus**: React (web), React Native + Expo (mobile), API integration, state management
 
-### Sprint Objectives
-Add direct messaging and implement offline functionality for uninterrupted use.
+### Learning Goals
+- Connect React frontend to Express backend with fetch/axios
+- Implement auth context and protected routes
+- Learn React Native parallels to React (components, navigation, state)
+- Build for Android with Expo for Google Play
+- Handle loading states, errors, and optimistic updates
 
-### Database
-**Models to implement**: 3
+### Session 6 (3/30): Auth, Notes & Learning UI
+**Wire up existing web UI + build mobile equivalents for core features**
 
-| Model | File | Purpose |
-|-------|------|---------|
-| Conversation | `src/models/Conversation.js` | DM containers (participants[2], lastMessage {senderId, content, sentAt}, unreadCounts[], deletedAt). Denormalized lastMessage for inbox. |
-| Message | `src/models/Message.js` | Messages in conversations (conversationId, senderId, content, readBy[], clientTimestamp, syncStatus, deletedAt). Indexes: conversationId+createdAt, senderId. |
-| SyncQueue | `src/models/SyncQueue.js` | Offline operation queue (userId, operation, collection, documentId, data, status, clientTimestamp, processedAt). Indexes: userId+status+clientTimestamp, status+createdAt. |
+#### Web Tickets
 
-See [Messaging (Sprint 6)](./database/mongodb_schema_explaination.md#messaging-sprint-6), [Offline Sync (Sprint 6)](./database/mongodb_schema_explaination.md#offline-sync-sprint-6), and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-6-messaging--offline-week-6).
+WEB-1. [ ] `feat: wire up login and registration to auth api`
+   - Connect existing login/register forms to POST /api/auth endpoints
+   - Store JWT in localStorage/context
+   - Handle auth errors and validation
 
-### Progress: 0/12 tickets
+WEB-2. [ ] `feat: add auth context and protected routing`
+   - Create AuthContext with login, logout, user state
+   - Add ProtectedRoute wrapper component
+   - Redirect unauthenticated users to login
+   - Persist session across page refreshes
 
-#### Backend Development
-56. [ ] `feat: add conversation and message models`
-57. [ ] `feat: implement dm send and retrieve endpoints`
-58. [ ] `feat: create sync checkpoint for offline support`
+WEB-3. [ ] `feat: create dashboard shell with navigation`
+   - Build main dashboard layout with sidebar/nav
+   - Route between Notes, Flashcards, Tasks, Social, Career sections
 
-#### Web Frontend
-59. [ ] `feat: add direct message inbox ui`
-60. [ ] `feat: implement chat view with message bubbles`
-61. [ ] `feat: build message input with emoji support`
+WEB-4. [ ] `feat: wire up notes list and google drive import`
+   - Connect notes list to GET /api/notes
+   - Add Google Drive file picker → POST /api/notes/import
+   - Implement search and tag filtering
+   - Add note viewer and editor
 
-#### Mobile Development
-62. [ ] `feat: add mobile messaging interface`
-63. [ ] `feat: add offline storage for notes and tasks`
-64. [ ] `feat: implement sync on reconnect`
-65. [ ] `feat: show offline/sync status in ui`
+WEB-5. [ ] `feat: wire up ai summaries and flashcard study`
+   - Connect summary generation to POST /api/notes/:id/summary
+   - Build flashcard study view with flip animation
+   - Connect flashcard CRUD to API
+   - Add keyboard shortcuts for study navigation
 
-### Demo Checkpoint
-- [ ] User sends messages to friends
-- [ ] User uses app fully offline (notes, flashcards, tasks)
-- [ ] App syncs when back online
+WEB-6. [ ] `feat: wire up tasks and calendar view`
+   - Connect task creation/editing to API
+   - Build calendar grid component with GET /api/calendar
+   - Implement status filters and inline editing
+   - Show overdue indicators
+
+#### Mobile Tickets
+
+MOB-1. [ ] `feat: build mobile auth screens`
+   - Login and registration screens
+   - Google OAuth flow on mobile
+   - Secure token storage with AsyncStorage
+   - Navigation auth flow (auth stack vs main stack)
+
+MOB-2. [ ] `feat: build mobile notes and import screens`
+   - Notes list screen with search
+   - Note viewer (scrollable)
+   - Google Drive import flow
+   - Note refresh
+
+MOB-3. [ ] `feat: build mobile flashcard study screen`
+   - Flashcard set list
+   - Study view with flip animation
+   - Swipe gestures for navigation (next/previous)
+   - Progress tracking
+
+MOB-4. [ ] `feat: build mobile task and calendar screens`
+   - Task creation form
+   - Task list with status filters
+   - Calendar view
+   - Swipe actions for quick status updates
+
+### Session 7 (4/6): Social, Career & Polish
+**Wire up remaining features on both platforms**
+
+#### Web Tickets
+
+WEB-7. [ ] `feat: wire up friends and sharing ui`
+   - User search and friend request flow
+   - Friends list
+   - Note sharing controls
+   - Shared notes feed
+
+WEB-8. [ ] `feat: wire up comments and likes`
+   - Comment threads on shared notes
+   - Like functionality
+   - Display shared tasks in calendar
+
+WEB-9. [ ] `feat: wire up resume management`
+   - Resume upload with drag and drop
+   - Resume feedback display
+   - Version management
+
+WEB-10. [ ] `feat: wire up application tracking dashboard`
+   - Application creation and editing
+   - Pipeline dashboard (kanban-style or list by status)
+   - Networking contacts and follow-up reminders
+
+#### Mobile Tickets
+
+MOB-5. [ ] `feat: build mobile social screens`
+   - Friends management screen
+   - User search
+   - Shared note viewing
+   - Comments interface
+
+MOB-6. [ ] `feat: build mobile career screens`
+   - Resume management
+   - Resume feedback viewing
+   - Application tracking list
+   - Application detail and status updates
+
+MOB-7. [ ] `feat: add stretch mobile features` *(stretch)*
+   - Direct messaging interface
+   - Offline storage for notes and tasks
+   - Sync on reconnect
+   - Offline/sync status indicators
+
+### Phase 3 Checkpoint
+- [ ] Web: All features connected to backend APIs
+- [ ] Web: Auth flow working (register, login, Google OAuth, protected routes)
+- [ ] Web: Notes, flashcards, tasks, calendar all functional
+- [ ] Web: Social features (friends, sharing, comments) working
+- [ ] Web: Career tools (resume, applications) working
+- [ ] Mobile: Auth flow with secure storage working
+- [ ] Mobile: Core features (notes, flashcards, tasks) functional
+- [ ] Mobile: Social and career features working
+- [ ] Mobile: Builds and runs on Android emulator/device
 
 ---
 
-## Sprint 7: Career Tools
-**March 30 - April 5 | Resumes & Applications**  
-[Detailed Sprint Plan](./sprint_planning/sprint_7.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-7-career-tools-week-7)
+## Phase 4: Polish & Showcase Prep
+**Session 8 + Showcase | April 13-17**
+**Focus**: Bug fixes, performance, Google Play prep, demo
 
-### Sprint Objectives
-Add career management features - resume uploads with AI feedback and application tracking dashboard.
-
-### Database
-**Models to implement**: 3
-
-| Model | File | Purpose |
-|-------|------|---------|
-| Resume | `src/models/Resume.js` | Resume files (userId, fileName, fileUrl, fileSize, version, targetRole, hasFeedback, deletedAt). Virtual: latestFeedback. |
-| ResumeFeedback | `src/models/ResumeFeedback.js` | AI resume analysis (resumeId, userId, overallScore, strengths, improvements, sections[], keywordOptimization, model, generatedAt, deletedAt). |
-| Application | `src/models/Application.js` | Job tracking (userId, company, position, status, appliedAt, contacts[], notes, resumeUsed, followUpReminders[], deletedAt). Indexes: userId+status, userId+deadlineDate. |
-
-See [Career Tools (Sprint 7)](./database/mongodb_schema_explaination.md#career-tools-sprint-7) and [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-7-career-tools-week-7).
-
-### Progress: 0/12 tickets
-
-#### Backend Development
-66. [ ] `feat: add resume pdf upload endpoint`
-67. [ ] `feat: add resume and feedback models`
-68. [ ] `feat: implement ai resume analysis`
-69. [ ] `feat: add application tracking model and endpoints`
-70. [ ] `feat: create applications dashboard endpoint`
-
-#### Web Frontend
-71. [ ] `feat: create resume upload with drag and drop`
-72. [ ] `feat: build resume feedback display component`
-73. [ ] `feat: implement application pipeline dashboard`
-74. [ ] `feat: add application detail modal with networking`
-
-#### Mobile Development
-75. [ ] `feat: add mobile resume management screen`
-76. [ ] `feat: implement mobile application tracking`
-77. [ ] `feat: build application status update ui`
-
-### Demo Checkpoint
-- [ ] User uploads resumes
-- [ ] User receives AI feedback
-- [ ] User creates application entries
-- [ ] User tracks status and logs networking activity
-
----
-
-## Sprint 8: Polish & Launch
-**April 6-10 | Final Testing & Showcase Prep**  
-[Detailed Sprint Plan](./sprint_planning/sprint_8.md) | [Schema Implementation](./database/mongodb_schema_implementation_order.md#sprint-8-polish-week-8)
-
-### Sprint Objectives
-Polish UI/UX, fix bugs, optimize performance, and prepare showcase demo.
-
-### Database
-**Models to implement**: 1 (optional)
-
-| Model | File | Purpose |
-|-------|------|---------|
-| Activity | `src/models/Activity.js` | Social activity feed (userId, type, targetId, targetType, visibleTo[], metadata, createdAt). TTL index: expire after 90 days. Indexes: visibleTo+createdAt, userId+type+createdAt. |
-
-See [Implementation Order](./database/mongodb_schema_implementation_order.md#sprint-8-polish-week-8). No dedicated data-flow section in Schema Explanation; Activity supports the social/activity feed.
-
-### Progress: 0/14 tickets
+### Session 8 (4/13): Final Polish
 
 #### Backend Hardening
-78. [ ] `feat: implement api rate limiting`
-79. [ ] `refactor: standardize error responses`
-80. [ ] `perf: add indexes and optimize queries`
+
+POL-1. [ ] `feat: implement api rate limiting`
+POL-2. [ ] `refactor: standardize error responses across all routes`
+POL-3. [ ] `perf: verify indexes and optimize slow queries`
 
 #### Frontend Polish
-81. [ ] `ui: add loading skeletons and spinners`
-82. [ ] `feat: add error boundaries with fallback ui`
-83. [ ] `fix: responsive layout improvements`
-84. [ ] `ui: smooth animations and transitions`
+
+POL-4. [ ] `ui: add loading skeletons and spinners`
+POL-5. [ ] `feat: add error boundaries with fallback ui`
+POL-6. [ ] `fix: responsive layout improvements`
+POL-7. [ ] `ui: smooth animations and transitions`
 
 #### Testing & QA
-85. [ ] `test: add integration test suite`
-86. [ ] `fix: resolve [specific bug description]`
-87. [ ] `test: verify offline sync edge cases`
+
+POL-8. [ ] `test: add integration test suite for critical paths`
+POL-9. [ ] `fix: resolve bugs found during testing`
+POL-10. [ ] `test: verify functionality on android device`
 
 #### Showcase Preparation
-88. [ ] `docs: prepare demo script`
-89. [ ] `feat: create sample data for demo`
-90. [ ] `docs: record backup demo video`
-91. [ ] `test: verify functionality on multiple devices`
 
-### Showcase - April 10
+POL-11. [ ] `docs: prepare demo script`
+POL-12. [ ] `feat: create sample data for demo`
+POL-13. [ ] `docs: record backup demo video`
+POL-14. [ ] `build: prepare android build for google play`
+
+### Showcase - April 17
 - [ ] Complete product demo showing full student workflow
-- [ ] Demo: Google Docs import → AI learning → Task management → Collaboration → Career tools
-- [ ] Offline functionality demonstration
+- [ ] Demo: Google Docs import → AI summaries/flashcards → Task management → Social sharing → Career tools
+- [ ] Working on both web and Android mobile
+- [ ] Android build ready for Google Play submission
 
 ---
 
 ## Progress Summary
 
-### Sprint Completion
-- [ ] Sprint 0: Design & Planning (0/2 pages, 0/56 screens, 0/4 project setups)
-- [ ] Sprint 1: Foundation Layer (0/10)
-- [ ] Sprint 2: Content Foundation (0/11)
-- [ ] Sprint 3: Active Learning (0/12)
-- [ ] Sprint 4: Time Management (0/11)
-- [ ] Sprint 5: Collaboration Layer (0/12)
-- [ ] Sprint 6: Messaging & Offline (0/12)
-- [ ] Sprint 7: Career Tools (0/12)
-- [ ] Sprint 8: Polish & Launch (0/14 tickets)
+### Phase Completion
+- [ ] Phase 1: Database Layer (0/11 tickets)
+- [ ] Phase 2: Backend APIs (0/20 tickets)
+- [ ] Phase 3: Frontend Integration (0/17 tickets — 10 web + 7 mobile)
+- [ ] Phase 4: Polish & Showcase (0/14 tickets)
 
 ### Key Milestones
-- [ ] **Page 1 complete** (Core Flows: Auth, Notes, Flashcards, Tasks - 30 screens)
-- [ ] **Page 2 complete** (Social, Career & Settings - 26 screens)
-- [ ] **All shared components designed** (10 components)
+- [ ] All MongoDB models created and seeded
+- [ ] All backend APIs tested via Postman
 - [ ] Authentication working on web and mobile
 - [ ] Google Docs import functional
 - [ ] AI summaries and flashcards working
 - [ ] Task and calendar system complete
-- [ ] Social features (friends, sharing) implemented
-- [ ] Direct messaging functional
-- [ ] Offline support working
-- [ ] Resume upload and AI feedback complete
-- [ ] Application tracking dashboard ready
+- [ ] Social features (friends, sharing, comments) working
+- [ ] Career tools (resume upload, AI feedback, applications) working
+- [ ] Android build running on device/emulator
 - [ ] All critical bugs fixed
-- [ ] Performance optimized
 - [ ] Showcase demo prepared
 
 ---
 
-## Notes & Adjustments
+## Priority & Scope Adjustments
 
-### Priority Order (if time runs short)
-1. **Must Have**: Auth, Notes, Tasks, Basic sharing
-2. **Should Have**: AI features, Calendar, Friends
-3. **Nice to Have**: DMs, Offline sync, Resume feedback
-4. **Showcase Ready**: At least Sprints 1-4 fully working
+### Must Ship
+- Authentication (JWT + Google OAuth)
+- Notes + Google Docs import
+- AI summaries and flashcards (Groq)
+- Tasks and calendar
+- Friends, sharing, and comments
+- Career tools (resume upload, AI feedback, application tracking)
 
-### Scope Adjustments (if needed)
-- **Sprint 3**: Can defer flashcard auto-generation, keep manual creation
-- **Sprint 5**: Can simplify to note sharing only, defer shared tasks
-- **Sprint 6**: Can defer offline sync, keep DMs simple
-- **Sprint 7**: Can simplify to resume upload only, defer AI feedback
+### Stretch Goals
+- Direct messaging
+- Offline sync support
+- Activity feed
 
-### Using the Detailed Sprint Plans
-Each sprint has a detailed plan in `docs/sprint_planning/` with:
-- **Learning Goals**: What concepts to understand
-- **Implementation Steps**: Step-by-step guidance
-- **Acceptance Criteria**: How to know it's done
-- **Resources**: Links and documentation
-- **Common Issues**: Troubleshooting tips
+### If Time Runs Short
+- **Phase 1**: Can skip stretch models (Conversation, Message, SyncQueue, Activity)
+- **Phase 2**: Can skip messaging endpoints, simplify shared tasks
+- **Phase 3**: Prioritize web first, then mobile core features. Career screens can be simplified.
+- **Phase 4**: Minimum viable: demo script + sample data. Skip backup video if needed.
 
-**Database**: Each sprint's models, schemas, and data flow are in [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) and [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md). The master doc's Database subsection per sprint links to the relevant sections.
+### Reference Documents
+- **Database schemas & data flows**: [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) and [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md)
+- **API routes & conventions**: [API Reference Guide](./backend/api_reference_guide.md)
+- **ER diagram**: [Schema Diagram](./database/schema_diagram.md)
 
-**Workflow**: 
-1. Check current ticket number in "Current Status"
-2. Open the detailed sprint plan for that sprint
-3. Read the ticket details, learning goals, and resources
-4. Implement following the steps
-5. Verify against acceptance criteria
-6. Mark ticket complete and update current status
+**Workflow**:
+1. Check current ticket in "Current Status"
+2. Read the relevant schema docs or sprint plan for context
+3. Implement following the ticket description
+4. Verify against the phase checkpoint
+5. Mark ticket complete and update current status
 
 ---
 
 ## Success Criteria
 
-Each sprint succeeds when:
-- Demo checkpoint can be executed smoothly
-- Core functionality works on both web and mobile
+Each phase succeeds when:
+- Phase checkpoint can be verified
+- Core functionality works as described
 - No critical bugs in completed features
 - Code is committed and pushed to repository
 
@@ -664,5 +642,5 @@ Each sprint succeeds when:
 
 ---
 
-*Last Updated: [Date]*  
-*Current Status: Sprint 0 - Design & Planning (Page 1: Core Flows)*
+*Last Updated: February 16, 2026*
+*Current Status: Phase 1 - Database Layer (Session 1: Core Models)*
