@@ -141,11 +141,11 @@ function About() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* All Star Code */}
             <div className="scroll-animate opacity-0 translate-y-8 transition-all duration-700 bg-white rounded-2xl p-8 border border-purple-100/50 hover:shadow-xl transition-shadow duration-300">
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex justify-center mb-6">
                 <img
                   src={allStarCodeLogo}
                   alt="All Star Code"
-                  className="h-14 object-contain"
+                  className="h-20 md:h-24 object-contain"
                 />
               </div>
               <h3 className="font-poppins font-semibold text-xl text-[#111827] mb-3">
@@ -172,11 +172,11 @@ function About() {
 
             {/* Google Play */}
             <div className="scroll-animate opacity-0 translate-y-8 transition-all duration-700 bg-white rounded-2xl p-8 border border-purple-100/50 hover:shadow-xl transition-shadow duration-300" style={{ transitionDelay: '100ms' }}>
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex justify-center mb-6">
                 <img
                   src={googlePlayLogo}
                   alt="Google Play"
-                  className="h-12 object-contain"
+                  className="h-20 md:h-24 object-contain"
                 />
               </div>
               <h3 className="font-poppins font-semibold text-xl text-[#111827] mb-3">
@@ -210,7 +210,7 @@ function About() {
               The Creator
             </span>
             <h2 className="font-poppins font-bold text-2xl sm:text-3xl md:text-4xl text-[#111827] leading-tight">
-              Meet the developer
+              Meet the Developer
             </h2>
           </div>
 
@@ -234,7 +234,7 @@ function About() {
                 {/* Profile Info */}
                 <div className="flex-1 text-center md:text-left">
                   <h3 className="font-poppins font-bold text-2xl md:text-3xl text-[#111827] mb-2">
-                    Your Name
+                    Justin Burrell
                   </h3>
                   <p className="font-inter text-[#6b21a8] font-medium mb-4">
                     Full-Stack Developer & Creator of Continuum
@@ -247,13 +247,13 @@ function About() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                       </svg>
-                      <span className="font-inter text-[#6b7280]">University Name</span>
+                      <span className="font-inter text-[#6b7280]">Lehigh University</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <svg className="w-5 h-5 text-[#6b7280]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
-                      <span className="font-inter text-[#6b7280]">Computer Science / Your Major</span>
+                      <span className="font-inter text-[#6b7280]">Computer Science and Engineering</span>
                     </div>
                   </div>
 
@@ -265,7 +265,7 @@ function About() {
                   <div className="flex gap-4 justify-center md:justify-start">
                     {/* LinkedIn */}
                     <a
-                      href="https://linkedin.com/in/yourprofile"
+                      href="https://www.linkedin.com/in/thejustinburrell/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-12 h-12 bg-[#f8f9fa] rounded-xl flex items-center justify-center text-[#6b7280] hover:bg-[#6b21a8] hover:text-white transition-all duration-300"
@@ -278,7 +278,7 @@ function About() {
 
                     {/* GitHub */}
                     <a
-                      href="https://github.com/yourusername/continuum"
+                      href="https://github.com/JustinBurrell"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-12 h-12 bg-[#f8f9fa] rounded-xl flex items-center justify-center text-[#6b7280] hover:bg-[#6b21a8] hover:text-white transition-all duration-300"
@@ -291,7 +291,7 @@ function About() {
 
                     {/* Email */}
                     <a
-                      href="mailto:your.email@example.com"
+                      href="justinburrell715@gmail.com"
                       className="w-12 h-12 bg-[#f8f9fa] rounded-xl flex items-center justify-center text-[#6b7280] hover:bg-[#6b21a8] hover:text-white transition-all duration-300"
                       aria-label="Email"
                     >
