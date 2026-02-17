@@ -147,7 +147,7 @@ Nice to have but cut if time is short:
 #### Tickets
 
 DB-1. [ ] `feat: add user model with password hashing`
-   - Schema: email, username, password (hashed via pre-save), googleId, googleAccessToken, googleRefreshToken, passwordResetToken, passwordResetExpires, settings, deletedAt
+   - Schema: email, username, password (hashed via pre-save), createdAt (auto — tracks registration date), googleId, googleAccessToken, googleRefreshToken, passwordResetToken, passwordResetExpires, settings, deletedAt
    - Pre-save hook: bcrypt password hashing
    - Methods: comparePassword, createPasswordResetToken
    - Virtuals: fullName, hasGoogleLinked
