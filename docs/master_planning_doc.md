@@ -620,6 +620,7 @@ POL-14. [ ] `build: prepare android build for google play`
 - **Database schemas & data flows**: [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) and [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md)
 - **API routes & conventions**: [API Reference Guide](./backend/api_reference_guide.md)
 - **ER diagram**: [Schema Diagram](./database/schema_diagram.md)
+- **Git & agile workflow**: [Agile Workflow Guide](./agile_workflow_guide.md)
 
 **Workflow**:
 1. Check current ticket in "Current Status"
