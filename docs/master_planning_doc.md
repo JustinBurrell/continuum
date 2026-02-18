@@ -159,7 +159,7 @@ DB-2. [x] `feat: add note model with embedded summary`
    - Text index on title, content, tags
    - See [Schema Explanation - Notes](./database/mongodb_schema_explaination.md#notes--content)
 
-DB-3. [ ] `feat: add flashcard set and flashcard models`
+DB-3. [x] `feat: add flashcard set and flashcard models`
    - FlashcardSet schema: userId, noteId, title, totalCards, visibility, sharedWith, isAIGenerated, deletedAt
    - Flashcard schema: setId, front, back, userProgress[] (userId, correctCount, incorrectCount, confidence), order, deletedAt
    - Study tracking: simple correct/incorrect for MVP; schema supports spaced repetition fields for post-showcase
