@@ -167,7 +167,7 @@ DB-3. [x] `feat: add flashcard set and flashcard models`
    - Indexes: setId+order, userProgress.userId
    - See [Schema Explanation - Learning](./database/mongodb_schema_explaination.md#ai-learning)
 
-DB-4. [ ] `feat: add task model with recurrence and shared participants`
+DB-4. [x] `feat: add task model with recurrence and shared participants`
    - Schema: userId, noteId, title, dueDate, type, priority, status, recurrence (frequency, interval, daysOfWeek, endDate, parentTaskId), isShared, participants[] (userId, status, completedAt), completedAt, deletedAt
    - Virtual: isOverdue
    - Pre-save: set completedAt when status=completed; generate next occurrence for recurring tasks
