@@ -175,7 +175,7 @@ DB-4. [x] `feat: add task model with recurrence and shared participants`
    - Indexes: userId+dueDate, participants.userId+isShared, dueDate+status, recurrence.parentTaskId
    - See [Schema Explanation - Tasks](./database/mongodb_schema_explaination.md#tasks--calendar)
 
-DB-5. [ ] `test: create seed script for core models`
+DB-5. [x] `test: create seed script for core models`
    - Create seed data for Users, Notes, NoteSummaries, FlashcardSets, Flashcards, Tasks
    - Validate all schemas work correctly
    - Test indexes and queries

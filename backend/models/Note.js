@@ -155,7 +155,7 @@ const noteSchema = new mongoose.Schema({
 noteSchema.index({ userId: 1, deletedAt: 1, createdAt: -1 }); // "get my notes, newest first, excluding deleted"
 noteSchema.index({ userId: 1, tags: 1 });                      // "get my notes filtered by tag"
 noteSchema.index({ userId: 1, subject: 1 });                   // "get my notes filtered by subject"
-noteSchema.index({ googleDocId: 1 });                           // sparse — only indexes notes linked to Google Docs
+// googleDocId index already created by unique: true + sparse: true in schema
 noteSchema.index({ visibility: 1, deletedAt: 1 });             // "get all public/friends notes" (social feed)
 
 // ============================================================
