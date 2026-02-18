@@ -146,7 +146,7 @@ const userSchema = new mongoose.Schema({
 // ============================================================
 userSchema.index({ email: 1, deletedAt: 1 });
 userSchema.index({ username: 1, deletedAt: 1 });
-userSchema.index({ googleId: 1 }); // sparse — only indexes users who have linked Google
+// googleId index already created by sparse: true + unique: true in schema
 
 // ============================================================
 // PRE-SAVE HOOK
@@ -155,18 +155,15 @@ userSchema.index({ googleId: 1 }); // sparse — only indexes users who have lin
 // When it runs: Every time .save() is called — but we only hash if password changed
 // Requires: bcryptjs package (npm install bcryptjs)
 // ============================================================
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
     // Only hash if password was changed (skip on profile updates, etc.)
-    if (!this.isModified('password')) return next();
+    if (!this.isModified('password')) return;
 
     // Generate a salt (random string added to password before hashing)
     const salt = await bcrypt.genSalt(12);
 
     // Hash the plain text password with the salt
     this.password = await bcrypt.hash(this.password, salt);
-    
-    // Continue saving the document
-    next();
 });
 
 // ============================================================

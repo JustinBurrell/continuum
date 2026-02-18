@@ -173,9 +173,9 @@ taskSchema.index({ dueDate: 1, status: 1 });                   // "find overdue 
 //      If task has recurrence, generate the next occurrence
 // When it runs: Every time .save() is called — but only acts if status changed
 // ============================================================
-taskSchema.pre('save', async function (next) {
+taskSchema.pre('save', async function () {
     // Only run if status was actually changed (skip on title updates, etc.)
-    if (!this.isModified('status')) return next();
+    if (!this.isModified('status')) return;
 
     // Auto-set completedAt based on status change
     if (this.status === 'completed') {
@@ -237,7 +237,6 @@ taskSchema.pre('save', async function (next) {
             });
         }
     }
-    next();
 });
 
 // ============================================================
