@@ -186,7 +186,7 @@ DB-5. [x] `test: create seed script for core models`
 
 #### Tickets
 
-DB-6. [ ] `feat: add friendship model with request system`
+DB-6. [x] `feat: add friendship model with request system`
    - Schema: user1, user2 (user1<user2), requestedBy, status (pending/accepted/rejected/blocked), deletedAt
    - Pre-save: enforce user1<user2 ordering
    - Unique compound index: user1+user2
@@ -220,6 +220,12 @@ DB-11. [ ] `feat: add stretch models (conversation, message, syncqueue, activity
    - SyncQueue schema: userId, operation, collection, documentId, data, status, clientTimestamp, processedAt
    - Activity schema: userId, type, targetId, targetType, visibleTo[], metadata, createdAt (TTL: 90 days)
    - See [Schema Explanation - Messaging](./database/mongodb_schema_explaination.md#messaging-sprint-6) and [Offline Sync](./database/mongodb_schema_explaination.md#offline-sync-sprint-6)
+
+DB-12. [ ] `test: create seed script for stretch models` *(stretch)*
+   - Create seed data for Conversations, Messages, SyncQueue, Activity
+   - Validate all stretch schemas work correctly
+   - Test indexes, TTL, and relationships between models
+   - Verify offline sync flow with SyncQueue
 
 ### Phase 1 Checkpoint
 - [ ] All 9 must-ship models created and validated
@@ -382,6 +388,12 @@ API-20. [ ] `feat: add stretch api endpoints (messaging)` *(stretch)*
    - POST /api/conversations/:id/messages — send message
    - GET /api/conversations/:id/messages — get messages (paginated)
    - PUT /api/messages/:id/read — mark as read
+
+API-21. [ ] `test: test stretch api endpoints with postman` *(stretch)*
+   - Create Postman collection for stretch messaging endpoints
+   - Test conversation creation and message sending flow end-to-end
+   - Test message pagination and read receipts
+   - Verify auth middleware protects all stretch routes
 
 ### Phase 2 Checkpoint
 - [ ] All auth endpoints working (register, login, Google OAuth, JWT middleware)
@@ -556,6 +568,51 @@ POL-7. [ ] `ui: smooth animations and transitions`
 POL-8. [ ] `test: add integration test suite for critical paths`
 POL-9. [ ] `fix: resolve bugs found during testing`
 POL-10. [ ] `test: verify functionality on android device`
+
+#### Documentation
+
+POL-15. [ ] `docs: add swagger/openapi documentation for all endpoints`
+   - Install swagger-jsdoc and swagger-ui-express
+   - Add JSDoc annotations to all route files
+   - Serve interactive docs at /api-docs
+   - Add link to backend README
+
+POL-16. [ ] `docs: update backend README`
+   - Document setup instructions, environment variables, and scripts
+   - List all API endpoints and link to Swagger docs
+   - Add database setup and seed script instructions
+
+POL-17. [ ] `docs: update web README`
+   - Document setup instructions and environment variables
+   - List available scripts (dev, build, test)
+   - Describe folder structure and key dependencies
+
+POL-18. [ ] `docs: update mobile README`
+   - Document Expo setup and environment variables
+   - List available scripts and build commands
+   - Add Android emulator and device testing instructions
+
+POL-19. [ ] `docs: update root README`
+   - Project overview, tech stack, and architecture summary
+   - Quickstart guide for running the full stack locally
+   - Link to backend, web, and mobile READMEs
+   - Add screenshots or demo GIF
+
+#### Deployment
+
+POL-20. [ ] `deploy: deploy backend to hosting provider`
+   - Choose hosting provider (Railway or Render)
+   - Configure environment variables for production
+   - Set up auto-deploy from main branch
+   - Verify MongoDB Atlas connection from production
+   - Test all API endpoints in production environment
+
+POL-21. [ ] `deploy: deploy web frontend to vercel`
+   - Connect Vercel to GitHub repository
+   - Configure environment variables (API base URL)
+   - Set up auto-deploy from main branch
+   - Verify frontend-to-backend connection in production
+   - Test auth flow and core features end-to-end
 
 #### Showcase Preparation
 
