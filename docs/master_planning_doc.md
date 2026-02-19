@@ -204,7 +204,7 @@ DB-8. [x] `feat: add resume model with embedded feedback and cached text`
    - extractedText parsed from PDF on upload for instant AI feedback
    - See [Schema Explanation - Career](./database/mongodb_schema_explaination.md#career-tools)
 
-DB-9. [ ] `feat: add application tracking model`
+DB-9. [x] `feat: add application tracking model`
    - Schema: userId, company, position, status, appliedAt, contacts[], notes, resumeUsed, followUpReminders[], deletedAt
    - Indexes: userId+status, userId+deadlineDate
    - See [Schema Explanation - Career](./database/mongodb_schema_explaination.md#career-tools-sprint-7)
