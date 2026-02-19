@@ -209,7 +209,7 @@ DB-9. [x] `feat: add application tracking model`
    - Indexes: userId+status, userId+deadlineDate
    - See [Schema Explanation - Career](./database/mongodb_schema_explaination.md#career-tools-sprint-7)
 
-DB-10. [ ] `test: create seed script for social and career models`
+DB-10. [x] `test: create seed script for social and career models`
    - Seed data for Friendships, Comments, Resumes, ResumeFeedback, Applications
    - Test relationships between models
    - Validate compound indexes work correctly

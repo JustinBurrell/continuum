@@ -58,7 +58,6 @@ const commentSchema = new mongoose.Schema({
     parentId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Comment',
-        index: true,
         default: null,
     },
 
