@@ -24,6 +24,7 @@ Format: `type/TICKET-ID-short-description`
 | `test/` | Tests or seed data | `test/DB-5-seed-script` |
 | `refactor/` | Code restructuring | `refactor/POL-2-error-responses` |
 | `docs/` | Documentation only | `docs/POL-11-demo-script` |
+| `deploy/` | Deployment and hosting | `deploy/POL-20-backend-hosting` |
 
 ---
 
