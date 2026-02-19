@@ -198,7 +198,7 @@ DB-7. [x] `feat: add comment model with user snapshots`
    - Indexes: targetId+targetType, userId
    - See [Schema Explanation - Social](./database/mongodb_schema_explaination.md#social-features)
 
-DB-8. [ ] `feat: add resume model with embedded feedback and cached text`
+DB-8. [x] `feat: add resume model with embedded feedback and cached text`
    - Resume schema: userId, fileName, fileUrl, fileSize, version, targetRole, extractedText (select: false, cached on upload), feedback[] (embedded: overallScore, strengths, improvements, sections[], keywordOptimization, model, generatedAt), deletedAt
    - Virtuals: hasFeedback, latestFeedback
    - extractedText parsed from PDF on upload for instant AI feedback
