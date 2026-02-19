@@ -192,7 +192,7 @@ DB-6. [x] `feat: add friendship model with request system`
    - Unique compound index: user1+user2
    - See [Schema Explanation - Social](./database/mongodb_schema_explaination.md#social-features-sprint-5)
 
-DB-7. [ ] `feat: add comment model with user snapshots`
+DB-7. [x] `feat: add comment model with user snapshots`
    - Schema: targetId, targetType (note, flashcardSet, task), userId, content, parentId, likes, userSnapshot, deletedAt
    - Pre-save: snapshot user data
    - Indexes: targetId+targetType, userId
