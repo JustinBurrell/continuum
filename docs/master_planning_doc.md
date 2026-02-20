@@ -76,17 +76,17 @@ This means you won't have a working UI until Phase 3, but your backend will be r
 ## Overall Progress
 
 **Total Phases**: 4
-**Completed Phases**: 0/4
+**Completed Phases**: 1/4
 **Total Tickets**: 62 (must-ship) + stretch
-**Completed Tickets**: 1/62
-**Current Phase**: Phase 1 - Database Layer
+**Completed Tickets**: 12/62
+**Current Phase**: Phase 2 - Backend APIs
 
 ---
 
 ## Current Status
 
-**Current Ticket**: DB-2: Note Model
-**Phase**: Phase 1 - Database Layer
+**Current Ticket**: DB-12: Test Stretch Models
+**Phase**: Phase 2 - Backend APIs
 **Status**: Merged
 
 *Update this section as you progress through tickets*
@@ -221,19 +221,19 @@ DB-11. [x] `feat: add stretch models (conversation, message, syncqueue, activity
    - Activity schema: userId, type, targetId, targetType, visibleTo[], metadata, createdAt (TTL: 90 days)
    - See [Schema Explanation - Messaging](./database/mongodb_schema_explaination.md#messaging-sprint-6) and [Offline Sync](./database/mongodb_schema_explaination.md#offline-sync-sprint-6)
 
-DB-12. [ ] `test: create seed script for stretch models` *(stretch)*
+DB-12. [x] `test: create seed script for stretch models` *(stretch)*
    - Create seed data for Conversations, Messages, SyncQueue, Activity
    - Validate all stretch schemas work correctly
    - Test indexes, TTL, and relationships between models
    - Verify offline sync flow with SyncQueue
 
 ### Phase 1 Checkpoint
-- [ ] All 9 must-ship models created and validated
-- [ ] Seed scripts run successfully
-- [ ] All indexes verified
-- [ ] Pre-save hooks tested (bcrypt, user1<user2, completedAt, user snapshot)
-- [ ] Virtual fields working (isOverdue, flashcards, latestFeedback)
-- [ ] Understand data flow between related models
+- [x] All 9 must-ship models created and validated
+- [x] Seed scripts run successfully
+- [x] All indexes verified
+- [x] Pre-save hooks tested (bcrypt, user1<user2, completedAt, user snapshot)
+- [x] Virtual fields working (isOverdue, flashcards, latestFeedback)
+- [x] Understand data flow between related models
 
 ---
 
