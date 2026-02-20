@@ -11,21 +11,21 @@
 
 module.exports = {
   // Phase 1 Session 1 — Auth, Notes (summary embedded), Learning, Tasks
-  // User: require('./User'),
-  // Note: require('./Note'),
-  // FlashcardSet: require('./FlashcardSet'),
-  // Flashcard: require('./Flashcard'),
-  // Task: require('./Task'),
+  User: require('./User'),
+  Note: require('./Note'),
+  FlashcardSet: require('./FlashcardSet'),
+  Flashcard: require('./Flashcard'),
+  Task: require('./Task'),
 
   // Phase 1 Session 2 — Social, Career (feedback embedded in Resume)
-  // Friendship: require('./Friendship'),
-  // Comment: require('./Comment'),
-  // Resume: require('./Resume'),
-  // Application: require('./Application'),
+  Friendship: require('./Friendship'),
+  Comment: require('./Comment'),
+  Resume: require('./Resume'),
+  Application: require('./Application'),
 
   // Stretch — Messaging & Offline
-  // Conversation: require('./Conversation'),
-  // Message: require('./Message'),
-  // SyncQueue: require('./SyncQueue'),
-  // Activity: require('./Activity'),
+  Conversation: require('./Conversation'),
+  Message: require('./Message'),
+  SyncQueue: require('./SyncQueue'),
+  Activity: require('./Activity'),
 };

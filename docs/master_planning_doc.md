@@ -214,7 +214,7 @@ DB-10. [x] `test: create seed script for social and career models`
    - Test relationships between models
    - Validate compound indexes work correctly
 
-DB-11. [ ] `feat: add stretch models (conversation, message, syncqueue, activity)` *(stretch)*
+DB-11. [x] `feat: add stretch models (conversation, message, syncqueue, activity)` *(stretch)*
    - Conversation schema: participants[2], lastMessage, unreadCounts[], deletedAt
    - Message schema: conversationId, senderId, content, readBy[], clientTimestamp, syncStatus, deletedAt
    - SyncQueue schema: userId, operation, collection, documentId, data, status, clientTimestamp, processedAt
