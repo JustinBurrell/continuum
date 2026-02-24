@@ -31,7 +31,8 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, 'Password is required'],
+        // Not required for Google OAuth users — they authenticate via googleId instead
+        required: [function () { return !this.googleId; }, 'Password is required'],
         minlength: [8, 'Password must be at least 8 characters'],
         validate: {
             validator: function (value) {
