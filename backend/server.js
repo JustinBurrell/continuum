@@ -18,6 +18,9 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Routes
+app.use('/api/auth', require('./routes/auth.routes'));
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
