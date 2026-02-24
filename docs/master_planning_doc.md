@@ -274,7 +274,7 @@ API-3. [x] `feat: add jwt verification middleware`
    - Extract user from token and attach to request
    - Handle expired tokens, invalid tokens, missing tokens
 
-API-4. [ ] `feat: add note crud endpoints`
+API-4. [x] `feat: add note crud endpoints`
    - POST /api/notes — create note
    - GET /api/notes — list user's notes (with search, filters, pagination)
    - GET /api/notes/:id — get single note
