@@ -262,7 +262,7 @@ API-1. [x] `feat: implement jwt authentication endpoints`
    - POST /api/auth/reset-password — verify token, set new password
    - Implement password validation, error handling
 
-API-2. [ ] `feat: add google oauth integration`
+API-2. [x] `feat: add google oauth integration`
    - GET /api/auth/google — initiate OAuth flow (login/register)
    - GET /api/auth/google/callback — handle OAuth callback, create/find user, return JWT
    - POST /api/me/google/link — link Google account to existing user
@@ -280,6 +280,8 @@ API-4. [ ] `feat: add note crud endpoints`
    - GET /api/notes/:id — get single note
    - PUT /api/notes/:id — update note
    - DELETE /api/notes/:id — soft delete note
+   - Note: implement keepNotes logic for DELETE /api/auth/me/google/link (deferred from API-2)
+     When keepNotes: false, delete all notes with source: 'google_docs' belonging to the user
 
 API-5. [ ] `feat: add google drive api client integration`
    - Set up Google Drive API client

@@ -9,7 +9,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // AUTH CONTROLLER
 // Purpose: Handle business logic for all authentication endpoints
 // Used by: routes/auth.routes.js
-// Endpoints: register, login, me, forgotPassword, resetPassword
+// Endpoints: register, login, me, forgotPassword, resetPassword,
+//            googleCallback, googleLink, googleUnlink
 // ============================================================
 
 // ----------------------------------------
@@ -140,4 +141,60 @@ exports.resetPassword = async (req, res) => {
     await user.save();
 
     res.status(200).json({ success: true, message: 'Password reset successful' });
+};
+
+// ----------------------------------------
+// GET /api/auth/google/callback
+// Purpose: Passport has already verified the Google token and attached the user to req.user
+//          Sign a JWT and redirect to the frontend with it as a query param
+// ----------------------------------------
+exports.googleCallback = (req, res) => {
+    const token = signToken(req.user._id);
+
+    // Redirect to frontend — token passed as query param so the client can store it
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+};
+
+// ----------------------------------------
+// POST /api/auth/me/google/link
+// Purpose: Link a Google account to an existing email/password user
+//          req.body contains the googleId and tokens from a client-side Google sign-in
+// ----------------------------------------
+exports.googleLink = async (req, res) => {
+    const { googleId, googleAccessToken, googleRefreshToken } = req.body;
+
+    // Prevent linking a googleId that's already tied to another account
+    const alreadyLinked = await User.findOne({ googleId });
+    if (alreadyLinked) {
+        return res.status(409).json({ success: false, error: 'This Google account is already linked to another user' });
+    }
+
+    // Attach Google fields to the current user (req.user set by authMiddleware)
+    req.user.googleId = googleId;
+    req.user.googleAccessToken = googleAccessToken;
+    req.user.googleRefreshToken = googleRefreshToken;
+    req.user.googleTokenExpiry = new Date(Date.now() + 3600 * 1000);
+    await req.user.save();
+
+    res.status(200).json({ success: true, user: req.user });
+};
+
+// ----------------------------------------
+// DELETE /api/auth/me/google/link
+// Purpose: Unlink Google from the current user's account
+//          Only allowed if the user has a password (otherwise they'd be locked out)
+// ----------------------------------------
+exports.googleUnlink = async (req, res) => {
+    // Prevent lockout — Google-only users have no password to fall back on
+    if (!req.user.password) {
+        return res.status(400).json({ success: false, error: 'Set a password before unlinking Google' });
+    }
+
+    req.user.googleId = undefined;
+    req.user.googleAccessToken = undefined;
+    req.user.googleRefreshToken = undefined;
+    req.user.googleTokenExpiry = undefined;
+    await req.user.save();
+
+    res.status(200).json({ success: true, user: req.user });
 };
