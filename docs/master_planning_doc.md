@@ -283,7 +283,7 @@ API-4. [x] `feat: add note crud endpoints`
    - Note: implement keepNotes logic for DELETE /api/auth/me/google/link (deferred from API-2)
      When keepNotes: false, delete all notes with source: 'google_docs' belonging to the user
 
-API-5. [ ] `feat: add google drive api client integration`
+API-5. [x] `feat: add google drive api client integration`
    - Set up Google Drive API client
    - GET /api/google/files — list user's Google Drive files
    - Implement OAuth token refresh

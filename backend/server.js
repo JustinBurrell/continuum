@@ -23,6 +23,7 @@ app.use(passport.initialize());
 // Routes
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/notes', require('./routes/notes.routes'));
+app.use('/api/google', require('./routes/google.routes'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {

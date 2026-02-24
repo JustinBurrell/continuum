@@ -21,8 +21,14 @@ passport.use(
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             callbackURL: process.env.GOOGLE_CALLBACK_URL,
 
-            // Return more profile fields (email, name, photo)
-            scope: ['profile', 'email'],
+            // Request Drive read access in addition to profile and email
+            // drive.readonly — list and read files, no write access
+            scope: ['profile', 'email', 'https://www.googleapis.com/auth/drive.readonly'],
+
+            // Force Google to return a refresh token every time
+            // Without these, Google only issues a refresh token on the first ever authorization
+            accessType: 'offline',
+            prompt: 'consent',
         },
 
         // ----------------------------------------

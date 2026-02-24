@@ -23,7 +23,7 @@ router.post('/reset-password', authController.resetPassword);
 // ----------------------------------------
 
 // Redirect user to Google's consent screen
-router.get('/google', passport.authenticate('google', { session: false, scope: ['profile', 'email'] }));
+router.get('/google', passport.authenticate('google', { session: false, scope: ['profile', 'email', 'https://www.googleapis.com/auth/drive.readonly'], accessType: 'offline', prompt: 'consent' }));
 
 // Google redirects back here — Passport runs verify callback, then googleCallback signs a JWT
 router.get('/google/callback',
