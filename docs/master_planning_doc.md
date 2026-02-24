@@ -254,7 +254,7 @@ DB-12. [x] `test: create seed script for stretch models` *(stretch)*
 
 #### Tickets
 
-API-1. [ ] `feat: implement jwt authentication endpoints`
+API-1. [x] `feat: implement jwt authentication endpoints`
    - POST /api/auth/register — create user, return JWT
    - POST /api/auth/login — validate credentials, return JWT
    - GET /api/auth/me — get current user from token
@@ -269,7 +269,7 @@ API-2. [ ] `feat: add google oauth integration`
    - DELETE /api/me/google/link — unlink Google (keepNotes: true/false)
    - Store Google tokens securely, track hasGoogleLinked state
 
-API-3. [ ] `feat: add jwt verification middleware`
+API-3. [x] `feat: add jwt verification middleware`
    - Create auth middleware that verifies JWT on protected routes
    - Extract user from token and attach to request
    - Handle expired tokens, invalid tokens, missing tokens
@@ -394,6 +394,12 @@ API-21. [ ] `test: test stretch api endpoints with postman` *(stretch)*
    - Test conversation creation and message sending flow end-to-end
    - Test message pagination and read receipts
    - Verify auth middleware protects all stretch routes
+
+API-22. [ ] `feat: create refresh tokens for JWT login`
+   - Generate a short-lived access token (1d) and long-lived refresh token (30d) on login/register
+   - POST /api/auth/refresh — accept refresh token, return new access token
+   - Store refresh token securely (httpOnly cookie or hashed in DB)
+   - Invalidate refresh token on logout
 
 ### Phase 2 Checkpoint
 - [ ] All auth endpoints working (register, login, Google OAuth, JWT middleware)
