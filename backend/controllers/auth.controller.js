@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const User = require('../models/User');
+const Note = require('../models/Note');
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 
@@ -188,6 +189,17 @@ exports.googleUnlink = async (req, res) => {
     // Prevent lockout — Google-only users have no password to fall back on
     if (!req.user.password) {
         return res.status(400).json({ success: false, error: 'Set a password before unlinking Google' });
+    }
+
+    const { keepNotes = true } = req.body;
+
+    // If keepNotes is false, soft delete all notes imported from Google Docs
+    // Google Docs notes are identified by googleDocId being set on the note
+    if (!keepNotes) {
+        await Note.updateMany(
+            { userId: req.user._id, googleDocId: { $ne: null } },
+            { deletedAt: new Date() }
+        );
     }
 
     req.user.googleId = undefined;
