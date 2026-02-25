@@ -304,7 +304,7 @@ API-6. [x] `feat: implement google doc import and refresh`
 
 #### Tickets
 
-API-7. [ ] `feat: integrate groq api for summary generation`
+API-7. [x] `feat: integrate groq api for summary generation`
    - Set up Groq API client with Llama 3.1
    - Create prompt templates for summary generation
    - POST /api/notes/:id/summary — generate AI summary

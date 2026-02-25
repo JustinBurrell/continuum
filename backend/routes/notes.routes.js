@@ -25,4 +25,7 @@ router.put('/:id', notesController.updateNote);
 router.put('/:id/refresh', notesController.refreshNote);
 router.delete('/:id', notesController.deleteNote);
 
+// AI routes
+router.post('/:id/summary', notesController.generateSummary);
+
 module.exports = router;

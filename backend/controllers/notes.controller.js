@@ -1,6 +1,7 @@
 const Note = require('../models/Note');
 const getGoogleDriveClient = require('../config/googleDrive');
 const cloudinary = require('../config/cloudinary');
+const groqService = require('../services/groq.service');
 
 // ============================================================
 // NOTES CONTROLLER
@@ -269,4 +270,51 @@ exports.refreshNote = async (req, res) => {
     );
 
     res.status(200).json({ success: true, note: updatedNote });
+};
+
+// ----------------------------------------
+// POST /api/notes/:id/summary
+// Purpose: Generate an AI summary for a note using Groq
+//   - Calls groq.service.js which handles prompt + model call
+//   - Saves quickSummary, detailedSummary, generatedAt, model, tokenCount to note.summary
+//   - Returns cached summary unless ?force=true is passed
+// ----------------------------------------
+exports.generateSummary = async (req, res) => {
+    const note = await Note.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        deletedAt: null,
+    });
+
+    if (!note) {
+        return res.status(404).json({ success: false, error: 'Note not found' });
+    }
+
+    if (!note.content || note.content.trim().length === 0) {
+        return res.status(400).json({ success: false, error: 'Note has no content to summarize' });
+    }
+
+    // Return cached summary unless ?force=true is explicitly passed
+    const force = req.query.force === 'true';
+    if (note.summary?.quickSummary && !force) {
+        return res.status(200).json({ success: true, note, cached: true });
+    }
+
+    const result = await groqService.generateSummary(note.content);
+
+    const updatedNote = await Note.findByIdAndUpdate(
+        note._id,
+        {
+            summary: {
+                quickSummary: result.quickSummary,
+                detailedSummary: result.detailedSummary,
+                generatedAt: new Date(),
+                model: result.model,
+                tokenCount: result.tokenCount,
+            },
+        },
+        { new: true }
+    );
+
+    res.status(200).json({ success: true, note: updatedNote, cached: false });
 };
