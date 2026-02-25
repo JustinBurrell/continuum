@@ -60,8 +60,8 @@ const seedDatabase = async () => {
         console.log();
 
         // ========================================
-        // CREATE NOTE
-        // Purpose: Seed a test note linked to the user
+        // CREATE NOTE (native)
+        // Purpose: Seed a native note linked to the user
         // Verify: hasSummary virtual returns false (no summary yet)
         // ========================================
         const note = await Note.create({
@@ -74,11 +74,40 @@ const seedDatabase = async () => {
             visibility: 'private',
         });
 
-        console.log('NOTE CREATED');
+        console.log('NOTE CREATED (native)');
         console.log('  _id:', note._id);
         console.log('  title:', note.title);
         console.log('  hasSummary:', note.hasSummary);
         console.log('  tags:', note.tags);
+        console.log();
+
+        // ========================================
+        // CREATE NOTE (Google Doc import)
+        // Purpose: Seed a note that simulates a Google Doc import
+        // Verify: googleDocId, googleDocUrl, pdfUrl, lastSyncedAt fields save correctly
+        //         contentType is 'plain' (Drive text export)
+        // ========================================
+        const googleNote = await Note.create({
+            userId: user._id,
+            title: 'Algorithms Lecture Notes',
+            content: 'Big-O Notation\n\nO(1) - constant time\nO(n) - linear time\nO(n^2) - quadratic time',
+            contentType: 'plain',
+            googleDocId: 'fake-google-doc-id-12345',
+            googleDocUrl: 'https://docs.google.com/document/d/fake-google-doc-id-12345/edit',
+            pdfUrl: 'https://res.cloudinary.com/demo/raw/upload/continuum/notes/fake-google-doc-id-12345.pdf',
+            lastSyncedAt: new Date(),
+            tags: ['algorithms', 'computer-science'],
+            subject: 'CS 301',
+            visibility: 'private',
+        });
+
+        console.log('NOTE CREATED (Google Doc import)');
+        console.log('  _id:', googleNote._id);
+        console.log('  title:', googleNote.title);
+        console.log('  contentType:', googleNote.contentType);
+        console.log('  googleDocId:', googleNote.googleDocId);
+        console.log('  pdfUrl:', googleNote.pdfUrl);
+        console.log('  lastSyncedAt:', googleNote.lastSyncedAt);
         console.log();
 
         // ========================================

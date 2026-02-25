@@ -37,6 +37,7 @@ erDiagram
         String contentType
         String googleDocId UK
         String googleDocUrl
+        String pdfUrl "Cloudinary URL of PDF export"
         Date lastSyncedAt
         Array tags
         String subject

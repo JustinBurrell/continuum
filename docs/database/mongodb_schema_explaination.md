@@ -199,24 +199,28 @@ await Comment.updateMany(
    └─> Return list of documents
 
 3. User imports document
-   └─> POST /api/notes/import
-   └─> Fetch document content via Docs API
-   └─> Parse HTML/Markdown
+   └─> POST /api/notes/import { googleDocId, googleDocUrl }
+   └─> Export Google Doc as PDF via Drive files.export(application/pdf)
+       └─> Upload PDF stream to Cloudinary → receive pdfUrl
+   └─> Export Google Doc as plain text via Drive files.export(text/plain)
+       └─> Store as content field (used by Groq for summaries/flashcards)
    └─> Note.create({
        userId,
        title,
-       content,
+       content,          // plain text — AI input
+       pdfUrl,           // Cloudinary URL — rendered in note viewer
        googleDocId,
-       googleDocUrl,
+       googleDocUrl,     // webViewLink — "Open in Google Docs" button
        lastSyncedAt: now
      })
 
 4. User refreshes note
    └─> PUT /api/notes/:id/refresh
-   └─> Fetch latest content from Google Docs
+   └─> Re-export PDF → upload new version to Cloudinary → updated pdfUrl
+   └─> Re-export plain text → updated content field
    └─> Note.findOneAndUpdate(
        { _id: noteId, userId },
-       { content: newContent, lastSyncedAt: now }
+       { content: newContent, pdfUrl: newPdfUrl, lastSyncedAt: now }
      )
 
 5. User generates AI summary

@@ -86,7 +86,8 @@
 
   // Google Docs Integration
   googleDocId: String (unique, sparse index),
-  googleDocUrl: String,
+  googleDocUrl: String,     // webViewLink from Drive — "Open in Google Docs" button
+  pdfUrl: String,           // Cloudinary URL of PDF export — rendered in note viewer
   lastSyncedAt: Date,
 
   // Organization
