@@ -39,8 +39,11 @@ const noteSchema = new mongoose.Schema({
 
     /**
      * Google Docs Integration
-     * Purpose: Link to a Google Doc for syncing content
-     * Fields: googleDocId, googleDocUrl, lastSyncedAt
+     * Purpose: Link to a Google Doc for syncing content and storing its exported assets
+     * Fields: googleDocId, googleDocUrl, pdfUrl, lastSyncedAt
+     * - googleDocUrl: webViewLink from Drive — "Open in Google Docs" button
+     * - pdfUrl: Cloudinary URL of the exported PDF — rendered in the note viewer
+     * - content: plain text export of the doc — used by Groq for summaries/flashcards
      */
     googleDocId: {
         type: String,
@@ -48,6 +51,9 @@ const noteSchema = new mongoose.Schema({
         sparse: true,
     },
     googleDocUrl: {
+        type: String,
+    },
+    pdfUrl: {
         type: String,
     },
     lastSyncedAt: {

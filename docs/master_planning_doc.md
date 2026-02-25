@@ -288,10 +288,16 @@ API-5. [x] `feat: add google drive api client integration`
    - GET /api/google/files — list user's Google Drive files
    - Implement OAuth token refresh
 
-API-6. [ ] `feat: implement google doc import and refresh`
-   - POST /api/notes/import — import Google Doc as note snapshot
-   - PUT /api/notes/:id/refresh — refresh note from Google Docs
-   - Parse Google Doc content into note format
+API-6. [x] `feat: implement google doc import and refresh`
+   - Prerequisites: Enable Google Docs API in GCP, npm install cloudinary, add CLOUDINARY_CLOUD_NAME + CLOUDINARY_API_KEY + CLOUDINARY_API_SECRET to .env
+   - POST /api/notes/import — import a Google Doc as a note
+     - Export Google Doc as PDF via Drive files.export → upload to Cloudinary → store pdfUrl on Note
+     - Export Google Doc as plain text via Drive files.export → store as content field (used by Groq for summaries/flashcards)
+     - Store googleDocId, googleDocUrl (webViewLink from Drive listing), lastSyncedAt
+   - PUT /api/notes/:id/refresh — re-sync an imported note from its source Google Doc
+     - Re-export PDF → upload new version to Cloudinary → update pdfUrl
+     - Re-export plain text → update content field
+     - Update lastSyncedAt timestamp
 
 ### Session 4 (3/16): AI, Flashcards & Tasks APIs
 **Groq integration + Flashcard CRUD + Task management**
