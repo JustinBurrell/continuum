@@ -1,4 +1,6 @@
 const Note = require('../models/Note');
+const FlashcardSet = require('../models/FlashcardSet');
+const Flashcard = require('../models/Flashcard');
 const getGoogleDriveClient = require('../config/googleDrive');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
@@ -317,4 +319,57 @@ exports.generateSummary = async (req, res) => {
     );
 
     res.status(200).json({ success: true, note: updatedNote, cached: false });
+};
+
+// ----------------------------------------
+// POST /api/notes/:id/flashcards/generate
+// Purpose: Generate AI flashcards from an existing note's content
+//   - Uses note.content as input to Groq
+//   - Creates a FlashcardSet linked to the note (isAIGenerated: true)
+//   - Bulk inserts Flashcard docs and updates totalCards
+//   - Sets note.hasFlashcards = true
+// Generated once — no regeneration (call the endpoint again to create a new set)
+// ----------------------------------------
+exports.generateFlashcardsFromNote = async (req, res) => {
+    const note = await Note.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        deletedAt: null,
+    });
+
+    if (!note) {
+        return res.status(404).json({ success: false, error: 'Note not found' });
+    }
+
+    if (!note.content || note.content.trim().length === 0) {
+        return res.status(400).json({ success: false, error: 'Note has no content to generate flashcards from' });
+    }
+
+    const result = await groqService.generateFlashcards(note.content);
+
+    // Create the FlashcardSet linked to this note
+    const set = await FlashcardSet.create({
+        userId: req.user._id,
+        noteId: note._id,
+        title: note.title ? `${note.title} — Flashcards` : 'Generated Flashcard Set',
+        isAIGenerated: true,
+        generatedAt: new Date(),
+        totalCards: result.cards.length,
+    });
+
+    // Bulk insert all flashcard docs
+    const flashcardDocs = result.cards.map((card, index) => ({
+        setId: set._id,
+        front: card.front,
+        back: card.back,
+        order: index,
+    }));
+    await Flashcard.insertMany(flashcardDocs);
+
+    // Mark note as having flashcards
+    await Note.findByIdAndUpdate(note._id, { hasFlashcards: true });
+
+    const populatedSet = await FlashcardSet.findById(set._id).populate('flashcards');
+
+    res.status(201).json({ success: true, set: populatedSet });
 };

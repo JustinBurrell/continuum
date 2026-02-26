@@ -27,5 +27,6 @@ router.delete('/:id', notesController.deleteNote);
 
 // AI routes
 router.post('/:id/summary', notesController.generateSummary);
+router.post('/:id/flashcards/generate', notesController.generateFlashcardsFromNote);
 
 module.exports = router;
