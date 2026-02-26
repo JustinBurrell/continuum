@@ -324,7 +324,7 @@ API-8. [x] `feat: implement ai flashcard generation`
        - FlashcardSet not linked to any note (noteId: null), isAIGenerated: true
    - Both endpoints: create FlashcardSet → bulk insert Flashcard docs → update totalCards
 
-API-9. [ ] `feat: add flashcard set and flashcard crud endpoints`
+API-9. [x] `feat: add flashcard set and flashcard crud endpoints`
    - Manual set/card management (user-created, not AI):
    - POST /api/flashcard-sets — create a set manually (noteId optional)
    - GET /api/flashcard-sets — list user's sets (includes AI-generated and manual)
@@ -335,7 +335,7 @@ API-9. [ ] `feat: add flashcard set and flashcard crud endpoints`
    - DELETE /api/flashcard-sets/:id — soft delete set
    - DELETE /api/flashcard-sets/:setId/cards/:cardId — soft delete card
 
-API-10. [ ] `feat: implement task crud endpoints`
+API-10. [x] `feat: implement task crud endpoints`
    - POST /api/tasks — create task (with optional note linking)
    - GET /api/tasks — list tasks (with status filters, date range)
    - PUT /api/tasks/:id — update task
