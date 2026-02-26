@@ -13,7 +13,19 @@ const authMiddleware = require('../middleware/auth.middleware');
 
 router.use(authMiddleware);
 
-// AI generation routes (static — before /:id)
+// AI generation (static — must be before /:id to avoid param conflict)
 router.post('/generate', flashcardSetsController.generateFromContent);
+
+// Set CRUD
+router.post('/', flashcardSetsController.createSet);
+router.get('/', flashcardSetsController.getSets);
+router.get('/:id', flashcardSetsController.getSetById);
+router.delete('/:id', flashcardSetsController.deleteSet);
+
+// Card CRUD (nested under set)
+router.post('/:id/cards', flashcardSetsController.addCard);
+router.put('/:setId/cards/:cardId', flashcardSetsController.updateCard);
+router.put('/:setId/cards/:cardId/progress', flashcardSetsController.updateProgress);
+router.delete('/:setId/cards/:cardId', flashcardSetsController.deleteCard);
 
 module.exports = router;

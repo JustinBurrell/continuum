@@ -7,7 +7,9 @@ const groqService = require('../services/groq.service');
 // Purpose: Handle business logic for flashcard set endpoints
 // Used by: routes/flashcardSets.routes.js
 // Endpoints: generateFromContent (API-8)
-//            Full CRUD covered in API-9
+//            createSet, getSets, getSetById, deleteSet (API-9 — set CRUD)
+//            addCard, updateCard, deleteCard (API-9 — card CRUD)
+//            updateProgress (API-9 — study progress)
 // ============================================================
 
 // ----------------------------------------
@@ -50,4 +52,256 @@ exports.generateFromContent = async (req, res) => {
     const populatedSet = await FlashcardSet.findById(set._id).populate('flashcards');
 
     res.status(201).json({ success: true, set: populatedSet });
+};
+
+// ----------------------------------------
+// POST /api/flashcard-sets
+// Purpose: Manually create a new flashcard set (user-created, not AI)
+// Body: { title, description?, noteId? }
+// ----------------------------------------
+exports.createSet = async (req, res) => {
+    const { title, description, noteId } = req.body;
+
+    if (!title || title.trim().length === 0) {
+        return res.status(400).json({ success: false, error: 'Title is required' });
+    }
+
+    const set = await FlashcardSet.create({
+        userId: req.user._id,
+        noteId: noteId || null,
+        title: title.trim(),
+        description: description?.trim(),
+        isAIGenerated: false,
+    });
+
+    res.status(201).json({ success: true, set });
+};
+
+// ----------------------------------------
+// GET /api/flashcard-sets
+// Purpose: List the authenticated user's flashcard sets (AI-generated + manual)
+// Excludes soft-deleted sets
+// ----------------------------------------
+exports.getSets = async (req, res) => {
+    const sets = await FlashcardSet.find({
+        userId: req.user._id,
+        deletedAt: null,
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, sets });
+};
+
+// ----------------------------------------
+// GET /api/flashcard-sets/:id
+// Purpose: Get a single set with its flashcards populated
+// Only accessible by the owner
+// ----------------------------------------
+exports.getSetById = async (req, res) => {
+    const set = await FlashcardSet.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        deletedAt: null,
+    }).populate({
+        path: 'flashcards',
+        match: { deletedAt: null },  // exclude soft-deleted cards
+        options: { sort: { order: 1 } },
+    });
+
+    if (!set) {
+        return res.status(404).json({ success: false, error: 'Flashcard set not found' });
+    }
+
+    res.status(200).json({ success: true, set });
+};
+
+// ----------------------------------------
+// DELETE /api/flashcard-sets/:id
+// Purpose: Soft delete a flashcard set
+// ----------------------------------------
+exports.deleteSet = async (req, res) => {
+    const set = await FlashcardSet.findOneAndUpdate(
+        { _id: req.params.id, userId: req.user._id, deletedAt: null },
+        { deletedAt: new Date() },
+        { new: true }
+    );
+
+    if (!set) {
+        return res.status(404).json({ success: false, error: 'Flashcard set not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Flashcard set deleted' });
+};
+
+// ----------------------------------------
+// POST /api/flashcard-sets/:id/cards
+// Purpose: Add a card to an existing set
+// Body: { front, back }
+// Auto-assigns order as next position in set
+// ----------------------------------------
+exports.addCard = async (req, res) => {
+    const { front, back } = req.body;
+
+    if (!front || !back) {
+        return res.status(400).json({ success: false, error: 'front and back are required' });
+    }
+
+    const set = await FlashcardSet.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        deletedAt: null,
+    });
+
+    if (!set) {
+        return res.status(404).json({ success: false, error: 'Flashcard set not found' });
+    }
+
+    // Assign order as current totalCards (0-indexed next position)
+    const card = await Flashcard.create({
+        setId: set._id,
+        front: front.trim(),
+        back: back.trim(),
+        order: set.totalCards,
+    });
+
+    // Increment totalCards on the set
+    await FlashcardSet.findByIdAndUpdate(set._id, { $inc: { totalCards: 1 } });
+
+    res.status(201).json({ success: true, card });
+};
+
+// ----------------------------------------
+// PUT /api/flashcard-sets/:setId/cards/:cardId
+// Purpose: Update a card's front and/or back text
+// Body: { front?, back? }
+// ----------------------------------------
+exports.updateCard = async (req, res) => {
+    const { front, back } = req.body;
+
+    // Verify the set belongs to the user before touching the card
+    const set = await FlashcardSet.findOne({
+        _id: req.params.setId,
+        userId: req.user._id,
+        deletedAt: null,
+    });
+
+    if (!set) {
+        return res.status(404).json({ success: false, error: 'Flashcard set not found' });
+    }
+
+    const updates = {};
+    if (front) updates.front = front.trim();
+    if (back) updates.back = back.trim();
+
+    const card = await Flashcard.findOneAndUpdate(
+        { _id: req.params.cardId, setId: set._id, deletedAt: null },
+        updates,
+        { new: true, runValidators: true }
+    );
+
+    if (!card) {
+        return res.status(404).json({ success: false, error: 'Flashcard not found' });
+    }
+
+    res.status(200).json({ success: true, card });
+};
+
+// ----------------------------------------
+// PUT /api/flashcard-sets/:setId/cards/:cardId/progress
+// Purpose: Update study progress for the current user on a specific card
+// Body: { correct: true/false, confidence?: 'low'|'medium'|'high' }
+//   - correct: required — increments correctCount or incorrectCount
+//   - confidence: optional — only updated if explicitly passed
+//   - lastStudied: always updated to now
+// Uses $set on the matched userProgress subdoc or $push if no entry exists yet
+// ----------------------------------------
+exports.updateProgress = async (req, res) => {
+    const { correct, confidence } = req.body;
+
+    if (typeof correct !== 'boolean') {
+        return res.status(400).json({ success: false, error: 'correct (boolean) is required' });
+    }
+
+    // Verify the set belongs to the user
+    const set = await FlashcardSet.findOne({
+        _id: req.params.setId,
+        userId: req.user._id,
+        deletedAt: null,
+    });
+
+    if (!set) {
+        return res.status(404).json({ success: false, error: 'Flashcard set not found' });
+    }
+
+    const card = await Flashcard.findOne({
+        _id: req.params.cardId,
+        setId: set._id,
+        deletedAt: null,
+    });
+
+    if (!card) {
+        return res.status(404).json({ success: false, error: 'Flashcard not found' });
+    }
+
+    // Find the existing userProgress entry for this user
+    const progressIndex = card.userProgress.findIndex(
+        (p) => p.userId.toString() === req.user._id.toString()
+    );
+
+    if (progressIndex === -1) {
+        // No entry yet — create one
+        const newProgress = {
+            userId: req.user._id,
+            lastStudied: new Date(),
+            correctCount: correct ? 1 : 0,
+            incorrectCount: correct ? 0 : 1,
+        };
+        if (confidence) newProgress.confidence = confidence;
+        card.userProgress.push(newProgress);
+    } else {
+        // Update existing entry
+        const progress = card.userProgress[progressIndex];
+        progress.lastStudied = new Date();
+        if (correct) progress.correctCount += 1;
+        else progress.incorrectCount += 1;
+        if (confidence) progress.confidence = confidence;
+    }
+
+    await card.save();
+
+    // Update lastStudiedAt on the set
+    await FlashcardSet.findByIdAndUpdate(set._id, { lastStudiedAt: new Date() });
+
+    res.status(200).json({ success: true, card });
+};
+
+// ----------------------------------------
+// DELETE /api/flashcard-sets/:setId/cards/:cardId
+// Purpose: Soft delete a card and decrement totalCards on the set
+// ----------------------------------------
+exports.deleteCard = async (req, res) => {
+    // Verify the set belongs to the user
+    const set = await FlashcardSet.findOne({
+        _id: req.params.setId,
+        userId: req.user._id,
+        deletedAt: null,
+    });
+
+    if (!set) {
+        return res.status(404).json({ success: false, error: 'Flashcard set not found' });
+    }
+
+    const card = await Flashcard.findOneAndUpdate(
+        { _id: req.params.cardId, setId: set._id, deletedAt: null },
+        { deletedAt: new Date() },
+        { new: true }
+    );
+
+    if (!card) {
+        return res.status(404).json({ success: false, error: 'Flashcard not found' });
+    }
+
+    // Keep totalCards accurate
+    await FlashcardSet.findByIdAndUpdate(set._id, { $inc: { totalCards: -1 } });
+
+    res.status(200).json({ success: true, message: 'Flashcard deleted' });
 };
