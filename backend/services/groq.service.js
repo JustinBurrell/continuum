@@ -65,4 +65,60 @@ ${content}`;
     };
 };
 
-module.exports = { generateSummary };
+// ----------------------------------------
+// generateFlashcards
+// Purpose: Extract Q&A flashcard pairs from note or document content
+// Returns: { cards: [{ front, back }], model, tokenCount }
+//
+// Cards are capped at 20 per generation
+// front — a question, term, or concept prompt
+// back  — the answer, definition, or explanation
+// ----------------------------------------
+const generateFlashcards = async (content) => {
+    const systemPrompt = `You are a study assistant helping college students create flashcards from their academic notes and documents.
+Your job is to identify the most important concepts, terms, and ideas and turn them into effective flashcard Q&A pairs.
+Write questions that test understanding, not just memorization.
+Never make up information — only use what is present in the provided content.`;
+
+    const userPrompt = `Create flashcards from the following content. Return your response as a valid JSON array of objects with exactly these two fields per card:
+
+[
+  { "front": "A clear question, term, or concept prompt", "back": "The answer, definition, or explanation" },
+  ...
+]
+
+Rules:
+- Generate between 5 and 20 cards depending on how much content there is
+- Prioritize key terms, definitions, formulas, and important concepts
+- Write "front" as a question (e.g. "What is X?" or "Define Y") or a term to define
+- Write "back" as a concise but complete answer (1-3 sentences max)
+- Do not create duplicate or near-duplicate cards
+- Only return the JSON array. No extra text, no markdown code blocks.
+
+Content:
+${content}`;
+
+    const response = await groq.chat.completions.create({
+        model: MODEL,
+        messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.3,
+        max_tokens: 2000,
+    });
+
+    const raw = response.choices[0].message.content.trim();
+    const tokenCount = response.usage?.total_tokens ?? null;
+
+    const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+    const cards = JSON.parse(cleaned);
+
+    return {
+        cards,
+        model: MODEL,
+        tokenCount,
+    };
+};
+
+module.exports = { generateSummary, generateFlashcards };

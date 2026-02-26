@@ -310,19 +310,30 @@ API-7. [x] `feat: integrate groq api for summary generation`
    - POST /api/notes/:id/summary — generate AI summary
    - See [Groq AI Integration](./backend/groq_ai_integration.md)
 
-API-8. [ ] `feat: implement ai flashcard generation`
-   - Create prompt templates for flashcard extraction
-   - POST /api/notes/:id/flashcards/generate — generate flashcards from note
-   - Parse AI response into flashcard format
+API-8. [x] `feat: implement ai flashcard generation`
+   - Add `generateFlashcards(content)` to services/groq.service.js
+     - Prompt extracts Q&A pairs from content, returns JSON array: [{ front, back }]
+     - Cap at 20 cards per generation
+   - Two generation sources — both create a FlashcardSet + Flashcard docs, generated once (no regeneration):
+     - POST /api/notes/:id/flashcards/generate — generate from an existing note
+       - Uses note.content as input
+       - FlashcardSet linked to noteId, isAIGenerated: true
+       - Sets note.hasFlashcards = true
+     - POST /api/flashcard-sets/generate — generate from raw submitted content
+       - Body: { content, title } — user pastes or submits document text
+       - FlashcardSet not linked to any note (noteId: null), isAIGenerated: true
+   - Both endpoints: create FlashcardSet → bulk insert Flashcard docs → update totalCards
 
 API-9. [ ] `feat: add flashcard set and flashcard crud endpoints`
-   - POST /api/flashcard-sets — create set
-   - GET /api/flashcard-sets — list user's sets
-   - GET /api/flashcard-sets/:id — get set with flashcards
-   - POST /api/flashcard-sets/:id/cards — add card
-   - PUT /api/flashcard-sets/:setId/cards/:cardId — update card
-   - PUT /api/flashcard-sets/:setId/cards/:cardId/progress — update study progress
+   - Manual set/card management (user-created, not AI):
+   - POST /api/flashcard-sets — create a set manually (noteId optional)
+   - GET /api/flashcard-sets — list user's sets (includes AI-generated and manual)
+   - GET /api/flashcard-sets/:id — get set with flashcards populated
+   - POST /api/flashcard-sets/:id/cards — add a card to a set
+   - PUT /api/flashcard-sets/:setId/cards/:cardId — update a card (front/back)
+   - PUT /api/flashcard-sets/:setId/cards/:cardId/progress — update study progress (correct/incorrect/confidence)
    - DELETE /api/flashcard-sets/:id — soft delete set
+   - DELETE /api/flashcard-sets/:setId/cards/:cardId — soft delete card
 
 API-10. [ ] `feat: implement task crud endpoints`
    - POST /api/tasks — create task (with optional note linking)
