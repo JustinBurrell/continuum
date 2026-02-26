@@ -342,7 +342,7 @@ API-10. [x] `feat: implement task crud endpoints`
    - DELETE /api/tasks/:id — soft delete task
    - PATCH /api/tasks/:id/status — quick status update
 
-API-11. [ ] `feat: create calendar aggregation endpoint`
+API-11. [x] `feat: create calendar aggregation endpoint`
    - GET /api/calendar — aggregate tasks by date range
    - Support week and month views
    - Include overdue task detection
