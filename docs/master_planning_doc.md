@@ -347,7 +347,7 @@ API-11. [x] `feat: create calendar aggregation endpoint`
    - Support week and month views
    - Include overdue task detection
 
-API-12. [ ] `test: test all session 3-4 endpoints with postman`
+API-12. [x] `test: test all session 3-4 endpoints with postman`
    - Create Postman collection for all endpoints
    - Test happy paths and error cases
    - Verify auth middleware protects routes
@@ -359,7 +359,7 @@ API-12. [ ] `test: test all session 3-4 endpoints with postman`
 #### Tickets
 
 API-13. [ ] `feat: implement friend request endpoints`
-   - POST /api/friends/request — send friend request
+   - POS T /api/friends/request — send friend request
    - PUT /api/friends/request/:id — accept/reject request
    - GET /api/friends — list friends
    - DELETE /api/friends/:id — remove friend
