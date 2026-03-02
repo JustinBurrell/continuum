@@ -390,7 +390,7 @@ API-17. [x] `feat: add application tracking endpoints`
    - POST /api/applications/:id/contacts — add networking contact
    - POST /api/applications/:id/reminders — add follow-up reminder
 
-API-18. [ ] `feat: implement shared tasks with participants`
+API-18. [x] `feat: implement shared tasks with participants`
    - Update task endpoints to support isShared and participants
    - GET /api/tasks/shared — list tasks shared with user
    - Shared tasks appear in all participants' calendars
