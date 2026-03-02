@@ -1,0 +1,185 @@
+const Conversation = require('../models/Conversation');
+const Message = require('../models/Message');
+
+// ============================================================
+// CONVERSATIONS CONTROLLER
+// Purpose: Handle all messaging endpoints — conversations and messages
+// Routes:
+//   POST   /api/conversations             — start or get existing conversation
+//   GET    /api/conversations             — list user's inbox
+//   POST   /api/conversations/:id/messages — send a message
+//   GET    /api/conversations/:id/messages — get messages (paginated)
+// ============================================================
+
+// ----------------------------------------
+// startConversation
+// Purpose: Find or create a 1-on-1 conversation with another user
+// Idempotent: returns existing conversation if one already exists
+// ----------------------------------------
+exports.startConversation = async (req, res) => {
+    const { participantId } = req.body;
+    const userId = req.user._id;
+
+    if (!participantId) {
+        return res.status(400).json({ success: false, error: 'participantId is required' });
+    }
+
+    if (participantId === userId.toString()) {
+        return res.status(400).json({ success: false, error: 'You cannot start a conversation with yourself' });
+    }
+
+    // Sort IDs to create a canonical pair — prevents [A,B] vs [B,A] duplicates
+    const participants = [userId, participantId].sort();
+
+    // Check if conversation already exists
+    const existing = await Conversation.findOne({
+        participants: { $all: participants },
+        deletedAt: null,
+    }).populate('participants', 'username firstName lastName');
+
+    if (existing) {
+        return res.status(200).json({ success: true, conversation: existing });
+    }
+
+    // Create new conversation with unread counts initialized to 0 for both participants
+    const conversation = await Conversation.create({
+        participants,
+        unreadCounts: [
+            { userId, count: 0 },
+            { userId: participantId, count: 0 },
+        ],
+    });
+
+    await conversation.populate('participants', 'username firstName lastName');
+
+    res.status(201).json({ success: true, conversation });
+};
+
+// ----------------------------------------
+// getConversations
+// Purpose: List the current user's inbox, sorted by most recent message
+// ----------------------------------------
+exports.getConversations = async (req, res) => {
+    const userId = req.user._id;
+
+    const conversations = await Conversation.find({
+        participants: userId,
+        deletedAt: null,
+    })
+        .populate('participants', 'username firstName lastName')
+        .sort({ 'lastMessage.sentAt': -1, createdAt: -1 });
+
+    res.status(200).json({ success: true, conversations });
+};
+
+// ----------------------------------------
+// sendMessage
+// Purpose: Send a message in a conversation
+// Side effects:
+//   - Updates conversation.lastMessage (denormalized inbox preview)
+//   - Increments unread count for the other participant
+// ----------------------------------------
+exports.sendMessage = async (req, res) => {
+    const { id: conversationId } = req.params;
+    const { content } = req.body;
+    const userId = req.user._id;
+
+    if (!content || !content.trim()) {
+        return res.status(400).json({ success: false, error: 'content is required' });
+    }
+
+    const conversation = await Conversation.findOne({
+        _id: conversationId,
+        deletedAt: null,
+    });
+
+    if (!conversation) {
+        return res.status(404).json({ success: false, error: 'Conversation not found' });
+    }
+
+    const isParticipant = conversation.participants.some(
+        (p) => p.toString() === userId.toString()
+    );
+    if (!isParticipant) {
+        return res.status(403).json({ success: false, error: 'You are not a participant in this conversation' });
+    }
+
+    const message = await Message.create({
+        conversationId,
+        senderId: userId,
+        content: content.trim(),
+    });
+
+    // Update denormalized last message preview on the conversation
+    conversation.lastMessage = {
+        senderId: userId,
+        content: content.trim().substring(0, 200),
+        sentAt: message.createdAt,
+    };
+
+    // Increment unread count for the other participant
+    const otherParticipantId = conversation.participants.find(
+        (p) => p.toString() !== userId.toString()
+    );
+    if (otherParticipantId) {
+        const unreadEntry = conversation.unreadCounts.find(
+            (u) => u.userId.toString() === otherParticipantId.toString()
+        );
+        if (unreadEntry) {
+            unreadEntry.count += 1;
+        } else {
+            conversation.unreadCounts.push({ userId: otherParticipantId, count: 1 });
+        }
+    }
+
+    await conversation.save();
+
+    await message.populate('senderId', 'username firstName lastName');
+
+    res.status(201).json({ success: true, message });
+};
+
+// ----------------------------------------
+// getMessages
+// Purpose: Get paginated messages in a conversation (newest first)
+// Query params:
+//   limit  — number of messages to return (default 50, max 100)
+//   before — ISO date cursor, returns only messages created before this timestamp
+// ----------------------------------------
+exports.getMessages = async (req, res) => {
+    const { id: conversationId } = req.params;
+    const userId = req.user._id;
+
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const before = req.query.before ? new Date(req.query.before) : new Date();
+
+    const conversation = await Conversation.findOne({
+        _id: conversationId,
+        deletedAt: null,
+    });
+
+    if (!conversation) {
+        return res.status(404).json({ success: false, error: 'Conversation not found' });
+    }
+
+    const isParticipant = conversation.participants.some(
+        (p) => p.toString() === userId.toString()
+    );
+    if (!isParticipant) {
+        return res.status(403).json({ success: false, error: 'You are not a participant in this conversation' });
+    }
+
+    const messages = await Message.find({
+        conversationId,
+        deletedAt: null,
+        createdAt: { $lt: before },
+    })
+        .populate('senderId', 'username firstName lastName')
+        .sort({ createdAt: -1 })
+        .limit(limit + 1); // fetch one extra to determine hasMore
+
+    const hasMore = messages.length > limit;
+    if (hasMore) messages.pop();
+
+    res.status(200).json({ success: true, messages, hasMore });
+};

@@ -401,7 +401,7 @@ API-19. [x] `test: test all session 5 endpoints with postman`
    - Test file upload
    - Verify all protected routes
 
-API-20. [ ] `feat: add stretch api endpoints (messaging)` *(stretch)*
+API-20. [x] `feat: add stretch api endpoints (messaging)` *(stretch)*
    - POST /api/conversations — start conversation
    - GET /api/conversations — list conversations (inbox)
    - POST /api/conversations/:id/messages — send message
