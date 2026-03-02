@@ -365,7 +365,7 @@ API-13. [x] `feat: implement friend request endpoints`
    - DELETE /api/friends/:id — remove friend
    - GET /api/users/search — search users by username/email
 
-API-14. [ ] `feat: add note sharing with visibility controls`
+API-14. [x] `feat: add note sharing with visibility controls`
    - PUT /api/notes/:id/share — share note with friends
    - GET /api/notes/shared — list notes shared with user
    - Update note visibility (private/friends/specific users)

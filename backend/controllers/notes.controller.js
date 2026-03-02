@@ -1,6 +1,7 @@
 const Note = require('../models/Note');
 const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
+const Friendship = require('../models/Friendship');
 const getGoogleDriveClient = require('../config/googleDrive');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
@@ -10,7 +11,7 @@ const groqService = require('../services/groq.service');
 // Purpose: Handle business logic for all note CRUD endpoints
 // Used by: routes/notes.routes.js
 // Endpoints: createNote, getNotes, getNoteById, updateNote, deleteNote,
-//            importNote, refreshNote
+//            importNote, refreshNote, shareNote, getSharedNotes
 // ============================================================
 
 // ----------------------------------------
@@ -372,4 +373,107 @@ exports.generateFlashcardsFromNote = async (req, res) => {
     const populatedSet = await FlashcardSet.findById(set._id).populate('flashcards');
 
     res.status(201).json({ success: true, set: populatedSet });
+};
+
+// ----------------------------------------
+// PUT /api/notes/:id/share
+// Purpose: Update a note's visibility and sharedWith list
+// Body: { visibility: "private" | "friends" | "specific", sharedWith?: [userId, ...] }
+// Note: visibility="specific" requires sharedWith — all listed users must be accepted friends
+// ----------------------------------------
+exports.shareNote = async (req, res) => {
+    const { visibility, sharedWith } = req.body;
+
+    const validVisibilities = ['private', 'friends', 'specific'];
+    if (!visibility || !validVisibilities.includes(visibility)) {
+        return res.status(400).json({
+            success: false,
+            error: `visibility must be one of: ${validVisibilities.join(', ')}`,
+        });
+    }
+
+    if (visibility === 'specific') {
+        if (!sharedWith || sharedWith.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'sharedWith is required when visibility is "specific"',
+            });
+        }
+
+        // Validate every user in sharedWith is an accepted friend of the requester
+        const userId = req.user._id;
+        const friendships = await Friendship.find({
+            $or: [{ user1: userId }, { user2: userId }],
+            status: 'accepted',
+            deletedAt: null,
+        });
+
+        const friendIds = new Set(
+            friendships.map(f =>
+                f.user1.toString() === userId.toString()
+                    ? f.user2.toString()
+                    : f.user1.toString()
+            )
+        );
+
+        const invalidUsers = sharedWith.filter(id => !friendIds.has(id.toString()));
+        if (invalidUsers.length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'sharedWith can only include accepted friends',
+            });
+        }
+    }
+
+    const note = await Note.findOneAndUpdate(
+        { _id: req.params.id, userId: req.user._id, deletedAt: null },
+        {
+            visibility,
+            // Clear sharedWith when switching away from "specific"
+            sharedWith: visibility === 'specific' ? sharedWith : [],
+        },
+        { new: true, runValidators: true }
+    );
+
+    if (!note) {
+        return res.status(404).json({ success: false, error: 'Note not found' });
+    }
+
+    res.status(200).json({ success: true, note });
+};
+
+// ----------------------------------------
+// GET /api/notes/shared
+// Purpose: List notes shared with the authenticated user by other users
+// Includes:
+//   - Notes with visibility="friends" owned by an accepted friend
+//   - Notes with visibility="specific" where current user is in sharedWith
+// ----------------------------------------
+exports.getSharedNotes = async (req, res) => {
+    const userId = req.user._id;
+
+    // Step 1: Get all accepted friend IDs for the current user
+    const friendships = await Friendship.find({
+        $or: [{ user1: userId }, { user2: userId }],
+        status: 'accepted',
+        deletedAt: null,
+    });
+
+    const friendIds = friendships.map(f =>
+        f.user1.toString() === userId.toString() ? f.user2 : f.user1
+    );
+
+    // Step 2: Find notes accessible to the current user (owned by others)
+    const notes = await Note.find({
+        deletedAt: null,
+        userId: { $ne: userId },
+        $or: [
+            { visibility: 'friends', userId: { $in: friendIds } },
+            { visibility: 'specific', sharedWith: userId },
+        ],
+    })
+        .populate('userId', 'username firstName lastName')
+        .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, notes });
 };
