@@ -139,3 +139,143 @@ Run top to bottom within each folder. Each creation request auto-sets the ID for
 - If a request fails with `401 Unauthorized`, your token may have expired — re-run **Login** to refresh it
 - If a request fails with `404 Not Found`, the ID variable may be stale — re-run the creation request for that resource
 - The Groq summary and flashcard generation requests take 2-5 seconds — this is normal
+
+---
+
+# Postman Testing — Session 5
+
+API-13 through API-18: Friends, Note Sharing, Comments/Likes, Resume Upload, Applications, Shared Tasks.
+
+---
+
+## Setup
+
+### 1. Import the collection
+- Open Postman → **Collections** tab → **Import** → select `continuum-session5.postman_collection.json`
+- The environment (`continuum-local.postman_environment.json`) is shared with session 3-4 — re-import it to pick up the new variables added for session 5, or just re-use the existing one (new variables will be auto-set by test scripts)
+
+### 2. Select the environment
+- Top-right corner of Postman — switch the dropdown to **Continuum — Local**
+
+### 3. Start the backend server
+```bash
+cd backend && npm run dev
+```
+
+---
+
+## Environment Variables
+
+New variables added for session 5. All are auto-set by test scripts.
+
+| Variable          | Set by                  | Used by                                      |
+|-------------------|-------------------------|----------------------------------------------|
+| `secondToken`     | Register User 2         | All "as User 2" requests                     |
+| `secondUserId`    | Register User 2         | Send Friend Request, Share Note (specific), Create Shared Task |
+| `friendshipId`    | Send Friend Request     | Accept/Remove Friend routes                  |
+| `noteId`          | Create Note (for Sharing) | Share, Comment, Get Shared routes           |
+| `commentId`       | Add Comment             | Like, Delete Comment routes                  |
+| `resumeId`        | Upload Resume           | Feedback routes                              |
+| `applicationId`   | Create Application      | Update, Contacts, Reminders routes           |
+| `sharedTaskId`    | Create Shared Task      | Participant Status, Calendar routes          |
+| `calFrom` / `calTo` | Pre-request script    | Get Calendar (Shared Tasks folder)           |
+
+---
+
+## Test Order
+
+Run folders top to bottom. **Do not run "Remove Friend" until after all Note Sharing and Shared Tasks tests** — it will break the specific sharing and shared task flows.
+
+### 0. Setup — Second User
+*(Run these first, in order)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Login User 1 | `{ "email", "password" }` | `200` — sets `token` + `userId` | ✅ |
+| Register User 2 | `{ "username", "email", "password", "firstName", "lastName" }` | `201` — sets `secondToken` + `secondUserId` | ✅ |
+
+### 1. Users
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Search Users | query: `?q=testuser2` | `200` — returns array of matching users | ✅ |
+| [Error] Search — Missing Query | none | `400` | ✅ |
+
+### 2. Friends
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Send Friend Request | `{ "recipientId": "{{secondUserId}}" }` | `201` — sets `friendshipId` | ✅ |
+| Accept Request — as User 2 | `{ "action": "accept" }` | `200` | ✅ |
+| List Friends | none | `200` — includes User 2 with `status: accepted` | ✅ |
+| List Pending Requests | query: `?status=pending` | `200` — empty after acceptance | ✅ |
+| [Error] Send to Self | `{ "recipientId": "{{userId}}" }` | `400` | ✅ |
+| [Error] Duplicate Request | `{ "recipientId": "{{secondUserId}}" }` | `400` | ✅ |
+| Remove Friend ⚠️ | none | `200` — **run AFTER Note Sharing and Shared Tasks** | ✅ |
+
+### 3. Note Sharing
+*(Requires friendship to be accepted — run 2. Friends first)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Create Note (for Sharing) | `{ "title", "content", "tags" }` | `201` — sets `noteId` | ✅ |
+| Share Note — Friends | `{ "visibility": "friends" }` | `200` | ✅ |
+| Share Note — Specific Users | `{ "visibility": "specific", "sharedWith": ["{{secondUserId}}"] }` | `200` | ✅ |
+| Get Shared Notes — as User 2 | none | `200` — note appears in results | ✅ |
+| Get Shared Notes — as User 1 | none | `200` — empty (User 1 has no notes shared with them) | ✅ |
+| [Error] Share with Non-Friend | `{ "visibility": "specific", "sharedWith": ["000000000000000000000000"] }` | `400` | ✅ |
+
+### 4. Comments & Likes
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Add Comment | `{ "targetType": "note", "targetId": "{{noteId}}", "content": "..." }` | `201` — sets `commentId` | ✅ |
+| Get Comments | none | `200` — includes the new comment with `userSnapshot` | ✅ |
+| Toggle Like — On | none | `200` — check `liked: true` | ✅ |
+| Toggle Like — Off | none | `200` — check `liked: false` | ✅ |
+| Delete Comment | none | `200` | ✅ |
+| [Error] Add Comment — Missing Content | `{ "targetType", "targetId" }` only | `400` | ✅ |
+| [Error] Add Comment — Invalid targetType | `{ "targetType": "invalid", ... }` | `400` | ✅ |
+
+### 5. Resumes
+*(Requires a real PDF file — select it manually in the Upload Resume request)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Upload Resume | form-data: `resume` = any PDF file | `201` — sets `resumeId` | ✅ |
+| List Resumes | none | `200` | ✅ |
+| Generate AI Feedback | none | `200` — takes 2-5s (Groq API call) — check `overallScore`, `strengths`, `improvements` | ✅ |
+| Get Feedback History | none | `200` — `feedback` array with the generated entry | ✅ |
+| [Error] Upload Non-PDF | form-data: `resume` = any non-PDF file | `400` | ✅ |
+
+### 6. Applications
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Create Application | `{ "company", "position", "location", "status", "appliedAt", "notes" }` | `201` — sets `applicationId` | ✅ |
+| List Applications | none | `200` | ✅ |
+| List Applications — Status Filter | query: `?status=applied` | `200` | ✅ |
+| List Applications — Search Filter | query: `?search=Google` | `200` | ✅ |
+| Update Application | `{ "status": "interview", "notes": "..." }` | `200` — check `status` updated | ✅ |
+| Get Dashboard | none | `200` — check `pipeline` object with counts per status | ✅ |
+| Add Contact | `{ "name", "role", "email", "linkedIn", "notes" }` | `201` — contact appears in `application.contacts` | ✅ |
+| Add Reminder | `{ "date", "description" }` | `201` — reminder appears in `application.followUpReminders` | ✅ |
+| [Error] Create — Missing company | `{ "position": "..." }` only | `400` | ✅ |
+| [Error] Create — Missing position | `{ "company": "..." }` only | `400` | ✅ |
+
+### 7. Shared Tasks
+*(Requires friendship to be accepted — run 2. Friends first)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Create Shared Task | `{ "title", "dueDate", "isShared": true, "participants": [{ "userId": "{{secondUserId}}" }] }` | `201` — sets `sharedTaskId`, `participants` array populated | ✅ |
+| Get Shared Tasks — as User 2 | none | `200` — shared task appears | ✅ |
+| Update Participant Status — as User 2 | `{ "status": "in_progress" }` | `200` — User 2's participant entry updated | ✅ |
+| Get Calendar — verify shared task (User 2) | query: `?from=2026-03-01&to=2026-03-31&view=month` | `200` — shared task appears in `days` | ✅ |
+| [Error] Participant Status — Invalid Value | `{ "status": "done" }` | `400` | ✅ |
+| [Error] Non-Participant Update | `{ "status": "completed" }` (as User 1, on shared task) | `404` — User 1 is the owner, not a participant | ✅ |
+
+---
+
+## Tips
+
+- Run folder **0. Setup** first every time — it ensures `token`, `userId`, `secondToken`, `secondUserId` are all set
+- **Remove Friend** (bottom of folder 2) must be run **after** folders 3 and 7 — specific note sharing and shared tasks require an active friendship
+- Resume upload requires a real PDF file — select it manually via the file chooser in Postman
+- The AI Feedback request (Resumes) takes 2-5 seconds — this is normal (Groq API call)

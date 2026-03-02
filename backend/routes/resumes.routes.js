@@ -15,7 +15,15 @@ const upload = require('../middleware/upload.middleware');
 router.use(authMiddleware);
 
 // upload.single('resume') — expects a single file in the "resume" form field
-router.post('/upload', upload.single('resume'), resumesController.uploadResume);
+// Inline error handler catches multer fileFilter/size errors and returns JSON instead of HTML
+router.post('/upload', (req, res, next) => {
+    upload.single('resume')(req, res, (err) => {
+        if (err) {
+            return res.status(400).json({ success: false, error: err.message });
+        }
+        next();
+    });
+}, resumesController.uploadResume);
 router.get('/', resumesController.getResumes);
 router.post('/:id/feedback', resumesController.generateFeedback);
 router.get('/:id/feedback', resumesController.getFeedback);
