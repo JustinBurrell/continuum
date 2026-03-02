@@ -382,7 +382,7 @@ API-16. [x] `feat: add resume upload and ai feedback endpoints`
    - POST /api/resumes/:id/feedback — generate AI feedback via Groq
    - GET /api/resumes/:id/feedback — get feedback history
 
-API-17. [ ] `feat: add application tracking endpoints`
+API-17. [x] `feat: add application tracking endpoints`
    - POST /api/applications — create application entry
    - GET /api/applications — list applications (with status filters)
    - PUT /api/applications/:id — update application
