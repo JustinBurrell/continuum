@@ -14,8 +14,9 @@ const authMiddleware = require('../middleware/auth.middleware');
 
 router.use(authMiddleware);
 
-// Static routes first
+// Static routes first — must come before /:id to avoid "import"/"shared" being treated as IDs
 router.post('/import', notesController.importNote);
+router.get('/shared', notesController.getSharedNotes);
 
 // CRUD routes
 router.post('/', notesController.createNote);
@@ -23,6 +24,7 @@ router.get('/', notesController.getNotes);
 router.get('/:id', notesController.getNoteById);
 router.put('/:id', notesController.updateNote);
 router.put('/:id/refresh', notesController.refreshNote);
+router.put('/:id/share', notesController.shareNote);
 router.delete('/:id', notesController.deleteNote);
 
 // AI routes
