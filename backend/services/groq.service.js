@@ -46,20 +46,32 @@ ${content}`;
             { role: 'user', content: userPrompt },
         ],
         temperature: 0.3, // low temperature for factual, consistent output
-        max_tokens: 1500,
+        max_tokens: 2500,
+        response_format: { type: 'json_object' }, // forces valid JSON output, no manual sanitization needed
     });
 
     const raw = response.choices[0].message.content.trim();
     const tokenCount = response.usage?.total_tokens ?? null;
 
-    // Parse JSON response from model
-    // If the model wraps it in a code block despite instructions, strip it
-    const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
-    const parsed = JSON.parse(cleaned);
+    const parsed = JSON.parse(raw);
+
+    // Model sometimes returns detailedSummary as an object instead of a string.
+    // Convert it to a formatted markdown string so it can be stored as String in Mongoose.
+    let detailedSummary = parsed.detailedSummary;
+    if (typeof detailedSummary === 'object' && detailedSummary !== null) {
+        detailedSummary = Object.entries(detailedSummary)
+            .map(([section, items]) => {
+                const bullets = Array.isArray(items)
+                    ? items.map((item) => `- ${item}`).join('\n')
+                    : items;
+                return `${section}\n${bullets}`;
+            })
+            .join('\n\n');
+    }
 
     return {
         quickSummary: parsed.quickSummary,
-        detailedSummary: parsed.detailedSummary,
+        detailedSummary,
         model: MODEL,
         tokenCount,
     };

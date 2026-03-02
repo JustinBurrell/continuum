@@ -241,7 +241,7 @@
   reminderMinutes: Number (default: 30),
 
   // Categorization
-  type: String (enum: 'homework', 'study', 'project', 'exam', 'other', indexed),
+  type: String (enum: 'homework', 'study', 'project', 'exam', 'club', 'professional', 'personal', 'other', indexed),
   priority: String (enum: 'low', 'medium', 'high', indexed),
   status: String (enum: 'todo', 'in_progress', 'completed', indexed),
 
