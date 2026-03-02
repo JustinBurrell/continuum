@@ -31,6 +31,7 @@ app.use('/api/friends', require('./routes/friends.routes'));
 app.use('/api/users', require('./routes/users.routes'));
 app.use('/api/comments', require('./routes/comments.routes'));
 app.use('/api/applications', require('./routes/applications.routes'));
+app.use('/api/resumes', require('./routes/resumes.routes'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
