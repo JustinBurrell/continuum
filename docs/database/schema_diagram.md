@@ -28,6 +28,17 @@ erDiagram
         Date updatedAt
     }
 
+    RefreshToken {
+        ObjectId _id PK
+        ObjectId userId FK
+        String tokenHash "SHA-256 hash of raw token"
+        String deviceId "optional device label"
+        Date expiresAt "30d from creation"
+        Date revokedAt "null = active"
+        Date createdAt
+        Date updatedAt
+    }
+
     %% ===== MUST-SHIP: NOTES (summary embedded) =====
     Note {
         ObjectId _id PK
@@ -229,6 +240,7 @@ erDiagram
     %% ===== RELATIONSHIPS =====
 
     %% User owns everything
+    User ||--o{ RefreshToken : "has"
     User ||--o{ Note : "owns"
     User ||--o{ FlashcardSet : "owns"
     User ||--o{ Task : "owns"
@@ -272,7 +284,7 @@ erDiagram
 
 | Category | Collections | Must-Ship |
 |----------|-------------|-----------|
-| Auth | User | Yes |
+| Auth | User, RefreshToken | Yes |
 | Notes | Note (summary embedded) | Yes |
 | Learning | FlashcardSet, Flashcard | Yes |
 | Tasks | Task | Yes |
@@ -282,7 +294,7 @@ erDiagram
 | Offline | SyncQueue | Stretch |
 | Feed | Activity | Stretch |
 
-**Total: 13 collections (9 must-ship + 4 stretch)**
+**Total: 14 collections (10 must-ship + 4 stretch)**
 
 ### What Changed (Consolidation)
 

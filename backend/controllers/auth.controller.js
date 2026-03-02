@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const User = require('../models/User');
 const Note = require('../models/Note');
+const RefreshToken = require('../models/RefreshToken');
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 
@@ -11,14 +12,30 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Purpose: Handle business logic for all authentication endpoints
 // Used by: routes/auth.routes.js
 // Endpoints: register, login, me, forgotPassword, resetPassword,
-//            googleCallback, googleLink, googleUnlink
+//            googleCallback, googleLink, googleUnlink,
+//            refresh, logout, logoutAll
 // ============================================================
 
 // ----------------------------------------
-// HELPER: Sign a JWT for a given user ID
+// HELPER: Sign a short-lived JWT access token (1d)
 // ----------------------------------------
 const signToken = (userId) => {
     return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d' });
+};
+
+// ----------------------------------------
+// HELPER: Generate a long-lived refresh token (30d)
+// Stores a SHA-256 hash in the RefreshToken collection
+// Returns the raw token to give to the client — never stored raw
+// ----------------------------------------
+const generateRefreshToken = async (userId, deviceId) => {
+    const rawToken = crypto.randomBytes(40).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+    await RefreshToken.create({ userId, tokenHash, deviceId: deviceId || null, expiresAt });
+
+    return rawToken;
 };
 
 // ----------------------------------------
@@ -26,7 +43,7 @@ const signToken = (userId) => {
 // Purpose: Create a new user and return a JWT
 // ----------------------------------------
 exports.register = async (req, res) => {
-    const { email, username, password, firstName, lastName } = req.body;
+    const { email, username, password, firstName, lastName, deviceId } = req.body;
 
     // Return 409 if email or username is already taken
     const existing = await User.findOne({ $or: [{ email }, { username }] });
@@ -38,8 +55,9 @@ exports.register = async (req, res) => {
     const user = await User.create({ email, username, password, firstName, lastName });
 
     const token = signToken(user._id);
+    const refreshToken = await generateRefreshToken(user._id, deviceId);
 
-    res.status(201).json({ success: true, token, user });
+    res.status(201).json({ success: true, token, refreshToken, user });
 };
 
 // ----------------------------------------
@@ -47,7 +65,7 @@ exports.register = async (req, res) => {
 // Purpose: Validate credentials and return a JWT
 // ----------------------------------------
 exports.login = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, deviceId } = req.body;
 
     // password is select:false in the schema — must opt in explicitly to get it back
     const user = await User.findOne({ email }).select('+password');
@@ -67,8 +85,11 @@ exports.login = async (req, res) => {
     await user.save();
 
     const token = signToken(user._id);
+    const refreshToken = await generateRefreshToken(user._id, deviceId);
 
-    res.status(200).json({ success: true, token, user });
+    const userObj = user.toObject();
+    delete userObj.password;
+    res.status(200).json({ success: true, token, refreshToken, user: userObj });
 };
 
 // ----------------------------------------
@@ -209,4 +230,61 @@ exports.googleUnlink = async (req, res) => {
     await req.user.save();
 
     res.status(200).json({ success: true, user: req.user });
+};
+
+// ----------------------------------------
+// POST /api/auth/refresh
+// Purpose: Exchange a valid refresh token for a new access token
+// Public — no JWT required (used when the access token has expired)
+// ----------------------------------------
+exports.refresh = async (req, res) => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+        return res.status(400).json({ success: false, error: 'refreshToken is required' });
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+
+    const stored = await RefreshToken.findOne({ tokenHash });
+
+    if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
+        return res.status(401).json({ success: false, error: 'Invalid or expired refresh token' });
+    }
+
+    const token = signToken(stored.userId);
+
+    res.status(200).json({ success: true, token });
+};
+
+// ----------------------------------------
+// POST /api/auth/logout
+// Purpose: Revoke the current device's refresh token
+// Idempotent — returns 200 even if token is already revoked or not found
+// ----------------------------------------
+exports.logout = async (req, res) => {
+    const { refreshToken } = req.body;
+
+    if (refreshToken) {
+        const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+        await RefreshToken.findOneAndUpdate(
+            { tokenHash, revokedAt: null },
+            { revokedAt: new Date() }
+        );
+    }
+
+    res.status(200).json({ success: true, message: 'Logged out' });
+};
+
+// ----------------------------------------
+// POST /api/auth/logout-all
+// Purpose: Revoke all active refresh tokens for this user (all devices)
+// ----------------------------------------
+exports.logoutAll = async (req, res) => {
+    await RefreshToken.updateMany(
+        { userId: req.user._id, revokedAt: null },
+        { revokedAt: new Date() }
+    );
+
+    res.status(200).json({ success: true, message: 'Logged out of all devices' });
 };
