@@ -376,7 +376,7 @@ API-15. [x] `feat: add comment and like endpoints`
    - POST /api/comments/:id/like — toggle like
    - DELETE /api/comments/:id — soft delete comment
 
-API-16. [ ] `feat: add resume upload and ai feedback endpoints`
+API-16. [x] `feat: add resume upload and ai feedback endpoints`
    - POST /api/resumes/upload — upload resume PDF (with file validation)
    - GET /api/resumes — list user's resumes
    - POST /api/resumes/:id/feedback — generate AI feedback via Groq

@@ -133,4 +133,73 @@ ${content}`;
     };
 };
 
-module.exports = { generateSummary, generateFlashcards };
+// ----------------------------------------
+// generateResumeFeedback
+// Purpose: Analyze a resume and return structured AI feedback
+// Returns: { overallScore, strengths, improvements, sections, keywordOptimization, model, tokenCount }
+//
+// overallScore        — 0-100 numeric rating
+// strengths           — array of things the resume does well
+// improvements        — array of actionable suggestions
+// sections            — per-section scores and feedback (Experience, Skills, Education, etc.)
+// keywordOptimization — { presentKeywords, missingKeywords }
+// ----------------------------------------
+const generateResumeFeedback = async (resumeText) => {
+    const systemPrompt = `You are an expert resume reviewer and career coach helping job seekers improve their resumes.
+Provide honest, specific, and actionable feedback. Score objectively based on clarity, impact, relevance, and ATS compatibility.
+Never make up information — only analyze what is present in the resume.`;
+
+    const userPrompt = `Review the following resume and return your response as a valid JSON object with exactly this structure:
+
+{
+  "overallScore": <integer 0-100>,
+  "strengths": ["<strength 1>", "<strength 2>", ...],
+  "improvements": ["<improvement 1>", "<improvement 2>", ...],
+  "sections": [
+    { "name": "<section name>", "feedback": "<specific feedback>", "score": <integer 0-100> },
+    ...
+  ],
+  "keywordOptimization": {
+    "presentKeywords": ["<keyword>", ...],
+    "missingKeywords": ["<keyword>", ...]
+  }
+}
+
+Rules:
+- overallScore: holistic rating (clarity, impact, relevance, ATS-friendliness)
+- strengths: 3-5 specific things the resume does well
+- improvements: 3-5 actionable, prioritized suggestions
+- sections: score and feedback for each section present (Experience, Education, Skills, Summary, etc.)
+- keywordOptimization: industry-relevant keywords found vs. commonly expected ones that are missing
+- Only return the JSON object. No extra text, no markdown code blocks.
+
+Resume:
+${resumeText}`;
+
+    const response = await groq.chat.completions.create({
+        model: MODEL,
+        messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.3,
+        max_tokens: 2000,
+        response_format: { type: 'json_object' },
+    });
+
+    const raw = response.choices[0].message.content.trim();
+    const tokenCount = response.usage?.total_tokens ?? null;
+    const parsed = JSON.parse(raw);
+
+    return {
+        overallScore: parsed.overallScore,
+        strengths: parsed.strengths,
+        improvements: parsed.improvements,
+        sections: parsed.sections,
+        keywordOptimization: parsed.keywordOptimization,
+        model: MODEL,
+        tokenCount,
+    };
+};
+
+module.exports = { generateSummary, generateFlashcards, generateResumeFeedback };
