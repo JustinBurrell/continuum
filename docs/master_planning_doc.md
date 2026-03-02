@@ -408,7 +408,7 @@ API-20. [x] `feat: add stretch api endpoints (messaging)` *(stretch)*
    - GET /api/conversations/:id/messages — get messages (paginated)
    - PUT /api/messages/:id/read — mark as read
 
-API-21. [ ] `test: test stretch api endpoints with postman` *(stretch)*
+API-21. [x] `test: test stretch api endpoints with postman` *(stretch)*
    - Create Postman collection for stretch messaging endpoints
    - Test conversation creation and message sending flow end-to-end
    - Test message pagination and read receipts

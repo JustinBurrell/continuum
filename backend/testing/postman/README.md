@@ -279,3 +279,85 @@ Run folders top to bottom. **Do not run "Remove Friend" until after all Note Sha
 - **Remove Friend** (bottom of folder 2) must be run **after** folders 3 and 7 — specific note sharing and shared tasks require an active friendship
 - Resume upload requires a real PDF file — select it manually via the file chooser in Postman
 - The AI Feedback request (Resumes) takes 2-5 seconds — this is normal (Groq API call)
+
+---
+
+# Postman Testing — Session 6
+
+API-20 through API-21: Messaging (Conversations + Messages).
+
+---
+
+## Setup
+
+### 1. Import the collection
+- Open Postman → **Collections** tab → **Import** → select `continuum-session6.postman_collection.json`
+- The environment (`continuum-local.postman_environment.json`) is shared — re-import it to pick up the new variables, or re-use the existing one
+
+### 2. Select the environment
+- Top-right corner of Postman — switch the dropdown to **Continuum — Local**
+
+### 3. Start the backend server
+```bash
+cd backend && npm run dev
+```
+
+---
+
+## Environment Variables
+
+New variables added for session 6. All are auto-set by test scripts.
+
+| Variable         | Set by                  | Used by                                    |
+|------------------|-------------------------|--------------------------------------------|
+| `conversationId` | Start Conversation      | Send Message, Get Messages, Mark as Read   |
+| `messageId`      | Send Message — User 1   | Mark as Read                               |
+| `messageSentAt`  | Send Message — User 1   | Get Messages — Paginated (`before` cursor) |
+
+---
+
+## Test Order
+
+Run folders top to bottom.
+
+### 0. Setup — Second User
+*(Run these first, in order)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Login User 1 | `{ "email", "password" }` | `200` — sets `token` + `userId` | ✅ |
+| Login User 2 | `{ "email", "password" }` | `200` — sets `secondToken` + `secondUserId` | ✅ |
+
+### 1. Conversations
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Start Conversation | `{ "participantId": "{{secondUserId}}" }` | `201` — sets `conversationId`, participants populated | ✅ |
+| Start Conversation Again — Idempotent | `{ "participantId": "{{secondUserId}}" }` | `200` — returns existing conversation | ✅ |
+| Get Inbox | none | `200` — conversation appears in array | ✅ |
+
+### 2. Messages
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Send Message — User 1 | `{ "content": "..." }` | `201` — sets `messageId` + `messageSentAt`, check `lastMessage` on conversation | ✅ |
+| Send Message — User 2 | `{ "content": "..." }` | `201` — check User 1's `unreadCounts` incremented | ✅ |
+| Get Messages | none | `200` — both messages in array (newest first), check `hasMore: false` | ✅ |
+| Get Messages — Paginated | query: `?limit=1&before={{messageSentAt}}` | `200` — cursor working, empty array when no older messages exist | ✅ |
+| Mark as Read — User 1 | none | `200` — check `readBy` includes User 1, unread count reset to `0` | ✅ |
+| Get Inbox — Verify lastMessage Updated | none | `200` — `lastMessage.content` matches last sent message | ✅ |
+
+### 3. Error Cases
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| [Error] Start Conversation — Missing participantId | `{}` | `400` | ✅ |
+| [Error] Start Conversation — Send to Self | `{ "participantId": "{{userId}}" }` | `400` | ✅ |
+| [Error] Send Message — Empty Content | `{ "content": "" }` | `400` | ✅ |
+| [Error] Get Messages — No Token | none | `401` | ✅ |
+| [Error] Mark as Read — Not Found | none | `404` | ✅ |
+
+---
+
+## Tips
+
+- Run folder **0. Setup** first every time — both users need fresh tokens
+- `messageSentAt` is the `createdAt` of User 1's first message — used as the `before` cursor for pagination testing
+- User 2 is already registered from session 5 — use **Login User 2** instead of Register
