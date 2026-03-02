@@ -1,4 +1,4 @@
-const pdfParse = require('pdf-parse');
+const { PDFParse } = require('pdf-parse');
 const Resume = require('../models/Resume');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
@@ -49,7 +49,9 @@ exports.uploadResume = async (req, res) => {
     const { version, targetRole } = req.body;
 
     // Extract plain text from PDF buffer — cached so AI feedback is instant later
-    const pdfData = await pdfParse(req.file.buffer);
+    const parser = new PDFParse({ data: req.file.buffer });
+    const pdfData = await parser.getText();
+    await parser.destroy();
     const extractedText = pdfData.text;
 
     if (!extractedText || extractedText.trim().length === 0) {

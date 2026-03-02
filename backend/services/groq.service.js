@@ -4,7 +4,9 @@ const groq = require('../config/groq');
 // GROQ SERVICE
 // Purpose: Centralized module for all Groq AI calls
 // Model: llama-3.1-8b-instant (14.4K RPD / 500K TPD on free tier)
-// Used by: notes.controller (summary), notes.controller (flashcards — API-8)
+// Used by: notes.controller (summary), notes.controller (flashcards — API-8), resumes.controller
+// Note: llama-3.3-70b-versatile has better reasoning but only 1K RPD on free tier —
+//       not viable for a multi-user product. Prompt engineering used instead for quality.
 // ============================================================
 
 const MODEL = 'llama-3.1-8b-instant';
@@ -145,18 +147,30 @@ ${content}`;
 // keywordOptimization — { presentKeywords, missingKeywords }
 // ----------------------------------------
 const generateResumeFeedback = async (resumeText) => {
-    const systemPrompt = `You are an expert resume reviewer and career coach helping job seekers improve their resumes.
-Provide honest, specific, and actionable feedback. Score objectively based on clarity, impact, relevance, and ATS compatibility.
-Never make up information — only analyze what is present in the resume.`;
+    const systemPrompt = `You are a senior technical recruiter and career coach who has reviewed thousands of resumes for top tech companies.
+You give brutally honest, deeply specific feedback that directly quotes and references what is written in the resume.
+You never give generic advice. Every sentence you write is grounded in the actual content of the resume being reviewed.
+Your feedback is the difference between a candidate getting an interview or being passed over.`;
 
-    const userPrompt = `Review the following resume and return your response as a valid JSON object with exactly this structure:
+    const userPrompt = `Review the following resume thoroughly and return a valid JSON object with exactly this structure:
 
 {
   "overallScore": <integer 0-100>,
-  "strengths": ["<strength 1>", "<strength 2>", ...],
-  "improvements": ["<improvement 1>", "<improvement 2>", ...],
+  "strengths": [
+    "<Strength item — follow this pattern: Start with what specifically stands out and why it matters to a recruiter. Quote or directly reference the specific bullet, project, metric, or section. Then explain the impact this has on a hiring decision. Each item must be 3-5 sentences.>",
+    ...
+  ],
+  "improvements": [
+    "<Improvement item — follow this pattern: Start with 'Problem:' and describe exactly what is weak, missing, or unclear, quoting the specific line or section. Then write 'Fix:' and give a concrete, ready-to-use rewrite or specific instruction. Each item must be 3-5 sentences total.>",
+    ...
+  ],
   "sections": [
-    { "name": "<section name>", "feedback": "<specific feedback>", "score": <integer 0-100> },
+    {
+      "name": "<section name>",
+      "strength": "<2-3 sentences: what this section does well, quoting specific content from it>",
+      "improvement": "<2-3 sentences: the single most important thing to fix in this section — state the problem and give the exact fix>",
+      "score": <integer 0-100>
+    },
     ...
   ],
   "keywordOptimization": {
@@ -165,12 +179,13 @@ Never make up information — only analyze what is present in the resume.`;
   }
 }
 
-Rules:
-- overallScore: holistic rating (clarity, impact, relevance, ATS-friendliness)
-- strengths: 3-5 specific things the resume does well
-- improvements: 3-5 actionable, prioritized suggestions
-- sections: score and feedback for each section present (Experience, Education, Skills, Summary, etc.)
-- keywordOptimization: industry-relevant keywords found vs. commonly expected ones that are missing
+Strict rules:
+- overallScore: holistic score based on clarity, impact, quantification, ATS-friendliness, and recruiter appeal
+- strengths: exactly 5 items — each 3-5 sentences — must quote or directly reference specific resume content — no vague praise
+- improvements: exactly 5 items — each must have a clear "Problem:" sentence and a "Fix:" sentence — must reference specific lines
+- sections: one entry per section present in the resume — strength and improvement each 2-3 sentences
+- missingKeywords: keywords a recruiter for this candidate's field would expect to see but are absent
+- Every single item must be specific enough that the candidate knows exactly what to change and how
 - Only return the JSON object. No extra text, no markdown code blocks.
 
 Resume:
@@ -183,7 +198,7 @@ ${resumeText}`;
             { role: 'user', content: userPrompt },
         ],
         temperature: 0.3,
-        max_tokens: 2000,
+        max_tokens: 3500,
         response_format: { type: 'json_object' },
     });
 

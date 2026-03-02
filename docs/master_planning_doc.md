@@ -395,7 +395,7 @@ API-18. [x] `feat: implement shared tasks with participants`
    - GET /api/tasks/shared — list tasks shared with user
    - Shared tasks appear in all participants' calendars
 
-API-19. [ ] `test: test all session 5 endpoints with postman`
+API-19. [x] `test: test all session 5 endpoints with postman`
    - Test friend request flow end-to-end
    - Test sharing and visibility
    - Test file upload

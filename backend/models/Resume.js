@@ -78,7 +78,10 @@ const resumeSchema = new mongoose.Schema({
             name: {
                 type: String,
             },
-            feedback: {
+            strength: {
+                type: String,
+            },
+            improvement: {
                 type: String,
             },
             score: {
