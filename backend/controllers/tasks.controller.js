@@ -5,14 +5,16 @@ const Task = require('../models/Task');
 // Purpose: Handle business logic for all task CRUD endpoints
 // Used by: routes/tasks.routes.js
 // Endpoints: createTask, getTasks, getTaskById, updateTask,
-//            updateStatus, deleteTask
+//            updateStatus, deleteTask, getSharedTasks,
+//            updateParticipantStatus
 // ============================================================
 
 // ----------------------------------------
 // POST /api/tasks
 // Purpose: Create a new task for the authenticated user
 // Body: { title, dueDate (required), type, priority, description?,
-//         noteId?, duration?, reminderMinutes?, recurrence? }
+//         noteId?, duration?, reminderMinutes?, recurrence?,
+//         isShared?, participants? [{ userId }] }
 // ----------------------------------------
 exports.createTask = async (req, res) => {
     const {
@@ -25,6 +27,8 @@ exports.createTask = async (req, res) => {
         duration,
         reminderMinutes,
         recurrence,
+        isShared,
+        participants,
     } = req.body;
 
     if (!dueDate) {
@@ -42,6 +46,10 @@ exports.createTask = async (req, res) => {
         duration,
         reminderMinutes,
         recurrence,
+        isShared: isShared || false,
+        participants: isShared && Array.isArray(participants)
+            ? participants.map((p) => ({ userId: p.userId, status: 'todo' }))
+            : [],
     });
 
     res.status(201).json({ success: true, task });
@@ -180,4 +188,59 @@ exports.deleteTask = async (req, res) => {
     }
 
     res.status(200).json({ success: true, message: 'Task deleted' });
+};
+
+// ----------------------------------------
+// GET /api/tasks/shared
+// Purpose: List tasks the authenticated user is a participant in (not their own)
+// Sorted by dueDate ascending (soonest first)
+// ----------------------------------------
+exports.getSharedTasks = async (req, res) => {
+    const tasks = await Task.find({
+        isShared: true,
+        'participants.userId': req.user._id,
+        userId: { $ne: req.user._id }, // exclude tasks the user owns
+        deletedAt: null,
+    }).sort({ dueDate: 1 });
+
+    res.status(200).json({ success: true, tasks });
+};
+
+// ----------------------------------------
+// PATCH /api/tasks/:id/participant-status
+// Purpose: Let a participant update their own status entry on a shared task
+// Body: { status } — one of 'todo' | 'in_progress' | 'completed'
+// ----------------------------------------
+exports.updateParticipantStatus = async (req, res) => {
+    const { status } = req.body;
+
+    const validStatuses = ['todo', 'in_progress', 'completed'];
+    if (!status || !validStatuses.includes(status)) {
+        return res.status(400).json({
+            success: false,
+            error: `status must be one of: ${validStatuses.join(', ')}`,
+        });
+    }
+
+    const task = await Task.findOne({
+        _id: req.params.id,
+        isShared: true,
+        'participants.userId': req.user._id,
+        deletedAt: null,
+    });
+
+    if (!task) {
+        return res.status(404).json({ success: false, error: 'Shared task not found or you are not a participant' });
+    }
+
+    const participant = task.participants.find(
+        (p) => p.userId.toString() === req.user._id.toString()
+    );
+
+    participant.status = status;
+    participant.completedAt = status === 'completed' ? new Date() : null;
+
+    await task.save();
+
+    res.status(200).json({ success: true, task });
 };
