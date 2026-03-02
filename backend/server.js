@@ -32,6 +32,8 @@ app.use('/api/users', require('./routes/users.routes'));
 app.use('/api/comments', require('./routes/comments.routes'));
 app.use('/api/applications', require('./routes/applications.routes'));
 app.use('/api/resumes', require('./routes/resumes.routes'));
+app.use('/api/conversations', require('./routes/conversations.routes'));
+app.use('/api/messages', require('./routes/messages.routes'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
