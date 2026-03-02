@@ -358,8 +358,8 @@ API-12. [x] `test: test all session 3-4 endpoints with postman`
 
 #### Tickets
 
-API-13. [ ] `feat: implement friend request endpoints`
-   - POS T /api/friends/request — send friend request
+API-13. [x] `feat: implement friend request endpoints`
+   - POST /api/friends/request — send friend request
    - PUT /api/friends/request/:id — accept/reject request
    - GET /api/friends — list friends
    - DELETE /api/friends/:id — remove friend

@@ -1,0 +1,22 @@
+const express = require('express');
+const router = express.Router();
+const friendsController = require('../controllers/friends.controller');
+const authMiddleware = require('../middleware/auth.middleware');
+
+// ============================================================
+// FRIENDS ROUTES
+// Purpose: Map HTTP endpoints to friends controller functions
+// Base path: /api/friends (mounted in server.js)
+// All routes are protected — JWT required
+// Note: static route (/request) defined before dynamic /:id
+//       to avoid Express treating "request" as a friendship ID
+// ============================================================
+
+router.use(authMiddleware);
+
+router.post('/request', friendsController.sendRequest);
+router.put('/request/:id', friendsController.respondToRequest);
+router.get('/', friendsController.getFriends);
+router.delete('/:id', friendsController.removeFriend);
+
+module.exports = router;

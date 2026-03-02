@@ -123,7 +123,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"token\": \"PASTE_RESET_TOKEN_HERE\",\n  \"password\": \"NewPassword123!\"\n}",
+              "raw": "{\n  \"token\": \"PASTE_RESET_TOKEN_HERE\",\n  \"newPassword\": \"NewPassword123!\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {

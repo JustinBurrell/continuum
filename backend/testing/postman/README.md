@@ -56,7 +56,7 @@ Run top to bottom within each folder. Each creation request auto-sets the ID for
 | Login | `{ "email", "password" }` | `200` — re-sets `token` + `userId` | ✅ |
 | Get Me | none | `200` — confirms token works | ✅ |
 | Forgot Password | `{ "email" }` | `200` | ✅ |
-| Reset Password | `{ "token", "password" }` | `200` (use token from email) | ☐ |
+| Reset Password | `{ "token", "newPassword" }` | `200` (use token from email) | ✅ |
 | [Error] Login — Wrong Password | `{ "email", "password": "wrongpassword" }` | `401` | ✅ |
 | [Error] Get Me — No Token | none | `401` | ✅ |
 

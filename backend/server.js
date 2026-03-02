@@ -27,6 +27,8 @@ app.use('/api/google', require('./routes/google.routes'));
 app.use('/api/flashcard-sets', require('./routes/flashcardSets.routes'));
 app.use('/api/tasks', require('./routes/tasks.routes'));
 app.use('/api/calendar', require('./routes/calendar.routes'));
+app.use('/api/friends', require('./routes/friends.routes'));
+app.use('/api/users', require('./routes/users.routes'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
