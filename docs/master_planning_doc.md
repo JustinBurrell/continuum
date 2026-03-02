@@ -370,7 +370,7 @@ API-14. [x] `feat: add note sharing with visibility controls`
    - GET /api/notes/shared — list notes shared with user
    - Update note visibility (private/friends/specific users)
 
-API-15. [ ] `feat: add comment and like endpoints`
+API-15. [x] `feat: add comment and like endpoints`
    - POST /api/comments — add comment on note/flashcard set
    - GET /api/comments/:targetType/:targetId — get comments
    - POST /api/comments/:id/like — toggle like
