@@ -26,7 +26,7 @@ exports.listFiles = async (req, res) => {
         q: "mimeType='application/vnd.google-apps.document' and trashed=false",
         fields: 'files(id, name, modifiedTime, webViewLink)',
         orderBy: 'modifiedTime desc',
-        pageSize: 50,
+        pageSize: 1000, // max allowed by Drive API — returns all docs for the file picker
     });
 
     res.status(200).json({ success: true, files: response.data.files });

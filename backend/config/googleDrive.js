@@ -22,16 +22,19 @@ const getGoogleDriveClient = async (user) => {
         process.env.GOOGLE_CALLBACK_URL
     );
 
+    // googleAccessToken and googleRefreshToken have select: false — re-fetch with those fields explicitly
+    const userWithTokens = await User.findById(user._id).select('+googleAccessToken +googleRefreshToken');
+
     // Load the user's stored tokens into the client
     oauth2Client.setCredentials({
-        access_token: user.googleAccessToken,
-        refresh_token: user.googleRefreshToken,
+        access_token: userWithTokens.googleAccessToken,
+        refresh_token: userWithTokens.googleRefreshToken,
     });
 
     // If the access token is expired (or within 5 min of expiry), refresh it
     const isExpired = !user.googleTokenExpiry || user.googleTokenExpiry <= new Date(Date.now() + 5 * 60 * 1000);
 
-    if (isExpired && user.googleRefreshToken) {
+    if (isExpired && userWithTokens.googleRefreshToken) {
         // Ask Google for a new access token using the refresh token
         const { credentials } = await oauth2Client.refreshAccessToken();
 

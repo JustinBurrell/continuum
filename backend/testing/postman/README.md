@@ -34,6 +34,7 @@ These are pre-defined in `continuum-local.postman_environment.json`.
 |-----------------|---------------------|----------------------------------|
 | `baseUrl`       | Pre-set (`localhost:5000`) | All requests                |
 | `token`         | Register / Login    | All protected routes             |
+| `googleToken`   | Google OAuth callback (paste manually) | Google Drive folder only |
 | `userId`        | Register / Login    | Reference                        |
 | `noteId`        | Create Note         | Note, Summary, Flashcard routes  |
 | `flashcardSetId`| Create/Generate Set | Flashcard card routes            |
@@ -49,87 +50,87 @@ To see current values: click the **eye icon** (top-right) while the environment 
 Run top to bottom within each folder. Each creation request auto-sets the ID for the requests below it.
 
 ### 1. Auth
-| Request | Expected |
-|---------|----------|
-| Register | `201` — sets `token` + `userId` |
-| Login | `200` — re-sets `token` + `userId` |
-| Get Me | `200` — confirms token works |
-| Forgot Password | `200` |
-| Reset Password | `200` (use token from email) |
-| [Error] Login — Wrong Password | `401` |
-| [Error] Get Me — No Token | `401` |
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Register | `{ "username", "email", "password", "firstName", "lastName" }` | `201` — sets `token` + `userId` | ✅ |
+| Login | `{ "email", "password" }` | `200` — re-sets `token` + `userId` | ✅ |
+| Get Me | none | `200` — confirms token works | ✅ |
+| Forgot Password | `{ "email" }` | `200` | ✅ |
+| Reset Password | `{ "token", "password" }` | `200` (use token from email) | ☐ |
+| [Error] Login — Wrong Password | `{ "email", "password": "wrongpassword" }` | `401` | ✅ |
+| [Error] Get Me — No Token | none | `401` | ✅ |
 
 ### 2. Notes
-| Request | Expected |
-|---------|----------|
-| Create Note | `201` — sets `noteId` |
-| List Notes | `200` |
-| List Notes — Search | `200` |
-| List Notes — Tag Filter | `200` |
-| Get Note by ID | `200` |
-| Update Note | `200` |
-| [Error] Get Note — Not Found | `404` |
-| Delete Note | `200` *(run last in this folder)* |
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Create Note | `{ "title", "content", "tags" }` | `201` — sets `noteId` | ✅ |
+| List Notes | none | `200` | ✅ |
+| List Notes — Search | query: `?search=` | `200` | ✅ |
+| List Notes — Tag Filter | query: `?tag=` | `200` | ✅ |
+| Get Note by ID | none | `200` | ✅ |
+| Update Note | `{ "title", "content" }` | `200` | ✅ |
+| [Error] Get Note — Not Found | none | `404` | ✅ |
+| Delete Note | none | `200` *(run last in this folder)* | ✅ |
 
 ### 3. AI Summary
 *(Run before deleting the note)*
 
-| Request | Expected |
-|---------|----------|
-| Generate Summary | `200` — takes a few seconds (Groq API call) |
-| Get Cached Summary | `200` — response includes `cached: true` |
-| Force Regenerate Summary | `200` — regenerates even if cached |
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Generate Summary | none | `200` — takes a few seconds (Groq API call) | ✅ |
+| Get Cached Summary | none | `200` — response includes `cached: true` | ✅ |
+| Force Regenerate Summary | query: `?force=true` | `200` — regenerates even if cached | ✅ |
 
 ### 4. Flashcard Sets
-| Request | Expected |
-|---------|----------|
-| Generate from Note | `201` — sets `flashcardSetId` |
-| Generate from Content | `201` |
-| Create Set Manually | `201` |
-| List Sets | `200` |
-| Get Set by ID | `200` — includes populated cards array |
-| Add Card | `201` — sets `flashcardId` |
-| Update Card | `200` |
-| Update Progress — Correct + Confidence | `200` |
-| Update Progress — Incorrect, No Confidence | `200` |
-| Delete Card | `200` |
-| Delete Set | `200` |
-| [Error] Generate — Missing Content | `400` |
-| [Error] Add Card — Missing back | `400` |
-| [Error] Update Progress — Non-Boolean correct | `400` |
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Generate from Note | none | `201` — sets `flashcardSetId` | ✅ |
+| Generate from Content | `{ "title", "content" }` | `201` | ✅ |
+| Create Set Manually | `{ "title", "description" }` | `201` | ✅ |
+| List Sets | none | `200` | ✅ |
+| Get Set by ID | none | `200` — includes populated cards array | ✅ |
+| Add Card | `{ "front", "back" }` | `201` — sets `flashcardId` | ✅ |
+| Update Card | `{ "front", "back" }` | `200` | ✅ |
+| Update Progress — Correct + Confidence | `{ "correct": true, "confidence": "high" }` | `200` | ✅ |
+| Update Progress — Incorrect, No Confidence | `{ "correct": false }` | `200` | ✅ |
+| Delete Card | none | `200` | ✅ |
+| Delete Set | none | `200` | ✅ |
+| [Error] Generate — Missing Content | `{ "title" }` only | `400` | ✅ |
+| [Error] Add Card — Missing back | `{ "front" }` only | `400` | ✅ |
+| [Error] Update Progress — Non-Boolean correct | `{ "correct": "yes" }` | `400` | ✅ |
 
 ### 5. Tasks
-| Request | Expected |
-|---------|----------|
-| Create Task | `201` — sets `taskId` |
-| List Tasks | `200` |
-| List Tasks — Status Filter | `200` |
-| List Tasks — Date Range | `200` |
-| Get Task by ID | `200` |
-| Update Task | `200` |
-| Update Status — in_progress | `200` |
-| Update Status — completed | `200` — check `completedAt` is set in response |
-| Update Status — back to todo | `200` — check `completedAt` is null |
-| Delete Task | `200` |
-| [Error] Create Task — Missing dueDate | `400` |
-| [Error] Update Status — Invalid Value | `400` |
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Create Task | `{ "title", "dueDate", "type", "priority", "description", "duration", "reminderMinutes" }` | `201` — sets `taskId` | ✅ |
+| List Tasks | none | `200` | ✅ |
+| List Tasks — Status Filter | query: `?status=todo` | `200` | ✅ |
+| List Tasks — Date Range | query: `?startDate=&endDate=` | `200` | ✅ |
+| Get Task by ID | none | `200` | ✅ |
+| Update Task | `{ "title", "priority", "description" }` | `200` | ✅ |
+| Update Status — in_progress | `{ "status": "in_progress" }` | `200` | ✅ |
+| Update Status — completed | `{ "status": "completed" }` | `200` — check `completedAt` is set | ✅ |
+| Update Status — back to todo | `{ "status": "todo" }` | `200` — check `completedAt` is null | ✅ |
+| Delete Task | none | `200` | ✅ |
+| [Error] Create Task — Missing dueDate | `{ "title", "type" }` only | `400` | ✅ |
+| [Error] Update Status — Invalid Value | `{ "status": "done" }` | `400` | ✅ |
 
 ### 6. Calendar
-| Request | Expected |
-|---------|----------|
-| Get Calendar — Week View | `200` — tasks grouped by date in `days` object |
-| Get Calendar — Month View | `200` |
-| [Error] Calendar — Missing from/to | `400` |
-| [Error] Calendar — Invalid Dates | `400` |
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Get Calendar — Week View | query: `?from=&to=&view=week` | `200` — tasks grouped by date in `days` object | ✅ |
+| Get Calendar — Month View | query: `?from=&to=&view=month` | `200` | ✅ |
+| [Error] Calendar — Missing from/to | none | `400` | ✅ |
+| [Error] Calendar — Invalid Dates | query: `?from=notadate&to=notadate` | `400` | ✅ |
 
 ### 7. Google Drive
-*(Requires a linked Google account — skip if not set up)*
+*(Requires a linked Google account. Visit `http://localhost:5001/api/auth/google`, complete sign-in, then copy the token from the callback URL into the `googleToken` environment variable. Do not run Login after — that will only overwrite `token`, not `googleToken`.)*
 
-| Request | Expected |
-|---------|----------|
-| List Drive Files | `200` — returns list of Google Docs |
-| Import Google Doc | `201` — paste a real `googleDocId` in the body |
-| Refresh Note from Google Doc | `200` |
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| List Drive Files | none | `200` — returns up to 1000 Google Docs for the file picker | ✅ |
+| Import Google Doc | `{ "googleDocId", "googleDocUrl", "title" }` | `201` — values from List Drive Files response | ✅ |
+| Refresh Note from Google Doc | none | `200` — check `lastSyncedAt` is updated | ✅ |
 
 ---
 

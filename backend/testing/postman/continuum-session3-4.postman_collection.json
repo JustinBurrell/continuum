@@ -38,7 +38,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123!\"\n}",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -306,6 +306,12 @@
     },
     {
       "name": "Google Drive",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          { "key": "token", "value": "{{googleToken}}", "type": "string" }
+        ]
+      },
       "item": [
         {
           "name": "List Drive Files",
@@ -341,7 +347,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"googleDocId\": \"PASTE_GOOGLE_DOC_ID_HERE\"\n}",
+              "raw": "{\n  \"googleDocId\": \"1RdCjbfyaa_oEcqhwV0gqHv3tMF9C9x_TplPDBnwHbBE\",\n  \"googleDocUrl\": \"https://docs.google.com/document/d/1RdCjbfyaa_oEcqhwV0gqHv3tMF9C9x_TplPDBnwHbBE/edit?usp=drivesdk\",\n  \"title\": \"Continuum Learning Journey\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {

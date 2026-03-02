@@ -87,7 +87,7 @@ Built on a Google Calendar-inspired interface, our task management system connec
 - Task creation with priority levels, durations, and deadlines
 - Direct linking between tasks and related notes
 - Calendar views (week/month) showing all commitments
-- Task categorization by type (homework, study, project, exam prep)
+- Task categorization by type (homework, study, project, exam, club, professional, personal, other)
 - Overdue detection and notifications
 - Status tracking (todo, in progress, completed)
 - Time estimation to prevent overcommitment

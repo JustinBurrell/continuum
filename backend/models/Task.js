@@ -72,7 +72,7 @@ const taskSchema = new mongoose.Schema({
      */
     type: {
         type: String,
-        enum: ['homework', 'study', 'project', 'exam', 'other'],
+        enum: ['homework', 'study', 'project', 'exam', 'club', 'professional', 'personal', 'other'],
         index: true,
     },
     priority: {
