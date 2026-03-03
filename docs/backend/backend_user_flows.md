@@ -9,13 +9,14 @@ Every critical user journey from the backend perspective. Maps each user action 
 ### Flow A: Email/Password Registration
 ```
 User fills out registration form
-  → POST /api/auth/register { email, username, password, firstName, lastName }
+  → POST /api/auth/register { email, username, password, firstName, lastName, deviceId? }
   → Server validates: email format, username length, password strength
   → Server checks: email unique, username unique (409 CONFLICT if not)
   → User.create() → pre-save hook hashes password with bcrypt
-  → Sign JWT { userId, email } with JWT_EXPIRES_IN expiry
-  → Return { token, user } (user without password field)
-  → Frontend stores token in localStorage (web) or SecureStore (mobile)
+  → Sign JWT { userId } — access token (1d)
+  → Generate RefreshToken (SHA-256 hash in DB, raw 80-char hex to client, 30d)
+  → Return { token, refreshToken, user } (user without password field)
+  → Frontend stores both tokens
   → Redirect to Dashboard
   → Google NOT linked — Drive/Docs features show "Connect Google" prompt
 ```
@@ -32,10 +33,11 @@ User clicks "Sign in with Google"
   → Server checks: does User exist with this googleId or email?
      If yes → update Google tokens on existing User
      If no → create new User with Google profile info + tokens
-  → Sign JWT { userId, email }
+  → Sign JWT { userId }
   → Redirect to frontend: /auth/callback?token=<jwt>
   → Frontend stores token
   → Google IS linked — all features available immediately
+  Note: Google OAuth callback does not return a refresh token (redirect flow)
 ```
 
 ### Flow C: Forgot Password
@@ -55,7 +57,38 @@ User clicks "Forgot password" on login page
   → Returns success → user redirected to login page
 ```
 
-### Flow D: Link Google Account (for email/password users)
+### Flow D: Refresh Access Token
+```
+Access token expires (1d) — user is still logged in on device
+  → Client POST /api/auth/refresh { refreshToken }
+  → Server: SHA-256 hash incoming token → find in RefreshToken collection
+  → Validate: revokedAt is null AND expiresAt > now
+  → Sign new JWT — return { token }
+  → Client replaces stored access token, retries original request
+  → Refresh token is NOT rotated (same token stays valid for 30d)
+```
+
+### Flow E: Logout (Single Device)
+```
+User taps "Log Out"
+  → Client POST /api/auth/logout { refreshToken } (with JWT header)
+  → Server hashes token → find RefreshToken doc → set revokedAt = now
+  → Return { success, message: 'Logged out' } (idempotent — 200 even if already revoked)
+  → Client clears both tokens from storage
+  → Other devices unaffected (their RefreshToken docs still active)
+```
+
+### Flow F: Logout All Devices
+```
+User goes to Settings → "Log Out of All Devices"
+  → Client POST /api/auth/logout-all (JWT header only — no body)
+  → Server: RefreshToken.updateMany({ userId, revokedAt: null }, { revokedAt: now })
+  → All active refresh tokens for this user revoked
+  → Return { success, message: 'Logged out of all devices' }
+  → All devices forced to re-login on next request
+```
+
+### Flow G: Link Google Account (for email/password users)
 ```
 User goes to Settings → clicks "Connect Google Account"
   → POST /api/me/google/link → triggers same OAuth consent flow
@@ -64,7 +97,7 @@ User goes to Settings → clicks "Connect Google Account"
   → Drive/Docs import buttons now visible across app
 ```
 
-### Flow E: Unlink Google Account
+### Flow H: Unlink Google Account
 ```
 User goes to Settings → clicks "Disconnect Google"
   → Frontend shows confirmation: "Keep imported notes or delete them?"
@@ -405,7 +438,56 @@ If Groq is down or rate-limited:
 
 ---
 
-## 8. Showcase Demo Script (Reference)
+## 8. Direct Messaging
+
+### Start a Conversation
+```
+User opens DM screen → selects a friend
+  → POST /api/conversations { participantId }
+  → Server sorts [userId, participantId] into canonical pair (min first)
+  → Find-or-create: if Conversation with these two participants exists → return it (200)
+  → If not → Conversation.create() with participants[], unreadCounts[] per user (201)
+  → Returns Conversation with participants populated
+  → Frontend navigates to the conversation thread
+```
+
+### Send a Message
+```
+User types and sends a message
+  → POST /api/conversations/:id/messages { content }
+  → Verify sender is a participant (403 if not)
+  → Message.create({ conversationId, senderId, content, clientTimestamp })
+  → Update conversation.lastMessage (denormalized for inbox performance)
+  → Increment unreadCounts for all participants except the sender
+  → Returns new Message
+```
+
+### Inbox View
+```
+User opens DM screen
+  → GET /api/conversations
+  → Returns all conversations for user, sorted by lastMessage.sentAt descending
+  → Each conversation includes: participants (populated), lastMessage, unreadCounts
+  → Frontend shows preview of latest message + unread badge per conversation
+```
+
+### Read Messages
+```
+User opens a conversation thread
+  → GET /api/conversations/:id/messages?limit=20&before=<ISO date>
+  → Returns messages in reverse chronological order (newest first)
+  → Cursor-based pagination via `before` param (fetch older messages on scroll up)
+  → Returns { messages, hasMore } — frontend knows whether to show "load more"
+
+User reads messages
+  → PUT /api/messages/:messageId/read
+  → Adds { userId, readAt } to message.readBy if not already present
+  → Resets that user's unreadCounts to 0 in the conversation
+```
+
+---
+
+## 9. Showcase Demo Script (Reference)
 
 The ideal demo walks through:
 1. Register with Google → show seamless auth

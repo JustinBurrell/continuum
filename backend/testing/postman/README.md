@@ -361,3 +361,82 @@ Run folders top to bottom.
 - Run folder **0. Setup** first every time — both users need fresh tokens
 - `messageSentAt` is the `createdAt` of User 1's first message — used as the `before` cursor for pagination testing
 - User 2 is already registered from session 5 — use **Login User 2** instead of Register
+
+---
+
+# Postman Testing — Session 7
+
+API-22: Refresh Tokens (Multi-Device Auth).
+
+---
+
+## Setup
+
+### 1. Import the collection
+- Open Postman → **Collections** tab → **Import** → select `continuum-session7.postman_collection.json`
+- Re-import `continuum-local.postman_environment.json` to pick up the two new variables
+
+### 2. Select the environment
+- Top-right corner of Postman — switch the dropdown to **Continuum — Local**
+
+### 3. Start the backend server
+```bash
+cd backend && npm run dev
+```
+
+---
+
+## Environment Variables
+
+New variables added for session 7. All are auto-set by test scripts.
+
+| Variable                  | Set by                  | Used by                                  |
+|---------------------------|-------------------------|------------------------------------------|
+| `refreshToken`            | Login / Re-Login        | Refresh, Logout, post-logout error cases |
+| `secondDeviceRefreshToken`| Login — Second Device   | Logout All verification                  |
+
+---
+
+## Test Order
+
+### 1. Login & Register
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Login | `{ "email", "password", "deviceId": "Postman — Desktop" }` | `200` — sets `token`, `refreshToken` — check `refreshToken` in response | ✅ |
+| Login — Second Device | `{ "email", "password", "deviceId": "Postman — Mobile Sim" }` | `200` — sets `secondDeviceRefreshToken` | ✅ |
+
+### 2. Refresh Token
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Refresh — Get New Access Token | `{ "refreshToken": "{{refreshToken}}" }` | `200` — new `token` returned, auto-set | ✅ |
+| Get Me — Verify New Token Works | none | `200` — confirms new access token is valid | ✅ |
+
+### 3. Logout (Single Device)
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Logout | `{ "refreshToken": "{{refreshToken}}" }` | `200` — "Logged out" | ✅ |
+| [Error] Refresh After Logout — Revoked | `{ "refreshToken": "{{refreshToken}}" }` | `401` — token revoked | ✅ |
+| Second Device — Still Works After Single Logout | `{ "refreshToken": "{{secondDeviceRefreshToken}}" }` | `200` — other device unaffected | ✅ |
+
+### 4. Logout All Devices
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Re-Login to Get Fresh Tokens | `{ "email", "password" }` | `200` — resets `token` + `refreshToken` | ✅ |
+| Logout All | none | `200` — "Logged out of all devices" | ✅ |
+| [Error] Refresh — Device 1 Revoked by Logout All | `{ "refreshToken": "{{refreshToken}}" }` | `401` | ✅ |
+| [Error] Refresh — Device 2 Revoked by Logout All | `{ "refreshToken": "{{secondDeviceRefreshToken}}" }` | `401` | ✅ |
+
+### 5. Error Cases
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| [Error] Refresh — Missing refreshToken | `{}` | `400` | ✅ |
+| [Error] Refresh — Invalid Token | `{ "refreshToken": "thisisnotavalidtoken" }` | `401` | ✅ |
+| [Error] Logout All — No Token | none | `401` | ✅ |
+
+---
+
+## Tips
+
+- Run folders top to bottom — each folder depends on the state set by the previous one
+- `deviceId` is optional on login/register — if omitted it's stored as `null` but the token still works
+- The "Second Device — Still Works After Single Logout" test proves per-device isolation — the key benefit of this design

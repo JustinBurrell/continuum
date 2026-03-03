@@ -11,15 +11,18 @@
 ## Authentication & User Management
 
 ### **Authentication**
-- `POST /api/auth/register` - Create new user account with email/password, return JWT
-- `POST /api/auth/login` - Authenticate user with email/password, return JWT
+- `POST /api/auth/register` - Create new user account, return JWT + refresh token
+- `POST /api/auth/login` - Authenticate user, return JWT + refresh token
+- `POST /api/auth/refresh` - Exchange a valid refresh token for a new access token (public)
+- `POST /api/auth/logout` - Revoke current device's refresh token (protected)
+- `POST /api/auth/logout-all` - Revoke all active refresh tokens for the user (protected)
 - `GET /api/auth/google` - Initiate Google OAuth consent flow (login or registration)
 - `GET /api/auth/google/callback` - Handle OAuth callback, find/create user, return JWT
 - `GET /api/auth/me` - Retrieve authenticated user from token
 - `POST /api/auth/forgot-password` - Send password reset email via Resend
 - `POST /api/auth/reset-password` - Verify reset token and set new password
 
-Users can register with email/password OR Google OAuth. Both paths create the same User document. Google OAuth users get Google Drive/Docs access immediately. Email/password users can link Google later.
+Users can register with email/password OR Google OAuth. Both paths create the same User document. Login and register return a short-lived JWT (1d) and a long-lived refresh token (30d). Each device gets its own refresh token — logout is per-device. `logout-all` revokes every active token for the user.
 
 ### **User Profile**
 - `PATCH /api/me/profile` - Update user profile information (name, bio, avatarUrl, settings)
@@ -114,14 +117,14 @@ Summary is stored as an embedded field on the Note document. When you `GET /api/
 
 ---
 
-## Direct Messaging *(Stretch)*
+## Direct Messaging
 
 ### **Conversations**
-- `POST /api/conversations` - Create or retrieve conversation with a friend
-- `GET /api/conversations` - List user's direct message conversations (inbox)
-- `GET /api/conversations/:conversationId/messages` - List messages in conversation (paginated)
-- `POST /api/conversations/:conversationId/messages` - Send new message
-- `PUT /api/messages/:messageId/read` - Mark message as read
+- `POST /api/conversations` - Create or retrieve conversation with a user (find-or-create)
+- `GET /api/conversations` - List user's conversations (inbox), sorted by latest message
+- `POST /api/conversations/:conversationId/messages` - Send a message in a conversation
+- `GET /api/conversations/:conversationId/messages` - List messages (cursor pagination via `?limit=&before=`)
+- `PUT /api/messages/:messageId/read` - Mark message as read, reset unread count
 
 ---
 
@@ -196,7 +199,7 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 
 | Category | Endpoints | Must-Ship |
 |----------|-----------|-----------|
-| Auth | 7 | Yes |
+| Auth | 10 | Yes |
 | User Profile | 1 | Yes |
 | Google Linking | 2 | Yes |
 | Google Drive | 2 | Yes |
@@ -211,6 +214,6 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 | Shared Tasks | 2 | Yes |
 | Resume | 4 | Yes |
 | Applications | 7 | Yes |
-| Messaging | 5 | Stretch |
+| Messaging | 5 | Yes |
 | Health | 1 | Yes |
-| **Total** | **63** | **58 must-ship** |
+| **Total** | **66** | **66** |

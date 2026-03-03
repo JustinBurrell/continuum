@@ -13,44 +13,57 @@
 ```
 backend/
 ├── config/
-│   ├── database.js          # MongoDB connection (exists)
-│   └── cloudinary.js        # Cloudinary client setup
+│   ├── database.js               # MongoDB connection
+│   ├── cloudinary.js             # Cloudinary client setup
+│   └── passport.js               # Google OAuth strategy (passport-google-oauth20)
 ├── middleware/
-│   ├── auth.js              # JWT verification middleware
-│   ├── errorHandler.js      # Global error handler
-│   └── validate.js          # Request validation helper
+│   └── auth.middleware.js        # JWT verification — attaches req.user
 ├── models/
-│   ├── index.js             # Model export hub (exists)
-│   ├── User.js              # Phase 1, Session 1
-│   ├── Note.js              # Phase 1, Session 1
-│   ├── FlashcardSet.js      # Phase 1, Session 1
-│   ├── Flashcard.js         # Phase 1, Session 1
-│   ├── Task.js              # Phase 1, Session 1
-│   ├── Friendship.js        # Phase 1, Session 2
-│   ├── Comment.js           # Phase 1, Session 2
-│   ├── Resume.js            # Phase 1, Session 2
-│   └── Application.js       # Phase 1, Session 2
+│   ├── User.js
+│   ├── RefreshToken.js           # Multi-device refresh tokens (SHA-256 hash, 30d expiry)
+│   ├── Note.js
+│   ├── FlashcardSet.js
+│   ├── Flashcard.js
+│   ├── Task.js
+│   ├── Friendship.js
+│   ├── Comment.js
+│   ├── Resume.js
+│   ├── Application.js
+│   ├── Conversation.js
+│   └── Message.js
+├── controllers/
+│   ├── auth.controller.js
+│   ├── notes.controller.js
+│   ├── flashcards.controller.js
+│   ├── tasks.controller.js
+│   ├── calendar.controller.js
+│   ├── users.controller.js
+│   ├── friends.controller.js
+│   ├── comments.controller.js
+│   ├── resumes.controller.js
+│   ├── applications.controller.js
+│   ├── conversations.controller.js
+│   └── messages.controller.js
 ├── routes/
-│   ├── auth.js              # /api/auth/*
-│   ├── notes.js             # /api/notes/*
-│   ├── google.js            # /api/google/*
-│   ├── flashcardSets.js     # /api/flashcard-sets/*
-│   ├── tasks.js             # /api/tasks/*
-│   ├── calendar.js          # /api/calendar
-│   ├── friends.js           # /api/friends/*
-│   ├── users.js             # /api/users/*
-│   ├── comments.js          # /api/comments/*
-│   ├── resumes.js           # /api/resumes/*
-│   └── applications.js      # /api/applications/*
+│   ├── auth.routes.js            # /api/auth/*
+│   ├── notes.routes.js           # /api/notes/*
+│   ├── google.routes.js          # /api/google/*
+│   ├── flashcardSets.routes.js   # /api/flashcard-sets/*
+│   ├── tasks.routes.js           # /api/tasks/*
+│   ├── calendar.routes.js        # /api/calendar
+│   ├── friends.routes.js         # /api/friends/*
+│   ├── users.routes.js           # /api/users/*
+│   ├── comments.routes.js        # /api/comments/*
+│   ├── resumes.routes.js         # /api/resumes/*
+│   ├── applications.routes.js    # /api/applications/*
+│   ├── conversations.routes.js   # /api/conversations/*
+│   └── messages.routes.js        # /api/messages/*
 ├── services/
-│   ├── groqService.js       # Groq API client + prompt templates
-│   ├── googleService.js     # Google Drive/Docs API client
-│   └── cloudinaryService.js # Cloudinary upload helper
-├── utils/
-│   └── AppError.js          # Custom error class
-├── seeds/
-│   ├── seedCore.js          # Seed Users, Notes, Flashcards, Tasks
-│   └── seedSocial.js        # Seed Friendships, Comments, Resumes, Applications
+│   ├── groq.service.js           # Groq API client + prompt templates
+│   ├── google.service.js         # Google Drive/Docs API client
+│   └── cloudinary.service.js     # Cloudinary upload helper
+├── testing/
+│   └── postman/                  # Postman collections + environment
 ├── .env
 ├── .env.example
 ├── .gitignore
@@ -79,20 +92,22 @@ Users can register/login with **email/password** OR **Google OAuth**. Both creat
 
 ```
 Register:
-  Client POST /api/auth/register { email, username, password }
+  Client POST /api/auth/register { email, username, password, deviceId? }
   → Validate input
   → Check email/username uniqueness
   → Create User (password hashed via pre-save hook)
-  → Sign JWT with { userId, email }
-  → Return { token, user }
+  → Sign JWT with { userId }
+  → Generate RefreshToken (SHA-256 hash stored in DB, raw returned to client)
+  → Return { token, refreshToken, user }
   (Google NOT linked — user.googleId is null)
 
 Login:
-  Client POST /api/auth/login { email, password }
+  Client POST /api/auth/login { email, password, deviceId? }
   → Find user by email (select: '+password')
   → Compare password with bcrypt
-  → Sign JWT with { userId, email }
-  → Return { token, user }
+  → Sign JWT with { userId }
+  → Generate RefreshToken
+  → Return { token, refreshToken, user }
 
 Protected Request:
   Client sends header: Authorization: Bearer <token>
@@ -106,11 +121,35 @@ Protected Request:
 ### JWT Token Details
 
 - **Library**: `jsonwebtoken`
-- **Payload**: `{ userId: user._id, email: user.email }`
-- **Expiry**: Controlled by `JWT_EXPIRES_IN` env var (default: `7d`)
-- **Storage (Web)**: `localStorage` — simple for MVP. HttpOnly cookies are more secure but add complexity.
-- **Storage (Mobile)**: `AsyncStorage` via Expo SecureStore if available
-- **No refresh tokens for MVP** — when the token expires, the user logs in again. This is fine for a 7-day expiry.
+- **Payload**: `{ userId: user._id }`
+- **Access token expiry**: Controlled by `JWT_EXPIRES_IN` env var (default: `1d`)
+- **Refresh token expiry**: 30 days — stored in `RefreshToken` collection as SHA-256 hash
+- **Storage (Web)**: `localStorage` for access token; refresh token stored client-side and sent in request body
+- **Storage (Mobile)**: Expo `SecureStore` for both tokens
+
+### Refresh Token Flow
+
+```
+Login / Register:
+  → Returns { token (1d JWT), refreshToken (30d raw token), user }
+  → Raw refresh token is stored client-side; SHA-256 hash stored in RefreshToken collection
+
+When access token expires:
+  Client POST /api/auth/refresh { refreshToken }
+  → Server hashes incoming token → looks up in RefreshToken collection
+  → Validates: exists, revokedAt is null, expiresAt > now
+  → Returns new { token } (refresh token is NOT rotated)
+
+Logout (single device):
+  Client POST /api/auth/logout { refreshToken }
+  → Sets revokedAt on the matching RefreshToken document
+
+Logout all devices:
+  Client POST /api/auth/logout-all (JWT required)
+  → Sets revokedAt on ALL active RefreshToken documents for the user
+```
+
+Each device gets its own `RefreshToken` document. Single-device logout only revokes that device's token — other devices remain active. `deviceId` is an optional label (e.g., "iPhone 14", "Chrome on macOS") stored on the token for future "manage devices" UI.
 
 ### Google OAuth (Login/Register)
 
@@ -177,17 +216,15 @@ Reset Password:
 ### Middleware Pattern
 
 ```javascript
-// middleware/auth.js
+// middleware/auth.middleware.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const protect = async (req, res, next) => {
+module.exports = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({
-      error: { code: 'UNAUTHORIZED', message: 'No token provided' }
-    });
+    return res.status(401).json({ success: false, error: 'No token provided' });
   }
 
   try {
@@ -196,21 +233,15 @@ const protect = async (req, res, next) => {
     const user = await User.findById(decoded.userId);
 
     if (!user || user.deletedAt) {
-      return res.status(401).json({
-        error: { code: 'UNAUTHORIZED', message: 'User not found' }
-      });
+      return res.status(401).json({ success: false, error: 'User not found' });
     }
 
     req.user = user;
     next();
-  } catch (error) {
-    return res.status(401).json({
-      error: { code: 'UNAUTHORIZED', message: 'Invalid token' }
-    });
+  } catch {
+    return res.status(401).json({ success: false, error: 'Invalid token' });
   }
 };
-
-module.exports = { protect };
 ```
 
 ---

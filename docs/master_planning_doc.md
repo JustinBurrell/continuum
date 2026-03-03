@@ -27,7 +27,7 @@
 
 ## Project Understanding
 
-**Related Documents**: [Product Requirements Document](./product/product_requirements_document.md) | [Backend User Flows](./backend/backend_user_flows.md) | [Proof of Concept](./product/proof_of_concept.md) | [API Reference Guide](./backend/api_reference_guide.md) | [Backend Architecture](./backend/backend_architecture.md) | [Design Breakdown](./design/design_breakdown.md) | [Cheat Sheet](./design/continuum_cheat_sheet.md) | [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) | [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md) | [Schema Diagram](./database/schema_diagram.md) | [Groq AI Integration](./backend/groq_ai_integration.md)
+**Related Documents**: [Product Requirements Document](./product/product_requirements_document.md) | [Backend User Flows](./backend/backend_user_flows.md) | [Proof of Concept](./product/proof_of_concept.md) | [API Reference Guide](./backend/api_reference_guide.md) | [Backend Architecture](./backend/backend_architecture.md) | [Design Breakdown](./design/design_breakdown.md) | [Cheat Sheet](./design/continuum_cheat_sheet.md) | [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) | [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md) | [Schema Diagram](./database/schema_diagram.md)
 
 ### Core Problem
 Students manage their academic and professional lives across 8-12 disconnected applications, causing:
@@ -76,18 +76,18 @@ This means you won't have a working UI until Phase 3, but your backend will be r
 ## Overall Progress
 
 **Total Phases**: 4
-**Completed Phases**: 1/4
-**Total Tickets**: 62 (must-ship) + stretch
-**Completed Tickets**: 12/62
-**Current Phase**: Phase 2 - Backend APIs
+**Completed Phases**: 2/4
+**Total Tickets**: 65 (must-ship) + stretch
+**Completed Tickets**: 34/65
+**Current Phase**: Phase 3 - Frontend Integration
 
 ---
 
 ## Current Status
 
-**Current Ticket**: DB-12: Test Stretch Models
-**Phase**: Phase 2 - Backend APIs
-**Status**: Merged
+**Current Ticket**: API-23: Add user profile update endpoint
+**Phase**: Phase 3 - Frontend Integration (backend gaps remaining: API-23, API-24, API-25, API-26)
+**Status**: Phase 2 complete — all 22 core API tickets merged and Postman-tested
 
 *Update this section as you progress through tickets*
 
@@ -308,7 +308,6 @@ API-7. [x] `feat: integrate groq api for summary generation`
    - Set up Groq API client with Llama 3.1
    - Create prompt templates for summary generation
    - POST /api/notes/:id/summary — generate AI summary
-   - See [Groq AI Integration](./backend/groq_ai_integration.md)
 
 API-8. [x] `feat: implement ai flashcard generation`
    - Add `generateFlashcards(content)` to services/groq.service.js
@@ -414,24 +413,57 @@ API-21. [x] `test: test stretch api endpoints with postman` *(stretch)*
    - Test message pagination and read receipts
    - Verify auth middleware protects all stretch routes
 
-API-22. [ ] `feat: create refresh tokens for JWT login`
+API-22. [x] `feat: create refresh tokens for JWT login`
    - Generate a short-lived access token (1d) and long-lived refresh token (30d) on login/register
    - POST /api/auth/refresh — accept refresh token, return new access token
    - Store refresh token securely (httpOnly cookie or hashed in DB)
    - Invalidate refresh token on logout
 
+API-23. [ ] `feat: add user profile update endpoint`
+   - PATCH /api/me/profile — update display name, bio, avatarUrl, and user settings
+   - Validate fields (maxlength, URL format for avatarUrl)
+   - Return updated user object (password excluded)
+   - Note: GET /api/auth/me already exists — this is the write counterpart
+
+API-24. [ ] `feat: add activity feed endpoint`
+   - GET /api/activity — list activity feed for the authenticated user
+   - Returns activities where visibleTo contains req.user._id, sorted newest first
+   - Support pagination (cursor-based or limit/offset)
+   - Include metadata (noteTitle, commentPreview, etc.) from Activity.metadata
+   - Note: Activity model + TTL index already built (DB-11); just needs the route
+
+API-25. [ ] `feat: add shared flashcard sets endpoint`
+   - GET /api/flashcard-sets/shared — list flashcard sets shared with the user
+   - Matches existing GET /api/notes/shared pattern (API-14)
+   - Filter: visibility: 'friends' + user is friends with owner, OR visibility: 'specific' + userId in sharedWith
+   - Return sets with flashcard count, do not populate all cards (performance)
+
+API-26. [ ] `feat: add syncqueue processing endpoint`
+   - POST /api/sync — process a batch of queued offline operations
+   - Body: array of SyncQueue entries (operation, collection, documentId, data, clientTimestamp)
+   - Apply each operation in order; return per-entry success/failure
+   - Mark processed entries status: 'processed' or 'failed' in SyncQueue collection
+   - Note: SyncQueue model already built (DB-11); needed for offline-first mobile
+
+API-27. [ ] `test: test api-23 through api-26 endpoints with postman`
+   - Test PATCH /api/me/profile — valid update, field validation errors, auth required
+   - Test GET /api/activity — returns feed for authenticated user, pagination, empty state
+   - Test GET /api/flashcard-sets/shared — returns sets shared with user, respects visibility rules
+   - Test POST /api/sync (stretch) — valid batch, mixed success/failure entries, auth required
+   - Verify all routes protected by auth middleware
+
 ### Phase 2 Checkpoint
-- [ ] All auth endpoints working (register, login, Google OAuth, JWT middleware)
-- [ ] Notes CRUD + Google Docs import working
-- [ ] AI summaries and flashcard generation working via Groq
-- [ ] Flashcard CRUD with study progress working
-- [ ] Task CRUD with calendar aggregation working
-- [ ] Friend system working end-to-end
-- [ ] Note sharing and comments working
-- [ ] Resume upload and AI feedback working
-- [ ] Application tracking working
-- [ ] All endpoints tested via Postman collection
-- [ ] Error handling consistent across all routes
+- [x] All auth endpoints working (register, login, Google OAuth, JWT middleware)
+- [x] Notes CRUD + Google Docs import working
+- [x] AI summaries and flashcard generation working via Groq
+- [x] Flashcard CRUD with study progress working
+- [x] Task CRUD with calendar aggregation working
+- [x] Friend system working end-to-end
+- [x] Note sharing and comments working
+- [x] Resume upload and AI feedback working
+- [x] Application tracking working
+- [x] All endpoints tested via Postman collection
+- [x] Error handling consistent across all routes
 
 ---
 
@@ -657,14 +689,14 @@ POL-14. [ ] `build: prepare android build for google play`
 ## Progress Summary
 
 ### Phase Completion
-- [ ] Phase 1: Database Layer (0/11 tickets)
-- [ ] Phase 2: Backend APIs (0/20 tickets)
+- [x] Phase 1: Database Layer (12/12 tickets)
+- [x] Phase 2: Backend APIs (22/27 tickets — API-23 through API-27 pending)
 - [ ] Phase 3: Frontend Integration (0/17 tickets — 10 web + 7 mobile)
 - [ ] Phase 4: Polish & Showcase (0/14 tickets)
 
 ### Key Milestones
-- [ ] All MongoDB models created and seeded
-- [ ] All backend APIs tested via Postman
+- [x] All MongoDB models created and seeded
+- [x] All backend APIs tested via Postman
 - [ ] Authentication working on web and mobile
 - [ ] Google Docs import functional
 - [ ] AI summaries and flashcards working
@@ -725,5 +757,5 @@ Each phase succeeds when:
 
 ---
 
-*Last Updated: February 16, 2026*
-*Current Status: Phase 1 - Database Layer (Session 1: Core Models)*
+*Last Updated: March 2, 2026*
+*Current Status: Phase 2 complete — entering Phase 3. API-23 through API-26 are the remaining backend gaps to close before or during frontend work.*
