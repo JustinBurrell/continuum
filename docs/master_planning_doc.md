@@ -419,7 +419,7 @@ API-22. [x] `feat: create refresh tokens for JWT login`
    - Store refresh token securely (httpOnly cookie or hashed in DB)
    - Invalidate refresh token on logout
 
-API-23. [ ] `feat: add user profile update endpoint`
+API-23. [x] `feat: add user profile update endpoint`
    - PATCH /api/me/profile — update display name, bio, avatarUrl, and user settings
    - Validate fields (maxlength, URL format for avatarUrl)
    - Return updated user object (password excluded)

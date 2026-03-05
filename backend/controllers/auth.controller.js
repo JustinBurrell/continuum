@@ -4,6 +4,7 @@ const Note = require('../models/Note');
 const RefreshToken = require('../models/RefreshToken');
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
+const cloudinary = require('../config/cloudinary');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -255,6 +256,69 @@ exports.refresh = async (req, res) => {
     const token = signToken(stored.userId);
 
     res.status(200).json({ success: true, token });
+};
+
+// ----------------------------------------
+// PATCH /api/auth/me/profile
+// Purpose: Update the authenticated user's profile fields and/or avatar
+// Body (multipart/form-data): firstName, lastName, bio, settings.emailNotifications,
+//                             settings.pushNotifications, avatar (file, optional)
+// ----------------------------------------
+exports.updateProfile = async (req, res) => {
+    const allowed = ['firstName', 'lastName', 'bio'];
+    const updates = {};
+
+    // Collect whitelisted text fields
+    for (const field of allowed) {
+        if (req.body[field] !== undefined) {
+            updates[field] = req.body[field];
+        }
+    }
+
+    // Settings are nested — accept as flat body fields (settings.emailNotifications etc.)
+    if (req.body['settings.emailNotifications'] !== undefined) {
+        updates['settings.emailNotifications'] = req.body['settings.emailNotifications'] === 'true';
+    }
+    if (req.body['settings.pushNotifications'] !== undefined) {
+        updates['settings.pushNotifications'] = req.body['settings.pushNotifications'] === 'true';
+    }
+
+    // Avatar upload — if a file was attached, upload to Cloudinary and set avatarUrl
+    if (req.file) {
+        const userId = req.user._id.toString();
+
+        const uploadResult = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+                {
+                    folder: `continuum/profiles/${userId}`,
+                    public_id: 'avatar',
+                    resource_type: 'image',
+                    overwrite: true,
+                    // transformation: resize to 400x400 square, auto quality
+                    transformation: [{ width: 400, height: 400, crop: 'fill', quality: 'auto' }],
+                },
+                (error, result) => {
+                    if (error) return reject(error);
+                    resolve(result);
+                }
+            );
+            stream.end(req.file.buffer);
+        });
+
+        updates.avatarUrl = uploadResult.secure_url;
+    }
+
+    if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ success: false, error: 'No valid fields provided' });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: updates },
+        { new: true, runValidators: true }
+    );
+
+    res.status(200).json({ success: true, user: updatedUser });
 };
 
 // ----------------------------------------

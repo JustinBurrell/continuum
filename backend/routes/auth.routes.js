@@ -3,6 +3,7 @@ const router = express.Router();
 const passport = require('../config/passport');
 const authController = require('../controllers/auth.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const uploadImage = require('../middleware/uploadImage.middleware');
 
 // ============================================================
 // AUTH ROUTES
@@ -34,6 +35,12 @@ router.get('/google/callback',
 
 // Protected routes — JWT required (authMiddleware attaches req.user)
 router.get('/me', authMiddleware, authController.me);
+router.patch('/me/profile', authMiddleware, (req, res, next) => {
+    uploadImage.single('avatar')(req, res, (err) => {
+        if (err) return res.status(400).json({ success: false, error: err.message });
+        next();
+    });
+}, authController.updateProfile);
 router.post('/logout', authMiddleware, authController.logout);
 router.post('/logout-all', authMiddleware, authController.logoutAll);
 
