@@ -1,4 +1,5 @@
 const Comment = require('../models/Comment');
+const { createActivity } = require('../services/activity.service');
 
 // ============================================================
 // COMMENTS CONTROLLER
@@ -51,6 +52,14 @@ exports.addComment = async (req, res) => {
         userId: req.user._id,
         parentId: parentId || null,
     }).save();
+
+    createActivity({
+        actorId: req.user._id,
+        type: 'comment_added',
+        targetId: comment.targetId,
+        targetType: comment.targetType,
+        metadata: { commentPreview: content.trim().slice(0, 100) },
+    }).catch(() => {});
 
     res.status(201).json({ success: true, comment });
 };
@@ -105,6 +114,17 @@ exports.toggleLike = async (req, res) => {
         : { $addToSet: { likes: userId } };
 
     const updated = await Comment.findByIdAndUpdate(req.params.id, update, { new: true });
+
+    // Only fire activity when adding a like, not removing
+    if (!alreadyLiked) {
+        createActivity({
+            actorId: userId,
+            type: 'like_added',
+            targetId: comment._id,
+            targetType: 'comment',
+            metadata: { commentPreview: comment.content?.slice(0, 100) },
+        }).catch(() => {});
+    }
 
     res.status(200).json({ success: true, liked: !alreadyLiked, comment: updated });
 };

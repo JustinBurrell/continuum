@@ -117,6 +117,11 @@ const userSchema = new mongoose.Schema({
             type: Boolean,
             default: true,
         },
+        activityVisibility: {
+            type: String,
+            enum: ['private', 'friends', 'public'],
+            default: 'private',
+        },
     },
 
     /**

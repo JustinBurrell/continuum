@@ -425,18 +425,28 @@ API-23. [x] `feat: add user profile update endpoint`
    - Return updated user object (password excluded)
    - Note: GET /api/auth/me already exists — this is the write counterpart
 
-API-24. [ ] `feat: add activity feed endpoint`
-   - GET /api/activity — list activity feed for the authenticated user
-   - Returns activities where visibleTo contains req.user._id, sorted newest first
-   - Support pagination (cursor-based or limit/offset)
-   - Include metadata (noteTitle, commentPreview, etc.) from Activity.metadata
-   - Note: Activity model + TTL index already built (DB-11); just needs the route
+API-24. [x] `feat: add full activity feed (read + write side)`
+   - **Read side**: GET /api/activity — paginated feed (limit/offset) filtered by visibleTo or isPublic
+   - **Write side**: activity.service.js — shared createActivity() helper wired into notes, tasks, comments
+   - **User setting**: settings.activityVisibility (private/friends/public, default: private) controls who sees activities
+     - private → no Activity doc written
+     - friends → visibleTo populated with current accepted friend IDs (snapshot at creation time)
+     - public → isPublic: true, no visibleTo array needed
+   - **Activity types wired**:
+     - note_shared (notes.controller) — fires only on private → shared transition
+     - task_created (tasks.controller) — fires only for isShared: true tasks
+     - comment_added (comments.controller) — fires on every new comment
+     - like_added (comments.controller) — fires only when adding a like, not removing
+   - **Model changes**: added isPublic field to Activity; added activityVisibility to User.settings
+   - **Route**: GET /api/activity mounted at /api/activity, protected by authMiddleware
+   - **activityVisibility updatable** via PATCH /api/auth/me/profile (API-23 route)
 
 API-25. [ ] `feat: add shared flashcard sets endpoint`
    - GET /api/flashcard-sets/shared — list flashcard sets shared with the user
    - Matches existing GET /api/notes/shared pattern (API-14)
    - Filter: visibility: 'friends' + user is friends with owner, OR visibility: 'specific' + userId in sharedWith
    - Return sets with flashcard count, do not populate all cards (performance)
+   - Wire `flashcard_shared` activity: fire createActivity when a flashcard set visibility changes from 'private' → shared (same pattern as note_shared in API-24)
 
 API-26. [ ] `feat: add syncqueue processing endpoint`
    - POST /api/sync — process a batch of queued offline operations
