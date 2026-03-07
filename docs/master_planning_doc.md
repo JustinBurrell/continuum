@@ -425,14 +425,14 @@ API-23. [x] `feat: add user profile update endpoint`
    - Return updated user object (password excluded)
    - Note: GET /api/auth/me already exists — this is the write counterpart
 
-API-24. [ ] `feat: add activity feed endpoint`
+API-24. [x] `feat: add activity feed endpoint`
    - GET /api/activity — list activity feed for the authenticated user
    - Returns activities where visibleTo contains req.user._id, sorted newest first
    - Support pagination (cursor-based or limit/offset)
    - Include metadata (noteTitle, commentPreview, etc.) from Activity.metadata
    - Note: Activity model + TTL index already built (DB-11); just needs the route
 
-API-25. [ ] `feat: add shared flashcard sets endpoint`
+API-25. [x] `feat: add shared flashcard sets endpoint`
    - GET /api/flashcard-sets/shared — list flashcard sets shared with the user
    - Matches existing GET /api/notes/shared pattern (API-14)
    - Filter: visibility: 'friends' + user is friends with owner, OR visibility: 'specific' + userId in sharedWith
