@@ -5,6 +5,7 @@ const Friendship = require('../models/Friendship');
 const getGoogleDriveClient = require('../config/googleDrive');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
+const { createActivity } = require('../services/activity.service');
 
 // ============================================================
 // NOTES CONTROLLER
@@ -425,6 +426,13 @@ exports.shareNote = async (req, res) => {
         }
     }
 
+    // Fetch current visibility before update — needed to detect private → shared transition
+    const existing = await Note.findOne({ _id: req.params.id, userId: req.user._id, deletedAt: null }).select('visibility');
+
+    if (!existing) {
+        return res.status(404).json({ success: false, error: 'Note not found' });
+    }
+
     const note = await Note.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id, deletedAt: null },
         {
@@ -435,8 +443,16 @@ exports.shareNote = async (req, res) => {
         { new: true, runValidators: true }
     );
 
-    if (!note) {
-        return res.status(404).json({ success: false, error: 'Note not found' });
+    // Only fire activity when going from private → shared for the first time
+    // Tweaking between friends/specific doesn't warrant a new share event
+    if (existing.visibility === 'private' && visibility !== 'private') {
+        createActivity({
+            actorId: req.user._id,
+            type: 'note_shared',
+            targetId: note._id,
+            targetType: 'note',
+            metadata: { noteTitle: note.title },
+        }).catch(() => {}); // non-blocking — never fail the request over activity
     }
 
     res.status(200).json({ success: true, note });

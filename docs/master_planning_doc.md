@@ -437,6 +437,7 @@ API-25. [x] `feat: add shared flashcard sets endpoint`
    - Matches existing GET /api/notes/shared pattern (API-14)
    - Filter: visibility: 'friends' + user is friends with owner, OR visibility: 'specific' + userId in sharedWith
    - Return sets with flashcard count, do not populate all cards (performance)
+   - Wire `flashcard_shared` activity: fire createActivity when a flashcard set visibility changes from 'private' → shared (same pattern as note_shared in API-24)
 
 API-26. [ ] `feat: add syncqueue processing endpoint`
    - POST /api/sync — process a batch of queued offline operations

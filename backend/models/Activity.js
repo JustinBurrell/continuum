@@ -61,6 +61,16 @@ const activitySchema = new mongoose.Schema({
     }],
 
     /**
+     * Public Flag
+     * Purpose: When activityVisibility is 'public', storing all user IDs in visibleTo
+     *          is impractical. isPublic: true means anyone can see it regardless of visibleTo.
+     */
+    isPublic: {
+        type: Boolean,
+        default: false,
+    },
+
+    /**
      * Metadata
      * Purpose: Store additional context about the activity (flexible structure)
      * Fields: metadata
