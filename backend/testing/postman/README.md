@@ -440,3 +440,112 @@ New variables added for session 7. All are auto-set by test scripts.
 - Run folders top to bottom — each folder depends on the state set by the previous one
 - `deviceId` is optional on login/register — if omitted it's stored as `null` but the token still works
 - The "Second Device — Still Works After Single Logout" test proves per-device isolation — the key benefit of this design
+
+---
+
+# Postman Testing — Session 8
+
+API-23: Profile Update | API-24: Activity Feed | API-25: Flashcard Set Sharing | API-26: Sync Queue.
+
+---
+
+## Setup
+
+### 1. Import the collection
+- Open Postman → **Collections** tab → **Import** → select `continuum-session8.postman_collection.json`
+- Re-import `continuum-local.postman_environment.json` to pick up the new `activityId` variable
+
+### 2. Select the environment
+- Top-right corner of Postman — switch the dropdown to **Continuum — Local**
+
+### 3. Start the backend server
+```bash
+cd backend && npm run dev
+```
+
+---
+
+## Prerequisites
+
+- **Flashcard sharing tests** require `flashcardSetId` and `secondUserId` to be set, and User A and User B must be accepted friends
+- Run session 5 setup first if starting fresh (Login User 1 + Login User 2 + Accept Friend Request)
+- `taskId` and `noteId` must be set for the Sync Queue batch test — re-run Create Task and Create Note from session 3-4 if needed
+
+---
+
+## Environment Variables
+
+New variables added for session 8. Auto-set by test scripts.
+
+| Variable      | Set by                      | Used by                      |
+|---------------|-----------------------------|------------------------------|
+| `activityId`  | Get Activity Feed (if feed non-empty) | Reference only    |
+
+---
+
+## Test Order
+
+Run folders top to bottom.
+
+### 1. Login
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Login — User A | `{ "email", "password" }` | `200` — sets `token` + `userId` + `refreshToken` | ✅ |
+| Login — User B | `{ "email", "password" }` (second account) | `200` — sets `secondToken` + `secondUserId` | ✅ |
+
+### 2. Profile Update (API-23)
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Update Profile — Text Fields | form-data: `firstName`, `bio` | `200` — updated fields in response | ✅ |
+| Update Profile — activityVisibility: friends | form-data: `settings.activityVisibility = friends` | `200` — setting updated | ✅ |
+| Update Profile — activityVisibility: public | form-data: `settings.activityVisibility = public` | `200` — setting updated | ✅ |
+| [Error] Invalid activityVisibility | form-data: `settings.activityVisibility = everyone` | `400` | ✅ |
+| [Error] No Token | form-data: `firstName` | `401` | ✅ |
+
+### 3. Activity Feed (API-24)
+*(Set `activityVisibility` to `friends` or `public` first — private produces no activities)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Get Activity Feed — Default | none | `200` — `feed` array, each entry has `userId` populated | ✅ |
+| Get Activity Feed — Paginated (limit=5, offset=0) | query: `?limit=5&offset=0` | `200` | ✅ |
+| Get Activity Feed — Page 2 (offset=5) | query: `?limit=5&offset=5` | `200` — empty or next page | ✅ |
+| [Error] No Token | none | `401` | ✅ |
+
+### 4. Flashcard Set Sharing (API-25)
+*(Requires User A and User B to be friends, and `flashcardSetId` to be set)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Share Set — friends | `{ "visibility": "friends" }` | `200` | ✅ |
+| Get Shared Sets — as User B (friends) | none (User B token) | `200` — User A's set in results | ✅ |
+| Share Set — specific (User B) | `{ "visibility": "specific", "sharedWith": ["{{secondUserId}}"] }` | `200` | ✅ |
+| Get Shared Sets — as User B (specific) | none (User B token) | `200` — set still visible | ✅ |
+| Revert to private | `{ "visibility": "private" }` | `200` | ✅ |
+| Get Shared Sets — as User B (empty) | none (User B token) | `200` — empty array | ✅ |
+| [Error] Invalid visibility | `{ "visibility": "everyone" }` | `400` | ✅ |
+| [Error] specific with non-friend | `{ "visibility": "specific", "sharedWith": ["000000000000000000000001"] }` | `400` | ✅ |
+| [Error] No Token | `{ "visibility": "friends" }` | `401` | ✅ |
+
+### 5. Sync Queue (API-26)
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Sync — Create Note Offline | `{ operations: [create note] }` | `200` — entry `status: completed` | ✅ |
+| Sync — Update Task Offline | `{ operations: [update task] }` | `200` — entry `status: completed` | ✅ |
+| Sync — Mixed Batch | `{ operations: [create + update + delete] }` | `200` — all three entries in results | ✅ |
+| Sync — Update on Deleted Doc | `{ operations: [update non-existent note] }` | `200` — entry `status: completed` (silent discard) | ✅ |
+| Sync — Delete Already-Deleted Doc | `{ operations: [delete already-deleted note] }` | `200` — entry `status: completed` (idempotent) | ✅ |
+| [Error] Invalid collection | `{ operations: [create resumes] }` | `200` — first entry `status: failed`, second entry `status: completed` | ✅ |
+| [Error] Message update | `{ operations: [update message] }` | `200` — entry `status: failed` ("Message updates are not supported") | ✅ |
+| [Error] Empty operations array | `{ "operations": [] }` | `400` | ✅ |
+| [Error] No Token | operations array | `401` | ✅ |
+
+---
+
+## Tips
+
+- Run folder **1. Login** first every time — all other folders depend on fresh tokens
+- Profile update uses `multipart/form-data` (not JSON) — the body type in Postman must be set to **form-data**
+- Activity feed will return empty if `activityVisibility` is still `private` — run "Set activityVisibility to friends" first, then trigger an activity (e.g. share a note), then check the feed
+- Flashcard sharing tests depend on an active friendship between User A and User B — run session 5 friend flow if starting fresh
+- The sync "Update on Deleted Doc" and "Delete Already-Deleted" requests intentionally return `status: completed` — this is correct social-app behavior, not a bug

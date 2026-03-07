@@ -162,7 +162,7 @@ exports.updateNote = async (req, res) => {
 exports.deleteNote = async (req, res) => {
     const note = await Note.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id, deletedAt: null },
-        { deletedAt: new Date() },
+        { deletedAt: new Date(), googleDocId: null },
         { new: true }
     );
 

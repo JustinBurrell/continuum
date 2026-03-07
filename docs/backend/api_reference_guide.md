@@ -25,11 +25,11 @@
 Users can register with email/password OR Google OAuth. Both paths create the same User document. Login and register return a short-lived JWT (1d) and a long-lived refresh token (30d). Each device gets its own refresh token — logout is per-device. `logout-all` revokes every active token for the user.
 
 ### **User Profile**
-- `PATCH /api/me/profile` - Update user profile information (name, bio, avatarUrl, settings)
+- `PATCH /api/auth/me/profile` - Update user profile information (name, bio, avatarUrl, settings)
 
 ### **Google Account Linking**
-- `POST /api/me/google/link` - Initiate Google OAuth to link Google account to existing user
-- `DELETE /api/me/google/link` - Unlink Google account (body: `{ keepNotes: true/false }`)
+- `POST /api/auth/me/google/link` - Initiate Google OAuth to link Google account to existing user
+- `DELETE /api/auth/me/google/link` - Unlink Google account (body: `{ keepNotes: true/false }`)
 
 Google linking is required for Google Drive/Docs features. `user.hasGoogleLinked` virtual tracks status. When unlinking, user chooses whether to keep imported notes as standalone copies or delete them.
 
@@ -115,6 +115,15 @@ Summary is stored as an embedded field on the Note document. When you `GET /api/
 - `PUT /api/tasks/:taskId` - Add participants to convert to shared task (update isShared + participants)
 - `GET /api/tasks/shared` - List tasks shared with the current user
 
+### **Flashcard Set Sharing**
+- `PATCH /api/flashcard-sets/:setId/share` - Update flashcard set visibility (private, friends, or specific users)
+- `GET /api/flashcard-sets/shared` - List flashcard sets shared with the current user
+
+### **Activity Feed**
+- `GET /api/activity` - List activity feed for the authenticated user (limit/offset pagination)
+
+Activity is driven by `settings.activityVisibility` on the User — `private` (default) writes no activity, `friends` scopes to current friend list, `public` is visible to all. Activity types: `note_shared`, `task_created` (shared tasks only), `comment_added`, `like_added`, `flashcard_shared`.
+
 ---
 
 ## Direct Messaging
@@ -149,10 +158,23 @@ Feedback is stored as an embedded array on the Resume document. When you `GET /a
 
 ---
 
+## Offline Sync
+
+### **Sync Queue**
+- `POST /api/sync` - Process a batch of queued offline operations
+
+Body: `{ operations: [{ operation, collection, documentId?, data?, clientTimestamp? }] }`
+- `operation`: `create` | `update` | `delete`
+- `collection`: `notes` | `tasks` | `flashcards` | `messages`
+
+Returns per-entry `{ entryId, status, operation, collection, documentId }` — failed entries include `error`. Each operation is tracked in the SyncQueue collection. Conflict behavior: `update` on a deleted doc silently completes; `delete` is idempotent; `create` duplicate fails.
+
+---
+
 ## System Health
 
 ### **Monitoring**
-- `GET /api/health` - System health check endpoint
+- `GET /health` - System health check endpoint
 
 ---
 
@@ -205,7 +227,7 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 | Google Drive | 2 | Yes |
 | Notes | 7 | Yes |
 | AI Summary | 1 | Yes |
-| Flashcards | 7 | Yes |
+| Flashcards | 9 | Yes |
 | Tasks | 5 | Yes |
 | Calendar | 1 | Yes |
 | Social (Friends) | 5 | Yes |
@@ -215,5 +237,7 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 | Resume | 4 | Yes |
 | Applications | 7 | Yes |
 | Messaging | 5 | Yes |
+| Activity Feed | 1 | Stretch |
+| Offline Sync | 1 | Stretch |
 | Health | 1 | Yes |
-| **Total** | **66** | **66** |
+| **Total** | **70** | **68** |

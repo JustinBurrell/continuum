@@ -85,9 +85,9 @@ This means you won't have a working UI until Phase 3, but your backend will be r
 
 ## Current Status
 
-**Current Ticket**: API-23: Add user profile update endpoint
-**Phase**: Phase 3 - Frontend Integration (backend gaps remaining: API-23, API-24, API-25, API-26)
-**Status**: Phase 2 complete — all 22 core API tickets merged and Postman-tested
+**Current Ticket**: WEB-1: Wire up login and registration to auth API
+**Phase**: Phase 3 - Frontend Integration
+**Status**: Phase 2 complete — all 27 API tickets merged and Postman-tested (API-23 through API-27 completed in sprint 5)
 
 *Update this section as you progress through tickets*
 
@@ -446,7 +446,7 @@ API-26. [x] `feat: add syncqueue processing endpoint`
    - Mark processed entries status: 'processed' or 'failed' in SyncQueue collection
    - Note: SyncQueue model already built (DB-11); needed for offline-first mobile
 
-API-27. [ ] `test: test api-23 through api-26 endpoints with postman`
+API-27. [x] `test: test api-23 through api-26 endpoints with postman`
    - Test PATCH /api/me/profile — valid update, field validation errors, auth required
    - Test GET /api/activity — returns feed for authenticated user, pagination, empty state
    - Test GET /api/flashcard-sets/shared — returns sets shared with user, respects visibility rules
@@ -691,7 +691,7 @@ POL-14. [ ] `build: prepare android build for google play`
 
 ### Phase Completion
 - [x] Phase 1: Database Layer (12/12 tickets)
-- [x] Phase 2: Backend APIs (22/27 tickets — API-23 through API-27 pending)
+- [x] Phase 2: Backend APIs (27/27 tickets)
 - [ ] Phase 3: Frontend Integration (0/17 tickets — 10 web + 7 mobile)
 - [ ] Phase 4: Polish & Showcase (0/14 tickets)
 
@@ -758,5 +758,5 @@ Each phase succeeds when:
 
 ---
 
-*Last Updated: March 2, 2026*
-*Current Status: Phase 2 complete — entering Phase 3. API-23 through API-26 are the remaining backend gaps to close before or during frontend work.*
+*Last Updated: March 7, 2026*
+*Current Status: Phase 2 fully complete — all 27 API tickets merged and Postman-tested. Entering Phase 3 (frontend). All stretch goals (messaging, activity feed, offline sync, flashcard sharing) implemented.*
