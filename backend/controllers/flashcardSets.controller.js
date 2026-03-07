@@ -1,6 +1,8 @@
 const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
+const Friendship = require('../models/Friendship');
 const groqService = require('../services/groq.service');
+const { createActivity } = require('../services/activity.service');
 
 // ============================================================
 // FLASHCARD SETS CONTROLLER
@@ -272,6 +274,126 @@ exports.updateProgress = async (req, res) => {
     await FlashcardSet.findByIdAndUpdate(set._id, { lastStudiedAt: new Date() });
 
     res.status(200).json({ success: true, card });
+};
+
+// ----------------------------------------
+// PATCH /api/flashcard-sets/:id/share
+// Purpose: Update a flashcard set's visibility and sharedWith list
+// Body: { visibility: "private" | "friends" | "specific", sharedWith?: [userId, ...] }
+// Note: visibility="specific" requires sharedWith — all listed users must be accepted friends
+// Activity: fires flashcard_shared only on private → shared transition
+// ----------------------------------------
+exports.shareSet = async (req, res) => {
+    const { visibility, sharedWith } = req.body;
+
+    const validVisibilities = ['private', 'friends', 'specific'];
+    if (!visibility || !validVisibilities.includes(visibility)) {
+        return res.status(400).json({
+            success: false,
+            error: `visibility must be one of: ${validVisibilities.join(', ')}`,
+        });
+    }
+
+    if (visibility === 'specific') {
+        if (!sharedWith || sharedWith.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'sharedWith is required when visibility is "specific"',
+            });
+        }
+
+        const userId = req.user._id;
+        const friendships = await Friendship.find({
+            $or: [{ user1: userId }, { user2: userId }],
+            status: 'accepted',
+            deletedAt: null,
+        });
+
+        const friendIds = new Set(
+            friendships.map(f =>
+                f.user1.toString() === userId.toString()
+                    ? f.user2.toString()
+                    : f.user1.toString()
+            )
+        );
+
+        const invalidUsers = sharedWith.filter(id => !friendIds.has(id.toString()));
+        if (invalidUsers.length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'sharedWith can only include accepted friends',
+            });
+        }
+    }
+
+    // Fetch current visibility before update — detect private → shared transition
+    const existing = await FlashcardSet.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        deletedAt: null,
+    }).select('visibility');
+
+    if (!existing) {
+        return res.status(404).json({ success: false, error: 'Flashcard set not found' });
+    }
+
+    const set = await FlashcardSet.findOneAndUpdate(
+        { _id: req.params.id, userId: req.user._id, deletedAt: null },
+        {
+            visibility,
+            sharedWith: visibility === 'specific' ? sharedWith : [],
+        },
+        { new: true, runValidators: true }
+    );
+
+    // Only fire activity when going from private → shared for the first time
+    if (existing.visibility === 'private' && visibility !== 'private') {
+        createActivity({
+            actorId: req.user._id,
+            type: 'flashcard_shared',
+            targetId: set._id,
+            targetType: 'flashcard_set',
+            metadata: { setTitle: set.title },
+        }).catch(() => {});
+    }
+
+    res.status(200).json({ success: true, set });
+};
+
+// ----------------------------------------
+// GET /api/flashcard-sets/shared
+// Purpose: List flashcard sets shared with the authenticated user by other users
+// Includes:
+//   - Sets with visibility="friends" owned by an accepted friend
+//   - Sets with visibility="specific" where current user is in sharedWith
+// Returns totalCards count but does not populate all cards (performance)
+// ----------------------------------------
+exports.getSharedSets = async (req, res) => {
+    const userId = req.user._id;
+
+    const friendships = await Friendship.find({
+        $or: [{ user1: userId }, { user2: userId }],
+        status: 'accepted',
+        deletedAt: null,
+    });
+
+    const friendIds = friendships.map(f =>
+        f.user1.toString() === userId.toString() ? f.user2 : f.user1
+    );
+
+    const sets = await FlashcardSet.find({
+        deletedAt: null,
+        userId: { $ne: userId },
+        $or: [
+            { visibility: 'friends', userId: { $in: friendIds } },
+            { visibility: 'specific', sharedWith: userId },
+        ],
+    })
+        .select('-sharedWith')
+        .populate('userId', 'username firstName lastName')
+        .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, sets });
 };
 
 // ----------------------------------------

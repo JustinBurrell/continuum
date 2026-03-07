@@ -13,14 +13,16 @@ const authMiddleware = require('../middleware/auth.middleware');
 
 router.use(authMiddleware);
 
-// AI generation (static — must be before /:id to avoid param conflict)
+// Static routes — must be before /:id to avoid param conflict
 router.post('/generate', flashcardSetsController.generateFromContent);
+router.get('/shared', flashcardSetsController.getSharedSets);
 
 // Set CRUD
 router.post('/', flashcardSetsController.createSet);
 router.get('/', flashcardSetsController.getSets);
 router.get('/:id', flashcardSetsController.getSetById);
 router.delete('/:id', flashcardSetsController.deleteSet);
+router.patch('/:id/share', flashcardSetsController.shareSet);
 
 // Card CRUD (nested under set)
 router.post('/:id/cards', flashcardSetsController.addCard);
