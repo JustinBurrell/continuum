@@ -446,7 +446,7 @@ API-26. [x] `feat: add syncqueue processing endpoint`
    - Mark processed entries status: 'processed' or 'failed' in SyncQueue collection
    - Note: SyncQueue model already built (DB-11); needed for offline-first mobile
 
-API-27. [ ] `test: test api-23 through api-26 endpoints with postman`
+API-27. [x] `test: test api-23 through api-26 endpoints with postman`
    - Test PATCH /api/me/profile — valid update, field validation errors, auth required
    - Test GET /api/activity — returns feed for authenticated user, pagination, empty state
    - Test GET /api/flashcard-sets/shared — returns sets shared with user, respects visibility rules

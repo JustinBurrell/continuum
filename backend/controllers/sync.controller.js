@@ -150,9 +150,15 @@ exports.processSync = async (req, res) => {
     for (const op of operations) {
         const { operation, collection, documentId, data, clientTimestamp } = op;
 
-        // Validate required fields per entry before writing to SyncQueue
+        // Validate required fields and collection before writing to SyncQueue
         if (!operation || !collection) {
             results.push({ status: 'failed', error: 'operation and collection are required', operation, collection });
+            continue;
+        }
+
+        const handler = handlers[collection];
+        if (!handler) {
+            results.push({ status: 'failed', error: `Collection '${collection}' is not supported`, operation, collection });
             continue;
         }
 
@@ -168,9 +174,6 @@ exports.processSync = async (req, res) => {
         });
 
         try {
-            const handler = handlers[collection];
-            if (!handler) throw new Error(`Collection '${collection}' is not supported`);
-
             const handlerFn = handler[operation];
             if (!handlerFn) throw new Error(`Operation '${operation}' is not supported for '${collection}'`);
 

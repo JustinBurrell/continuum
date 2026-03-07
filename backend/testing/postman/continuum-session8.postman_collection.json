@@ -1,0 +1,607 @@
+{
+  "info": {
+    "_postman_id": "f6a7b8c9-d0e1-2345-fabc-345678901005",
+    "name": "Continuum — Session 8",
+    "description": "API-23: Profile Update | API-24: Activity Feed | API-25: Flashcard Set Sharing | API-26: Sync Queue.\n\nRun order: 1. Login → 2. Profile Update → 3. Activity Feed → 4. Flashcard Sharing → 5. Sync Queue → 6. Error Cases.\ntoken and flashcardSetId are auto-set by test scripts. Requires flashcardSetId from a prior session.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Login",
+      "item": [
+        {
+          "name": "Login — User A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('token', json.token);",
+                  "    pm.environment.set('userId', json.user._id);",
+                  "    pm.environment.set('refreshToken', json.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login — User B (for sharing tests)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('secondToken', json.token);",
+                  "    pm.environment.set('secondUserId', json.user._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test2@example.com\",\n  \"password\": \"Password123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Profile Update (API-23)",
+      "item": [
+        {
+          "name": "Update Profile — Text Fields",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "firstName",  "value": "TestUpdated", "type": "text" },
+                { "key": "bio",        "value": "Updated bio from Postman", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile — Set activityVisibility to friends",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "settings.activityVisibility", "value": "friends", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile — Set activityVisibility to public",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "settings.activityVisibility", "value": "public", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Update Profile — Invalid activityVisibility",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "settings.activityVisibility", "value": "everyone", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Update Profile — No Token",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "firstName", "value": "Ghost", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Activity Feed (API-24)",
+      "item": [
+        {
+          "name": "Get Activity Feed — Default",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    if (json.feed && json.feed.length > 0) {",
+                  "        pm.environment.set('activityId', json.feed[0]._id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Activity Feed — Paginated (limit=5, offset=0)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity?limit=5&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"],
+              "query": [
+                { "key": "limit",  "value": "5" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Activity Feed — Page 2 (offset=5)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity?limit=5&offset=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"],
+              "query": [
+                { "key": "limit",  "value": "5" },
+                { "key": "offset", "value": "5" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Get Activity Feed — No Token",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Flashcard Set Sharing (API-25)",
+      "item": [
+        {
+          "name": "Share Set — visibility: friends",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visibility\": \"friends\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/flashcard-sets/{{flashcardSetId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "flashcard-sets", "{{flashcardSetId}}", "share"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shared Sets — As User B (should see User A's set)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{secondToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/flashcard-sets/shared",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "flashcard-sets", "shared"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Share Set — visibility: specific (User B)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visibility\": \"specific\",\n  \"sharedWith\": [\"{{secondUserId}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/flashcard-sets/{{flashcardSetId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "flashcard-sets", "{{flashcardSetId}}", "share"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shared Sets — As User B (specific share)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{secondToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/flashcard-sets/shared",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "flashcard-sets", "shared"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Share Set — Revert to private",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visibility\": \"private\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/flashcard-sets/{{flashcardSetId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "flashcard-sets", "{{flashcardSetId}}", "share"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shared Sets — As User B (empty after revert to private)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{secondToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/flashcard-sets/shared",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "flashcard-sets", "shared"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Share Set — Invalid visibility",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visibility\": \"everyone\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/flashcard-sets/{{flashcardSetId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "flashcard-sets", "{{flashcardSetId}}", "share"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Share Set — specific with non-friend",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visibility\": \"specific\",\n  \"sharedWith\": [\"000000000000000000000001\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/flashcard-sets/{{flashcardSetId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "flashcard-sets", "{{flashcardSetId}}", "share"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Share Set — No Token",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visibility\": \"friends\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/flashcard-sets/{{flashcardSetId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "flashcard-sets", "{{flashcardSetId}}", "share"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Sync Queue (API-26)",
+      "item": [
+        {
+          "name": "Sync — Create Note Offline",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operations\": [\n    {\n      \"operation\": \"create\",\n      \"collection\": \"notes\",\n      \"data\": {\n        \"title\": \"Offline Note\",\n        \"content\": \"Created while offline\",\n        \"contentType\": \"plain\"\n      },\n      \"clientTimestamp\": \"2026-03-07T10:00:00Z\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sync — Update Task Offline",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operations\": [\n    {\n      \"operation\": \"update\",\n      \"collection\": \"tasks\",\n      \"documentId\": \"{{taskId}}\",\n      \"data\": {\n        \"title\": \"Updated while offline\"\n      },\n      \"clientTimestamp\": \"2026-03-07T10:01:00Z\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sync — Mixed Batch (create + update + delete)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operations\": [\n    {\n      \"operation\": \"create\",\n      \"collection\": \"notes\",\n      \"data\": { \"title\": \"Batch Note 1\", \"content\": \"From batch\", \"contentType\": \"plain\" },\n      \"clientTimestamp\": \"2026-03-07T10:00:00Z\"\n    },\n    {\n      \"operation\": \"update\",\n      \"collection\": \"tasks\",\n      \"documentId\": \"{{taskId}}\",\n      \"data\": { \"title\": \"Batch update\" },\n      \"clientTimestamp\": \"2026-03-07T10:01:00Z\"\n    },\n    {\n      \"operation\": \"delete\",\n      \"collection\": \"notes\",\n      \"documentId\": \"{{noteId}}\",\n      \"clientTimestamp\": \"2026-03-07T10:02:00Z\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sync — Update on Deleted Doc (silent complete)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operations\": [\n    {\n      \"operation\": \"update\",\n      \"collection\": \"notes\",\n      \"documentId\": \"000000000000000000000099\",\n      \"data\": { \"title\": \"This note does not exist\" },\n      \"clientTimestamp\": \"2026-03-07T10:03:00Z\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sync — Delete Already-Deleted Doc (idempotent)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operations\": [\n    {\n      \"operation\": \"delete\",\n      \"collection\": \"notes\",\n      \"documentId\": \"{{noteId}}\",\n      \"clientTimestamp\": \"2026-03-07T10:04:00Z\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Sync — Invalid collection (entry fails, batch continues)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operations\": [\n    {\n      \"operation\": \"create\",\n      \"collection\": \"resumes\",\n      \"data\": { \"title\": \"Bad collection\" },\n      \"clientTimestamp\": \"2026-03-07T10:05:00Z\"\n    },\n    {\n      \"operation\": \"create\",\n      \"collection\": \"notes\",\n      \"data\": { \"title\": \"Good entry after bad one\", \"content\": \"Should still complete\", \"contentType\": \"plain\" },\n      \"clientTimestamp\": \"2026-03-07T10:06:00Z\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Sync — Message update (unsupported)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operations\": [\n    {\n      \"operation\": \"update\",\n      \"collection\": \"messages\",\n      \"documentId\": \"000000000000000000000001\",\n      \"data\": { \"content\": \"Trying to edit a message\" },\n      \"clientTimestamp\": \"2026-03-07T10:07:00Z\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Sync — Empty operations array",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operations\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Sync — No Token",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operations\": [\n    {\n      \"operation\": \"create\",\n      \"collection\": \"notes\",\n      \"data\": { \"title\": \"Unauthenticated\" }\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

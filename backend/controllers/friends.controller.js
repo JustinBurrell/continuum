@@ -36,20 +36,30 @@ exports.sendRequest = async (req, res) => {
         return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    // Look up any existing (non-deleted) friendship between these two users
+    // Look up any existing friendship between these two users (including soft-deleted)
     const { user1, user2 } = sortedPair(req.user._id, recipientId);
-    const existing = await Friendship.findOne({ user1, user2, deletedAt: null });
+    const existing = await Friendship.findOne({ user1, user2 });
 
     if (existing) {
-        if (existing.status === 'pending') {
-            return res.status(400).json({ success: false, error: 'Friend request already pending' });
+        if (existing.deletedAt === null || existing.deletedAt === undefined) {
+            if (existing.status === 'pending') {
+                return res.status(400).json({ success: false, error: 'Friend request already pending' });
+            }
+            if (existing.status === 'accepted') {
+                return res.status(400).json({ success: false, error: 'Already friends' });
+            }
+            if (existing.status === 'rejected') {
+                return res.status(400).json({ success: false, error: 'Friend request was previously rejected' });
+            }
         }
-        if (existing.status === 'accepted') {
-            return res.status(400).json({ success: false, error: 'Already friends' });
-        }
-        if (existing.status === 'rejected') {
-            return res.status(400).json({ success: false, error: 'Friend request was previously rejected' });
-        }
+        // Soft-deleted friendship — reactivate as a new pending request
+        existing.status = 'pending';
+        existing.requestedBy = req.user._id;
+        existing.requestedAt = new Date();
+        existing.respondedAt = undefined;
+        existing.deletedAt = null;
+        const friendship = await existing.save();
+        return res.status(201).json({ success: true, friendship });
     }
 
     // Pass user1/user2 in any order — pre-save hook enforces user1 < user2
