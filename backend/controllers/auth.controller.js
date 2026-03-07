@@ -275,12 +275,19 @@ exports.updateProfile = async (req, res) => {
         }
     }
 
-    // Settings are nested — accept as flat body fields (settings.emailNotifications etc.)
+    // Settings are nested — accept as flat body fields (settings.x)
     if (req.body['settings.emailNotifications'] !== undefined) {
         updates['settings.emailNotifications'] = req.body['settings.emailNotifications'] === 'true';
     }
     if (req.body['settings.pushNotifications'] !== undefined) {
         updates['settings.pushNotifications'] = req.body['settings.pushNotifications'] === 'true';
+    }
+    if (req.body['settings.activityVisibility'] !== undefined) {
+        const validVisibility = ['private', 'friends', 'public'];
+        if (!validVisibility.includes(req.body['settings.activityVisibility'])) {
+            return res.status(400).json({ success: false, error: 'activityVisibility must be private, friends, or public' });
+        }
+        updates['settings.activityVisibility'] = req.body['settings.activityVisibility'];
     }
 
     // Avatar upload — if a file was attached, upload to Cloudinary and set avatarUrl

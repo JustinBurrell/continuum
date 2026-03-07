@@ -1,4 +1,5 @@
 const Task = require('../models/Task');
+const { createActivity } = require('../services/activity.service');
 
 // ============================================================
 // TASKS CONTROLLER
@@ -51,6 +52,16 @@ exports.createTask = async (req, res) => {
             ? participants.map((p) => ({ userId: p.userId, status: 'todo' }))
             : [],
     });
+
+    if (task.isShared) {
+        createActivity({
+            actorId: req.user._id,
+            type: 'task_created',
+            targetId: task._id,
+            targetType: 'task',
+            metadata: { taskTitle: title, dueDate },
+        }).catch(() => {});
+    }
 
     res.status(201).json({ success: true, task });
 };
