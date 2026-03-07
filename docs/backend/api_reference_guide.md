@@ -25,11 +25,11 @@
 Users can register with email/password OR Google OAuth. Both paths create the same User document. Login and register return a short-lived JWT (1d) and a long-lived refresh token (30d). Each device gets its own refresh token — logout is per-device. `logout-all` revokes every active token for the user.
 
 ### **User Profile**
-- `PATCH /api/me/profile` - Update user profile information (name, bio, avatarUrl, settings)
+- `PATCH /api/auth/me/profile` - Update user profile information (name, bio, avatarUrl, settings)
 
 ### **Google Account Linking**
-- `POST /api/me/google/link` - Initiate Google OAuth to link Google account to existing user
-- `DELETE /api/me/google/link` - Unlink Google account (body: `{ keepNotes: true/false }`)
+- `POST /api/auth/me/google/link` - Initiate Google OAuth to link Google account to existing user
+- `DELETE /api/auth/me/google/link` - Unlink Google account (body: `{ keepNotes: true/false }`)
 
 Google linking is required for Google Drive/Docs features. `user.hasGoogleLinked` virtual tracks status. When unlinking, user chooses whether to keep imported notes as standalone copies or delete them.
 
@@ -174,7 +174,7 @@ Returns per-entry `{ entryId, status, operation, collection, documentId }` — f
 ## System Health
 
 ### **Monitoring**
-- `GET /api/health` - System health check endpoint
+- `GET /health` - System health check endpoint
 
 ---
 
