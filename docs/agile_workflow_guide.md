@@ -21,6 +21,7 @@ Format: `type/TICKET-ID-short-description`
 |------|------------|---------|
 | `feat/` | New feature or model | `feat/DB-2-note-model` |
 | `fix/` | Bug fix | `fix/POL-9-login-redirect` |
+| `chore/` | Maintenance with no behavior change (deps, audits, config) | `chore/SEC-1-npm-audit` |
 | `test/` | Tests or seed data | `test/DB-5-seed-script` |
 | `refactor/` | Code restructuring | `refactor/POL-2-error-responses` |
 | `docs/` | Documentation only | `docs/POL-11-demo-script` |
@@ -35,6 +36,7 @@ Format: `type: short description`
 ```
 feat: add note model with embedded summary
 fix: resolve duplicate email validation error
+chore: fix npm audit vulnerabilities
 test: add seed script for core models
 refactor: standardize error responses
 docs: prepare demo script
