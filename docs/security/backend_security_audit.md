@@ -736,12 +736,201 @@ These patterns are correct and must be preserved as the codebase grows.
 
 ---
 
-## Section 8 — Remediation Roadmap
+## Section 8 — Infrastructure Security
 
-Items are ordered by impact. Items 1–12 are pre-launch requirements.
-Items marked "Any paid AI plan" must be done before moving off the free tier.
+These items live outside the application code. They are the most common vector for real-world
+data breaches — misconfigured cloud infrastructure causes more incidents than application bugs.
 
-| # | Finding | Effort | Must fix before |
+### I1 — MongoDB Atlas Network Access (Must Do Before Any Public Traffic)
+
+**How it works:** Atlas rejects all TCP connections from IPs not on your Network Access list.
+Your app server's IP is the only one that should ever be on it. `0.0.0.0/0` (allow all)
+must never be present in a production environment — it exposes your entire database to the
+internet regardless of how strong your application-layer security is.
+
+**Current state:** You have removed `0.0.0.0/0` and replaced it with specific IPs.
+Verify this in Atlas → your cluster → **Network Access** tab.
+
+**Production problem — static IP requirement:**
+Most hosting providers (Railway, Render, Heroku) do not give you a static IP on starter
+plans. Your server gets a new IP on every deploy or restart, which would break the allowlist.
+
+**Fix options (pick one when you choose a hosting provider):**
+- **Static IP add-on** — Railway and Render both offer this on paid plans. Add the static
+  IP to your Atlas allowlist. This is the cleanest solution.
+- **Quotaguard Static** — a proxy service that routes your outbound DB traffic through a
+  fixed IP. Works on any hosting provider.
+- **Self-hosted VPS** (DigitalOcean Droplet, Fly.io Machine) — you own and control the
+  server IP directly.
+
+**Action:** Come back to this once you choose a hosting provider. Do not launch without
+a static IP locked to Atlas.
+
+---
+
+### I2 — HTTPS / TLS End-to-End (Automatically Handled by Major Hosts)
+
+**Why it matters:** Without HTTPS, every JWT your users send is transmitted in plaintext
+over the network. Any network observer (ISP, coffee shop router, proxy) can read and replay
+session tokens.
+
+**How to check:** After deploying, verify your API base URL starts with `https://` and a
+browser padlock appears. You can also run:
+
+```bash
+curl -I https://your-api-domain.com/health
+```
+
+If it returns a 200 with response headers, TLS is working.
+
+**Hosting providers that handle TLS automatically (zero configuration):**
+- Railway — auto-provisions a TLS cert for `*.up.railway.app` and custom domains
+- Render — same, for `*.onrender.com` and custom domains
+- Heroku — same, for `*.herokuapp.com` and custom domains
+
+**Action:** Deploy to one of the above. HTTPS is free and automatic. Verify the padlock
+after first deploy. No code changes needed in the backend.
+
+---
+
+### I3 — Environment Variables Scoped Correctly in Hosting Platform
+
+**What to verify after deploying:**
+- All 8 secrets from `.env.example` are set in your hosting provider's environment variable
+  dashboard — never in the codebase
+- `NODE_ENV=production` is set — this suppresses stack traces in error responses and
+  enables production behavior in Express and Mongoose
+- No env vars are exposed in build logs or public configuration files
+- Team member access to env vars is restricted to those who actually need them
+
+---
+
+## Section 9 — Monitoring & Incident Response
+
+Without monitoring, you will not know you are being attacked until after the damage is done.
+A user could be hammering your login endpoint overnight, draining your Groq balance, or
+accessing data abnormally — and you would have no visibility.
+
+### MO1 — Spend Alerts on All Paid External Services (Do This Now)
+
+Set billing alerts before any real usage occurs. This takes 15 minutes total.
+
+| Service | Where | Recommended alert thresholds |
+|---|---|---|
+| Groq | groq.com → Settings → Billing | $10, $50, monthly hard cap |
+| OpenAI (future) | platform.openai.com → Billing | $10, $50, monthly hard cap |
+| MongoDB Atlas | Atlas → Billing → Alerts | Alert on data transfer spike |
+| Cloudinary | cloudinary.com → Billing | Alert at 70% of plan limit |
+| Resend | resend.com → Billing | Alert at 70% of plan limit |
+
+Groq and OpenAI both support hard monthly spend caps — set these before enabling any
+public-facing AI features.
+
+---
+
+### MO2 — Application-Level Logging (Add Before Beta)
+
+Your app currently logs nothing meaningful. When something goes wrong — a breach, abuse,
+or unexpected behavior — you will have no trail to investigate. Add structured logging at
+minimum for auth failures and AI usage before any real users are onboarded.
+
+**Minimum viable logging to add:**
+
+```js
+// auth.controller.js — inside the login "Invalid credentials" path:
+console.warn(JSON.stringify({
+    event: 'auth_failure',
+    email,
+    ip: req.ip,
+    userAgent: req.headers['user-agent'],
+    timestamp: new Date().toISOString(),
+}));
+```
+
+```js
+// groq.service.js — before each Groq API call:
+console.info(JSON.stringify({
+    event: 'ai_call',
+    fn: 'generateSummary', // or generateFlashcards, generateResumeFeedback
+    userId,
+    contentLength: content.length,
+    timestamp: new Date().toISOString(),
+}));
+```
+
+Use your hosting provider's built-in log viewer (Railway, Render, and Heroku all have one)
+to search these logs. You do not need a third-party logging service at MVP stage.
+
+**What to watch for:**
+- Multiple `auth_failure` events from the same IP within a short window — password spray attack
+- `ai_call` events from a single userId at high frequency — cost abuse
+- Any 500-level responses in your server logs — indicates unhandled errors in production
+
+---
+
+## Section 10 — Ongoing Security Practices
+
+Security is not a one-time checklist. These practices must be maintained continuously.
+
+### OP1 — Run `npm audit` on Every Deploy
+
+Every package you install can develop known vulnerabilities after you ship. `npm audit`
+scans your dependency tree against the Node.js security advisory database and reports
+anything with a CVE.
+
+```bash
+npm audit
+```
+
+Run this before every production deploy. If it reports high or critical vulnerabilities,
+investigate before shipping. Add this to your deployment checklist.
+
+---
+
+### OP2 — Rotate API Keys Periodically and After Any Team Member Leaves
+
+Keys that never rotate are keys that accumulate exposure risk over time. Establish a
+rotation schedule and enforce it:
+
+| Key | Rotation frequency |
+|---|---|
+| `JWT_SECRET` | Every 6 months, or immediately after any suspected exposure |
+| `GROQ_API_KEY` | Every 6 months, or if spend anomalies are detected |
+| `CLOUDINARY_API_KEY` / `API_SECRET` | Quarterly |
+| `RESEND_API_KEY` | Quarterly |
+| `GOOGLE_CLIENT_SECRET` | Annually, or after any team member leaves |
+| `MONGODB_URI` (connection string password) | Annually |
+
+When rotating a key: update the value in your hosting provider's env dashboard, redeploy,
+confirm the app is working, then revoke the old key in the provider's dashboard.
+
+---
+
+### OP3 — GDPR / Data Privacy (Required if Any Users Are in the EU)
+
+If users in the European Union sign up, GDPR applies from day one — not after you scale.
+The key requirements that affect this backend:
+
+- **Right to erasure ("right to be forgotten"):** Soft deletes alone do not satisfy this.
+  You need a hard delete path that permanently removes the user's account and all associated
+  data (notes, tasks, flashcard sets, messages, activity, etc.) from MongoDB. The
+  `emailVerified: false` state also means you cannot confirm the registrant actually consented.
+- **Data portability:** Users must be able to export all data you hold about them in a
+  machine-readable format.
+- **Privacy policy:** Must be in place before any EU users can sign up.
+
+**Action:** If you plan to have EU users at launch, add a hard delete endpoint and a
+privacy policy before opening registration. If US-only initially, track this as a
+pre-EU-expansion item.
+
+---
+
+## Section 11 — Remediation Roadmap
+
+All findings consolidated. Work through this list top to bottom to reach a launch-ready
+security posture.
+
+| # | Finding | Effort | Must do before |
 |---|---|---|---|
 | 1 | Install `helmet` — HTTP security headers (C2) | 15 min | Any public traffic |
 | 2 | Rate limiting on auth routes — `express-rate-limit` (C1) | 30 min | Any public traffic |
@@ -751,22 +940,29 @@ Items marked "Any paid AI plan" must be done before moving off the free tier.
 | 6 | Escape `$regex` input in notes, applications, users search (H3) | 30 min | Any public traffic |
 | 7 | Add email format validation to User schema (H6) | 10 min | Any public traffic |
 | 8 | Add `maxlength` to note `content` field (H2) | 10 min | Any public traffic |
-| 9 | Per-user AI call rate limiting (H1) | 2–3 hrs | Any paid AI plan |
-| 10 | Content length cap before every Groq call (H1) | 30 min | Any paid AI plan |
-| 11 | Resume feedback cooldown (H1) | 20 min | Any paid AI plan |
-| 12 | Set spend alerts + hard cap in Groq/OpenAI dashboard (H1) | 15 min | Any paid AI plan |
-| 13 | Explicit JWT algorithm in sign + verify (M1) | 10 min | Next deploy |
-| 14 | Restrict CORS methods explicitly (L5) | 5 min | Next deploy |
-| 15 | Explicit JSON body size limit (L4) | 5 min | Next deploy |
-| 16 | Fix Google OAuth callback — token in URL (C3) | 2–4 hrs | Google OAuth live |
-| 17 | Fix `googleLink` — verify `googleId` server-side (C4) | 1–2 hrs | Google OAuth live |
-| 18 | Fix Google OAuth username collision crash (M2) | 20 min | Google OAuth live |
-| 19 | Sanitize HTML note content — `sanitize-html` (M3) | 1 hr | Frontend renders HTML |
-| 20 | Whitelist sync endpoint fields — prevent mass assignment (M4) | 30 min | Beta |
-| 21 | Add access check to `getComments` (M5) | 1 hr | Beta |
-| 22 | Require accepted friendship before `startConversation` (M6) | 30 min | Beta |
-| 23 | Validate task participants are accepted friends (M7) | 30 min | Beta |
-| 24 | Implement email verification flow (L1) | 3–5 hrs | Public onboarding |
-| 25 | Encrypt Google OAuth tokens at rest (M8) | 2–3 hrs | Launch |
-| 26 | Keep `pdf-parse` updated; run `npm audit` on every deploy (L2) | Ongoing | Ongoing |
-| 27 | Rotate Cloudinary and all API keys quarterly | 15 min | Quarterly |
+| 9 | Set spend alerts on Groq, Atlas, Cloudinary, Resend (MO1) | 15 min | Any public traffic |
+| 10 | Per-user AI call rate limiting (H1) | 2–3 hrs | Any paid AI plan |
+| 11 | Content length cap before every Groq call (H1) | 30 min | Any paid AI plan |
+| 12 | Resume feedback cooldown (H1) | 20 min | Any paid AI plan |
+| 13 | Set hard spend cap in Groq/OpenAI dashboard (H1) | 10 min | Any paid AI plan |
+| 14 | Explicit JWT algorithm in sign + verify (M1) | 10 min | Next deploy |
+| 15 | Set `NODE_ENV=production` in hosting platform (I3) | 5 min | First deploy |
+| 16 | Restrict CORS methods explicitly (L5) | 5 min | Next deploy |
+| 17 | Explicit JSON body size limit (L4) | 5 min | Next deploy |
+| 18 | Verify HTTPS is active after first deploy (I2) | 5 min | First deploy |
+| 19 | Lock Atlas Network Access to static server IP (I1) | 30 min | First deploy |
+| 20 | Add auth failure + AI call logging (MO2) | 1 hr | Before beta |
+| 21 | Fix Google OAuth callback — token in URL (C3) | 2–4 hrs | Google OAuth live |
+| 22 | Fix `googleLink` — verify `googleId` server-side (C4) | 1–2 hrs | Google OAuth live |
+| 23 | Fix Google OAuth username collision crash (M2) | 20 min | Google OAuth live |
+| 24 | Sanitize HTML note content — `sanitize-html` (M3) | 1 hr | Frontend renders HTML |
+| 25 | Whitelist sync endpoint fields — prevent mass assignment (M4) | 30 min | Beta |
+| 26 | Add access check to `getComments` (M5) | 1 hr | Beta |
+| 27 | Require accepted friendship before `startConversation` (M6) | 30 min | Beta |
+| 28 | Validate task participants are accepted friends (M7) | 30 min | Beta |
+| 29 | Implement email verification flow (L1) | 3–5 hrs | Public onboarding |
+| 30 | Encrypt Google OAuth tokens at rest (M8) | 2–3 hrs | Launch |
+| 31 | Add hard delete endpoint for GDPR compliance (OP3) | 2–3 hrs | EU users |
+| 32 | Run `npm audit` on every deploy (OP1) | Ongoing | Ongoing |
+| 33 | Rotate all API keys on schedule (OP2) | 15 min | Quarterly |
+| 34 | Keep `pdf-parse` updated (L2) | Ongoing | Ongoing |
