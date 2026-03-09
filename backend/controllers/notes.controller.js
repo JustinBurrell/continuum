@@ -6,13 +6,14 @@ const getGoogleDriveClient = require('../config/googleDrive');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
 const { createActivity } = require('../services/activity.service');
+const { PDFParse } = require('pdf-parse');
 
 // ============================================================
 // NOTES CONTROLLER
 // Purpose: Handle business logic for all note CRUD endpoints
 // Used by: routes/notes.routes.js
 // Endpoints: createNote, getNotes, getNoteById, updateNote, deleteNote,
-//            importNote, refreshNote, shareNote, getSharedNotes
+//            importNote, uploadNote, refreshNote, shareNote, getSharedNotes
 // ============================================================
 
 // ----------------------------------------
@@ -38,6 +39,72 @@ const uploadPdfToCloudinary = (stream, googleDocId) => {
         );
         stream.pipe(uploadStream);
     });
+};
+
+// ----------------------------------------
+// Helper: uploadNoteBufferToCloudinary
+// Purpose: Upload an in-memory PDF buffer to Cloudinary (for direct file uploads)
+// Uses a random public_id so each upload is a distinct asset
+// ----------------------------------------
+const uploadNoteBufferToCloudinary = (buffer, fileName) => {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder: 'continuum/notes',
+                public_id: fileName.replace(/\.[^.]+$/, '') + '_' + Date.now(),
+                resource_type: 'raw',
+                format: 'pdf',
+                overwrite: false,
+            },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result);
+            }
+        );
+        uploadStream.end(buffer);
+    });
+};
+
+// ----------------------------------------
+// POST /api/notes/upload
+// Purpose: Upload a local PDF as a note — parses text with pdf-parse,
+//          uploads file to Cloudinary, creates a Note document
+// Body: multipart/form-data — field name: "file" (PDF only)
+// Optional body fields: title, type, tags (comma-separated)
+// ----------------------------------------
+exports.uploadNote = async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, error: 'A PDF file is required' });
+    }
+
+    const { title, type, tags } = req.body;
+
+    // Extract plain text from PDF buffer — used by Groq for summaries/flashcards
+    const parser = new PDFParse({ data: req.file.buffer });
+    const pdfData = await parser.getText();
+    await parser.destroy();
+    const content = pdfData.text;
+
+    if (!content || content.trim().length === 0) {
+        return res.status(400).json({ success: false, error: 'Could not extract text from PDF — ensure the file is not scanned/image-only' });
+    }
+
+    // Upload to Cloudinary
+    const cloudinaryResult = await uploadNoteBufferToCloudinary(req.file.buffer, req.file.originalname);
+
+    const tagList = tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+    const note = await Note.create({
+        userId: req.user._id,
+        title: title || req.file.originalname.replace(/\.pdf$/i, '') || 'Untitled',
+        content,
+        contentType: 'plain',
+        type: type || 'general',
+        tags: tagList,
+        pdfUrl: cloudinaryResult.secure_url,
+    });
+
+    res.status(201).json({ success: true, note });
 };
 
 // ----------------------------------------
