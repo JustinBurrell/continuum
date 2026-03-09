@@ -19,14 +19,21 @@ const User = require('../models/User');
 // Returns only public-safe fields — no email, no tokens, no settings
 // ----------------------------------------
 exports.getUserProfile = async (req, res) => {
-    const user = await User.findOne({ _id: req.params.id, deletedAt: null })
-        .select('username firstName lastName avatarUrl bio createdAt');
+    try {
+        const user = await User.findOne({ _id: req.params.id, deletedAt: null })
+            .select('username firstName lastName avatarUrl bio createdAt');
 
-    if (!user) {
-        return res.status(404).json({ success: false, error: 'User not found' });
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+
+        res.status(200).json({ success: true, user });
+    } catch (err) {
+        if (err.name === 'CastError') {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+        throw err;
     }
-
-    res.status(200).json({ success: true, user });
 };
 
 exports.searchUsers = async (req, res) => {

@@ -33,4 +33,7 @@ router.delete('/:id', notesController.deleteNote);
 router.post('/:id/summary', notesController.generateSummary);
 router.post('/:id/flashcards/generate', notesController.generateFlashcardsFromNote);
 
+// PDF download — signed Cloudinary URL for notes that have a pdfUrl
+router.get('/:id/pdf', notesController.downloadNotePdf);
+
 module.exports = router;

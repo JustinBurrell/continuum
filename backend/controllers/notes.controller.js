@@ -29,6 +29,7 @@ const uploadPdfToCloudinary = (stream, googleDocId) => {
                 folder: 'continuum/notes',
                 public_id: googleDocId,
                 resource_type: 'raw',
+                type: 'authenticated', // private — requires signed URL for access
                 format: 'pdf',
                 overwrite: true,
             },
@@ -53,6 +54,7 @@ const uploadNoteBufferToCloudinary = (buffer, fileName) => {
                 folder: 'continuum/notes',
                 public_id: fileName.replace(/\.[^.]+$/, '') + '_' + Date.now(),
                 resource_type: 'raw',
+                type: 'authenticated', // private — requires signed URL for access
                 format: 'pdf',
                 overwrite: false,
             },
@@ -105,6 +107,48 @@ exports.uploadNote = async (req, res) => {
     });
 
     res.status(201).json({ success: true, note });
+};
+
+// ----------------------------------------
+// GET /api/notes/:id/pdf
+// Purpose: Generate a signed Cloudinary URL for downloading a note's source PDF
+// Only available for notes that were imported from Google Drive or uploaded as PDF
+// ----------------------------------------
+exports.downloadNotePdf = async (req, res) => {
+    const note = await Note.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        deletedAt: null,
+    }).select('pdfUrl title');
+
+    if (!note) {
+        return res.status(404).json({ success: false, error: 'Note not found' });
+    }
+    if (!note.pdfUrl) {
+        return res.status(404).json({ success: false, error: 'This note has no associated PDF' });
+    }
+
+    // Detect delivery type and extract decoded public_id from stored URL
+    // Old notes (no explicit type): /raw/upload/ → 'upload'
+    // New notes: /raw/authenticated/ → 'authenticated'
+    const typeMatch = note.pdfUrl.match(/\/raw\/(upload|authenticated)\//i);
+    const deliveryType = typeMatch ? typeMatch[1] : 'upload';
+
+    const match = note.pdfUrl.match(/\/raw\/(?:upload|authenticated)\/(v\d+\/)?(.+?)(?:\.pdf)?$/i);
+    if (!match) {
+        return res.status(500).json({ success: false, error: 'Invalid PDF URL format' });
+    }
+    const publicId = decodeURIComponent(match[2]);
+
+    // private_download_url generates an API-level signed URL — pass correct type to match stored asset
+    const downloadUrl = cloudinary.utils.private_download_url(publicId, 'pdf', {
+        resource_type: 'raw',
+        type: deliveryType,
+        expires_at: Math.floor(Date.now() / 1000) + 600,
+        attachment: false,
+    });
+
+    res.json({ success: true, downloadUrl });
 };
 
 // ----------------------------------------

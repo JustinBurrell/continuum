@@ -139,8 +139,8 @@ exports.getFriends = async (req, res) => {
     }
 
     const friendships = await Friendship.find(filter)
-        .populate('user1', 'username firstName lastName')
-        .populate('user2', 'username firstName lastName')
+        .populate('user1', 'username firstName lastName avatarUrl')
+        .populate('user2', 'username firstName lastName avatarUrl')
         .sort({ updatedAt: -1 });
 
     res.status(200).json({ success: true, friendships });

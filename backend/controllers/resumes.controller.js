@@ -22,6 +22,7 @@ const uploadBufferToCloudinary = (buffer, fileName) => {
                 folder: 'continuum/resumes',
                 public_id: fileName.replace(/\.[^.]+$/, ''), // strip extension
                 resource_type: 'raw',
+                type: 'authenticated', // private — requires signed URL for access
                 format: 'pdf',
                 overwrite: false, // each upload is a new version
             },
@@ -93,20 +94,27 @@ exports.downloadResume = async (req, res) => {
         return res.status(404).json({ success: false, error: 'Resume not found' });
     }
 
-    // Extract Cloudinary publicId from stored URL
-    // URL format: https://res.cloudinary.com/{cloud}/raw/upload/v{n}/continuum/resumes/{name}.pdf
-    const withoutOrigin = resume.fileUrl.replace(/^https?:\/\/[^/]+/, '');
-    // Strip /raw/upload/ prefix
-    const afterUpload = withoutOrigin.replace(/^\/[^/]+\/raw\/upload\//, '');
-    // Strip version prefix (v123456/)
-    const publicId = afterUpload.replace(/^v\d+\//, '').replace(/\.pdf$/, '');
+    // Extract delivery type and public_id from the stored URL.
+    // Old uploads: /raw/upload/   → type: 'upload'
+    // New uploads: /raw/authenticated/ → type: 'authenticated'
+    // URL format: https://res.cloudinary.com/{cloud}/raw/{type}/v{n}/{folder}/{name}.pdf
+    const typeMatch = resume.fileUrl.match(/\/raw\/(upload|authenticated)\//i);
+    const deliveryType = typeMatch ? typeMatch[1] : 'upload';
 
-    // Generate a signed URL valid for 10 minutes
-    const downloadUrl = cloudinary.url(publicId, {
+    const match = resume.fileUrl.match(/\/raw\/(?:upload|authenticated)\/(v\d+\/)?(.+?)(?:\.pdf)?$/i);
+    if (!match) {
+        return res.status(500).json({ success: false, error: 'Invalid file URL format' });
+    }
+    // Decode URL-encoded characters (e.g. spaces: %20 → ' ') before passing to Cloudinary SDK
+    const publicId = decodeURIComponent(match[2]);
+
+    // private_download_url generates a signed API-level download URL (not CDN).
+    // Pass the correct delivery type so Cloudinary finds the right asset.
+    const downloadUrl = cloudinary.utils.private_download_url(publicId, 'pdf', {
         resource_type: 'raw',
-        type: 'upload',
-        sign_url: true,
+        type: deliveryType,
         expires_at: Math.floor(Date.now() / 1000) + 600,
+        attachment: false, // open in browser (PDF viewer); set true to force file save
     });
 
     res.json({ success: true, downloadUrl });
