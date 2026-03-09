@@ -130,6 +130,10 @@ exports.getFriends = async (req, res) => {
         // Incoming requests: pending + not sent by the current user
         filter.status = 'pending';
         filter.requestedBy = { $ne: userId };
+    } else if (status === 'sent') {
+        // Outgoing requests: pending + sent by the current user
+        filter.status = 'pending';
+        filter.requestedBy = userId;
     } else {
         filter.status = 'accepted';
     }
@@ -165,4 +169,29 @@ exports.removeFriend = async (req, res) => {
     }
 
     res.status(200).json({ success: true, message: 'Friend removed' });
+};
+
+// ----------------------------------------
+// DELETE /api/friends/request/:id
+// Purpose: Cancel a pending outgoing friend request
+// ----------------------------------------
+exports.cancelRequest = async (req, res) => {
+    const userId = req.user._id;
+
+    const friendship = await Friendship.findOneAndUpdate(
+        {
+            _id: req.params.id,
+            requestedBy: userId,
+            status: 'pending',
+            deletedAt: null,
+        },
+        { deletedAt: new Date() },
+        { new: true }
+    );
+
+    if (!friendship) {
+        return res.status(404).json({ success: false, error: 'Request not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Friend request cancelled' });
 };
