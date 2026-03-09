@@ -79,6 +79,40 @@ exports.uploadResume = async (req, res) => {
 };
 
 // ----------------------------------------
+// GET /api/resumes/:id/download
+// Purpose: Generate a signed Cloudinary URL for secure PDF download
+// Solves 401: raw Cloudinary URLs require a signed token for direct browser access
+// ----------------------------------------
+exports.downloadResume = async (req, res) => {
+    const resume = await Resume.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        deletedAt: null,
+    });
+    if (!resume) {
+        return res.status(404).json({ success: false, error: 'Resume not found' });
+    }
+
+    // Extract Cloudinary publicId from stored URL
+    // URL format: https://res.cloudinary.com/{cloud}/raw/upload/v{n}/continuum/resumes/{name}.pdf
+    const withoutOrigin = resume.fileUrl.replace(/^https?:\/\/[^/]+/, '');
+    // Strip /raw/upload/ prefix
+    const afterUpload = withoutOrigin.replace(/^\/[^/]+\/raw\/upload\//, '');
+    // Strip version prefix (v123456/)
+    const publicId = afterUpload.replace(/^v\d+\//, '').replace(/\.pdf$/, '');
+
+    // Generate a signed URL valid for 10 minutes
+    const downloadUrl = cloudinary.url(publicId, {
+        resource_type: 'raw',
+        type: 'upload',
+        sign_url: true,
+        expires_at: Math.floor(Date.now() / 1000) + 600,
+    });
+
+    res.json({ success: true, downloadUrl });
+};
+
+// ----------------------------------------
 // GET /api/resumes
 // Purpose: List the authenticated user's resumes, newest first
 // Note: extractedText has select: false — not returned here (large field, only needed for AI)
