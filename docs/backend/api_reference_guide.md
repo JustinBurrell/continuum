@@ -48,6 +48,7 @@ Google linking is required for Google Drive/Docs features. `user.hasGoogleLinked
 - `PATCH /api/notes/:noteId` - Update note title, tags, content, or visibility
 - `DELETE /api/notes/:noteId` - Soft delete note
 - `POST /api/notes/import` - Import Google Doc as note snapshot
+- `POST /api/notes/upload` - Upload a local PDF as a note (multipart/form-data, field: `file`; optional: `title`, `type`, `tags`)
 - `PUT /api/notes/:noteId/refresh` - Re-import latest version of linked Google Doc
 
 ---
@@ -96,6 +97,7 @@ Summary is stored as an embedded field on the Note document. When you `GET /api/
 
 ### **Friend Management**
 - `GET /api/users/search` - Search users by username or email
+- `GET /api/users/:id` - Get a user's public profile (returns `{ _id, username, firstName, lastName, avatarUrl, bio, createdAt }`; no email, tokens, or settings)
 - `POST /api/friends/request` - Send friend request
 - `PUT /api/friends/request/:requestId` - Accept or reject friend request
 - `GET /api/friends` - List current friends
@@ -225,12 +227,12 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 | User Profile | 1 | Yes |
 | Google Linking | 2 | Yes |
 | Google Drive | 2 | Yes |
-| Notes | 7 | Yes |
+| Notes | 8 | Yes |
 | AI Summary | 1 | Yes |
 | Flashcards | 9 | Yes |
 | Tasks | 5 | Yes |
 | Calendar | 1 | Yes |
-| Social (Friends) | 5 | Yes |
+| Social (Friends) | 6 | Yes |
 | Social (Sharing) | 2 | Yes |
 | Social (Comments) | 4 | Yes |
 | Shared Tasks | 2 | Yes |
@@ -240,4 +242,4 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 | Activity Feed | 1 | Stretch |
 | Offline Sync | 1 | Stretch |
 | Health | 1 | Yes |
-| **Total** | **70** | **68** |
+| **Total** | **72** | **70** |

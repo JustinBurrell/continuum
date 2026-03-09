@@ -298,6 +298,12 @@ API-6. [x] `feat: implement google doc import and refresh`
      - Re-export PDF → upload new version to Cloudinary → update pdfUrl
      - Re-export plain text → update content field
      - Update lastSyncedAt timestamp
+   - POST /api/notes/upload — upload a local PDF as a note (no Google account required)
+     - Accept multipart/form-data PDF via multer memoryStorage (reuses upload.middleware.js)
+     - Extract plain text with pdf-parse (same pattern as resumes) → store as content field
+     - Upload PDF buffer to Cloudinary under continuum/notes folder
+     - Optional body fields: title (defaults to filename), type, tags (comma-separated)
+     - Creates Note doc with pdfUrl + content set (compatible with AI summary/flashcard generation)
 
 ### Session 4 (3/16): AI, Flashcards & Tasks APIs
 **Groq integration + Flashcard CRUD + Task management**
@@ -363,6 +369,7 @@ API-13. [x] `feat: implement friend request endpoints`
    - GET /api/friends — list friends
    - DELETE /api/friends/:id — remove friend
    - GET /api/users/search — search users by username/email
+   - GET /api/users/:id — get a user's public profile (public-safe fields only)
 
 API-14. [x] `feat: add note sharing with visibility controls`
    - PUT /api/notes/:id/share — share note with friends
