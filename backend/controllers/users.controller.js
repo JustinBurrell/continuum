@@ -13,6 +13,22 @@ const User = require('../models/User');
 // Query: ?q= (minimum 2 characters)
 // Excludes the authenticated user from results
 // ----------------------------------------
+// ----------------------------------------
+// GET /api/users/:id
+// Purpose: Get another user's public profile
+// Returns only public-safe fields — no email, no tokens, no settings
+// ----------------------------------------
+exports.getUserProfile = async (req, res) => {
+    const user = await User.findOne({ _id: req.params.id, deletedAt: null })
+        .select('username firstName lastName avatarUrl bio createdAt');
+
+    if (!user) {
+        return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    res.status(200).json({ success: true, user });
+};
+
 exports.searchUsers = async (req, res) => {
     const { q } = req.query;
 
