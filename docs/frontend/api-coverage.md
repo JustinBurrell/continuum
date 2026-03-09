@@ -42,6 +42,7 @@ Frontend base URL: `http://localhost:5173`
 | GET | `/api/notes/shared` | Not yet exposed in UI | View notes shared with you |
 | POST | `/api/notes/import` | `pages/notes/NotesList.jsx` → Import modal → Google Drive tab | Requires Google account linked |
 | POST | `/api/notes/upload` | `pages/notes/NotesList.jsx` → Import modal → Upload PDF tab | multipart/form-data; field: `file`; optional: `title`, `type`, `tags` |
+| GET | `/api/notes/:id/pdf` | `pages/notes/NoteDetail.jsx` → PDF button (visible when `note.pdfUrl` exists) | Returns 10-min signed Cloudinary URL |
 | PUT | `/api/notes/:id/refresh` | Not yet exposed in UI | |
 | PUT | `/api/notes/:id/share` | Not yet exposed in UI | Share a note with another user |
 | POST | `/api/notes/:id/flashcards/generate` | Not yet exposed in UI | Generate flashcards from note content |
@@ -152,10 +153,11 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| POST | `/api/resumes/upload` | `pages/resumes/Resumes.jsx` → drag & drop / upload button | multipart/form-data with `resume` (file) + `name` fields |
+| POST | `/api/resumes/upload` | `pages/resumes/Resumes.jsx` → drag & drop / upload button | multipart/form-data with `resume` (file) + `name` fields; stored as Cloudinary `authenticated` resource |
 | GET | `/api/resumes` | `pages/resumes/Resumes.jsx` | Lists all uploaded resumes |
-| POST | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → AI Feedback button | AI-generated feedback accordion |
-| GET | `/api/resumes/:id/feedback` | Not yet exposed in UI | Fetch prior feedback |
+| GET | `/api/resumes/:id/download` | `pages/resumes/Resumes.jsx` → Download button | Returns 10-min signed URL via `private_download_url`; opened in new tab |
+| POST | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → AI Feedback / Regenerate button | AI-generated feedback accordion; older entries browsable via history panel |
+| GET | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → history panel (N older button) | Paginated in-card history; data already embedded in resume object from list endpoint |
 
 ---
 
