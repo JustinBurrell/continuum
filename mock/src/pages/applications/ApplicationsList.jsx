@@ -121,7 +121,7 @@ export default function ApplicationsList() {
       ) : view === 'pipeline' ? (
         /* Pipeline kanban */
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 overflow-x-auto">
-          {STAGES.map(stage => (
+          {(stageFilter === 'all' ? STAGES : [stageFilter]).map(stage => (
             <div key={stage} className="min-w-[180px]">
               <div className="flex items-center gap-2 mb-3">
                 <Badge variant={STAGE_VARIANTS[stage]} className="capitalize">{stage}</Badge>
