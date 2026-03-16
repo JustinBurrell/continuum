@@ -49,6 +49,7 @@ const MONTHS = [
   'July','August','September','October','November','December',
 ];
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const STATUS_LABELS = { todo: 'To Do', in_progress: 'In Progress', completed: 'Completed' };
 
 export default function Calendar() {
   const now = new Date();
@@ -217,8 +218,8 @@ export default function Calendar() {
                       }`} />
                       <div>
                         <p className="text-xs font-medium text-foreground">{task.title}</p>
-                        <Badge variant={task.status === 'completed' ? 'success' : 'neutral'} className="text-xs mt-0.5">
-                          {task.status}
+                        <Badge variant={task.status === 'completed' ? 'success' : task.status === 'in_progress' ? 'warning' : 'neutral'} className="text-xs mt-0.5">
+                          {STATUS_LABELS[task.status] || task.status}
                         </Badge>
                       </div>
                     </div>
