@@ -5,6 +5,7 @@ import { AuthProvider } from '@/context/AuthContext';
 
 import AppLayout from '@/components/layout/AppLayout';
 import AuthLayout from '@/components/layout/AuthLayout';
+import TitleManager from '@/components/TitleManager';
 
 import Login from '@/pages/auth/Login';
 import Register from '@/pages/auth/Register';
@@ -39,6 +40,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
+          <TitleManager />
           <Routes>
             {/* Public pages */}
             <Route path="/" element={<Landing />} />
