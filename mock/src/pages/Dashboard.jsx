@@ -95,13 +95,13 @@ function AppItem({ app }) {
   const sc = { draft: ['var(--bg-hover)', 'var(--text-secondary)'], applied: ['var(--bg-hover)', 'var(--text-secondary)'], interview: ['var(--warning-bg)', 'var(--warning)'], offer: ['var(--success-bg)', 'var(--success)'], rejected: ['var(--destructive-bg)', 'var(--destructive)'], withdrawn: ['var(--bg-hover)', 'var(--text-secondary)'] };
   const [bg, color] = sc[app.status] || sc.applied;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid var(--border)' }}>
+    <Link to="/applications/view" state={{ id: app._id, application: app }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid var(--border)', textDecoration: 'none', cursor: 'pointer' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{app.company}</p>
         <p style={{ fontSize: 11, color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{app.role}</p>
       </div>
       <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: bg, color, textTransform: 'capitalize', flexShrink: 0 }}>{app.stage}</span>
-    </div>
+    </Link>
   );
 }
 
