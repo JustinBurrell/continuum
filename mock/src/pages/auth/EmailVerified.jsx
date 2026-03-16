@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
 import api from '@/lib/api';
@@ -10,6 +10,9 @@ export default function EmailVerified() {
 
   const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
   const [errorMsg, setErrorMsg] = useState('');
+  // Prevents double-firing in React StrictMode dev (effects intentionally run twice).
+  // The ref is set synchronously before the async call so the second run is a no-op.
+  const calledRef = useRef(false);
 
   useEffect(() => {
     if (!token) {
@@ -17,6 +20,9 @@ export default function EmailVerified() {
       setErrorMsg('No token provided.');
       return;
     }
+
+    if (calledRef.current) return;
+    calledRef.current = true;
 
     api.get(`/auth/verify-email?token=${token}`)
       .then(() => {
