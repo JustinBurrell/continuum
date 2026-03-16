@@ -23,7 +23,7 @@ const emptyForm = {
 };
 
 export default function ApplicationsList() {
-  const [view, setView] = useState('pipeline');
+  const [view, setView] = useState('list');
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState('all');
   const [showCreate, setShowCreate] = useState(false);
@@ -288,19 +288,20 @@ export default function ApplicationsList() {
 function PipelineCard({ app, stages, onStageChange, stateApp }) {
   return (
     <Card className="p-3">
-      <Link to="/applications/view" state={{ id: app._id, application: stateApp }}>
-        <p className="font-semibold text-foreground text-sm hover:text-primary transition-colors">{app.company}</p>
-        <p className="text-xs text-secondary mt-0.5 mb-2">{app.position}</p>
-      </Link>
+      <p className="font-semibold text-foreground text-sm">{app.company}</p>
+      <p className="text-xs text-secondary mt-0.5 mb-2">{app.position}</p>
       {app.location && <p className="text-xs text-secondary/60 mb-2">{app.location}</p>}
       <select
         value={app.status}
         onChange={e => onStageChange(e.target.value)}
-        className="text-xs border border-border rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-primary/30 w-full"
+        className="text-xs border border-border rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-primary/30 w-full mb-2"
         onClick={e => e.stopPropagation()}
       >
         {stages.map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
       </select>
+      <Link to="/applications/view" state={{ id: app._id, application: stateApp }}>
+        <Button variant="outline" size="sm" className="w-full text-xs">View / Edit</Button>
+      </Link>
     </Card>
   );
 }
