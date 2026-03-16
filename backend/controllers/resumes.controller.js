@@ -94,30 +94,44 @@ exports.downloadResume = async (req, res) => {
         return res.status(404).json({ success: false, error: 'Resume not found' });
     }
 
-    // Extract delivery type and public_id from the stored URL.
-    // Old uploads: /raw/upload/   → type: 'upload'
-    // New uploads: /raw/authenticated/ → type: 'authenticated'
-    // URL format: https://res.cloudinary.com/{cloud}/raw/{type}/v{n}/{folder}/{name}.pdf
-    const typeMatch = resume.fileUrl.match(/\/raw\/(upload|authenticated)\//i);
-    const deliveryType = typeMatch ? typeMatch[1] : 'upload';
-
-    const match = resume.fileUrl.match(/\/raw\/(?:upload|authenticated)\/(v\d+\/)?(.+?)(?:\.pdf)?$/i);
+    const match = resume.fileUrl.match(/\/raw\/(upload|authenticated)\/(v(\d+)\/)?(.+?)(?:\.pdf)?$/i);
     if (!match) {
         return res.status(500).json({ success: false, error: 'Invalid file URL format' });
     }
-    // Decode URL-encoded characters (e.g. spaces: %20 → ' ') before passing to Cloudinary SDK
-    const publicId = decodeURIComponent(match[2]);
+    const deliveryType = match[1];
+    const publicId = decodeURIComponent(match[4]);
 
-    // private_download_url generates a signed API-level download URL (not CDN).
-    // Pass the correct delivery type so Cloudinary finds the right asset.
+    // private_download_url routes through api.cloudinary.com using API credentials —
+    // bypasses CDN access restrictions that block direct browser or unsigned requests
     const downloadUrl = cloudinary.utils.private_download_url(publicId, 'pdf', {
         resource_type: 'raw',
         type: deliveryType,
-        expires_at: Math.floor(Date.now() / 1000) + 600,
-        attachment: false, // open in browser (PDF viewer); set true to force file save
+        expires_at: Math.floor(Date.now() / 1000) + 60,
     });
 
-    res.json({ success: true, downloadUrl });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${resume.fileName}"`);
+
+    const https = require('https');
+    const proxyRequest = (url, redirectsLeft) => {
+        https.get(url, (fileStream) => {
+            if ([301, 302, 303, 307, 308].includes(fileStream.statusCode) && fileStream.headers.location && redirectsLeft > 0) {
+                fileStream.resume();
+                proxyRequest(fileStream.headers.location, redirectsLeft - 1);
+                return;
+            }
+            if (fileStream.statusCode !== 200) {
+                console.error('Cloudinary returned', fileStream.statusCode, 'for', url);
+                if (!res.headersSent) res.status(502).json({ success: false, error: 'Failed to fetch file from storage' });
+                return;
+            }
+            fileStream.pipe(res);
+        }).on('error', (err) => {
+            console.error('Resume download error:', err);
+            if (!res.headersSent) res.status(502).json({ success: false, error: 'Failed to fetch file from storage' });
+        });
+    };
+    proxyRequest(downloadUrl, 5);
 };
 
 // ----------------------------------------

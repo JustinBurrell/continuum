@@ -130,7 +130,6 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      // Backend proxies the file — responseType: 'blob' receives the binary stream directly
       const res = await api.get(`/resumes/${resume._id}/download`, { responseType: 'blob' });
       const blobUrl = URL.createObjectURL(res.data);
       const a = document.createElement('a');

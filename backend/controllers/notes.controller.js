@@ -128,37 +128,43 @@ exports.downloadNotePdf = async (req, res) => {
         return res.status(404).json({ success: false, error: 'This note has no associated PDF' });
     }
 
-    const typeMatch = note.pdfUrl.match(/\/raw\/(upload|authenticated)\//i);
-    const deliveryType = typeMatch ? typeMatch[1] : 'upload';
-
-    let fileUrl = note.pdfUrl;
-
-    if (deliveryType === 'authenticated') {
-        const match = note.pdfUrl.match(/\/raw\/authenticated\/(v\d+\/)?(.+?)(?:\.pdf)?$/i);
-        if (!match) {
-            return res.status(500).json({ success: false, error: 'Invalid PDF URL format' });
-        }
-        const publicId = decodeURIComponent(match[2]);
-        fileUrl = cloudinary.utils.private_download_url(publicId, 'pdf', {
-            resource_type: 'raw',
-            type: 'authenticated',
-            expires_at: Math.floor(Date.now() / 1000) + 60,
-            attachment: false,
-        });
+    const match = note.pdfUrl.match(/\/raw\/(upload|authenticated)\/(v(\d+)\/)?(.+?)(?:\.pdf)?$/i);
+    if (!match) {
+        return res.status(500).json({ success: false, error: 'Invalid PDF URL format' });
     }
+    const deliveryType = match[1];
+    const publicId = decodeURIComponent(match[4]);
+
+    const downloadUrl = cloudinary.utils.private_download_url(publicId, 'pdf', {
+        resource_type: 'raw',
+        type: deliveryType,
+        expires_at: Math.floor(Date.now() / 1000) + 60,
+    });
 
     const fileName = (note.title || 'note') + '.pdf';
-    const https = require('https');
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-    https.get(fileUrl, (fileStream) => {
-        fileStream.pipe(res);
-    }).on('error', (err) => {
-        console.error('Note PDF download proxy error:', err);
-        if (!res.headersSent) {
-            res.status(502).json({ success: false, error: 'Failed to fetch PDF from storage' });
-        }
-    });
+
+    const https = require('https');
+    const proxyRequest = (url, redirectsLeft) => {
+        https.get(url, (fileStream) => {
+            if ([301, 302, 303, 307, 308].includes(fileStream.statusCode) && fileStream.headers.location && redirectsLeft > 0) {
+                fileStream.resume();
+                proxyRequest(fileStream.headers.location, redirectsLeft - 1);
+                return;
+            }
+            if (fileStream.statusCode !== 200) {
+                console.error('Cloudinary returned', fileStream.statusCode, 'for', url);
+                if (!res.headersSent) res.status(502).json({ success: false, error: 'Failed to fetch PDF from storage' });
+                return;
+            }
+            fileStream.pipe(res);
+        }).on('error', (err) => {
+            console.error('Note PDF download error:', err);
+            if (!res.headersSent) res.status(502).json({ success: false, error: 'Failed to fetch PDF from storage' });
+        });
+    };
+    proxyRequest(downloadUrl, 5);
 };
 
 // ----------------------------------------
