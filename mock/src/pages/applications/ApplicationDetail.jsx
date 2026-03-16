@@ -145,7 +145,7 @@ export default function ApplicationDetail() {
                   value={displayForm.status}
                   onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
                 >
-                  {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                  {STAGES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
                 </select>
               </div>
               <div>

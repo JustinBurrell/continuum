@@ -152,9 +152,18 @@ export default function ApplicationsList() {
         apps.length === 0 ? (
           <div className="text-center py-16">
             <Briefcase size={40} className="mx-auto mb-3 text-secondary/40" />
-            <h3 className="font-semibold text-foreground mb-1">No applications found</h3>
-            <p className="text-secondary text-sm mb-4">Start tracking your job applications.</p>
-            <Button size="sm" onClick={() => setShowCreate(true)}>Add your first application</Button>
+            {stageFilter !== 'all' || search ? (
+              <>
+                <h3 className="font-semibold text-foreground mb-1">No applications found</h3>
+                <p className="text-secondary text-sm">No applications match this filter.</p>
+              </>
+            ) : (
+              <>
+                <h3 className="font-semibold text-foreground mb-1">No applications yet</h3>
+                <p className="text-secondary text-sm mb-4">Start tracking your job applications.</p>
+                <Button size="sm" onClick={() => setShowCreate(true)}>Add your first application</Button>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
@@ -214,7 +223,7 @@ export default function ApplicationsList() {
                 value={form.status}
                 onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
               >
-                {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                {STAGES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
               </select>
             </div>
             <div>
@@ -297,7 +306,7 @@ function PipelineCard({ app, stages, onStageChange, stateApp }) {
         className="text-xs border border-border rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-primary/30 w-full mb-2"
         onClick={e => e.stopPropagation()}
       >
-        {stages.map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
+        {stages.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
       </select>
       <Link to="/applications/view" state={{ id: app._id, application: stateApp }}>
         <Button variant="outline" size="sm" className="w-full text-xs">View / Edit</Button>
