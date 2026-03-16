@@ -41,10 +41,15 @@ export default function ApplicationsList() {
     keepPreviousData: true,
   });
 
+  const invalidateApps = () => {
+    queryClient.invalidateQueries({ queryKey: ['applications'] });
+    queryClient.invalidateQueries({ queryKey: ['applications-dashboard'] });
+  };
+
   const createMutation = useMutation({
     mutationFn: (payload) => api.post('/applications', payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['applications'] });
+      invalidateApps();
       setShowCreate(false);
       setForm(emptyForm);
     },
@@ -52,7 +57,7 @@ export default function ApplicationsList() {
 
   const updateStageMutation = useMutation({
     mutationFn: ({ id, status }) => api.put(`/applications/${id}`, { status }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['applications'] }),
+    onSuccess: invalidateApps,
   });
 
   const apps = data?.applications || data?.data || [];

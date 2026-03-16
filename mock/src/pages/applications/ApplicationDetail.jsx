@@ -49,6 +49,7 @@ export default function ApplicationDetail() {
     mutationFn: (payload) => api.put(`/applications/${id}`, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['applications-dashboard'] });
       setEditing(false);
       setForm(null);
     },

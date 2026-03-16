@@ -64,6 +64,8 @@ export default function NoteDetail() {
     mutationFn: (payload) => api.put(`/notes/${id}/share`, payload),
     onSuccess: () => {
       setShareMsg('Visibility updated!');
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      queryClient.invalidateQueries({ queryKey: ['note', id] });
     },
     onError: (err) => {
       setShareMsg(err.response?.data?.error || 'Failed to share note.');
@@ -76,6 +78,7 @@ export default function NoteDetail() {
       const setId = res.data?.set?._id || res.data?.data?._id || res.data?._id;
       setFlashcardSetId(setId);
       setFlashcardMsg('Flashcard set created!');
+      queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
     },
     onError: (err) => {
       setFlashcardMsg(err.response?.data?.error || 'Failed to generate flashcards.');

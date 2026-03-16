@@ -120,29 +120,30 @@ export default function UserProfile() {
   }).slice(0, 8);
 
   // Mutations
+  const invalidateFriends = () => {
+    queryClient.invalidateQueries({ queryKey: ['friends'] });
+    queryClient.invalidateQueries({ queryKey: ['friend-requests'] });
+    queryClient.invalidateQueries({ queryKey: ['friend-requests-sent'] });
+  };
+
   const sendRequestMutation = useMutation({
     mutationFn: () => api.post('/friends/request', { recipientId: id }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['friend-requests-sent'] });
-    },
+    onSuccess: invalidateFriends,
   });
 
   const cancelMutation = useMutation({
     mutationFn: () => api.delete('/friends/request/' + sentEntry?._id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['friend-requests-sent'] }),
+    onSuccess: invalidateFriends,
   });
 
   const acceptMutation = useMutation({
     mutationFn: () => api.put(`/friends/request/${pendingEntry?._id}`, { action: 'accept' }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['friends'] });
-      queryClient.invalidateQueries({ queryKey: ['friend-requests'] });
-    },
+    onSuccess: invalidateFriends,
   });
 
   const removeMutation = useMutation({
     mutationFn: () => api.delete('/friends/' + isFriendEntry?._id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['friends'] }),
+    onSuccess: invalidateFriends,
   });
 
   const startDMMutation = useMutation({
