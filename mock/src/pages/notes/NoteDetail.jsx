@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
@@ -38,6 +38,14 @@ export default function NoteDetail() {
     queryKey: ['note', id],
     queryFn: () => api.get(`/notes/${id}`).then(r => r.data),
   });
+
+  // Viewing a note updates lastViewedAt on the backend (affects list sort order).
+  // Invalidate the notes list on unmount so the list refetches with the correct order.
+  useEffect(() => {
+    return () => {
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+    };
+  }, []);
 
   const { data: commentsData, refetch: refetchComments } = useQuery({
     queryKey: ['note-comments', id],
