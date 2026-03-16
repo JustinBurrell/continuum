@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Activity as ActivityIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import api from '@/lib/api';
 import { Card } from '@/components/ui/Card';
 import Avatar from '@/components/ui/Avatar';
@@ -42,14 +43,13 @@ function ActivityItem({ item }) {
   const actor = item.userId;
   const name = fullName(actor);
 
+  const actorId = actor?._id;
+
   return (
     <div className="flex items-start gap-3 py-3 border-b border-border last:border-0">
-      <Avatar
-        name={name}
-        src={actor?.avatarUrl}
-        size="sm"
-        className="mt-0.5 flex-shrink-0"
-      />
+      <Link to="/users/view" state={{ id: actorId }} className="flex-shrink-0 mt-0.5">
+        <Avatar name={name} src={actor?.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
+      </Link>
       <div className="flex-1 min-w-0">
         <p className="text-sm text-foreground">{getActivitySentence(item, name)}</p>
         <p className="text-xs text-secondary mt-0.5">{formatRelative(item.createdAt)}</p>

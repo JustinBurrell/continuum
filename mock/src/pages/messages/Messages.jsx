@@ -66,26 +66,34 @@ export default function Messages() {
       ) : (
         <div className="space-y-2">
           {conversations.map(conv => {
-            const other = conv.participants?.find(p => p._id !== user?._id);
+            const other = conv.participants?.find(p =>
+              (p._id ?? p._id?.toString()) !== (user?._id ?? user?._id?.toString())
+            );
+            const otherName = [other?.firstName, other?.lastName].filter(Boolean).join(' ') || other?.username || 'Unknown';
             const lastMsg = conv.lastMessage;
             return (
               <Link key={conv._id} to={`/messages/${conv._id}`}>
                 <Card className="flex items-center gap-4 p-4 hover:shadow-card-hover transition-shadow cursor-pointer">
-                  <Avatar name={other?.name || other?.username} src={other?.avatar} size="md" />
+                  <Link
+                    to="/users/view"
+                    state={{ id: other?._id }}
+                    onClick={e => e.stopPropagation()}
+                    className="flex-shrink-0"
+                  >
+                    <Avatar name={otherName} src={other?.avatarUrl} size="md" className="hover:opacity-80 transition-opacity" />
+                  </Link>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
-                      <p className="font-semibold text-foreground text-sm">
-                        {other?.name || other?.username || 'Unknown'}
-                      </p>
+                      <p className="font-semibold text-foreground text-sm">{otherName}</p>
                       {lastMsg && (
                         <span className="text-xs text-secondary">
-                          {formatRelative(lastMsg.createdAt)}
+                          {formatRelative(lastMsg.sentAt || lastMsg.createdAt)}
                         </span>
                       )}
                     </div>
                     {lastMsg ? (
                       <p className="text-xs text-secondary truncate">
-                        {lastMsg.sender === user?._id ? 'You: ' : ''}
+                        {lastMsg.senderId === user?._id ? 'You: ' : ''}
                         {truncate(lastMsg.content, 60)}
                       </p>
                     ) : (

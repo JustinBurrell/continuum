@@ -196,9 +196,13 @@ export default function Friends() {
                 const requester = getOtherUser(req);
                 return (
                   <Card key={req._id} className="flex items-center gap-4 p-4">
-                    <Avatar name={fullName(requester)} src={requester?.avatarUrl} />
+                    <Link to="/users/view" state={{ id: requester?._id }} className="flex-shrink-0">
+                      <Avatar name={fullName(requester)} src={requester?.avatarUrl} className="hover:opacity-80 transition-opacity" />
+                    </Link>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground text-sm">{fullName(requester)}</p>
+                      <Link to="/users/view" state={{ id: requester?._id }} className="font-medium text-foreground text-sm hover:text-primary transition-colors">
+                        {fullName(requester)}
+                      </Link>
                       <p className="text-xs text-secondary">@{requester?.username} wants to connect</p>
                     </div>
                     <div className="flex gap-2">
@@ -242,9 +246,13 @@ export default function Friends() {
                 const recipient = getOtherUser(req);
                 return (
                   <Card key={req._id} className="flex items-center gap-4 p-4">
-                    <Avatar name={fullName(recipient)} src={recipient?.avatarUrl} />
+                    <Link to="/users/view" state={{ id: recipient?._id }} className="flex-shrink-0">
+                      <Avatar name={fullName(recipient)} src={recipient?.avatarUrl} className="hover:opacity-80 transition-opacity" />
+                    </Link>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground text-sm">{fullName(recipient)}</p>
+                      <Link to="/users/view" state={{ id: recipient?._id }} className="font-medium text-foreground text-sm hover:text-primary transition-colors">
+                        {fullName(recipient)}
+                      </Link>
                       <p className="text-xs text-secondary">@{recipient?.username} · Request pending</p>
                     </div>
                     <Button
@@ -283,9 +291,13 @@ export default function Friends() {
               ) : (
                 searchResults.map(u => (
                   <Card key={u._id} className="flex items-center gap-3 p-3">
-                    <Avatar name={fullName(u)} src={u.avatarUrl} size="sm" />
+                    <Link to="/users/view" state={{ id: u._id }} className="flex-shrink-0">
+                      <Avatar name={fullName(u)} src={u.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
+                    </Link>
                     <div className="flex-1">
-                      <p className="font-medium text-sm">{fullName(u)}</p>
+                      <Link to="/users/view" state={{ id: u._id }} className="font-medium text-sm hover:text-primary transition-colors">
+                        {fullName(u)}
+                      </Link>
                       <p className="text-xs text-secondary">@{u.username}</p>
                     </div>
                     <Button

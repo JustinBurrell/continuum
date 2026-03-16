@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Search, MessageCircle } from 'lucide-react';
 import api from '@/lib/api';
@@ -17,9 +18,15 @@ function getName(p) {
 
 export default function MessagesLayout() {
   const { user } = useAuth();
+  const { state } = useLocation();
   const [showNew, setShowNew] = useState(false);
   const [friendSearch, setFriendSearch] = useState('');
-  const [activeConversationId, setActiveConversationId] = useState(null);
+  const [activeConversationId, setActiveConversationId] = useState(state?.conversationId ?? null);
+
+  // Clear router state after consuming it so back-navigation doesn't re-open the same convo
+  useEffect(() => {
+    if (state?.conversationId) window.history.replaceState({}, '');
+  }, []);
 
   const { data, isLoading } = useQuery({
     queryKey: ['conversations'],

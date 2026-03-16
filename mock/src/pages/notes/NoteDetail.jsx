@@ -292,12 +292,14 @@ export default function NoteDetail() {
               const likeCount = c.likes?.length || 0;
               return (
                 <div key={c._id} className="flex gap-3 group">
-                  <Avatar name={fullName(author)} src={author.avatarUrl} size="sm" />
+                  <Link to="/users/view" state={{ id: c.userId?._id ?? c.userId }} className="flex-shrink-0">
+                    <Avatar name={fullName(author)} src={author.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
+                  </Link>
                   <div className="flex-1 bg-accent rounded-xl px-4 py-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-semibold text-foreground">
+                      <Link to="/users/view" state={{ id: c.userId?._id ?? c.userId }} className="text-xs font-semibold text-foreground hover:text-primary transition-colors">
                         {fullName(author)}
-                      </span>
+                      </Link>
                       <span className="text-xs text-secondary">{formatRelative(c.createdAt)}</span>
                       <div className="ml-auto flex items-center gap-1.5">
                         <button
