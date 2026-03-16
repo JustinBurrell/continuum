@@ -98,15 +98,8 @@ export default function NoteDetail() {
   const handlePdfDownload = async () => {
     setPdfDownloading(true);
     try {
-      const res = await api.get(`/notes/${id}/pdf`, { responseType: 'blob' });
-      const blobUrl = URL.createObjectURL(res.data);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = (note?.title || 'note') + '.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+      const res = await api.get(`/notes/${id}/pdf`);
+      window.open(res.data.downloadUrl, '_blank');
     } catch (err) {
       console.error('PDF download error:', err);
     } finally {

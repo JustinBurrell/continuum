@@ -29,7 +29,7 @@ const uploadPdfToCloudinary = (stream, googleDocId) => {
                 folder: 'continuum/notes',
                 public_id: googleDocId,
                 resource_type: 'raw',
-                type: 'authenticated', // private — requires signed URL for access
+                type: 'upload',
                 format: 'pdf',
                 overwrite: true,
             },
@@ -54,7 +54,7 @@ const uploadNoteBufferToCloudinary = (buffer, fileName) => {
                 folder: 'continuum/notes',
                 public_id: fileName.replace(/\.[^.]+$/, '') + '_' + Date.now(),
                 resource_type: 'raw',
-                type: 'authenticated', // private — requires signed URL for access
+                type: 'upload',
                 format: 'pdf',
                 overwrite: false,
             },
@@ -104,6 +104,7 @@ exports.uploadNote = async (req, res) => {
         type: type || 'general',
         tags: tagList,
         pdfUrl: cloudinaryResult.secure_url,
+        pdfPublicId: cloudinaryResult.public_id,
     });
 
     res.status(201).json({ success: true, note });
@@ -128,43 +129,9 @@ exports.downloadNotePdf = async (req, res) => {
         return res.status(404).json({ success: false, error: 'This note has no associated PDF' });
     }
 
-    const match = note.pdfUrl.match(/\/raw\/(upload|authenticated)\/(v(\d+)\/)?(.+?)(?:\.pdf)?$/i);
-    if (!match) {
-        return res.status(500).json({ success: false, error: 'Invalid PDF URL format' });
-    }
-    const deliveryType = match[1];
-    const publicId = decodeURIComponent(match[4]);
-
-    const downloadUrl = cloudinary.utils.private_download_url(publicId, 'pdf', {
-        resource_type: 'raw',
-        type: deliveryType,
-        expires_at: Math.floor(Date.now() / 1000) + 60,
-    });
-
-    const fileName = (note.title || 'note') + '.pdf';
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-
-    const https = require('https');
-    const proxyRequest = (url, redirectsLeft) => {
-        https.get(url, (fileStream) => {
-            if ([301, 302, 303, 307, 308].includes(fileStream.statusCode) && fileStream.headers.location && redirectsLeft > 0) {
-                fileStream.resume();
-                proxyRequest(fileStream.headers.location, redirectsLeft - 1);
-                return;
-            }
-            if (fileStream.statusCode !== 200) {
-                console.error('Cloudinary returned', fileStream.statusCode, 'for', url);
-                if (!res.headersSent) res.status(502).json({ success: false, error: 'Failed to fetch PDF from storage' });
-                return;
-            }
-            fileStream.pipe(res);
-        }).on('error', (err) => {
-            console.error('Note PDF download error:', err);
-            if (!res.headersSent) res.status(502).json({ success: false, error: 'Failed to fetch PDF from storage' });
-        });
-    };
-    proxyRequest(downloadUrl, 5);
+    const safeName = (note.title || 'note').replace(/[^a-zA-Z0-9._-]/g, '_');
+    const downloadUrl = note.pdfUrl.replace('/upload/', `/upload/fl_attachment:${safeName}/`);
+    res.status(200).json({ success: true, downloadUrl });
 };
 
 // ----------------------------------------
@@ -350,6 +317,7 @@ exports.importNote = async (req, res) => {
         content,
         contentType: 'plain',
         pdfUrl: cloudinaryResult.secure_url,
+        pdfPublicId: cloudinaryResult.public_id,
         googleDocId,
         googleDocUrl,
         lastSyncedAt: new Date(),
@@ -398,7 +366,7 @@ exports.refreshNote = async (req, res) => {
 
     const updatedNote = await Note.findOneAndUpdate(
         { _id: note._id, userId: req.user._id },
-        { content, pdfUrl: cloudinaryResult.secure_url, lastSyncedAt: new Date() },
+        { content, pdfUrl: cloudinaryResult.secure_url, pdfPublicId: cloudinaryResult.public_id, lastSyncedAt: new Date() },
         { new: true }
     );
 

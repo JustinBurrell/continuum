@@ -22,7 +22,7 @@ const uploadBufferToCloudinary = (buffer, fileName) => {
                 folder: 'continuum/resumes',
                 public_id: fileName.replace(/\.[^.]+$/, ''), // strip extension
                 resource_type: 'raw',
-                type: 'authenticated', // private — requires signed URL for access
+                type: 'upload',
                 format: 'pdf',
                 overwrite: false, // each upload is a new version
             },
@@ -66,6 +66,7 @@ exports.uploadResume = async (req, res) => {
         userId: req.user._id,
         fileName: req.file.originalname,
         fileUrl: cloudinaryResult.secure_url,
+        publicId: cloudinaryResult.public_id,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
         version: version || null,
@@ -94,44 +95,10 @@ exports.downloadResume = async (req, res) => {
         return res.status(404).json({ success: false, error: 'Resume not found' });
     }
 
-    const match = resume.fileUrl.match(/\/raw\/(upload|authenticated)\/(v(\d+)\/)?(.+?)(?:\.pdf)?$/i);
-    if (!match) {
-        return res.status(500).json({ success: false, error: 'Invalid file URL format' });
-    }
-    const deliveryType = match[1];
-    const publicId = decodeURIComponent(match[4]);
-
-    // private_download_url routes through api.cloudinary.com using API credentials —
-    // bypasses CDN access restrictions that block direct browser or unsigned requests
-    const downloadUrl = cloudinary.utils.private_download_url(publicId, 'pdf', {
-        resource_type: 'raw',
-        type: deliveryType,
-        expires_at: Math.floor(Date.now() / 1000) + 60,
-    });
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${resume.fileName}"`);
-
-    const https = require('https');
-    const proxyRequest = (url, redirectsLeft) => {
-        https.get(url, (fileStream) => {
-            if ([301, 302, 303, 307, 308].includes(fileStream.statusCode) && fileStream.headers.location && redirectsLeft > 0) {
-                fileStream.resume();
-                proxyRequest(fileStream.headers.location, redirectsLeft - 1);
-                return;
-            }
-            if (fileStream.statusCode !== 200) {
-                console.error('Cloudinary returned', fileStream.statusCode, 'for', url);
-                if (!res.headersSent) res.status(502).json({ success: false, error: 'Failed to fetch file from storage' });
-                return;
-            }
-            fileStream.pipe(res);
-        }).on('error', (err) => {
-            console.error('Resume download error:', err);
-            if (!res.headersSent) res.status(502).json({ success: false, error: 'Failed to fetch file from storage' });
-        });
-    };
-    proxyRequest(downloadUrl, 5);
+    const baseName = resume.fileName.replace(/\.pdf$/i, '');
+    const safeName = baseName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const downloadUrl = resume.fileUrl.replace('/upload/', `/upload/fl_attachment:${safeName}/`);
+    res.status(200).json({ success: true, downloadUrl });
 };
 
 // ----------------------------------------

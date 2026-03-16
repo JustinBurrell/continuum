@@ -33,6 +33,9 @@ const resumeSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    publicId: {
+        type: String,
+    },
     fileSize: {
         type: Number,
     },

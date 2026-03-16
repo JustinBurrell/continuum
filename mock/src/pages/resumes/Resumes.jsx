@@ -130,15 +130,8 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      const res = await api.get(`/resumes/${resume._id}/download`, { responseType: 'blob' });
-      const blobUrl = URL.createObjectURL(res.data);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = resume.fileName || 'resume.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+      const res = await api.get(`/resumes/${resume._id}/download`);
+      window.open(res.data.downloadUrl, '_blank');
     } catch (err) {
       console.error('Download error:', err);
     } finally {

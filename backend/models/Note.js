@@ -56,6 +56,9 @@ const noteSchema = new mongoose.Schema({
     pdfUrl: {
         type: String,
     },
+    pdfPublicId: {
+        type: String,
+    },
     lastSyncedAt: {
         type: Date,
     },
