@@ -1,12 +1,9 @@
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FileText, CheckSquare, Briefcase, Activity, ArrowRight, Clock } from 'lucide-react';
 import api from '@/lib/api';
-import queryClient from '@/lib/queryClient';
 import { useAuth } from '@/context/AuthContext';
 import Skeleton from '@/components/ui/Skeleton';
-import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import { formatRelative, truncate, stripHtml } from '@/lib/utils';
 
 // Verified backend response shapes:
@@ -163,7 +160,7 @@ const PIPELINE_STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', '
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [viewingTaskId, setViewingTaskId] = useState(null);
+  const navigate = useNavigate();
 
   const { data: notesData, isLoading: notesLoading } = useQuery({
     queryKey: ['notes', { limit: 3 }],
@@ -255,7 +252,7 @@ export default function Dashboard() {
                 ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 my-2" />)
                 : tasks.length === 0
                   ? <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-secondary)', padding: '1.5rem 0' }}>No open tasks.</p>
-                  : tasks.slice(0, 5).map(task => <TaskItem key={task._id} task={task} onView={setViewingTaskId} />)
+                  : tasks.slice(0, 5).map(task => <TaskItem key={task._id} task={task} onView={(id) => navigate('/tasks', { state: { openTaskId: id } })} />)
               }
             </div>
           </Section>
@@ -288,15 +285,6 @@ export default function Dashboard() {
           </Section>
         </div>
       </div>
-      <TaskDetailModal
-        taskId={viewingTaskId}
-        open={!!viewingTaskId}
-        onClose={() => setViewingTaskId(null)}
-        onUpdated={() => {
-          queryClient.invalidateQueries({ queryKey: ['tasks'] });
-          queryClient.invalidateQueries({ queryKey: ['calendar'] });
-        }}
-      />
     </div>
   );
 }

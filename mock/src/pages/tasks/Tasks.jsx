@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Clock, AlertCircle, Trash2, UserPlus } from 'lucide-react';
 import api from '@/lib/api';
@@ -22,10 +23,11 @@ const emptyForm = {
 };
 
 export default function Tasks() {
+  const location = useLocation();
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [sharedTab, setSharedTab] = useState(false);
-  const [viewingTaskId, setViewingTaskId] = useState(null);
+  const [viewingTaskId, setViewingTaskId] = useState(location.state?.openTaskId ?? null);
 
   const { data, isLoading } = useQuery({
     queryKey: sharedTab ? ['tasks', 'shared'] : ['tasks', 'mine'],
