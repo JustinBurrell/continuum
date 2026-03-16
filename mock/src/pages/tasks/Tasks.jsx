@@ -49,6 +49,11 @@ export default function Tasks() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: sharedTab ? ['tasks-shared'] : ['tasks'] }),
   });
 
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }) => api.patch(`/tasks/${id}/status`, { status }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: sharedTab ? ['tasks-shared'] : ['tasks'] }),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id) => api.delete(`/tasks/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
@@ -63,7 +68,7 @@ export default function Tasks() {
   }));
 
   const handleStatusChange = (taskId, newStatus) => {
-    updateMutation.mutate({ id: taskId, status: newStatus });
+    statusMutation.mutate({ id: taskId, status: newStatus });
   };
 
   const handleEdit = (task) => {
