@@ -4,7 +4,7 @@ import {
   Camera, Save, RefreshCw, LinkIcon, Unlink, LogOut,
   Bell, FileText, Layers, Briefcase, FileCheck,
   CheckSquare, Users, AtSign, Calendar as CalendarIcon,
-  ChevronRight,
+  ChevronRight, ShieldCheck, ShieldAlert, Mail,
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '@/lib/api';
@@ -24,6 +24,7 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState('overview');
   const [logoutAllLoading, setLogoutAllLoading] = useState(false);
   const [notifSaved, setNotifSaved] = useState(false);
+  const [verifySent, setVerifySent] = useState(false);
   const navigate = useNavigate();
 
   const { data } = useQuery({
@@ -135,6 +136,11 @@ export default function Profile() {
     },
   });
 
+  const sendVerifyMutation = useMutation({
+    mutationFn: () => api.post('/auth/send-verification'),
+    onSuccess: () => setVerifySent(true),
+  });
+
   const handleLogoutAll = async () => {
     if (!window.confirm('Sign out of all devices? You will need to log in again.')) return;
     setLogoutAllLoading(true);
@@ -190,6 +196,22 @@ export default function Profile() {
       {/* ── Overview ── */}
       {activeTab === 'overview' && (
         <div className="space-y-5">
+          {/* Email verification banner */}
+          {me && !me.emailVerified && (
+            <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+              <ShieldAlert size={16} className="text-amber-500 flex-shrink-0" />
+              <p className="text-sm text-amber-800 flex-1">
+                Your email is not verified. Verify it to secure your account.
+              </p>
+              <button
+                onClick={() => setActiveTab('integrations')}
+                className="text-xs font-medium text-amber-700 hover:text-amber-900 underline flex-shrink-0"
+              >
+                Verify now
+              </button>
+            </div>
+          )}
+
           {/* Profile header */}
           <Card className="p-6">
             <div className="flex items-center gap-5">
@@ -434,6 +456,48 @@ export default function Profile() {
       {/* ── Integrations ── */}
       {activeTab === 'integrations' && (
         <div className="space-y-4">
+          {/* Email verification */}
+          <Card>
+            <div className="flex items-center gap-4">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${me?.emailVerified ? 'bg-green-50' : 'bg-amber-50'}`}>
+                {me?.emailVerified
+                  ? <ShieldCheck size={18} className="text-green-600" />
+                  : <ShieldAlert size={18} className="text-amber-500" />
+                }
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-foreground">Email verification</p>
+                  {me?.emailVerified
+                    ? <Badge variant="success">Verified</Badge>
+                    : <Badge variant="warning">Unverified</Badge>
+                  }
+                </div>
+                <p className="text-xs text-secondary mt-0.5 flex items-center gap-1">
+                  <Mail size={10} /> {me?.email}
+                </p>
+                {verifySent && (
+                  <p className="text-xs text-green-600 mt-1">Check your inbox — link sent!</p>
+                )}
+                {sendVerifyMutation.isError && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {sendVerifyMutation.error?.response?.data?.error || 'Failed to send. Try again.'}
+                  </p>
+                )}
+              </div>
+              {!me?.emailVerified && !verifySent && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => sendVerifyMutation.mutate()}
+                  loading={sendVerifyMutation.isPending}
+                >
+                  Send verification email
+                </Button>
+              )}
+            </div>
+          </Card>
+
           <Card>
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">

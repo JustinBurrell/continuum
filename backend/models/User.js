@@ -101,6 +101,14 @@ const userSchema = new mongoose.Schema({
         type: Date,
     },
 
+    emailVerificationToken: {
+        type: String,
+        select: false,
+    },
+    emailVerificationExpires: {
+        type: Date,
+    },
+
     /**
      * Settings
      * Purpose: Store user preferences (embedded — small, always needed with user)
@@ -216,6 +224,19 @@ userSchema.methods.createPasswordResetToken = function () {
     // This is what goes in the email link: /reset-password?token=a3f8b2c1d4e5...
     // When the user clicks the link, we hash their token again and compare to the DB
     return resetToken;
+};
+
+/**
+ * createEmailVerificationToken
+ * Purpose: Generate a random token for the email verification link
+ * Used in: register (auto-send) and sendVerificationEmail (manual resend)
+ * @returns {String} - The unhashed token (sent in email). Hashed version stored in DB.
+ */
+userSchema.methods.createEmailVerificationToken = function () {
+    const verifyToken = crypto.randomBytes(32).toString('hex');
+    this.emailVerificationToken = crypto.createHash('sha256').update(verifyToken).digest('hex');
+    this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    return verifyToken;
 };
 
 // ============================================================

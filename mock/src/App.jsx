@@ -11,6 +11,7 @@ import Register from '@/pages/auth/Register';
 import ForgotPassword from '@/pages/auth/ForgotPassword';
 import ResetPassword from '@/pages/auth/ResetPassword';
 import AuthCallback from '@/pages/auth/AuthCallback';
+import EmailVerified from '@/pages/auth/EmailVerified';
 
 import Landing from '@/pages/Landing';
 import Product from '@/pages/Product';
@@ -52,6 +53,7 @@ export default function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/verify-email" element={<EmailVerified />} />
 
             {/* App — authenticated */}
             <Route element={<AppLayout />}>
