@@ -11,10 +11,10 @@ import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
 import { formatDate } from '@/lib/utils';
 
-const STAGES = ['applied', 'screening', 'interview', 'offer', 'rejected'];
+const STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
 const STAGE_VARIANTS = {
-  applied: 'neutral', screening: 'primary', interview: 'warning',
-  offer: 'success', rejected: 'danger',
+  draft: 'neutral', applied: 'primary', interview: 'warning',
+  offer: 'success', rejected: 'danger', withdrawn: 'neutral',
 };
 
 const emptyForm = {
@@ -138,7 +138,7 @@ export default function ApplicationsList() {
                       key={app._id}
                       app={app}
                       stages={STAGES}
-                      onStageChange={(stage) => updateStageMutation.mutate({ id: app._id, stage })}
+                      onStageChange={(status) => updateStageMutation.mutate({ id: app._id, status })}
                       stateApp={app}
                     />
                   ))

@@ -13,10 +13,10 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
 
-const STAGES = ['applied', 'screening', 'interview', 'offer', 'rejected'];
+const STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
 const STAGE_VARIANTS = {
-  applied: 'neutral', screening: 'primary', interview: 'warning',
-  offer: 'success', rejected: 'danger',
+  draft: 'neutral', applied: 'primary', interview: 'warning',
+  offer: 'success', rejected: 'danger', withdrawn: 'neutral',
 };
 
 const emptyContact = { name: '', email: '', role: '', linkedIn: '' };
@@ -50,6 +50,7 @@ export default function ApplicationDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       setEditing(false);
+      setForm(null);
     },
   });
 
