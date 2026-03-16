@@ -63,8 +63,13 @@ const noteSchema = new mongoose.Schema({
     /**
      * Organization
      * Purpose: Categorize and organize notes with tags, subjects, and folders
-     * Fields: tags, subject, folder
+     * Fields: type, tags, subject, folder
      */
+    type: {
+        type: String,
+        enum: ['general', 'lecture', 'research', 'todo', 'journal'],
+        default: 'general',
+    },
     tags: [{
         type: String,
         lowercase: true,
