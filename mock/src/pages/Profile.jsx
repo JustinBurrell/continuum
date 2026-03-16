@@ -35,22 +35,15 @@ export default function Profile() {
 
   const profileMutation = useMutation({
     mutationFn: (payload) => {
-      const fd = new FormData();
-      const { settings, ...flat } = payload;
-      // Append top-level fields
-      Object.entries(flat).forEach(([k, v]) => {
-        if (v !== undefined && v !== null) fd.append(k, v);
-      });
-      // Flatten nested settings into dot-notation keys (e.g. settings.activityVisibility)
-      // RHF submits nested objects; FormData needs flat string keys
-      if (settings && typeof settings === 'object') {
+      // Send as JSON — bodyParser.json() handles it, Multer passes through for non-multipart requests.
+      // FormData was causing Multer to fail to parse the body silently (req.body stayed empty).
+      const { settings, ...body } = payload;
+      if (settings) {
         Object.entries(settings).forEach(([k, v]) => {
-          if (v !== undefined && v !== null) fd.append(`settings.${k}`, String(v));
+          body[`settings.${k}`] = v;
         });
       }
-      return api.patch('/auth/me/profile', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      return api.patch('/auth/me/profile', body);
     },
     onSuccess: (res) => {
       const updated = res.data.user || res.data.data;
@@ -62,9 +55,7 @@ export default function Profile() {
     mutationFn: (file) => {
       const fd = new FormData();
       fd.append('avatar', file);
-      return api.patch('/auth/me/profile', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      return api.patch('/auth/me/profile', fd);
     },
     onSuccess: (res) => {
       const updated = res.data.user || res.data.data;
