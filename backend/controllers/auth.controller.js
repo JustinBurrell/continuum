@@ -61,7 +61,10 @@ exports.register = async (req, res) => {
     // Auto-send verification email — non-blocking, don't fail registration if it errors
     try {
         const rawToken = user.createEmailVerificationToken();
-        await user.save();
+        await User.findByIdAndUpdate(user._id, {
+            emailVerificationToken: user.emailVerificationToken,
+            emailVerificationExpires: user.emailVerificationExpires,
+        });
         const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`;
         await resend.emails.send({
             from: 'Continuum <onboarding@resend.dev>',
@@ -387,7 +390,11 @@ exports.sendVerificationEmail = async (req, res) => {
     }
 
     const rawToken = req.user.createEmailVerificationToken();
-    await req.user.save();
+    // Write token fields directly — avoids validator issues on select:false password field
+    await User.findByIdAndUpdate(req.user._id, {
+        emailVerificationToken: req.user.emailVerificationToken,
+        emailVerificationExpires: req.user.emailVerificationExpires,
+    });
 
     const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`;
 
@@ -428,11 +435,13 @@ exports.verifyEmail = async (req, res) => {
         return res.status(400).json({ success: false, error: 'Token is invalid or has expired' });
     }
 
-    // Mark verified and clear the token fields so the link cannot be reused
-    user.emailVerified = true;
-    user.emailVerificationToken = undefined;
-    user.emailVerificationExpires = undefined;
-    await user.save();
+    // Use findByIdAndUpdate to write directly — avoids running validators on fields
+    // that aren't loaded (e.g. password is select:false on this document).
+    // This guarantees emailVerified is written atomically and the token is cleared.
+    await User.findByIdAndUpdate(user._id, {
+        $set: { emailVerified: true },
+        $unset: { emailVerificationToken: '', emailVerificationExpires: '' },
+    });
 
     res.status(200).json({ success: true, message: 'Email verified successfully' });
 };
