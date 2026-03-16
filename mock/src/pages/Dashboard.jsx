@@ -172,7 +172,7 @@ export default function Dashboard() {
   });
 
   const { data: tasksData, isLoading: tasksLoading } = useQuery({
-    queryKey: ['tasks-open'],
+    queryKey: ['tasks', 'open'],
     queryFn: () => api.get('/tasks').then(r => r.data),
   });
 
@@ -292,7 +292,10 @@ export default function Dashboard() {
         taskId={viewingTaskId}
         open={!!viewingTaskId}
         onClose={() => setViewingTaskId(null)}
-        onUpdated={() => queryClient.invalidateQueries({ queryKey: ['tasks-open'] })}
+        onUpdated={() => {
+          queryClient.invalidateQueries({ queryKey: ['tasks'] });
+          queryClient.invalidateQueries({ queryKey: ['calendar'] });
+        }}
       />
     </div>
   );

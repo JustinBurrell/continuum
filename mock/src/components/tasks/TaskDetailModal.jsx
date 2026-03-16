@@ -27,28 +27,30 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
   const [editForm, setEditForm] = useState({});
 
   const { data, isLoading } = useQuery({
-    queryKey: ['task', taskId],
+    queryKey: ['tasks', 'detail', taskId],
     queryFn: () => api.get(`/tasks/${taskId}`).then(r => r.data),
     enabled: !!taskId && open,
   });
 
   const task = data?.task;
 
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    queryClient.invalidateQueries({ queryKey: ['calendar'] });
+    onUpdated?.();
+  };
+
   const updateMutation = useMutation({
     mutationFn: (payload) => api.put(`/tasks/${taskId}`, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['task', taskId] });
-      onUpdated?.();
+      invalidateAll();
       setEditing(false);
     },
   });
 
   const statusMutation = useMutation({
     mutationFn: (status) => api.patch(`/tasks/${taskId}/status`, { status }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['task', taskId] });
-      onUpdated?.();
-    },
+    onSuccess: invalidateAll,
   });
 
   const openEdit = () => {

@@ -28,17 +28,22 @@ export default function Tasks() {
   const [viewingTaskId, setViewingTaskId] = useState(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: sharedTab ? ['tasks-shared'] : ['tasks'],
+    queryKey: sharedTab ? ['tasks', 'shared'] : ['tasks', 'mine'],
     queryFn: () =>
       sharedTab
         ? api.get('/tasks/shared').then(r => r.data)
         : api.get('/tasks').then(r => r.data),
   });
 
+  const invalidateTasks = () => {
+    queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    queryClient.invalidateQueries({ queryKey: ['calendar'] });
+  };
+
   const createMutation = useMutation({
     mutationFn: (payload) => api.post('/tasks', payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      invalidateTasks();
       setShowCreate(false);
       setForm(emptyForm);
     },
@@ -46,17 +51,17 @@ export default function Tasks() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, ...payload }) => api.put(`/tasks/${id}`, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: sharedTab ? ['tasks-shared'] : ['tasks'] }),
+    onSuccess: invalidateTasks,
   });
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }) => api.patch(`/tasks/${id}/status`, { status }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: sharedTab ? ['tasks-shared'] : ['tasks'] }),
+    onSuccess: invalidateTasks,
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => api.delete(`/tasks/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: invalidateTasks,
   });
 
   const allTasks = data?.tasks || data?.data || [];
@@ -198,7 +203,7 @@ export default function Tasks() {
         taskId={viewingTaskId}
         open={!!viewingTaskId}
         onClose={() => setViewingTaskId(null)}
-        onUpdated={() => queryClient.invalidateQueries({ queryKey: sharedTab ? ['tasks-shared'] : ['tasks'] })}
+        onUpdated={invalidateTasks}
       />
     </div>
   );

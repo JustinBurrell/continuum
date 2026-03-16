@@ -263,7 +263,10 @@ export default function Calendar() {
         taskId={viewingTaskId}
         open={!!viewingTaskId}
         onClose={() => setViewingTaskId(null)}
-        onUpdated={() => queryClient.invalidateQueries({ queryKey: ['calendar'] })}
+        onUpdated={() => {
+          queryClient.invalidateQueries({ queryKey: ['tasks'] });
+          queryClient.invalidateQueries({ queryKey: ['calendar'] });
+        }}
       />
     </div>
   );
