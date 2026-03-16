@@ -128,27 +128,37 @@ exports.downloadNotePdf = async (req, res) => {
         return res.status(404).json({ success: false, error: 'This note has no associated PDF' });
     }
 
-    // Detect delivery type and extract decoded public_id from stored URL
-    // Old notes (no explicit type): /raw/upload/ → 'upload'
-    // New notes: /raw/authenticated/ → 'authenticated'
     const typeMatch = note.pdfUrl.match(/\/raw\/(upload|authenticated)\//i);
     const deliveryType = typeMatch ? typeMatch[1] : 'upload';
 
-    const match = note.pdfUrl.match(/\/raw\/(?:upload|authenticated)\/(v\d+\/)?(.+?)(?:\.pdf)?$/i);
-    if (!match) {
-        return res.status(500).json({ success: false, error: 'Invalid PDF URL format' });
+    let fileUrl = note.pdfUrl;
+
+    if (deliveryType === 'authenticated') {
+        const match = note.pdfUrl.match(/\/raw\/authenticated\/(v\d+\/)?(.+?)(?:\.pdf)?$/i);
+        if (!match) {
+            return res.status(500).json({ success: false, error: 'Invalid PDF URL format' });
+        }
+        const publicId = decodeURIComponent(match[2]);
+        fileUrl = cloudinary.utils.private_download_url(publicId, 'pdf', {
+            resource_type: 'raw',
+            type: 'authenticated',
+            expires_at: Math.floor(Date.now() / 1000) + 60,
+            attachment: false,
+        });
     }
-    const publicId = decodeURIComponent(match[2]);
 
-    // private_download_url generates an API-level signed URL — pass correct type to match stored asset
-    const downloadUrl = cloudinary.utils.private_download_url(publicId, 'pdf', {
-        resource_type: 'raw',
-        type: deliveryType,
-        expires_at: Math.floor(Date.now() / 1000) + 600,
-        attachment: false,
+    const fileName = (note.title || 'note') + '.pdf';
+    const https = require('https');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    https.get(fileUrl, (fileStream) => {
+        fileStream.pipe(res);
+    }).on('error', (err) => {
+        console.error('Note PDF download proxy error:', err);
+        if (!res.headersSent) {
+            res.status(502).json({ success: false, error: 'Failed to fetch PDF from storage' });
+        }
     });
-
-    res.json({ success: true, downloadUrl });
 };
 
 // ----------------------------------------
@@ -156,13 +166,14 @@ exports.downloadNotePdf = async (req, res) => {
 // Purpose: Create a new note for the authenticated user
 // ----------------------------------------
 exports.createNote = async (req, res) => {
-    const { title, content, contentType, tags, subject, folder, visibility } = req.body;
+    const { title, content, contentType, type, tags, subject, folder, visibility } = req.body;
 
     const note = await Note.create({
         userId: req.user._id,
         title,
         content,
         contentType,
+        type,
         tags,
         subject,
         folder,
@@ -178,7 +189,7 @@ exports.createNote = async (req, res) => {
 // Query params: search, subject, folder, tags, visibility, isPinned, page, limit
 // ----------------------------------------
 exports.getNotes = async (req, res) => {
-    const { search, subject, folder, tags, visibility, isPinned, page = 1, limit = 20 } = req.query;
+    const { search, type, subject, folder, tags, visibility, isPinned, page = 1, limit = 20 } = req.query;
 
     // Base filter — always scope to current user and exclude soft-deleted notes
     const filter = {
@@ -187,6 +198,7 @@ exports.getNotes = async (req, res) => {
     };
 
     // Optional filters — only applied if the query param was provided
+    if (type) filter.type = type;
     if (subject) filter.subject = subject;
     if (folder) filter.folder = folder;
     if (visibility) filter.visibility = visibility;
@@ -205,7 +217,7 @@ exports.getNotes = async (req, res) => {
 
     const [notes, total] = await Promise.all([
         Note.find(filter)
-            .sort({ isPinned: -1, createdAt: -1 }) // pinned notes first, then newest
+            .sort({ isPinned: -1, lastViewedAt: -1, createdAt: -1 }) // pinned first, then most recently viewed/created
             .skip(skip)
             .limit(Number(limit)),
         Note.countDocuments(filter),
@@ -251,11 +263,11 @@ exports.getNoteById = async (req, res) => {
 // Purpose: Update a note — only accessible by the owner
 // ----------------------------------------
 exports.updateNote = async (req, res) => {
-    const { title, content, contentType, tags, subject, folder, visibility, sharedWith, isPinned } = req.body;
+    const { title, content, contentType, type, tags, subject, folder, visibility, sharedWith, isPinned } = req.body;
 
     const note = await Note.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id, deletedAt: null },
-        { title, content, contentType, tags, subject, folder, visibility, sharedWith, isPinned },
+        { title, content, contentType, type, tags, subject, folder, visibility, sharedWith, isPinned },
         { new: true, runValidators: true }  // new: true returns the updated doc
     );
 
