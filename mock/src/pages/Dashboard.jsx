@@ -165,8 +165,8 @@ export default function Dashboard() {
   });
 
   const { data: tasksData, isLoading: tasksLoading } = useQuery({
-    queryKey: ['tasks', { status: 'todo', limit: 5 }],
-    queryFn: () => api.get('/tasks', { params: { status: 'todo', limit: 5 } }).then(r => r.data),
+    queryKey: ['tasks-open'],
+    queryFn: () => api.get('/tasks').then(r => r.data),
   });
 
   const { data: activityData, isLoading: activityLoading } = useQuery({
@@ -185,7 +185,7 @@ export default function Dashboard() {
   });
 
   const notes      = notesData?.notes || [];
-  const tasks      = tasksData?.tasks || [];
+  const tasks      = (tasksData?.tasks || []).filter(t => t.status !== 'completed');
   const activities = activityData?.feed || [];          // ✓ backend field is `feed`
   const apps       = appsData?.applications || [];
   const pipeline   = appsDashboard?.pipeline || {};     // ✓ backend field is `pipeline` not `byStage`
@@ -248,7 +248,7 @@ export default function Dashboard() {
                 ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 my-2" />)
                 : tasks.length === 0
                   ? <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-secondary)', padding: '1.5rem 0' }}>No open tasks.</p>
-                  : tasks.map(task => <TaskItem key={task._id} task={task} />)
+                  : tasks.slice(0, 5).map(task => <TaskItem key={task._id} task={task} />)
               }
             </div>
           </Section>
