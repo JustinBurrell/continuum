@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, AlertCircle, Clock } from 'lucide-react';
 import api from '@/lib/api';
+import queryClient from '@/lib/queryClient';
 import { Card } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Skeleton from '@/components/ui/Skeleton';
+import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 
 function getMonthDates(year, month) {
   const firstDay = new Date(year, month, 1);
@@ -55,6 +57,7 @@ export default function Calendar() {
   const [view, setView] = useState('month');
   const [selected, setSelected] = useState(null);
   const [weekAnchor, setWeekAnchor] = useState(now);
+  const [viewingTaskId, setViewingTaskId] = useState(null);
 
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
@@ -112,7 +115,7 @@ export default function Calendar() {
         {/* Calendar grid */}
         <div className="lg:col-span-3">
           {view === 'week' ? (
-            <WeekView days={days} weekDates={weekDates} now={now} onPrev={prevWeek} onNext={nextWeek} />
+            <WeekView days={days} weekDates={weekDates} now={now} onPrev={prevWeek} onNext={nextWeek} onViewTask={setViewingTaskId} />
           ) : (
             <Card className="p-0 overflow-hidden">
               {/* Month nav */}
@@ -171,7 +174,8 @@ export default function Calendar() {
                           {tasksForDay.slice(0, 2).map(task => (
                             <div
                               key={task._id}
-                              className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 truncate"
+                              onClick={e => { e.stopPropagation(); setViewingTaskId(task._id); }}
+                              className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 truncate hover:bg-primary/20 transition-colors"
                             >
                               {task.title}
                             </div>
@@ -202,7 +206,11 @@ export default function Calendar() {
               ) : (
                 <div className="space-y-2">
                   {selectedTasks.map(task => (
-                    <div key={task._id} className="flex items-start gap-2">
+                    <div
+                      key={task._id}
+                      onClick={() => setViewingTaskId(task._id)}
+                      className="flex items-start gap-2 cursor-pointer rounded-lg px-2 py-1 -mx-2 hover:bg-accent transition-colors"
+                    >
                       <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
                         task.priority === 'high' ? 'bg-red-500' :
                         task.priority === 'medium' ? 'bg-amber-500' : 'bg-secondary/50'
@@ -230,7 +238,11 @@ export default function Calendar() {
             ) : (
               <div className="space-y-2">
                 {overdue.map(task => (
-                  <div key={task._id} className="flex items-start gap-2">
+                  <div
+                    key={task._id}
+                    onClick={() => setViewingTaskId(task._id)}
+                    className="flex items-start gap-2 cursor-pointer rounded-lg px-2 py-1 -mx-2 hover:bg-accent transition-colors"
+                  >
                     <div className="w-1.5 h-1.5 rounded-full mt-1.5 bg-red-500 flex-shrink-0" />
                     <div>
                       <p className="text-xs font-medium text-foreground line-clamp-1">{task.title}</p>
@@ -245,11 +257,18 @@ export default function Calendar() {
           </Card>
         </div>
       </div>
+
+      <TaskDetailModal
+        taskId={viewingTaskId}
+        open={!!viewingTaskId}
+        onClose={() => setViewingTaskId(null)}
+        onUpdated={() => queryClient.invalidateQueries({ queryKey: ['calendar'] })}
+      />
     </div>
   );
 }
 
-function WeekView({ days, weekDates, now, onPrev, onNext }) {
+function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
   const [selected, setSelected] = useState(null);
   const selectedTasks = selected ? (days[selected] || []) : [];
 
@@ -290,7 +309,11 @@ function WeekView({ days, weekDates, now, onPrev, onNext }) {
               </div>
               <div className="space-y-0.5">
                 {tasksForDay.slice(0, 3).map(task => (
-                  <div key={task._id} className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 truncate">
+                  <div
+                    key={task._id}
+                    onClick={e => { e.stopPropagation(); onViewTask(task._id); }}
+                    className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 truncate hover:bg-primary/20 transition-colors"
+                  >
                     {task.title}
                   </div>
                 ))}
@@ -313,7 +336,11 @@ function WeekView({ days, weekDates, now, onPrev, onNext }) {
           ) : (
             <div className="flex flex-wrap gap-2">
               {selectedTasks.map(task => (
-                <div key={task._id} className="flex items-center gap-1.5 bg-accent rounded-lg px-2.5 py-1.5">
+                <div
+                  key={task._id}
+                  onClick={() => onViewTask(task._id)}
+                  className="flex items-center gap-1.5 bg-accent rounded-lg px-2.5 py-1.5 cursor-pointer hover:bg-accent/70 transition-colors"
+                >
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${task.priority === 'high' ? 'bg-red-500' : task.priority === 'medium' ? 'bg-amber-500' : 'bg-secondary/50'}`} />
                   <span className="text-xs text-foreground font-medium">{task.title}</span>
                 </div>

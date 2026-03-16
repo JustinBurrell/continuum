@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, Clock, AlertCircle, Trash2, UserPlus, Pencil } from 'lucide-react';
+import { Plus, Clock, AlertCircle, Trash2, UserPlus } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { Card } from '@/components/ui/Card';
@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
+import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import { formatDate } from '@/lib/utils';
 
 const STATUSES = ['todo', 'in_progress', 'completed'];
@@ -24,8 +25,7 @@ export default function Tasks() {
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [sharedTab, setSharedTab] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
-  const [editForm, setEditForm] = useState(emptyForm);
+  const [viewingTaskId, setViewingTaskId] = useState(null);
 
   const { data, isLoading } = useQuery({
     queryKey: sharedTab ? ['tasks-shared'] : ['tasks'],
@@ -69,18 +69,6 @@ export default function Tasks() {
 
   const handleStatusChange = (taskId, newStatus) => {
     statusMutation.mutate({ id: taskId, status: newStatus });
-  };
-
-  const handleEdit = (task) => {
-    setEditingTask(task);
-    setEditForm({
-      title: task.title,
-      description: task.description || '',
-      priority: task.priority || 'medium',
-      status: task.status,
-      dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
-      isShared: task.isShared || false,
-    });
   };
 
   return (
@@ -132,7 +120,7 @@ export default function Tasks() {
               tasks={col.tasks}
               onStatusChange={handleStatusChange}
               onDelete={sharedTab ? null : (id) => { if (window.confirm('Delete task?')) deleteMutation.mutate(id); }}
-              onEdit={handleEdit}
+              onView={setViewingTaskId}
             />
           ))}
         </div>
@@ -206,78 +194,17 @@ export default function Tasks() {
         </div>
       </Modal>
 
-      {/* Edit modal */}
-      <Modal open={!!editingTask} onClose={() => setEditingTask(null)} title="Edit task">
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Title *</label>
-            <input
-              className="input-field"
-              placeholder="What needs to be done?"
-              value={editForm.title}
-              onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Description</label>
-            <textarea
-              className="input-field resize-none min-h-[72px]"
-              placeholder="Optional details..."
-              value={editForm.description}
-              onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm font-medium text-foreground block mb-1.5">Priority</label>
-              <select
-                className="input-field capitalize"
-                value={editForm.priority}
-                onChange={e => setEditForm(f => ({ ...f, priority: e.target.value }))}
-              >
-                {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-foreground block mb-1.5">Due date</label>
-              <input
-                type="date"
-                className="input-field"
-                value={editForm.dueDate}
-                onChange={e => setEditForm(f => ({ ...f, dueDate: e.target.value }))}
-              />
-            </div>
-          </div>
-          <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-            <input
-              type="checkbox"
-              className="accent-primary"
-              checked={editForm.isShared}
-              onChange={e => setEditForm(f => ({ ...f, isShared: e.target.checked }))}
-            />
-            Shared task (allow collaborators)
-          </label>
-          <div className="flex gap-3 pt-2">
-            <Button variant="outline" onClick={() => setEditingTask(null)} className="flex-1">Cancel</Button>
-            <Button
-              onClick={() => {
-                updateMutation.mutate({ id: editingTask._id, ...editForm, dueDate: editForm.dueDate || undefined });
-                setEditingTask(null);
-              }}
-              loading={updateMutation.isPending}
-              disabled={!editForm.title.trim()}
-              className="flex-1"
-            >
-              Save changes
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <TaskDetailModal
+        taskId={viewingTaskId}
+        open={!!viewingTaskId}
+        onClose={() => setViewingTaskId(null)}
+        onUpdated={() => queryClient.invalidateQueries({ queryKey: sharedTab ? ['tasks-shared'] : ['tasks'] })}
+      />
     </div>
   );
 }
 
-function KanbanColumn({ status, tasks, onStatusChange, onDelete, onEdit }) {
+function KanbanColumn({ status, tasks, onStatusChange, onDelete, onView }) {
   return (
     <div className="flex flex-col">
       <div className="flex items-center gap-2 mb-3">
@@ -296,7 +223,7 @@ function KanbanColumn({ status, tasks, onStatusChange, onDelete, onEdit }) {
               task={task}
               onStatusChange={onStatusChange}
               onDelete={onDelete}
-              onEdit={onEdit}
+              onView={onView}
             />
           ))
         )}
@@ -305,11 +232,11 @@ function KanbanColumn({ status, tasks, onStatusChange, onDelete, onEdit }) {
   );
 }
 
-function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
+function TaskCard({ task, onStatusChange, onDelete, onView }) {
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
 
   return (
-    <Card className="group p-4">
+    <Card className="group p-4 cursor-pointer" onClick={() => onView(task._id)}>
       <div className="flex items-start gap-2 mb-2">
         <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
           task.priority === 'high' ? 'bg-red-500' :
@@ -337,23 +264,16 @@ function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
       <div className="flex items-center justify-between">
         <select
           value={task.status}
-          onChange={e => onStatusChange(task._id, e.target.value)}
+          onChange={e => { e.stopPropagation(); onStatusChange(task._id, e.target.value); }}
+          onClick={e => e.stopPropagation()}
           className="text-xs border border-border rounded-lg px-2 py-1 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
         >
           {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
         </select>
         <div className="flex items-center gap-1">
-          {onEdit && (
-            <button
-              onClick={() => onEdit(task)}
-              className="p-1 rounded hover:bg-accent text-secondary hover:text-primary opacity-0 group-hover:opacity-100 transition-all"
-            >
-              <Pencil size={13} />
-            </button>
-          )}
           {onDelete && (
             <button
-              onClick={() => onDelete(task._id)}
+              onClick={e => { e.stopPropagation(); onDelete(task._id); }}
               className="p-1 rounded hover:bg-red-50 text-secondary hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
             >
               <Trash2 size={13} />

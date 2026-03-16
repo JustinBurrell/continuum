@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { FileText, CheckSquare, Briefcase, Activity, ArrowRight, Clock } from 'lucide-react';
 import api from '@/lib/api';
+import queryClient from '@/lib/queryClient';
 import { useAuth } from '@/context/AuthContext';
 import Skeleton from '@/components/ui/Skeleton';
+import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import { formatRelative, truncate, stripHtml } from '@/lib/utils';
 
 // Verified backend response shapes:
@@ -65,10 +68,13 @@ function NoteCard({ note }) {
   );
 }
 
-function TaskItem({ task }) {
+function TaskItem({ task, onView }) {
   const dotColor = task.priority === 'high' ? 'var(--destructive)' : task.priority === 'medium' ? 'var(--warning)' : 'var(--border-hover)';
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid var(--border)' }}>
+    <div
+      onClick={() => onView(task._id)}
+      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+    >
       <div style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.title}</p>
@@ -157,6 +163,7 @@ const PIPELINE_STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', '
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [viewingTaskId, setViewingTaskId] = useState(null);
 
   const { data: notesData, isLoading: notesLoading } = useQuery({
     queryKey: ['notes', { limit: 3 }],
@@ -248,7 +255,7 @@ export default function Dashboard() {
                 ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 my-2" />)
                 : tasks.length === 0
                   ? <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-secondary)', padding: '1.5rem 0' }}>No open tasks.</p>
-                  : tasks.slice(0, 5).map(task => <TaskItem key={task._id} task={task} />)
+                  : tasks.slice(0, 5).map(task => <TaskItem key={task._id} task={task} onView={setViewingTaskId} />)
               }
             </div>
           </Section>
@@ -281,6 +288,12 @@ export default function Dashboard() {
           </Section>
         </div>
       </div>
+      <TaskDetailModal
+        taskId={viewingTaskId}
+        open={!!viewingTaskId}
+        onClose={() => setViewingTaskId(null)}
+        onUpdated={() => queryClient.invalidateQueries({ queryKey: ['tasks-open'] })}
+      />
     </div>
   );
 }
