@@ -86,8 +86,8 @@ function TaskItem({ task }) {
 }
 
 function AppItem({ app }) {
-  const sc = { applied: ['var(--bg-hover)', 'var(--text-secondary)'], screening: ['var(--primary-bg)', 'var(--primary)'], interview: ['var(--warning-bg)', 'var(--warning)'], offer: ['var(--success-bg)', 'var(--success)'], rejected: ['var(--destructive-bg)', 'var(--destructive)'] };
-  const [bg, color] = sc[app.stage] || sc.applied;
+  const sc = { draft: ['var(--bg-hover)', 'var(--text-secondary)'], applied: ['var(--bg-hover)', 'var(--text-secondary)'], interview: ['var(--warning-bg)', 'var(--warning)'], offer: ['var(--success-bg)', 'var(--success)'], rejected: ['var(--destructive-bg)', 'var(--destructive)'], withdrawn: ['var(--bg-hover)', 'var(--text-secondary)'] };
+  const [bg, color] = sc[app.status] || sc.applied;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid var(--border)' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -153,7 +153,7 @@ function Section({ label, to, children }) {
   );
 }
 
-const PIPELINE_STAGES = ['applied', 'screening', 'interview', 'offer', 'rejected'];
+const PIPELINE_STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -254,11 +254,11 @@ export default function Dashboard() {
           </Section>
 
           <Section label="Applications" to="/applications">
-            {/* Pipeline pills — backend: pipeline.{ applied, screening, interview, offer, rejected } */}
+            {/* Pipeline pills — backend: pipeline.{ draft, applied, interview, offer, rejected, withdrawn } */}
             {Object.keys(pipeline).length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                 {PIPELINE_STAGES.filter(s => pipeline[s] > 0).map(s => {
-                  const sc = { applied: ['var(--bg-hover)', 'var(--text-secondary)'], screening: ['var(--primary-bg)', 'var(--primary)'], interview: ['var(--warning-bg)', 'var(--warning)'], offer: ['var(--success-bg)', 'var(--success)'], rejected: ['var(--destructive-bg)', 'var(--destructive)'] };
+                  const sc = { draft: ['var(--bg-hover)', 'var(--text-secondary)'], applied: ['var(--bg-hover)', 'var(--text-secondary)'], interview: ['var(--warning-bg)', 'var(--warning)'], offer: ['var(--success-bg)', 'var(--success)'], rejected: ['var(--destructive-bg)', 'var(--destructive)'], withdrawn: ['var(--bg-hover)', 'var(--text-secondary)'] };
                   const [bg, color] = sc[s] || sc.applied;
                   return (
                     <span key={s} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: bg, color, textTransform: 'capitalize' }}>
