@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Plus, FileCheck, Sparkles, Download, ChevronDown, ChevronUp, History } from 'lucide-react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Plus, FileCheck, Sparkles, Download, ChevronDown, ChevronUp, History, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { Card } from '@/components/ui/Card';
@@ -50,6 +50,11 @@ export default function Resumes() {
       setFeedbackLoading(prev => ({ ...prev, [resumeId]: false }));
     }
   };
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => api.delete(`/resumes/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resumes'] }),
+  });
 
   const resumes = data?.resumes || data?.data || [];
 
@@ -110,6 +115,12 @@ export default function Resumes() {
                 setExpandedFeedback(prev => ({ ...prev, [resume._id]: !prev[resume._id] }))
               }
               onAiFeedback={() => handleAiFeedback(resume._id)}
+              onDelete={() => {
+                if (window.confirm('Delete this resume and all its feedback history?')) {
+                  deleteMutation.mutate(resume._id);
+                }
+              }}
+              deleteLoading={deleteMutation.isPending && deleteMutation.variables === resume._id}
             />
           ))}
         </div>
@@ -118,7 +129,7 @@ export default function Resumes() {
   );
 }
 
-function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiFeedback }) {
+function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiFeedback, onDelete, deleteLoading }) {
   const hasFeedback = resume.feedback?.length > 0;
   const allFeedback = resume.feedback || [];
   const latestFeedback = allFeedback[allFeedback.length - 1];
@@ -161,6 +172,9 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
               <Download size={13} /> Download
             </Button>
           )}
+          <Button size="sm" variant="danger" onClick={onDelete} loading={deleteLoading}>
+            <Trash2 size={13} />
+          </Button>
         </div>
       </div>
 

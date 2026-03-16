@@ -28,5 +28,6 @@ router.get('/', resumesController.getResumes);
 router.get('/:id/download', resumesController.downloadResume);
 router.post('/:id/feedback', resumesController.generateFeedback);
 router.get('/:id/feedback', resumesController.getFeedback);
+router.delete('/:id', resumesController.deleteResume);
 
 module.exports = router;

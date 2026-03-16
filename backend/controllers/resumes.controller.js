@@ -163,6 +163,35 @@ exports.generateFeedback = async (req, res) => {
 };
 
 // ----------------------------------------
+// DELETE /api/resumes/:id
+// Purpose: Soft-delete a resume and remove the file from Cloudinary.
+// Feedback is embedded on the Resume document so it is implicitly deleted with it.
+// ----------------------------------------
+exports.deleteResume = async (req, res) => {
+    const resume = await Resume.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        deletedAt: null,
+    });
+
+    if (!resume) {
+        return res.status(404).json({ success: false, error: 'Resume not found' });
+    }
+
+    // Remove file from Cloudinary so storage isn't wasted
+    if (resume.publicId) {
+        try {
+            await cloudinary.uploader.destroy(resume.publicId, { resource_type: 'raw' });
+        } catch (_) { /* non-blocking — soft-delete still proceeds */ }
+    }
+
+    resume.deletedAt = new Date();
+    await resume.save();
+
+    res.status(200).json({ success: true, message: 'Resume deleted' });
+};
+
+// ----------------------------------------
 // GET /api/resumes/:id/feedback
 // Purpose: Return all feedback entries for a resume
 // ----------------------------------------
