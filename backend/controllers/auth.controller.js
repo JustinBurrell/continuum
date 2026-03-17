@@ -1,8 +1,11 @@
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const Note = require('../models/Note');
 const RefreshToken = require('../models/RefreshToken');
 const OAuthCode = require('../models/OAuthCode');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 const cloudinary = require('../config/cloudinary');
@@ -238,10 +241,26 @@ exports.googleExchange = async (req, res) => {
 // ----------------------------------------
 // POST /api/auth/me/google/link
 // Purpose: Link a Google account to an existing email/password user
-//          req.body contains the googleId and tokens from a client-side Google sign-in
+//          Client sends a Google ID token — server verifies it with Google before trusting the googleId
 // ----------------------------------------
 exports.googleLink = async (req, res) => {
-    const { googleId, googleAccessToken, googleRefreshToken } = req.body;
+    const { idToken, googleAccessToken, googleRefreshToken } = req.body;
+
+    if (!idToken) {
+        return res.status(400).json({ success: false, error: 'idToken is required' });
+    }
+
+    // Verify the ID token with Google — never trust a client-provided googleId directly
+    let googleId;
+    try {
+        const ticket = await googleClient.verifyIdToken({
+            idToken,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        googleId = ticket.getPayload().sub;
+    } catch {
+        return res.status(401).json({ success: false, error: 'Invalid Google ID token' });
+    }
 
     // Prevent linking a googleId that's already tied to another account
     const alreadyLinked = await User.findOne({ googleId });
