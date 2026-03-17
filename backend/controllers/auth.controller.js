@@ -92,11 +92,13 @@ exports.login = async (req, res) => {
 
     // Use a generic message — don't reveal whether email or password was wrong
     if (!user) {
+        console.warn(JSON.stringify({ event: 'auth_failure', reason: 'email_not_found', email, ip: req.ip, ua: req.headers['user-agent'], ts: new Date().toISOString() }));
         return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+        console.warn(JSON.stringify({ event: 'auth_failure', reason: 'wrong_password', email, ip: req.ip, ua: req.headers['user-agent'], ts: new Date().toISOString() }));
         return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 

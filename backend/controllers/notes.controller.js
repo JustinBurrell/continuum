@@ -415,7 +415,7 @@ exports.generateSummary = async (req, res) => {
         return res.status(200).json({ success: true, note, cached: true });
     }
 
-    const result = await groqService.generateSummary(note.content);
+    const result = await groqService.generateSummary(note.content, req.user._id);
 
     const updatedNote = await Note.findByIdAndUpdate(
         note._id,
@@ -458,7 +458,7 @@ exports.generateFlashcardsFromNote = async (req, res) => {
         return res.status(400).json({ success: false, error: 'Note has no content to generate flashcards from' });
     }
 
-    const result = await groqService.generateFlashcards(note.content);
+    const result = await groqService.generateFlashcards(note.content, req.user._id);
 
     // Create the FlashcardSet linked to this note
     const set = await FlashcardSet.create({

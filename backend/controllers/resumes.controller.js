@@ -147,7 +147,7 @@ exports.generateFeedback = async (req, res) => {
         }
     }
 
-    const result = await groqService.generateResumeFeedback(resume.extractedText);
+    const result = await groqService.generateResumeFeedback(resume.extractedText, req.user._id);
 
     // Push new feedback entry onto the embedded array
     const updated = await Resume.findByIdAndUpdate(
