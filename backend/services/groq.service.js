@@ -10,6 +10,7 @@ const groq = require('../config/groq');
 // ============================================================
 
 const MODEL = 'llama-3.1-8b-instant';
+const MAX_INPUT_CHARS = 50000;
 
 // ----------------------------------------
 // generateSummary
@@ -24,6 +25,7 @@ const MODEL = 'llama-3.1-8b-instant';
 //   - Things to Keep in Mind: caveats, common mistakes, or nuances
 // ----------------------------------------
 const generateSummary = async (content) => {
+    content = content.slice(0, MAX_INPUT_CHARS);
     const systemPrompt = `You are a study assistant helping college students understand and review their academic notes.
 Your job is to produce clear, accurate summaries that help students study efficiently.
 Always write for someone who has already read the notes but needs a structured review.
@@ -89,6 +91,7 @@ ${content}`;
 // back  — the answer, definition, or explanation
 // ----------------------------------------
 const generateFlashcards = async (content) => {
+    content = content.slice(0, MAX_INPUT_CHARS);
     const systemPrompt = `You are a study assistant helping college students create flashcards from their academic notes and documents.
 Your job is to identify the most important concepts, terms, and ideas and turn them into effective flashcard Q&A pairs.
 Write questions that test understanding, not just memorization.
@@ -147,6 +150,7 @@ ${content}`;
 // keywordOptimization — { presentKeywords, missingKeywords }
 // ----------------------------------------
 const generateResumeFeedback = async (resumeText) => {
+    resumeText = resumeText.slice(0, MAX_INPUT_CHARS);
     const systemPrompt = `You are a senior technical recruiter and career coach who has reviewed thousands of resumes for top tech companies.
 You give brutally honest, deeply specific feedback that directly quotes and references what is written in the resume.
 You never give generic advice. Every sentence you write is grounded in the actual content of the resume being reviewed.
