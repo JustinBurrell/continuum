@@ -124,7 +124,7 @@ app.disable('x-powered-by'); // belt-and-suspenders alongside helmet
 
 ---
 
-### C3 — JWT Passed in URL on Google OAuth Callback (Critical)
+### C3 — JWT Passed in URL on Google OAuth Callback ✅ RESOLVED (March 17, 2026)
 
 **File:** `auth.controller.js:178`
 
@@ -154,7 +154,7 @@ The token never touches a URL. This is a pre-launch requirement if Google OAuth 
 
 ---
 
-### C4 — `googleLink` Trusts Client-Provided `googleId` (Critical)
+### C4 — `googleLink` Trusts Client-Provided `googleId` ✅ RESOLVED (March 17, 2026)
 
 **File:** `auth.controller.js:187-202`
 
@@ -838,7 +838,7 @@ public-facing AI features.
 
 ---
 
-### MO2 — Application-Level Logging (Add Before Beta)
+### MO2 — Application-Level Logging ✅ RESOLVED (March 17, 2026)
 
 Your app currently logs nothing meaningful. When something goes wrong — a breach, abuse,
 or unexpected behavior — you will have no trail to investigate. Add structured logging at
@@ -961,9 +961,9 @@ security posture.
 | 17 | ~~Explicit JSON body size limit (L4)~~ ✅ March 17, 2026 | — | — |
 | 18 | Verify HTTPS is active after first deploy (I2) | 5 min | First deploy |
 | 19 | Lock Atlas Network Access to static server IP (I1) | 30 min | First deploy |
-| 20 | Add auth failure + AI call logging (MO2) | 1 hr | Before beta |
-| 21 | Fix Google OAuth callback — token in URL (C3) | 2–4 hrs | Google OAuth live |
-| 22 | Fix `googleLink` — verify `googleId` server-side (C4) | 1–2 hrs | Google OAuth live |
+| 20 | ~~Add auth failure + AI call logging (MO2)~~ ✅ March 17, 2026 | — | — |
+| 21 | ~~Fix Google OAuth callback — token in URL (C3)~~ ✅ March 17, 2026 | — | — |
+| 22 | ~~Fix `googleLink` — verify `googleId` server-side (C4)~~ ✅ March 17, 2026 | — | — |
 | 23 | ~~Fix Google OAuth username collision crash (M2)~~ ✅ March 17, 2026 | — | — |
 | 24 | ~~Sanitize HTML note content — `sanitize-html` (M3)~~ ✅ March 17, 2026 | — | — |
 | 25 | ~~Whitelist sync endpoint fields — prevent mass assignment (M4)~~ ✅ March 17, 2026 | — | — |

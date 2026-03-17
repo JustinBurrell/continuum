@@ -7,22 +7,24 @@ erDiagram
     %% ===== MUST-SHIP: AUTH =====
     User {
         ObjectId _id PK
-        String email UK
+        String email UK "match validation"
         String username UK
-        String password
+        String password "select:false"
         String firstName
         String lastName
         String avatarUrl
         String bio
         String googleId UK
-        String googleAccessToken
-        String googleRefreshToken
+        String googleAccessToken "select:false"
+        String googleRefreshToken "select:false"
         Date googleTokenExpiry
-        String passwordResetToken
+        String passwordResetToken "select:false SHA-256 hash"
         Date passwordResetExpires
+        String emailVerificationToken "select:false SHA-256 hash"
+        Date emailVerificationExpires
+        Boolean emailVerified
         Object settings
         Date lastLoginAt
-        Boolean emailVerified
         Date deletedAt
         Date createdAt
         Date updatedAt
@@ -44,7 +46,7 @@ erDiagram
         ObjectId _id PK
         ObjectId userId FK
         String title
-        String content
+        String content "maxlength:200000"
         String contentType
         String googleDocId UK
         String googleDocUrl
@@ -226,6 +228,16 @@ erDiagram
         Date updatedAt
     }
 
+    %% ===== AUTH: ONE-TIME OAUTH CODES =====
+    OAuthCode {
+        ObjectId _id PK
+        String codeHash "SHA-256 hash of raw code"
+        ObjectId userId FK
+        Boolean used "single-use flag"
+        Date expiresAt "60s TTL — MongoDB auto-deletes"
+        Date createdAt
+    }
+
     %% ===== STRETCH: ACTIVITY FEED =====
     Activity {
         ObjectId _id PK
@@ -242,6 +254,7 @@ erDiagram
 
     %% User owns everything
     User ||--o{ RefreshToken : "has"
+    User ||--o{ OAuthCode : "has"
     User ||--o{ Note : "owns"
     User ||--o{ FlashcardSet : "owns"
     User ||--o{ Task : "owns"
@@ -285,7 +298,7 @@ erDiagram
 
 | Category | Collections | Must-Ship |
 |----------|-------------|-----------|
-| Auth | User, RefreshToken | Yes |
+| Auth | User, RefreshToken, OAuthCode | Yes |
 | Notes | Note (summary embedded) | Yes |
 | Learning | FlashcardSet, Flashcard | Yes |
 | Tasks | Task | Yes |
@@ -295,7 +308,7 @@ erDiagram
 | Offline | SyncQueue | Stretch |
 | Feed | Activity | Stretch |
 
-**Total: 14 collections (10 must-ship + 4 stretch)**
+**Total: 15 collections (11 must-ship + 4 stretch)**
 
 ### What Changed (Consolidation)
 
