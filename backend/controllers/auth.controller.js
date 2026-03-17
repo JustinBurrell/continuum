@@ -21,7 +21,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // HELPER: Sign a short-lived JWT access token (1d)
 // ----------------------------------------
 const signToken = (userId) => {
-    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d' });
+    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d', algorithm: 'HS256' });
 };
 
 // ----------------------------------------
