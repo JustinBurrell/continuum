@@ -138,6 +138,15 @@ exports.generateFeedback = async (req, res) => {
         return res.status(400).json({ success: false, error: 'No extracted text available for this resume' });
     }
 
+    // Cooldown: prevent regeneration within 1 hour
+    if (resume.feedback && resume.feedback.length > 0) {
+        const lastFeedback = resume.feedback[resume.feedback.length - 1];
+        const oneHourAgo = Date.now() - 60 * 60 * 1000;
+        if (lastFeedback.generatedAt && new Date(lastFeedback.generatedAt).getTime() > oneHourAgo) {
+            return res.status(429).json({ success: false, error: 'Wait 1 hour before regenerating feedback' });
+        }
+    }
+
     const result = await groqService.generateResumeFeedback(resume.extractedText);
 
     // Push new feedback entry onto the embedded array
