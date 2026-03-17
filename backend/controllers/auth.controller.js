@@ -58,6 +58,25 @@ exports.register = async (req, res) => {
     const token = signToken(user._id);
     const refreshToken = await generateRefreshToken(user._id, deviceId);
 
+    // Auto-send verification email — non-blocking, don't fail registration if it errors
+    try {
+        const rawToken = user.createEmailVerificationToken();
+        await User.findByIdAndUpdate(user._id, {
+            emailVerificationToken: user.emailVerificationToken,
+            emailVerificationExpires: user.emailVerificationExpires,
+        });
+        const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`;
+        await resend.emails.send({
+            from: 'Continuum <onboarding@resend.dev>',
+            to: user.email,
+            subject: 'Verify your Continuum email',
+            html: `<p>Hi ${user.firstName},</p>
+                   <p>Welcome to Continuum! Click the link below to verify your email address. It expires in 24 hours.</p>
+                   <a href="${verifyUrl}">${verifyUrl}</a>
+                   <p>If you didn't create a Continuum account, you can ignore this email.</p>`,
+        });
+    } catch (_) { /* non-blocking */ }
+
     res.status(201).json({ success: true, token, refreshToken, user });
 };
 
@@ -358,4 +377,71 @@ exports.logoutAll = async (req, res) => {
     );
 
     res.status(200).json({ success: true, message: 'Logged out of all devices' });
+};
+
+// ----------------------------------------
+// POST /api/auth/send-verification
+// Purpose: Generate a verification token and send it to the user's email via Resend
+// Protected — requires JWT (user must be logged in)
+// ----------------------------------------
+exports.sendVerificationEmail = async (req, res) => {
+    if (req.user.emailVerified) {
+        return res.status(400).json({ success: false, error: 'Email is already verified' });
+    }
+
+    const rawToken = req.user.createEmailVerificationToken();
+    // Write token fields directly — avoids validator issues on select:false password field
+    await User.findByIdAndUpdate(req.user._id, {
+        emailVerificationToken: req.user.emailVerificationToken,
+        emailVerificationExpires: req.user.emailVerificationExpires,
+    });
+
+    const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`;
+
+    await resend.emails.send({
+        from: 'Continuum <onboarding@resend.dev>',
+        to: req.user.email,
+        subject: 'Verify your Continuum email',
+        html: `<p>Hi ${req.user.firstName},</p>
+               <p>Click the link below to verify your email address. It expires in 24 hours.</p>
+               <a href="${verifyUrl}">${verifyUrl}</a>
+               <p>If you didn't request this, you can ignore this email.</p>`,
+    });
+
+    res.status(200).json({ success: true, message: 'Verification email sent' });
+};
+
+// ----------------------------------------
+// GET /api/auth/verify-email?token=
+// Purpose: Validate the verification token and mark the user's email as verified in MongoDB
+// Public — no JWT required (user clicks link from email, may not be logged in)
+// ----------------------------------------
+exports.verifyEmail = async (req, res) => {
+    const { token } = req.query;
+
+    if (!token) {
+        return res.status(400).json({ success: false, error: 'Token is required' });
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Must select +emailVerificationToken since it's select:false in the schema
+    const user = await User.findOne({
+        emailVerificationToken: hashedToken,
+        emailVerificationExpires: { $gt: Date.now() },
+    }).select('+emailVerificationToken');
+
+    if (!user) {
+        return res.status(400).json({ success: false, error: 'Token is invalid or has expired' });
+    }
+
+    // Use findByIdAndUpdate to write directly — avoids running validators on fields
+    // that aren't loaded (e.g. password is select:false on this document).
+    // This guarantees emailVerified is written atomically and the token is cleared.
+    await User.findByIdAndUpdate(user._id, {
+        $set: { emailVerified: true },
+        $unset: { emailVerificationToken: '', emailVerificationExpires: '' },
+    });
+
+    res.status(200).json({ success: true, message: 'Email verified successfully' });
 };

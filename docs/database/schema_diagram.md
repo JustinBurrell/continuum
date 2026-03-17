@@ -152,6 +152,7 @@ erDiagram
         ObjectId userId FK
         String fileName
         String fileUrl
+        String publicId "Cloudinary public_id for deletion"
         Number fileSize
         String mimeType
         String version

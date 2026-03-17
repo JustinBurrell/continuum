@@ -23,14 +23,14 @@ const syncQueueSchema = new mongoose.Schema({
     /**
      * Operation Details
      * Purpose: Describe what offline operation needs to be synced
-     * Fields: operation, collection, documentId
+     * Fields: operation, collectionType, documentId
      */
     operation: {
         type: String,
         enum: ['create', 'update', 'delete'],
         required: true,
     },
-    collection: {
+    collectionType: {
         type: String,
         enum: ['notes', 'tasks', 'flashcards', 'messages'],
         required: true,

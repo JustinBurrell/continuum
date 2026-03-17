@@ -43,6 +43,8 @@ router.patch('/me/profile', authMiddleware, (req, res, next) => {
 }, authController.updateProfile);
 router.post('/logout', authMiddleware, authController.logout);
 router.post('/logout-all', authMiddleware, authController.logoutAll);
+router.post('/send-verification', authMiddleware, authController.sendVerificationEmail);
+router.get('/verify-email', authController.verifyEmail);
 
 // ----------------------------------------
 // Google account link/unlink — JWT required

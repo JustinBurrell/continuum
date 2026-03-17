@@ -48,6 +48,8 @@ passport.use(
                     user.googleAccessToken = accessToken;
                     user.googleRefreshToken = refreshToken || user.googleRefreshToken;
                     user.googleTokenExpiry = new Date(Date.now() + 3600 * 1000); // ~1hr estimate
+                    // Google has already verified this email address
+                    user.emailVerified = true;
                     await user.save();
                     return done(null, user);
                 }
@@ -59,6 +61,8 @@ passport.use(
                     user.googleAccessToken = accessToken;
                     user.googleRefreshToken = refreshToken;
                     user.googleTokenExpiry = new Date(Date.now() + 3600 * 1000);
+                    // Google has already verified this email address
+                    user.emailVerified = true;
                     await user.save();
                     return done(null, user);
                 }
@@ -75,6 +79,8 @@ passport.use(
                     googleAccessToken: accessToken,
                     googleRefreshToken: refreshToken,
                     googleTokenExpiry: new Date(Date.now() + 3600 * 1000),
+                    // Google has already verified this email address
+                    emailVerified: true,
                 });
 
                 return done(null, user);

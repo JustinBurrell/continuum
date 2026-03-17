@@ -16,6 +16,7 @@ router.use(authMiddleware);
 
 router.post('/request', friendsController.sendRequest);
 router.put('/request/:id', friendsController.respondToRequest);
+router.delete('/request/:id', friendsController.cancelRequest);
 router.get('/', friendsController.getFriends);
 router.delete('/:id', friendsController.removeFriend);
 

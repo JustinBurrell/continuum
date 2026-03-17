@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const notesController = require('../controllers/notes.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const upload = require('../middleware/upload.middleware');
 
 // ============================================================
 // NOTES ROUTES
@@ -14,8 +15,9 @@ const authMiddleware = require('../middleware/auth.middleware');
 
 router.use(authMiddleware);
 
-// Static routes first — must come before /:id to avoid "import"/"shared" being treated as IDs
+// Static routes first — must come before /:id to avoid "import"/"shared"/"upload" being treated as IDs
 router.post('/import', notesController.importNote);
+router.post('/upload', upload.single('file'), notesController.uploadNote);
 router.get('/shared', notesController.getSharedNotes);
 
 // CRUD routes
@@ -30,5 +32,8 @@ router.delete('/:id', notesController.deleteNote);
 // AI routes
 router.post('/:id/summary', notesController.generateSummary);
 router.post('/:id/flashcards/generate', notesController.generateFlashcardsFromNote);
+
+// PDF download — signed Cloudinary URL for notes that have a pdfUrl
+router.get('/:id/pdf', notesController.downloadNotePdf);
 
 module.exports = router;

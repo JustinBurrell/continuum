@@ -30,11 +30,13 @@ backend/
 │   ├── Resume.js
 │   ├── Application.js
 │   ├── Conversation.js
-│   └── Message.js
+│   ├── Message.js
+│   ├── SyncQueue.js              # Stretch: offline operation queue
+│   └── Activity.js               # Stretch: activity feed events
 ├── controllers/
 │   ├── auth.controller.js
 │   ├── notes.controller.js
-│   ├── flashcards.controller.js
+│   ├── flashcardSets.controller.js
 │   ├── tasks.controller.js
 │   ├── calendar.controller.js
 │   ├── users.controller.js
@@ -43,7 +45,10 @@ backend/
 │   ├── resumes.controller.js
 │   ├── applications.controller.js
 │   ├── conversations.controller.js
-│   └── messages.controller.js
+│   ├── messages.controller.js
+│   ├── google.controller.js
+│   ├── sync.controller.js        # Stretch: sync queue processing
+│   └── activity.controller.js    # Stretch: activity feed
 ├── routes/
 │   ├── auth.routes.js            # /api/auth/*
 │   ├── notes.routes.js           # /api/notes/*
@@ -57,7 +62,9 @@ backend/
 │   ├── resumes.routes.js         # /api/resumes/*
 │   ├── applications.routes.js    # /api/applications/*
 │   ├── conversations.routes.js   # /api/conversations/*
-│   └── messages.routes.js        # /api/messages/*
+│   ├── messages.routes.js        # /api/messages/*
+│   ├── sync.routes.js            # /api/sync (stretch)
+│   └── activity.routes.js        # /api/activity (stretch)
 ├── services/
 │   ├── groq.service.js           # Groq API client + prompt templates
 │   ├── google.service.js         # Google Drive/Docs API client
@@ -401,20 +408,53 @@ npm install cloudinary multer
 
 ---
 
+## MongoDB Database Environments
+
+The app uses a single Atlas cluster (`continuum-dev`) with two separate databases — one per environment. The database name is the path segment in `MONGODB_URI` before the `?`.
+
+### Local Dev (test database)
+```
+MONGODB_URI=mongodb+srv://...@continuum-dev.iygdp9l.mongodb.net/test?appName=continuum-dev
+```
+- All dev, seed, and mock data lives here
+- Safe to wipe and re-seed at any time
+
+### Production (prod database)
+```
+MONGODB_URI=mongodb+srv://...@continuum-dev.iygdp9l.mongodb.net/prod?appName=continuum-dev
+```
+- Set this in the backend hosting platform's environment variable panel (Railway/Render)
+- Never set in `.env` — that file is for local only
+- Real user data lives here; never run seed scripts against it
+
+### Future: Separate Prod Cluster
+Atlas allows one free M0 cluster per project. You can create a second Atlas **project** (not just a database) to get a completely isolated free cluster for prod — separate host, separate credentials, full isolation. Recommended before any significant user growth.
+
+### How Database.js Reads It
+`config/database.js` calls `mongoose.connect(process.env.MONGODB_URI)` with no database name override — the name comes entirely from the URI. The connected database name is logged on startup:
+```
+MongoDB Connected: continuum-dev.iygdp9l.mongodb.net
+Database: test   ← this tells you which database is active
+```
+
+---
+
 ## Deployment Notes
 
 ### Backend: Railway or Render
 
 - Deploy Node.js server directly from GitHub
-- Set all env vars in the platform dashboard
+- Set all env vars in the platform dashboard (including the prod `MONGODB_URI`)
 - MongoDB Atlas is already cloud-hosted, no change needed
 - Cloudinary is already cloud-hosted, no change needed
+- Lock Atlas IP Access List to the static server IP before launch (currently `0.0.0.0/0` for dev)
 
 ### Web: Vercel
 
 - Deploy Vite React app from GitHub
 - Set `VITE_API_URL` to point to deployed backend URL
 - Automatic builds on push
+- Keep Atlas warm by setting up an uptime monitor (UptimeRobot) to ping `/health` every 5 minutes — prevents the backend process from sleeping on free hosting tiers, which also keeps the Mongoose connection pool alive
 
 ### Mobile: Expo / EAS Build
 

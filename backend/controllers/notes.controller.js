@@ -6,13 +6,14 @@ const getGoogleDriveClient = require('../config/googleDrive');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
 const { createActivity } = require('../services/activity.service');
+const { PDFParse } = require('pdf-parse');
 
 // ============================================================
 // NOTES CONTROLLER
 // Purpose: Handle business logic for all note CRUD endpoints
 // Used by: routes/notes.routes.js
 // Endpoints: createNote, getNotes, getNoteById, updateNote, deleteNote,
-//            importNote, refreshNote, shareNote, getSharedNotes
+//            importNote, uploadNote, refreshNote, shareNote, getSharedNotes
 // ============================================================
 
 // ----------------------------------------
@@ -28,6 +29,7 @@ const uploadPdfToCloudinary = (stream, googleDocId) => {
                 folder: 'continuum/notes',
                 public_id: googleDocId,
                 resource_type: 'raw',
+                type: 'upload',
                 format: 'pdf',
                 overwrite: true,
             },
@@ -41,17 +43,110 @@ const uploadPdfToCloudinary = (stream, googleDocId) => {
 };
 
 // ----------------------------------------
+// Helper: uploadNoteBufferToCloudinary
+// Purpose: Upload an in-memory PDF buffer to Cloudinary (for direct file uploads)
+// Uses a random public_id so each upload is a distinct asset
+// ----------------------------------------
+const uploadNoteBufferToCloudinary = (buffer, fileName) => {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder: 'continuum/notes',
+                public_id: fileName.replace(/\.[^.]+$/, '') + '_' + Date.now(),
+                resource_type: 'raw',
+                type: 'upload',
+                format: 'pdf',
+                overwrite: false,
+            },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result);
+            }
+        );
+        uploadStream.end(buffer);
+    });
+};
+
+// ----------------------------------------
+// POST /api/notes/upload
+// Purpose: Upload a local PDF as a note — parses text with pdf-parse,
+//          uploads file to Cloudinary, creates a Note document
+// Body: multipart/form-data — field name: "file" (PDF only)
+// Optional body fields: title, type, tags (comma-separated)
+// ----------------------------------------
+exports.uploadNote = async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, error: 'A PDF file is required' });
+    }
+
+    const { title, type, tags } = req.body;
+
+    // Extract plain text from PDF buffer — used by Groq for summaries/flashcards
+    const parser = new PDFParse({ data: req.file.buffer });
+    const pdfData = await parser.getText();
+    await parser.destroy();
+    const content = pdfData.text;
+
+    if (!content || content.trim().length === 0) {
+        return res.status(400).json({ success: false, error: 'Could not extract text from PDF — ensure the file is not scanned/image-only' });
+    }
+
+    // Upload to Cloudinary
+    const cloudinaryResult = await uploadNoteBufferToCloudinary(req.file.buffer, req.file.originalname);
+
+    const tagList = tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+    const note = await Note.create({
+        userId: req.user._id,
+        title: title || req.file.originalname.replace(/\.pdf$/i, '') || 'Untitled',
+        content,
+        contentType: 'plain',
+        type: type || 'general',
+        tags: tagList,
+        pdfUrl: cloudinaryResult.secure_url,
+        pdfPublicId: cloudinaryResult.public_id,
+    });
+
+    res.status(201).json({ success: true, note });
+};
+
+// ----------------------------------------
+// GET /api/notes/:id/pdf
+// Purpose: Generate a signed Cloudinary URL for downloading a note's source PDF
+// Only available for notes that were imported from Google Drive or uploaded as PDF
+// ----------------------------------------
+exports.downloadNotePdf = async (req, res) => {
+    const note = await Note.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        deletedAt: null,
+    }).select('pdfUrl title');
+
+    if (!note) {
+        return res.status(404).json({ success: false, error: 'Note not found' });
+    }
+    if (!note.pdfUrl) {
+        return res.status(404).json({ success: false, error: 'This note has no associated PDF' });
+    }
+
+    const safeName = (note.title || 'note').replace(/[^a-zA-Z0-9._-]/g, '_');
+    const downloadUrl = note.pdfUrl.replace('/upload/', `/upload/fl_attachment:${safeName}/`);
+    res.status(200).json({ success: true, downloadUrl });
+};
+
+// ----------------------------------------
 // POST /api/notes
 // Purpose: Create a new note for the authenticated user
 // ----------------------------------------
 exports.createNote = async (req, res) => {
-    const { title, content, contentType, tags, subject, folder, visibility } = req.body;
+    const { title, content, contentType, type, tags, subject, folder, visibility } = req.body;
 
     const note = await Note.create({
         userId: req.user._id,
         title,
         content,
         contentType,
+        type,
         tags,
         subject,
         folder,
@@ -67,7 +162,7 @@ exports.createNote = async (req, res) => {
 // Query params: search, subject, folder, tags, visibility, isPinned, page, limit
 // ----------------------------------------
 exports.getNotes = async (req, res) => {
-    const { search, subject, folder, tags, visibility, isPinned, page = 1, limit = 20 } = req.query;
+    const { search, type, subject, folder, tags, visibility, isPinned, page = 1, limit = 20 } = req.query;
 
     // Base filter — always scope to current user and exclude soft-deleted notes
     const filter = {
@@ -76,6 +171,7 @@ exports.getNotes = async (req, res) => {
     };
 
     // Optional filters — only applied if the query param was provided
+    if (type) filter.type = type;
     if (subject) filter.subject = subject;
     if (folder) filter.folder = folder;
     if (visibility) filter.visibility = visibility;
@@ -94,7 +190,7 @@ exports.getNotes = async (req, res) => {
 
     const [notes, total] = await Promise.all([
         Note.find(filter)
-            .sort({ isPinned: -1, createdAt: -1 }) // pinned notes first, then newest
+            .sort({ isPinned: -1, lastViewedAt: -1, createdAt: -1 }) // pinned first, then most recently viewed/created
             .skip(skip)
             .limit(Number(limit)),
         Note.countDocuments(filter),
@@ -140,11 +236,11 @@ exports.getNoteById = async (req, res) => {
 // Purpose: Update a note — only accessible by the owner
 // ----------------------------------------
 exports.updateNote = async (req, res) => {
-    const { title, content, contentType, tags, subject, folder, visibility, sharedWith, isPinned } = req.body;
+    const { title, content, contentType, type, tags, subject, folder, visibility, sharedWith, isPinned } = req.body;
 
     const note = await Note.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id, deletedAt: null },
-        { title, content, contentType, tags, subject, folder, visibility, sharedWith, isPinned },
+        { title, content, contentType, type, tags, subject, folder, visibility, sharedWith, isPinned },
         { new: true, runValidators: true }  // new: true returns the updated doc
     );
 
@@ -221,6 +317,7 @@ exports.importNote = async (req, res) => {
         content,
         contentType: 'plain',
         pdfUrl: cloudinaryResult.secure_url,
+        pdfPublicId: cloudinaryResult.public_id,
         googleDocId,
         googleDocUrl,
         lastSyncedAt: new Date(),
@@ -269,7 +366,7 @@ exports.refreshNote = async (req, res) => {
 
     const updatedNote = await Note.findOneAndUpdate(
         { _id: note._id, userId: req.user._id },
-        { content, pdfUrl: cloudinaryResult.secure_url, lastSyncedAt: new Date() },
+        { content, pdfUrl: cloudinaryResult.secure_url, pdfPublicId: cloudinaryResult.public_id, lastSyncedAt: new Date() },
         { new: true }
     );
 

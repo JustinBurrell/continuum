@@ -36,6 +36,9 @@ const applicationSchema = new mongoose.Schema({
     location: {
         type: String,
     },
+    salary: {
+        type: String,
+    },
     jobUrl: {
         type: String,
     },

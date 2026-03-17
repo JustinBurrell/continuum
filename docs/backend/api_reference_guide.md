@@ -45,9 +45,11 @@ Google linking is required for Google Drive/Docs features. `user.hasGoogleLinked
 - `POST /api/notes` - Create manual note directly in app
 - `GET /api/notes` - List user's notes with filtering options (tags, visibility, search query, pagination)
 - `GET /api/notes/:noteId` - Retrieve specific note with full content and embedded summary
-- `PATCH /api/notes/:noteId` - Update note title, tags, content, or visibility
+- `PUT /api/notes/:noteId` - Update note title, tags, content, contentType, or visibility
 - `DELETE /api/notes/:noteId` - Soft delete note
-- `POST /api/notes/import` - Import Google Doc as note snapshot
+- `POST /api/notes/import` - Import Google Doc as note snapshot; PDF stored as Cloudinary `authenticated` resource
+- `POST /api/notes/upload` - Upload a local PDF as a note (multipart/form-data, field: `file`; optional: `title`, `type`, `tags`); PDF stored as Cloudinary `authenticated` resource
+- `GET /api/notes/:noteId/pdf` - Generate a 10-minute signed download URL for the note's source PDF (only available for imported/uploaded notes that have `pdfUrl`)
 - `PUT /api/notes/:noteId/refresh` - Re-import latest version of linked Google Doc
 
 ---
@@ -96,6 +98,7 @@ Summary is stored as an embedded field on the Note document. When you `GET /api/
 
 ### **Friend Management**
 - `GET /api/users/search` - Search users by username or email
+- `GET /api/users/:id` - Get a user's public profile (returns `{ _id, username, firstName, lastName, avatarUrl, bio, createdAt }`; no email, tokens, or settings)
 - `POST /api/friends/request` - Send friend request
 - `PUT /api/friends/request/:requestId` - Accept or reject friend request
 - `GET /api/friends` - List current friends
@@ -140,12 +143,14 @@ Activity is driven by `settings.activityVisibility` on the User — `private` (d
 ## Career Management
 
 ### **Resume Management**
-- `POST /api/resumes/upload` - Upload resume PDF with label and target role (multipart/form-data)
+- `POST /api/resumes/upload` - Upload resume PDF with label and target role (multipart/form-data); stored as `type: authenticated` in Cloudinary
 - `GET /api/resumes` - List all resume versions for user
-- `GET /api/resumes/:resumeId` - Retrieve resume with metadata, file URL, and embedded feedback
+- `GET /api/resumes/:resumeId/download` - Generate a 10-minute signed download URL via `private_download_url`; requires ownership
 - `POST /api/resumes/:resumeId/feedback` - Generate AI-powered feedback via Groq (appended to embedded feedback array)
+- `GET /api/resumes/:resumeId/feedback` - Retrieve all feedback entries for a resume
+- `DELETE /api/resumes/:resumeId` - Soft delete resume
 
-Feedback is stored as an embedded array on the Resume document. When you `GET /api/resumes/:resumeId`, the `feedback[]` array and `latestFeedback` virtual are included automatically.
+Resume PDFs are stored as Cloudinary `authenticated` resources — direct URLs return 401. The `/download` endpoint generates a signed API-level URL that works regardless of the resource's upload type. Feedback is stored as an embedded array on the Resume document.
 
 ### **Application Tracking**
 - `POST /api/applications` - Create job/internship application entry
@@ -225,19 +230,20 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 | User Profile | 1 | Yes |
 | Google Linking | 2 | Yes |
 | Google Drive | 2 | Yes |
-| Notes | 7 | Yes |
+| Notes | 9 | Yes |
 | AI Summary | 1 | Yes |
-| Flashcards | 9 | Yes |
+| Flashcards | 8 | Yes |
 | Tasks | 5 | Yes |
 | Calendar | 1 | Yes |
-| Social (Friends) | 5 | Yes |
-| Social (Sharing) | 2 | Yes |
+| Social (Friends) | 6 | Yes |
+| Social (Note Sharing) | 2 | Yes |
 | Social (Comments) | 4 | Yes |
 | Shared Tasks | 2 | Yes |
-| Resume | 4 | Yes |
+| Flashcard Set Sharing | 2 | Stretch |
+| Resume | 6 | Yes |
 | Applications | 7 | Yes |
 | Messaging | 5 | Yes |
 | Activity Feed | 1 | Stretch |
 | Offline Sync | 1 | Stretch |
 | Health | 1 | Yes |
-| **Total** | **70** | **68** |
+| **Total** | **76** | **72** |

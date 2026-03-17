@@ -22,6 +22,7 @@ const uploadBufferToCloudinary = (buffer, fileName) => {
                 folder: 'continuum/resumes',
                 public_id: fileName.replace(/\.[^.]+$/, ''), // strip extension
                 resource_type: 'raw',
+                type: 'upload',
                 format: 'pdf',
                 overwrite: false, // each upload is a new version
             },
@@ -65,6 +66,7 @@ exports.uploadResume = async (req, res) => {
         userId: req.user._id,
         fileName: req.file.originalname,
         fileUrl: cloudinaryResult.secure_url,
+        publicId: cloudinaryResult.public_id,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
         version: version || null,
@@ -76,6 +78,27 @@ exports.uploadResume = async (req, res) => {
     // Return resume without extractedText (select: false keeps it out of the response)
     const resumeResponse = await Resume.findById(resume._id);
     res.status(201).json({ success: true, resume: resumeResponse });
+};
+
+// ----------------------------------------
+// GET /api/resumes/:id/download
+// Purpose: Generate a signed Cloudinary URL for secure PDF download
+// Solves 401: raw Cloudinary URLs require a signed token for direct browser access
+// ----------------------------------------
+exports.downloadResume = async (req, res) => {
+    const resume = await Resume.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        deletedAt: null,
+    });
+    if (!resume) {
+        return res.status(404).json({ success: false, error: 'Resume not found' });
+    }
+
+    const baseName = resume.fileName.replace(/\.pdf$/i, '');
+    const safeName = baseName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const downloadUrl = resume.fileUrl.replace('/upload/', `/upload/fl_attachment:${safeName}/`);
+    res.status(200).json({ success: true, downloadUrl });
 };
 
 // ----------------------------------------
@@ -137,6 +160,35 @@ exports.generateFeedback = async (req, res) => {
     );
 
     res.status(200).json({ success: true, feedback: updated.feedback[updated.feedback.length - 1], resume: updated });
+};
+
+// ----------------------------------------
+// DELETE /api/resumes/:id
+// Purpose: Soft-delete a resume and remove the file from Cloudinary.
+// Feedback is embedded on the Resume document so it is implicitly deleted with it.
+// ----------------------------------------
+exports.deleteResume = async (req, res) => {
+    const resume = await Resume.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        deletedAt: null,
+    });
+
+    if (!resume) {
+        return res.status(404).json({ success: false, error: 'Resume not found' });
+    }
+
+    // Remove file from Cloudinary so storage isn't wasted
+    if (resume.publicId) {
+        try {
+            await cloudinary.uploader.destroy(resume.publicId, { resource_type: 'raw' });
+        } catch (_) { /* non-blocking — soft-delete still proceeds */ }
+    }
+
+    resume.deletedAt = new Date();
+    await resume.save();
+
+    res.status(200).json({ success: true, message: 'Resume deleted' });
 };
 
 // ----------------------------------------

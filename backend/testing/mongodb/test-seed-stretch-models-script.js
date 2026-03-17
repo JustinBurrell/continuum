@@ -181,7 +181,7 @@ const seedDatabase = async () => {
         const syncCreate = await SyncQueue.create({
             userId: user1._id,
             operation: 'create',
-            collection: 'notes',
+            collectionType: 'notes',
             documentId: new mongoose.Types.ObjectId(),
             data: {
                 title: 'Graph Traversal Notes',
@@ -196,7 +196,7 @@ const seedDatabase = async () => {
         console.log('SYNC QUEUE — CREATE OPERATION');
         console.log('  _id:', syncCreate._id);
         console.log('  operation:', syncCreate.operation);
-        console.log('  collection:', syncCreate.collection);
+        console.log('  collectionType:', syncCreate.collectionType);
         console.log('  status:', syncCreate.status);
         console.log('  data.title:', syncCreate.data?.title);
         console.log('  data.tags:', syncCreate.data?.tags);
@@ -211,7 +211,7 @@ const seedDatabase = async () => {
         const syncUpdate = await SyncQueue.create({
             userId: user1._id,
             operation: 'update',
-            collection: 'tasks',
+            collectionType: 'tasks',
             documentId: new mongoose.Types.ObjectId(),
             data: {
                 status: 'completed',
@@ -224,7 +224,7 @@ const seedDatabase = async () => {
         console.log('SYNC QUEUE — UPDATE OPERATION');
         console.log('  _id:', syncUpdate._id);
         console.log('  operation:', syncUpdate.operation);
-        console.log('  collection:', syncUpdate.collection);
+        console.log('  collectionType:', syncUpdate.collectionType);
         console.log('  data.status:', syncUpdate.data?.status);
         console.log();
 

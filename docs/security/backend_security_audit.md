@@ -1,6 +1,6 @@
 # Backend Security Audit
 
-**Date:** March 7, 2026
+**Date:** March 17, 2026 *(updated from March 7 — reflects new endpoints added since original audit)*
 **Auditor:** Full codebase review — every controller, middleware, model, service, config, and route file
 **Files audited:**
 `server.js` · `auth.controller.js` · `notes.controller.js` · `tasks.controller.js` · `flashcardSets.controller.js`
@@ -9,6 +9,12 @@
 `sync.controller.js` · `friends.controller.js` · `auth.middleware.js` · `upload.middleware.js`
 `uploadImage.middleware.js` · `groq.service.js` · `activity.service.js` · `googleDrive.js`
 `passport.js` · `User.js` · `Note.js` · `package.json` · `.env.example` · `.gitignore`
+
+**New since March 7:**
+`auth.routes.js` — added `POST /send-verification` (protected) and `GET /verify-email` (public)
+`resumes.controller.js` — added `DELETE /resumes/:id` (soft-delete + Cloudinary cleanup)
+`notes.controller.js` — added `POST /notes/upload` (PDF parse + Cloudinary), `GET /notes/:id/pdf`
+`User.js` — added `emailVerificationToken` (select: false), `emailVerificationExpires`, `createEmailVerificationToken()`
 
 **Purpose:** Identify every exploitable attack surface before real users are onboarded.
 This is an MVP, but this backend is the permanent product foundation — security debt carried
@@ -617,18 +623,19 @@ For MVP: `select: false` is an acceptable short-term mitigation. Track as a pre-
 
 ---
 
-### L1 — No Email Verification Flow (Low)
+### L1 — No Email Verification Flow ✅ RESOLVED (March 17, 2026)
 
-**File:** `models/User.js:136-139`
+**File:** `models/User.js`, `auth.controller.js`, `auth.routes.js`
 
-`emailVerified` exists but is never set to `true`. Every user has `emailVerified: false`
-permanently. Anyone can register using another person's email. Password reset emails are
-sent to addresses that may not belong to the registrant. No distinction between real
-accounts and throwaway registrations.
+**What was implemented:**
+- `User.js` — added `emailVerificationToken` (`select: false`, SHA-256 hashed), `emailVerificationExpires` (24h TTL), and `createEmailVerificationToken()` method (same pattern as `createPasswordResetToken`)
+- `POST /api/auth/send-verification` (protected) — generates token, stores hash via `findByIdAndUpdate`, sends email via Resend
+- `GET /api/auth/verify-email?token=` (public) — hashes token, queries DB, uses `findByIdAndUpdate` to atomically write `emailVerified: true` and `$unset` both token fields
+- Auto-send on registration (non-blocking try/catch — registration succeeds even if email fails)
+- Google OAuth — all three Passport.js cases (`existing Google user`, `link existing email`, `new user`) now set `emailVerified: true` since Google has already verified the email
+- Frontend `EmailVerified.jsx` — `useRef` guard prevents React 18 StrictMode double-fire from consuming the one-time token twice
 
-**Fix:** After registration, send a verification email with a short-lived signed token
-(reuse the `createPasswordResetToken` pattern). Block password resets for unverified accounts.
-Infrastructure is already in place — Resend is configured. Track as a pre-public-launch item.
+**Security note preserved:** Password resets for unverified accounts are not yet blocked. Track as a future hardening item.
 
 ---
 
@@ -731,6 +738,9 @@ These patterns are correct and must be preserved as the codebase grows.
   before creating any feed entry — private users are never exposed in the feed.
 - **AI summary is cached:** Note summary is not re-generated unless `?force=true` is explicitly
   passed — reduces unnecessary token consumption under normal use.
+- **Email verification tokens are single-use:** `findByIdAndUpdate` atomically sets `emailVerified: true` and `$unset`s both token fields in one operation — replaying the same link returns 400.
+- **`deleteResume` uses non-blocking Cloudinary cleanup:** Cloudinary deletion is wrapped in try/catch so a CDN failure never blocks the soft-delete response — the document is marked deleted regardless.
+- **PDF upload uses `multer` memoryStorage:** Same pattern as resume upload — file never touches disk, validated by MIME type and file extension before Cloudinary upload.
 - **Message pagination is capped:** `getMessages` caps `limit` at 100 with `Math.min`.
 - **Activity feed pagination is capped:** `getActivityFeed` caps `limit` at 50 with `Math.min`.
 
@@ -960,7 +970,7 @@ security posture.
 | 26 | Add access check to `getComments` (M5) | 1 hr | Beta |
 | 27 | Require accepted friendship before `startConversation` (M6) | 30 min | Beta |
 | 28 | Validate task participants are accepted friends (M7) | 30 min | Beta |
-| 29 | Implement email verification flow (L1) | 3–5 hrs | Public onboarding |
+| 29 | ~~Implement email verification flow (L1)~~ ✅ Done — March 17, 2026 | — | — |
 | 30 | Encrypt Google OAuth tokens at rest (M8) | 2–3 hrs | Launch |
 | 31 | Add hard delete endpoint for GDPR compliance (OP3) | 2–3 hrs | EU users |
 | 32 | Run `npm audit` on every deploy (OP1) | Ongoing | Ongoing |
