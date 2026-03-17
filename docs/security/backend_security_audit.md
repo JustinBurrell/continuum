@@ -49,7 +49,7 @@ These must be closed before any public access.
 
 ## Section 1 — Authentication & Session Management
 
-### C1 — No Rate Limiting on Auth Endpoints (Critical)
+### C1 — No Rate Limiting on Auth Endpoints ✅ RESOLVED (March 17, 2026)
 
 **Files:** `server.js`, `auth.controller.js`
 
@@ -96,7 +96,7 @@ and `refresh`. Apply `apiLimiter` globally in `server.js` before all routes.
 
 ---
 
-### C2 — No HTTP Security Headers (Critical)
+### C2 — No HTTP Security Headers ✅ RESOLVED (March 17, 2026)
 
 **File:** `server.js`
 
@@ -184,7 +184,7 @@ const googleId = ticket.getPayload().sub; // use Google's value, never trust the
 
 ---
 
-### M1 — JWT Algorithm Not Explicitly Constrained (Medium)
+### M1 — JWT Algorithm Not Explicitly Constrained ✅ RESOLVED (March 17, 2026)
 
 **File:** `auth.middleware.js:24`
 
@@ -209,7 +209,7 @@ jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
 
 ---
 
-### M2 — Google OAuth Username Collision Crashes Server (Medium)
+### M2 — Google OAuth Username Collision Crashes Server ✅ RESOLVED (March 17, 2026)
 
 **File:** `config/passport.js:68`
 
@@ -242,7 +242,7 @@ This section covers attacks that do not steal data but destroy your budget. When
 to a paid Groq plan or OpenAI, these vectors allow any authenticated user to run up
 unlimited AI spend at your expense with a simple script.
 
-### H1 — No Per-User Rate Limiting on AI Endpoints (High)
+### H1 — No Per-User Rate Limiting on AI Endpoints (High) — Partially Resolved
 
 **Files:** `flashcardSets.controller.js:26`, `notes.controller.js:286`, `notes.controller.js:335`, `resumes.controller.js:102`
 
@@ -298,7 +298,7 @@ if (last && (Date.now() - new Date(last.generatedAt)) < 60 * 60 * 1000) {
 
 ---
 
-### H2 — Note Content Has No Maximum Length (High)
+### H2 — Note Content Has No Maximum Length ✅ RESOLVED (March 17, 2026)
 
 **File:** `models/Note.js:34`
 
@@ -327,7 +327,7 @@ content: {
 
 ## Section 3 — Input Validation & Injection Attacks
 
-### H3 — ReDoS Vulnerability in Three Search Endpoints (High)
+### H3 — ReDoS Vulnerability in Three Search Endpoints ✅ RESOLVED (March 17, 2026)
 
 **Files:** `notes.controller.js:87`, `applications.controller.js:67`, `users.controller.js:23`
 
@@ -367,7 +367,7 @@ const safe = escapeRegex(q.trim().slice(0, 100));
 
 ---
 
-### H4 — No NoSQL Operator Injection Protection (High)
+### H4 — No NoSQL Operator Injection Protection ✅ RESOLVED (March 17, 2026)
 
 **File:** `server.js` — no sanitization middleware
 
@@ -402,7 +402,7 @@ app.use((req, _res, next) => {
 
 ---
 
-### H5 — Invalid ObjectId Returns HTML 500 on 30+ Endpoints (High)
+### H5 — Invalid ObjectId Returns HTML 500 on 30+ Endpoints ✅ RESOLVED (March 17, 2026)
 
 **Affected:** Every route with an `/:id` URL parameter
 
@@ -435,7 +435,7 @@ so DB connection failures are handled as JSON, not HTML.
 
 ---
 
-### H6 — No Email Format Validation on Registration (High)
+### H6 — No Email Format Validation on Registration ✅ RESOLVED (March 17, 2026)
 
 **File:** `models/User.js:19-25`
 
@@ -462,7 +462,7 @@ email: {
 
 ---
 
-### M3 — Stored XSS in HTML Note Content (Medium)
+### M3 — Stored XSS in HTML Note Content ✅ RESOLVED (March 17, 2026)
 
 **Files:** `models/Note.js:36`, `notes.controller.js:50`
 
@@ -500,7 +500,7 @@ This is a pre-launch requirement for any feature that renders user-provided HTML
 
 ---
 
-### M4 — Mass Assignment in Sync Endpoint (Medium)
+### M4 — Mass Assignment in Sync Endpoint ✅ RESOLVED (March 17, 2026)
 
 **File:** `sync.controller.js — handlers object`
 
@@ -539,7 +539,7 @@ update: async (userId, documentId, data) => {
 
 ## Section 4 — Authorization & Access Control
 
-### M5 — Comments Accessible Without Target Access Check (Medium)
+### M5 — Comments Accessible Without Target Access Check ✅ RESOLVED (March 17, 2026)
 
 **File:** `comments.controller.js:73-92`
 
@@ -562,7 +562,7 @@ discovered through enumeration or a data leak, its entire comment thread is expo
 
 ---
 
-### M6 — Any User Can Message Any Other User (Medium)
+### M6 — Any User Can Message Any Other User ✅ RESOLVED (March 17, 2026)
 
 **File:** `conversations.controller.js:19-55`
 
@@ -582,7 +582,7 @@ if (!friendship) {
 
 ---
 
-### M7 — Task Participants Not Validated as Friends (Medium)
+### M7 — Task Participants Not Validated as Friends ✅ RESOLVED (March 17, 2026)
 
 **File:** `tasks.controller.js:51-53`
 
@@ -659,7 +659,7 @@ cause memory corruption.
 
 ## Section 6 — Security Misconfiguration
 
-### L3 — No Global Async Error Handler (Low — High Impact in Practice)
+### L3 — No Global Async Error Handler ✅ RESOLVED (March 17, 2026)
 
 **File:** `server.js`
 
@@ -672,7 +672,7 @@ Fix is described in H5 — add the global error handler as the last middleware i
 
 ---
 
-### L4 — JSON Body Size Limit Not Explicit (Low)
+### L4 — JSON Body Size Limit Not Explicit ✅ RESOLVED (March 17, 2026)
 
 **File:** `server.js:19`
 
@@ -689,7 +689,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50kb' }));
 
 ---
 
-### L5 — CORS Allows All HTTP Methods (Low)
+### L5 — CORS Allows All HTTP Methods ✅ RESOLVED (March 17, 2026)
 
 **File:** `server.js:15-18`
 
@@ -942,35 +942,35 @@ security posture.
 
 | # | Finding | Effort | Must do before |
 |---|---|---|---|
-| 1 | Install `helmet` — HTTP security headers (C2) | 15 min | Any public traffic |
-| 2 | Rate limiting on auth routes — `express-rate-limit` (C1) | 30 min | Any public traffic |
-| 3 | Global API rate limit in `server.js` (C1) | 15 min | Any public traffic |
-| 4 | Install `mongo-sanitize` — operator injection (H4) | 15 min | Any public traffic |
-| 5 | Global async error handler + JSON error responses (H5, L3) | 20 min | Any public traffic |
-| 6 | Escape `$regex` input in notes, applications, users search (H3) | 30 min | Any public traffic |
-| 7 | Add email format validation to User schema (H6) | 10 min | Any public traffic |
-| 8 | Add `maxlength` to note `content` field (H2) | 10 min | Any public traffic |
+| 1 | ~~Install `helmet` — HTTP security headers (C2)~~ ✅ March 17, 2026 | — | — |
+| 2 | ~~Rate limiting on auth routes — `express-rate-limit` (C1)~~ ✅ March 17, 2026 | — | — |
+| 3 | ~~Global API rate limit in `server.js` (C1)~~ ✅ March 17, 2026 | — | — |
+| 4 | ~~Install `mongo-sanitize` — operator injection (H4)~~ ✅ March 17, 2026 | — | — |
+| 5 | ~~Global async error handler + JSON error responses (H5, L3)~~ ✅ March 17, 2026 | — | — |
+| 6 | ~~Escape `$regex` input in notes, applications, users search (H3)~~ ✅ March 17, 2026 | — | — |
+| 7 | ~~Add email format validation to User schema (H6)~~ ✅ March 17, 2026 | — | — |
+| 8 | ~~Add `maxlength` to note `content` field (H2)~~ ✅ March 17, 2026 | — | — |
 | 9 | Set spend alerts on Groq, Atlas, Cloudinary, Resend (MO1) | 15 min | Any public traffic |
-| 10 | Per-user AI call rate limiting (H1) | 2–3 hrs | Any paid AI plan |
-| 11 | Content length cap before every Groq call (H1) | 30 min | Any paid AI plan |
-| 12 | Resume feedback cooldown (H1) | 20 min | Any paid AI plan |
+| 10 | Per-user AI call rate limiting — Redis counter (H1) | 2–3 hrs | Any paid AI plan |
+| 11 | ~~Content length cap before every Groq call (H1)~~ ✅ March 17, 2026 | — | — |
+| 12 | ~~Resume feedback cooldown (H1)~~ ✅ March 17, 2026 | — | — |
 | 13 | Set hard spend cap in Groq/OpenAI dashboard (H1) | 10 min | Any paid AI plan |
-| 14 | Explicit JWT algorithm in sign + verify (M1) | 10 min | Next deploy |
+| 14 | ~~Explicit JWT algorithm in sign + verify (M1)~~ ✅ March 17, 2026 | — | — |
 | 15 | Set `NODE_ENV=production` in hosting platform (I3) | 5 min | First deploy |
-| 16 | Restrict CORS methods explicitly (L5) | 5 min | Next deploy |
-| 17 | Explicit JSON body size limit (L4) | 5 min | Next deploy |
+| 16 | ~~Restrict CORS methods explicitly (L5)~~ ✅ March 17, 2026 | — | — |
+| 17 | ~~Explicit JSON body size limit (L4)~~ ✅ March 17, 2026 | — | — |
 | 18 | Verify HTTPS is active after first deploy (I2) | 5 min | First deploy |
 | 19 | Lock Atlas Network Access to static server IP (I1) | 30 min | First deploy |
 | 20 | Add auth failure + AI call logging (MO2) | 1 hr | Before beta |
 | 21 | Fix Google OAuth callback — token in URL (C3) | 2–4 hrs | Google OAuth live |
 | 22 | Fix `googleLink` — verify `googleId` server-side (C4) | 1–2 hrs | Google OAuth live |
-| 23 | Fix Google OAuth username collision crash (M2) | 20 min | Google OAuth live |
-| 24 | Sanitize HTML note content — `sanitize-html` (M3) | 1 hr | Frontend renders HTML |
-| 25 | Whitelist sync endpoint fields — prevent mass assignment (M4) | 30 min | Beta |
-| 26 | Add access check to `getComments` (M5) | 1 hr | Beta |
-| 27 | Require accepted friendship before `startConversation` (M6) | 30 min | Beta |
-| 28 | Validate task participants are accepted friends (M7) | 30 min | Beta |
-| 29 | ~~Implement email verification flow (L1)~~ ✅ Done — March 17, 2026 | — | — |
+| 23 | ~~Fix Google OAuth username collision crash (M2)~~ ✅ March 17, 2026 | — | — |
+| 24 | ~~Sanitize HTML note content — `sanitize-html` (M3)~~ ✅ March 17, 2026 | — | — |
+| 25 | ~~Whitelist sync endpoint fields — prevent mass assignment (M4)~~ ✅ March 17, 2026 | — | — |
+| 26 | ~~Add access check to `getComments` (M5)~~ ✅ March 17, 2026 | — | — |
+| 27 | ~~Require accepted friendship before `startConversation` (M6)~~ ✅ March 17, 2026 | — | — |
+| 28 | ~~Validate task participants are accepted friends (M7)~~ ✅ March 17, 2026 | — | — |
+| 29 | ~~Implement email verification flow (L1)~~ ✅ March 17, 2026 | — | — |
 | 30 | Encrypt Google OAuth tokens at rest (M8) | 2–3 hrs | Launch |
 | 31 | Add hard delete endpoint for GDPR compliance (OP3) | 2–3 hrs | EU users |
 | 32 | Run `npm audit` on every deploy (OP1) | Ongoing | Ongoing |
