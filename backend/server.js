@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const connectDB = require('./config/database');
 const passport = require('./config/passport');
@@ -12,6 +13,8 @@ connectDB();
 const app = express();
 
 // Middleware
+app.use(helmet());
+app.disable('x-powered-by');
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
