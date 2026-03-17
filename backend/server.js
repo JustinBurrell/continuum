@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
+const { apiLimiter } = require('./middleware/rateLimiter');
 const connectDB = require('./config/database');
 const passport = require('./config/passport');
 
@@ -22,6 +23,9 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
+
+// Global rate limit — applied before all routes
+app.use('/api', apiLimiter);
 
 // Routes
 app.use('/api/auth', require('./routes/auth.routes'));

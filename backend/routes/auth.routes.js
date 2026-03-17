@@ -4,6 +4,7 @@ const passport = require('../config/passport');
 const authController = require('../controllers/auth.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const uploadImage = require('../middleware/uploadImage.middleware');
+const { authLimiter } = require('../middleware/rateLimiter');
 
 // ============================================================
 // AUTH ROUTES
@@ -13,10 +14,10 @@ const uploadImage = require('../middleware/uploadImage.middleware');
 
 // Public routes — no JWT required
 router.post('/register', authController.register);
-router.post('/login', authController.login);
-router.post('/forgot-password', authController.forgotPassword);
-router.post('/reset-password', authController.resetPassword);
-router.post('/refresh', authController.refresh);
+router.post('/login', authLimiter, authController.login);
+router.post('/forgot-password', authLimiter, authController.forgotPassword);
+router.post('/reset-password', authLimiter, authController.resetPassword);
+router.post('/refresh', authLimiter, authController.refresh);
 
 // ----------------------------------------
 // Google OAuth routes — no JWT required
