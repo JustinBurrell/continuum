@@ -302,13 +302,13 @@ exports.googleUnlink = async (req, res) => {
         );
     }
 
-    req.user.googleId = undefined;
-    req.user.googleAccessToken = undefined;
-    req.user.googleRefreshToken = undefined;
-    req.user.googleTokenExpiry = undefined;
-    await req.user.save();
+    const updated = await User.findByIdAndUpdate(
+        req.user._id,
+        { $unset: { googleId: '', googleAccessToken: '', googleRefreshToken: '', googleTokenExpiry: '' } },
+        { new: true }
+    );
 
-    res.status(200).json({ success: true, user: req.user });
+    res.status(200).json({ success: true, user: updated });
 };
 
 // ----------------------------------------
