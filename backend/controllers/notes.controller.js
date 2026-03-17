@@ -17,6 +17,7 @@ const { PDFParse } = require('pdf-parse');
 // ============================================================
 
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const sanitizeHtml = require('sanitize-html');
 
 // ----------------------------------------
 // Helper: uploadPdfToCloudinary
@@ -141,7 +142,12 @@ exports.downloadNotePdf = async (req, res) => {
 // Purpose: Create a new note for the authenticated user
 // ----------------------------------------
 exports.createNote = async (req, res) => {
-    const { title, content, contentType, type, tags, subject, folder, visibility } = req.body;
+    const { title, contentType, type, tags, subject, folder, visibility } = req.body;
+    let { content } = req.body;
+
+    if (contentType === 'html' && content) {
+        content = sanitizeHtml(content);
+    }
 
     const note = await Note.create({
         userId: req.user._id,
@@ -239,7 +245,12 @@ exports.getNoteById = async (req, res) => {
 // Purpose: Update a note — only accessible by the owner
 // ----------------------------------------
 exports.updateNote = async (req, res) => {
-    const { title, content, contentType, type, tags, subject, folder, visibility, sharedWith, isPinned } = req.body;
+    const { title, contentType, type, tags, subject, folder, visibility, sharedWith, isPinned } = req.body;
+    let { content } = req.body;
+
+    if (contentType === 'html' && content) {
+        content = sanitizeHtml(content);
+    }
 
     const note = await Note.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id, deletedAt: null },
