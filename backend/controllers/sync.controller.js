@@ -24,14 +24,17 @@ const Message = require('../models/Message');
 // ============================================================
 const handlers = {
     notes: {
-        create: async (userId, _documentId, data) =>
-            Note.create({ ...data, userId }),
+        create: async (userId, _documentId, data) => {
+            const { title, content, contentType, tags, subject, folder, isPinned } = data;
+            return Note.create({ title, content, contentType, tags, subject, folder, isPinned, userId });
+        },
 
         update: async (userId, documentId, data) => {
+            const { title, content, contentType, tags, subject, folder, isPinned } = data;
             // Silently complete if document is gone — client will reconcile on next fetch
             await Note.findOneAndUpdate(
                 { _id: documentId, userId, deletedAt: null },
-                data,
+                { title, content, contentType, tags, subject, folder, isPinned },
                 { new: true, runValidators: true }
             );
         },
@@ -49,14 +52,17 @@ const handlers = {
     },
 
     tasks: {
-        create: async (userId, _documentId, data) =>
-            Task.create({ ...data, userId }),
+        create: async (userId, _documentId, data) => {
+            const { title, description, dueDate, priority, type, status, duration, reminderMinutes } = data;
+            return Task.create({ title, description, dueDate, priority, type, status, duration, reminderMinutes, userId });
+        },
 
         update: async (userId, documentId, data) => {
+            const { title, description, dueDate, priority, type, status, duration, reminderMinutes } = data;
             // Silently complete if document is gone — client will reconcile on next fetch
             await Task.findOneAndUpdate(
                 { _id: documentId, userId, deletedAt: null },
-                data,
+                { title, description, dueDate, priority, type, status, duration, reminderMinutes },
                 { new: true, runValidators: true }
             );
         },
@@ -76,20 +82,22 @@ const handlers = {
     flashcards: {
         // Ownership is verified through the parent FlashcardSet
         create: async (userId, _documentId, data) => {
-            const set = await FlashcardSet.findOne({ _id: data.setId, userId, deletedAt: null });
+            const { front, back, order, setId } = data;
+            const set = await FlashcardSet.findOne({ _id: setId, userId, deletedAt: null });
             if (!set) throw new Error('Flashcard set not found');
-            const card = await Flashcard.create(data);
+            const card = await Flashcard.create({ front, back, order, setId });
             await FlashcardSet.findByIdAndUpdate(set._id, { $inc: { totalCards: 1 } });
             return card;
         },
 
         update: async (userId, documentId, data) => {
+            const { front, back, order } = data;
             // Silently complete if card or its set is gone — client will reconcile on next fetch
             const card = await Flashcard.findOne({ _id: documentId, deletedAt: null });
             if (!card) return;
             const set = await FlashcardSet.findOne({ _id: card.setId, userId, deletedAt: null });
             if (!set) return;
-            await Flashcard.findByIdAndUpdate(documentId, data, { new: true, runValidators: true });
+            await Flashcard.findByIdAndUpdate(documentId, { front, back, order }, { new: true, runValidators: true });
         },
 
         delete: async (userId, documentId) => {

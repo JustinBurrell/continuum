@@ -13,16 +13,20 @@ export default function AuthCallback() {
     if (processed.current) return;
     processed.current = true;
 
-    const token = searchParams.get('token');
-    if (!token) {
+    const code = searchParams.get('code');
+    if (!code) {
       navigate('/login?error=oauth_failed');
       return;
     }
 
-    localStorage.setItem('token', token);
-
     api
-      .get('/auth/me')
+      .post('/auth/google/exchange', { code })
+      .then((res) => {
+        const { token, refreshToken } = res.data;
+        localStorage.setItem('token', token);
+        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+        return api.get('/auth/me');
+      })
       .then((res) => {
         const user = res.data.user || res.data.data;
         updateUser(user);
@@ -30,6 +34,7 @@ export default function AuthCallback() {
       })
       .catch(() => {
         localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
         navigate('/login?error=oauth_failed');
       });
   }, []);

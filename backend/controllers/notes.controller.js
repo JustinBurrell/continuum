@@ -16,6 +16,9 @@ const { PDFParse } = require('pdf-parse');
 //            importNote, uploadNote, refreshNote, shareNote, getSharedNotes
 // ============================================================
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const sanitizeHtml = require('sanitize-html');
+
 // ----------------------------------------
 // Helper: uploadPdfToCloudinary
 // Purpose: Pipe a readable stream from Drive into Cloudinary
@@ -139,7 +142,12 @@ exports.downloadNotePdf = async (req, res) => {
 // Purpose: Create a new note for the authenticated user
 // ----------------------------------------
 exports.createNote = async (req, res) => {
-    const { title, content, contentType, type, tags, subject, folder, visibility } = req.body;
+    const { title, contentType, type, tags, subject, folder, visibility } = req.body;
+    let { content } = req.body;
+
+    if (contentType === 'html' && content) {
+        content = sanitizeHtml(content);
+    }
 
     const note = await Note.create({
         userId: req.user._id,
@@ -180,9 +188,10 @@ exports.getNotes = async (req, res) => {
 
     // Text search across title and content using case-insensitive regex
     if (search) {
+        const safeSearch = escapeRegex(search.trim().slice(0, 200));
         filter.$or = [
-            { title: { $regex: search, $options: 'i' } },
-            { content: { $regex: search, $options: 'i' } },
+            { title: { $regex: safeSearch, $options: 'i' } },
+            { content: { $regex: safeSearch, $options: 'i' } },
         ];
     }
 
@@ -236,7 +245,12 @@ exports.getNoteById = async (req, res) => {
 // Purpose: Update a note — only accessible by the owner
 // ----------------------------------------
 exports.updateNote = async (req, res) => {
-    const { title, content, contentType, type, tags, subject, folder, visibility, sharedWith, isPinned } = req.body;
+    const { title, contentType, type, tags, subject, folder, visibility, sharedWith, isPinned } = req.body;
+    let { content } = req.body;
+
+    if (contentType === 'html' && content) {
+        content = sanitizeHtml(content);
+    }
 
     const note = await Note.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id, deletedAt: null },
@@ -401,7 +415,7 @@ exports.generateSummary = async (req, res) => {
         return res.status(200).json({ success: true, note, cached: true });
     }
 
-    const result = await groqService.generateSummary(note.content);
+    const result = await groqService.generateSummary(note.content, req.user._id);
 
     const updatedNote = await Note.findByIdAndUpdate(
         note._id,
@@ -444,7 +458,7 @@ exports.generateFlashcardsFromNote = async (req, res) => {
         return res.status(400).json({ success: false, error: 'Note has no content to generate flashcards from' });
     }
 
-    const result = await groqService.generateFlashcards(note.content);
+    const result = await groqService.generateFlashcards(note.content, req.user._id);
 
     // Create the FlashcardSet linked to this note
     const set = await FlashcardSet.create({

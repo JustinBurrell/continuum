@@ -4,6 +4,7 @@ const passport = require('../config/passport');
 const authController = require('../controllers/auth.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const uploadImage = require('../middleware/uploadImage.middleware');
+const { authLimiter } = require('../middleware/rateLimiter');
 
 // ============================================================
 // AUTH ROUTES
@@ -13,10 +14,10 @@ const uploadImage = require('../middleware/uploadImage.middleware');
 
 // Public routes — no JWT required
 router.post('/register', authController.register);
-router.post('/login', authController.login);
-router.post('/forgot-password', authController.forgotPassword);
-router.post('/reset-password', authController.resetPassword);
-router.post('/refresh', authController.refresh);
+router.post('/login', authLimiter, authController.login);
+router.post('/forgot-password', authLimiter, authController.forgotPassword);
+router.post('/reset-password', authLimiter, authController.resetPassword);
+router.post('/refresh', authLimiter, authController.refresh);
 
 // ----------------------------------------
 // Google OAuth routes — no JWT required
@@ -27,11 +28,14 @@ router.post('/refresh', authController.refresh);
 // Redirect user to Google's consent screen
 router.get('/google', passport.authenticate('google', { session: false, scope: ['profile', 'email', 'https://www.googleapis.com/auth/drive.readonly'], accessType: 'offline', prompt: 'consent' }));
 
-// Google redirects back here — Passport runs verify callback, then googleCallback signs a JWT
+// Google redirects back here — Passport runs verify callback, then googleCallback issues a one-time code
 router.get('/google/callback',
     passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/login?error=oauth_failed` }),
     authController.googleCallback
 );
+
+// Exchange the one-time code from the OAuth callback for a JWT + refresh token
+router.post('/google/exchange', authLimiter, authController.googleExchange);
 
 // Protected routes — JWT required (authMiddleware attaches req.user)
 router.get('/me', authMiddleware, authController.me);

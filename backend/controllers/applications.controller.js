@@ -8,6 +8,8 @@ const Application = require('../models/Application');
 //            getDashboard, addContact, addReminder
 // ============================================================
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // ----------------------------------------
 // POST /api/applications
 // Purpose: Create a new job application entry
@@ -66,7 +68,7 @@ exports.getApplications = async (req, res) => {
     if (status) filter.status = status;
 
     if (search) {
-        const regex = new RegExp(search.trim(), 'i');
+        const regex = new RegExp(escapeRegex(search.trim().slice(0, 200)), 'i');
         filter.$or = [
             { company: regex },
             { position: regex },

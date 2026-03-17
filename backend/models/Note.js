@@ -31,6 +31,7 @@ const noteSchema = new mongoose.Schema({
     },
     content: {
         type: String,
+        maxlength: [200000, 'Note content cannot exceed 200,000 characters'],
     },
     contentType: {
         type: String,
@@ -110,9 +111,11 @@ const noteSchema = new mongoose.Schema({
     summary: {
         quickSummary: {
             type: String,
+            maxlength: [50000, 'Quick summary cannot exceed 50,000 characters'],
         },
         detailedSummary: {
             type: String,
+            maxlength: [50000, 'Detailed summary cannot exceed 50,000 characters'],
         },
         generatedAt: {
             type: Date,

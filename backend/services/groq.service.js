@@ -10,6 +10,7 @@ const groq = require('../config/groq');
 // ============================================================
 
 const MODEL = 'llama-3.1-8b-instant';
+const MAX_INPUT_CHARS = 50000;
 
 // ----------------------------------------
 // generateSummary
@@ -23,7 +24,9 @@ const MODEL = 'llama-3.1-8b-instant';
 //   - Important Details: specific facts, formulas, examples worth remembering
 //   - Things to Keep in Mind: caveats, common mistakes, or nuances
 // ----------------------------------------
-const generateSummary = async (content) => {
+const generateSummary = async (content, userId) => {
+    content = content.slice(0, MAX_INPUT_CHARS);
+    console.info(JSON.stringify({ event: 'ai_call', fn: 'generateSummary', userId, contentLength: content.length, ts: new Date().toISOString() }));
     const systemPrompt = `You are a study assistant helping college students understand and review their academic notes.
 Your job is to produce clear, accurate summaries that help students study efficiently.
 Always write for someone who has already read the notes but needs a structured review.
@@ -88,7 +91,9 @@ ${content}`;
 // front — a question, term, or concept prompt
 // back  — the answer, definition, or explanation
 // ----------------------------------------
-const generateFlashcards = async (content) => {
+const generateFlashcards = async (content, userId) => {
+    content = content.slice(0, MAX_INPUT_CHARS);
+    console.info(JSON.stringify({ event: 'ai_call', fn: 'generateFlashcards', userId, contentLength: content.length, ts: new Date().toISOString() }));
     const systemPrompt = `You are a study assistant helping college students create flashcards from their academic notes and documents.
 Your job is to identify the most important concepts, terms, and ideas and turn them into effective flashcard Q&A pairs.
 Write questions that test understanding, not just memorization.
@@ -146,7 +151,9 @@ ${content}`;
 // sections            — per-section scores and feedback (Experience, Skills, Education, etc.)
 // keywordOptimization — { presentKeywords, missingKeywords }
 // ----------------------------------------
-const generateResumeFeedback = async (resumeText) => {
+const generateResumeFeedback = async (resumeText, userId) => {
+    resumeText = resumeText.slice(0, MAX_INPUT_CHARS);
+    console.info(JSON.stringify({ event: 'ai_call', fn: 'generateResumeFeedback', userId, contentLength: resumeText.length, ts: new Date().toISOString() }));
     const systemPrompt = `You are a senior technical recruiter and career coach who has reviewed thousands of resumes for top tech companies.
 You give brutally honest, deeply specific feedback that directly quotes and references what is written in the resume.
 You never give generic advice. Every sentence you write is grounded in the actual content of the resume being reviewed.

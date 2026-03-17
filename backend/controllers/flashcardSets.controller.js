@@ -30,7 +30,7 @@ exports.generateFromContent = async (req, res) => {
         return res.status(400).json({ success: false, error: 'Content is required to generate flashcards' });
     }
 
-    const result = await groqService.generateFlashcards(content);
+    const result = await groqService.generateFlashcards(content, req.user._id);
 
     // Create the FlashcardSet — not linked to any note
     const set = await FlashcardSet.create({

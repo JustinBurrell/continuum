@@ -21,13 +21,18 @@ const authMiddleware = async (req, res, next) => {
     // Verify signature and expiry throws if invalid or expired
     let decoded;
     try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     } catch (err) {
         return res.status(401).json({ success: false, error: 'Invalid or expired token' });
     }
 
     // Confirm the user still exists in the database
-    const user = await User.findById(decoded.userId);
+    let user;
+    try {
+        user = await User.findById(decoded.userId);
+    } catch (err) {
+        return next(err);
+    }
 
     if (!user) {
         return res.status(401).json({ success: false, error: 'User no longer exists' });

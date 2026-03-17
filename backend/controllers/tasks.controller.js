@@ -1,4 +1,5 @@
 const Task = require('../models/Task');
+const Friendship = require('../models/Friendship');
 const { createActivity } = require('../services/activity.service');
 
 // ============================================================
@@ -36,6 +37,20 @@ exports.createTask = async (req, res) => {
         return res.status(400).json({ success: false, error: 'dueDate is required' });
     }
 
+    // Validate that all participants are accepted friends
+    let validatedParticipants = [];
+    if (isShared && Array.isArray(participants) && participants.length > 0) {
+        const userId = req.user._id.toString();
+        for (const p of participants) {
+            const [u1, u2] = [userId, p.userId].sort();
+            const friendship = await Friendship.findOne({ user1: u1, user2: u2, status: 'accepted', deletedAt: null });
+            if (!friendship) {
+                return res.status(403).json({ success: false, error: `User ${p.userId} is not an accepted friend` });
+            }
+        }
+        validatedParticipants = participants.map((p) => ({ userId: p.userId, status: 'todo' }));
+    }
+
     const task = await Task.create({
         userId: req.user._id,
         title,
@@ -49,7 +64,7 @@ exports.createTask = async (req, res) => {
         recurrence,
         isShared: isShared || false,
         participants: isShared && Array.isArray(participants)
-            ? participants.map((p) => ({ userId: p.userId, status: 'todo' }))
+            ? validatedParticipants
             : [],
     });
 

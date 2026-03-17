@@ -1,7 +1,11 @@
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const Note = require('../models/Note');
 const RefreshToken = require('../models/RefreshToken');
+const OAuthCode = require('../models/OAuthCode');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 const cloudinary = require('../config/cloudinary');
@@ -21,7 +25,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // HELPER: Sign a short-lived JWT access token (1d)
 // ----------------------------------------
 const signToken = (userId) => {
-    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d' });
+    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d', algorithm: 'HS256' });
 };
 
 // ----------------------------------------
@@ -92,11 +96,13 @@ exports.login = async (req, res) => {
 
     // Use a generic message — don't reveal whether email or password was wrong
     if (!user) {
+        console.warn(JSON.stringify({ event: 'auth_failure', reason: 'email_not_found', email, ip: req.ip, ua: req.headers['user-agent'], ts: new Date().toISOString() }));
         return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+        console.warn(JSON.stringify({ event: 'auth_failure', reason: 'wrong_password', email, ip: req.ip, ua: req.headers['user-agent'], ts: new Date().toISOString() }));
         return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
@@ -190,20 +196,71 @@ exports.resetPassword = async (req, res) => {
 // Purpose: Passport has already verified the Google token and attached the user to req.user
 //          Sign a JWT and redirect to the frontend with it as a query param
 // ----------------------------------------
-exports.googleCallback = (req, res) => {
-    const token = signToken(req.user._id);
+exports.googleCallback = async (req, res) => {
+    // Generate a random one-time code — never put the JWT in a URL
+    const rawCode = crypto.randomBytes(16).toString('hex');
+    const codeHash = crypto.createHash('sha256').update(rawCode).digest('hex');
 
-    // Redirect to frontend — token passed as query param so the client can store it
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+    await OAuthCode.create({
+        codeHash,
+        userId: req.user._id,
+        expiresAt: new Date(Date.now() + 60 * 1000), // 60 seconds
+    });
+
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?code=${rawCode}`);
+};
+
+// ----------------------------------------
+// POST /api/auth/google/exchange
+// Purpose: Exchange a one-time OAuth code for a JWT + refresh token
+//          Code is single-use and expires after 60 seconds
+// ----------------------------------------
+exports.googleExchange = async (req, res) => {
+    const { code, deviceId } = req.body;
+
+    if (!code) {
+        return res.status(400).json({ success: false, error: 'code is required' });
+    }
+
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+    const record = await OAuthCode.findOne({ codeHash, used: false, expiresAt: { $gt: new Date() } });
+
+    if (!record) {
+        return res.status(400).json({ success: false, error: 'Invalid or expired code' });
+    }
+
+    // Mark as used immediately — prevents replay within the 60s window
+    await OAuthCode.findByIdAndUpdate(record._id, { used: true });
+
+    const token = signToken(record.userId);
+    const refreshToken = await generateRefreshToken(record.userId, deviceId);
+
+    res.status(200).json({ success: true, token, refreshToken });
 };
 
 // ----------------------------------------
 // POST /api/auth/me/google/link
 // Purpose: Link a Google account to an existing email/password user
-//          req.body contains the googleId and tokens from a client-side Google sign-in
+//          Client sends a Google ID token — server verifies it with Google before trusting the googleId
 // ----------------------------------------
 exports.googleLink = async (req, res) => {
-    const { googleId, googleAccessToken, googleRefreshToken } = req.body;
+    const { idToken, googleAccessToken, googleRefreshToken } = req.body;
+
+    if (!idToken) {
+        return res.status(400).json({ success: false, error: 'idToken is required' });
+    }
+
+    // Verify the ID token with Google — never trust a client-provided googleId directly
+    let googleId;
+    try {
+        const ticket = await googleClient.verifyIdToken({
+            idToken,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        googleId = ticket.getPayload().sub;
+    } catch {
+        return res.status(401).json({ success: false, error: 'Invalid Google ID token' });
+    }
 
     // Prevent linking a googleId that's already tied to another account
     const alreadyLinked = await User.findOne({ googleId });

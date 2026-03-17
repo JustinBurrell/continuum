@@ -92,25 +92,27 @@ await Comment.updateMany(
 
 ---
 
-## Model Overview (13 total)
+## Model Overview (14 total)
 
 | # | Model | Collection | Category | Must-Ship |
 |---|-------|-----------|----------|-----------|
 | 1 | User | users | Auth | Yes |
-| 2 | Note | notes | Notes (includes embedded summary) | Yes |
-| 3 | FlashcardSet | flashcardsets | Learning | Yes |
-| 4 | Flashcard | flashcards | Learning | Yes |
-| 5 | Task | tasks | Tasks | Yes |
-| 6 | Friendship | friendships | Social | Yes |
-| 7 | Comment | comments | Social | Yes |
-| 8 | Resume | resumes | Career (includes embedded feedback) | Yes |
-| 9 | Application | applications | Career | Yes |
-| 10 | Conversation | conversations | Stretch: DMs | No |
-| 11 | Message | messages | Stretch: DMs | No |
-| 12 | SyncQueue | syncqueues | Stretch: Offline | No |
-| 13 | Activity | activities | Stretch: Feed | No |
+| 2 | RefreshToken | refreshtokens | Auth | Yes |
+| 3 | OAuthCode | oauthcodes | Auth — one-time Google OAuth codes (60s TTL) | Yes |
+| 4 | Note | notes | Notes (includes embedded summary) | Yes |
+| 5 | FlashcardSet | flashcardsets | Learning | Yes |
+| 6 | Flashcard | flashcards | Learning | Yes |
+| 7 | Task | tasks | Tasks | Yes |
+| 8 | Friendship | friendships | Social | Yes |
+| 9 | Comment | comments | Social | Yes |
+| 10 | Resume | resumes | Career (includes embedded feedback) | Yes |
+| 11 | Application | applications | Career | Yes |
+| 12 | Conversation | conversations | Stretch: DMs | No |
+| 13 | Message | messages | Stretch: DMs | No |
+| 14 | SyncQueue | syncqueues | Stretch: Offline | No |
+| 15 | Activity | activities | Stretch: Feed | No |
 
-**9 must-ship models** + 4 stretch models
+**11 must-ship models** + 4 stretch models
 
 ---
 
@@ -168,19 +170,46 @@ await Comment.updateMany(
 **Google OAuth Flow**:
 ```
 1. User clicks "Sign in with Google"
-   └─> Redirect to Google OAuth consent screen
+   └─> Redirect to GET /api/auth/google (Passport initiates consent screen)
 
-2. Google returns authorization code
-   └─> Exchange code for access/refresh tokens
-   └─> Fetch user profile from Google
+2. Google redirects back to GET /api/auth/google/callback
+   └─> Passport verify callback: find or create User by googleId / email
+   └─> googleCallback generates crypto.randomBytes(16) one-time code
+   └─> Stores SHA-256 hash in OAuthCode collection (60s TTL, used:false)
+   └─> Redirects to frontend: /auth/callback?code=<rawCode>
+   └─> JWT never appears in any URL, log, or browser history
 
-3. Find or create user
-   └─> User.findOne({ googleId })
-   └─> If not found: User.create({ googleId, email, ... })
-   └─> Store googleAccessToken (encrypted)
+3. Frontend AuthCallback.jsx exchanges the code
+   └─> POST /api/auth/google/exchange { code }
+   └─> Server hashes code, finds OAuthCode record, marks used:true
+   └─> Returns { token (JWT), refreshToken }
+   └─> Frontend stores in localStorage, calls /auth/me to hydrate user
 
-4. Generate JWT
-   └─> Return token to client
+4. Link Google to existing account (POST /api/auth/me/google/link)
+   └─> Client sends Google-issued idToken (not a raw googleId)
+   └─> Server verifies idToken with google-auth-library OAuth2Client
+   └─> Extracts googleId from verified payload — never trusts client input
+   └─> Stores googleId, googleAccessToken, googleRefreshToken on User
+```
+
+**Email Verification Flow**:
+```
+1. On register: non-blocking try/catch auto-sends verification email
+   └─> user.createEmailVerificationToken() — generates raw token
+   └─> Stores SHA-256 hash in emailVerificationToken (select:false)
+   └─> Sets emailVerificationExpires (24h TTL)
+   └─> Sends link via Resend: /auth/verify-email?token=<rawToken>
+
+2. User clicks link → GET /api/auth/verify-email?token=
+   └─> Server hashes token, finds user by hash + unexpired
+   └─> findByIdAndUpdate: emailVerified:true, $unset token fields (atomic)
+   └─> Single-use: token fields are cleared on first successful use
+
+3. Resend verification: POST /api/auth/send-verification (protected)
+   └─> Regenerates token and resends email
+
+4. Google OAuth users: emailVerified set to true automatically
+   └─> Google has already verified the email address
 ```
 
 ---
