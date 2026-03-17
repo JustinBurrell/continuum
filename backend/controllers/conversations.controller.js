@@ -1,5 +1,6 @@
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
+const Friendship = require('../models/Friendship');
 
 // ============================================================
 // CONVERSATIONS CONTROLLER
@@ -26,6 +27,13 @@ exports.startConversation = async (req, res) => {
 
     if (participantId === userId.toString()) {
         return res.status(400).json({ success: false, error: 'You cannot start a conversation with yourself' });
+    }
+
+    // Verify accepted friendship exists before allowing DMs
+    const [u1, u2] = [userId.toString(), participantId].sort();
+    const friendship = await Friendship.findOne({ user1: u1, user2: u2, status: 'accepted', deletedAt: null });
+    if (!friendship) {
+        return res.status(403).json({ success: false, error: 'You can only message accepted friends' });
     }
 
     // Sort IDs to create a canonical pair — prevents [A,B] vs [B,A] duplicates
