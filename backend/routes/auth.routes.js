@@ -28,11 +28,14 @@ router.post('/refresh', authLimiter, authController.refresh);
 // Redirect user to Google's consent screen
 router.get('/google', passport.authenticate('google', { session: false, scope: ['profile', 'email', 'https://www.googleapis.com/auth/drive.readonly'], accessType: 'offline', prompt: 'consent' }));
 
-// Google redirects back here — Passport runs verify callback, then googleCallback signs a JWT
+// Google redirects back here — Passport runs verify callback, then googleCallback issues a one-time code
 router.get('/google/callback',
     passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/login?error=oauth_failed` }),
     authController.googleCallback
 );
+
+// Exchange the one-time code from the OAuth callback for a JWT + refresh token
+router.post('/google/exchange', authLimiter, authController.googleExchange);
 
 // Protected routes — JWT required (authMiddleware attaches req.user)
 router.get('/me', authMiddleware, authController.me);

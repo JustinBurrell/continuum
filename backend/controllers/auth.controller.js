@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const Note = require('../models/Note');
 const RefreshToken = require('../models/RefreshToken');
+const OAuthCode = require('../models/OAuthCode');
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 const cloudinary = require('../config/cloudinary');
@@ -192,11 +193,46 @@ exports.resetPassword = async (req, res) => {
 // Purpose: Passport has already verified the Google token and attached the user to req.user
 //          Sign a JWT and redirect to the frontend with it as a query param
 // ----------------------------------------
-exports.googleCallback = (req, res) => {
-    const token = signToken(req.user._id);
+exports.googleCallback = async (req, res) => {
+    // Generate a random one-time code — never put the JWT in a URL
+    const rawCode = crypto.randomBytes(16).toString('hex');
+    const codeHash = crypto.createHash('sha256').update(rawCode).digest('hex');
 
-    // Redirect to frontend — token passed as query param so the client can store it
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+    await OAuthCode.create({
+        codeHash,
+        userId: req.user._id,
+        expiresAt: new Date(Date.now() + 60 * 1000), // 60 seconds
+    });
+
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?code=${rawCode}`);
+};
+
+// ----------------------------------------
+// POST /api/auth/google/exchange
+// Purpose: Exchange a one-time OAuth code for a JWT + refresh token
+//          Code is single-use and expires after 60 seconds
+// ----------------------------------------
+exports.googleExchange = async (req, res) => {
+    const { code, deviceId } = req.body;
+
+    if (!code) {
+        return res.status(400).json({ success: false, error: 'code is required' });
+    }
+
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+    const record = await OAuthCode.findOne({ codeHash, used: false, expiresAt: { $gt: new Date() } });
+
+    if (!record) {
+        return res.status(400).json({ success: false, error: 'Invalid or expired code' });
+    }
+
+    // Mark as used immediately — prevents replay within the 60s window
+    await OAuthCode.findByIdAndUpdate(record._id, { used: true });
+
+    const token = signToken(record.userId);
+    const refreshToken = await generateRefreshToken(record.userId, deviceId);
+
+    res.status(200).json({ success: true, token, refreshToken });
 };
 
 // ----------------------------------------
