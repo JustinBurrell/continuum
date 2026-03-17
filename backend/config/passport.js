@@ -1,5 +1,6 @@
 const passport = require('passport');
 const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
+const crypto = require('crypto');
 const User = require('../models/User');
 
 // ============================================================
@@ -69,19 +70,28 @@ passport.use(
 
                 // Case 3: Brand new user — create account from Google profile
                 // username derived from email prefix (e.g. john.doe@gmail.com → john.doe)
-                const username = email.split('@')[0];
-                user = await User.create({
-                    email,
-                    username,
-                    firstName: profile.name.givenName,
-                    lastName: profile.name.familyName,
-                    googleId,
-                    googleAccessToken: accessToken,
-                    googleRefreshToken: refreshToken,
-                    googleTokenExpiry: new Date(Date.now() + 3600 * 1000),
-                    // Google has already verified this email address
-                    emailVerified: true,
-                });
+                let username = email.split('@')[0];
+                const existingUsername = await User.findOne({ username });
+                if (existingUsername) {
+                    username = `${username}_${crypto.randomBytes(3).toString('hex')}`;
+                }
+
+                try {
+                    user = await User.create({
+                        email,
+                        username,
+                        firstName: profile.name.givenName,
+                        lastName: profile.name.familyName,
+                        googleId,
+                        googleAccessToken: accessToken,
+                        googleRefreshToken: refreshToken,
+                        googleTokenExpiry: new Date(Date.now() + 3600 * 1000),
+                        // Google has already verified this email address
+                        emailVerified: true,
+                    });
+                } catch (createErr) {
+                    return done(createErr, null);
+                }
 
                 return done(null, user);
             } catch (err) {
