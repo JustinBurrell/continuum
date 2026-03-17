@@ -285,7 +285,9 @@ exports.googleLink = async (req, res) => {
 // ----------------------------------------
 exports.googleUnlink = async (req, res) => {
     // Prevent lockout — Google-only users have no password to fall back on
-    if (!req.user.password) {
+    // Must explicitly select password since it is select:false in the schema
+    const userWithPassword = await User.findById(req.user._id).select('+password');
+    if (!userWithPassword?.password) {
         return res.status(400).json({ success: false, error: 'Set a password before unlinking Google' });
     }
 
@@ -300,13 +302,13 @@ exports.googleUnlink = async (req, res) => {
         );
     }
 
-    req.user.googleId = undefined;
-    req.user.googleAccessToken = undefined;
-    req.user.googleRefreshToken = undefined;
-    req.user.googleTokenExpiry = undefined;
-    await req.user.save();
+    const updated = await User.findByIdAndUpdate(
+        req.user._id,
+        { $unset: { googleId: '', googleAccessToken: '', googleRefreshToken: '', googleTokenExpiry: '' } },
+        { new: true }
+    );
 
-    res.status(200).json({ success: true, user: req.user });
+    res.status(200).json({ success: true, user: updated });
 };
 
 // ----------------------------------------

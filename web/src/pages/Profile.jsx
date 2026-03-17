@@ -17,9 +17,11 @@ import Badge from '@/components/ui/Badge';
 import Skeleton from '@/components/ui/Skeleton';
 import { useForm } from 'react-hook-form';
 import { formatDate } from '@/lib/utils';
+import { useToast } from '@/components/ui/Toast';
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
+  const toast = useToast();
   const avatarInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [logoutAllLoading, setLogoutAllLoading] = useState(false);
@@ -517,7 +519,12 @@ export default function Profile() {
               {me?.googleId ? (
                 <div className="flex items-center gap-2">
                   <Badge variant="success">Connected</Badge>
-                  <Button size="sm" variant="outline" onClick={() => api.delete('/auth/me/google/link').catch(() => {})}>
+                  <Button size="sm" variant="outline" onClick={() =>
+                    api.delete('/auth/me/google/link').catch((err) => {
+                      const msg = err?.response?.data?.error || 'Failed to unlink Google account';
+                      toast({ type: 'error', message: msg });
+                    })
+                  }>
                     <Unlink size={13} /> Unlink
                   </Button>
                 </div>

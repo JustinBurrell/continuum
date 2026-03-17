@@ -23,8 +23,8 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-app.use(bodyParser.json({ limit: '50kb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '50kb' }));
+app.use(bodyParser.json({ limit: '200kb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '200kb' }));
 
 // Strip MongoDB operator keys ($gt, $where, etc.) from all incoming data
 app.use((req, res, next) => {
