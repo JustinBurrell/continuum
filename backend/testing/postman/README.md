@@ -64,11 +64,14 @@ Run top to bottom within each folder. Each creation request auto-sets the ID for
 | Request | Body Input | Expected | Tested |
 |---------|------------|----------|--------|
 | Create Note | `{ "title", "content", "tags" }` | `201` — sets `noteId` | ✅ |
+| **Upload Note PDF** | form-data: `pdf` = PDF file, `title`, `type`, `tags` | `201` — sets `noteId`, `pdfUrl` populated | |
 | List Notes | none | `200` | ✅ |
 | List Notes — Search | query: `?search=` | `200` | ✅ |
 | List Notes — Tag Filter | query: `?tag=` | `200` | ✅ |
 | Get Note by ID | none | `200` | ✅ |
 | Update Note | `{ "title", "content" }` | `200` | ✅ |
+| **Get Note PDF Download URL** | none | `200` — `downloadUrl` is a Cloudinary `fl_attachment` URL | |
+| **[Error] Get Note PDF — Note Has No PDF** | none (use a text-only `noteId`) | `404` | |
 | [Error] Get Note — Not Found | none | `404` | ✅ |
 | Delete Note | none | `200` *(run last in this folder)* | ✅ |
 
@@ -138,6 +141,7 @@ Run top to bottom within each folder. Each creation request auto-sets the ID for
 
 - If a request fails with `401 Unauthorized`, your token may have expired — re-run **Login** to refresh it
 - If a request fails with `404 Not Found`, the ID variable may be stale — re-run the creation request for that resource
+- **Upload Note PDF** requires selecting a real PDF file manually via the file picker in Postman
 - The Groq summary and flashcard generation requests take 2-5 seconds — this is normal
 
 ---
@@ -175,7 +179,7 @@ New variables added for session 5. All are auto-set by test scripts.
 | `friendshipId`    | Send Friend Request     | Accept/Remove Friend routes                  |
 | `noteId`          | Create Note (for Sharing) | Share, Comment, Get Shared routes           |
 | `commentId`       | Add Comment             | Like, Delete Comment routes                  |
-| `resumeId`        | Upload Resume           | Feedback routes                              |
+| `resumeId`        | Upload Resume           | Feedback, download, delete routes            |
 | `applicationId`   | Create Application      | Update, Contacts, Reminders routes           |
 | `sharedTaskId`    | Create Shared Task      | Participant Status, Calendar routes          |
 | `calFrom` / `calTo` | Pre-request script    | Get Calendar (Shared Tasks folder)           |
@@ -198,7 +202,9 @@ Run folders top to bottom. **Do not run "Remove Friend" until after all Note Sha
 | Request | Body Input | Expected | Tested |
 |---------|------------|----------|--------|
 | Search Users | query: `?q=testuser2` | `200` — returns array of matching users | ✅ |
+| **Get User by ID** | none | `200` — `user` object returned | |
 | [Error] Search — Missing Query | none | `400` | ✅ |
+| **[Error] Get User by ID — Not Found** | none (uses `000000000000000000000000`) | `404` | |
 
 ### 2. Friends
 | Request | Body Input | Expected | Tested |
@@ -243,7 +249,11 @@ Run folders top to bottom. **Do not run "Remove Friend" until after all Note Sha
 | List Resumes | none | `200` | ✅ |
 | Generate AI Feedback | none | `200` — takes 2-5s (Groq API call) — check `overallScore`, `strengths`, `improvements` | ✅ |
 | Get Feedback History | none | `200` — `feedback` array with the generated entry | ✅ |
+| **Download Resume** | none | `200` — `downloadUrl` is a Cloudinary `fl_attachment` URL | |
 | [Error] Upload Non-PDF | form-data: `resume` = any non-PDF file | `400` | ✅ |
+| **[Error] Delete Resume — Wrong User** | none (runs as User 2) | `404` — resume belongs to User 1 | |
+| **Delete Resume** | none | `200` — `resumeId` env variable cleared | |
+| **[Error] Delete Resume — Not Found** | none (uses `000000000000000000000000`) | `404` | |
 
 ### 6. Applications
 | Request | Body Input | Expected | Tested |
@@ -278,6 +288,7 @@ Run folders top to bottom. **Do not run "Remove Friend" until after all Note Sha
 - Run folder **0. Setup** first every time — it ensures `token`, `userId`, `secondToken`, `secondUserId` are all set
 - **Remove Friend** (bottom of folder 2) must be run **after** folders 3 and 7 — specific note sharing and shared tasks require an active friendship
 - Resume upload requires a real PDF file — select it manually via the file chooser in Postman
+- Delete Resume runs last in the Resumes folder — it clears `resumeId`
 - The AI Feedback request (Resumes) takes 2-5 seconds — this is normal (Groq API call)
 
 ---
@@ -366,7 +377,7 @@ Run folders top to bottom.
 
 # Postman Testing — Session 7
 
-API-22: Refresh Tokens (Multi-Device Auth).
+API-22: Refresh Tokens (Multi-Device Auth). API-27: Email Verification.
 
 ---
 
@@ -374,7 +385,7 @@ API-22: Refresh Tokens (Multi-Device Auth).
 
 ### 1. Import the collection
 - Open Postman → **Collections** tab → **Import** → select `continuum-session7.postman_collection.json`
-- Re-import `continuum-local.postman_environment.json` to pick up the two new variables
+- Re-import `continuum-local.postman_environment.json` to pick up the new variables
 
 ### 2. Select the environment
 - Top-right corner of Postman — switch the dropdown to **Continuum — Local**
@@ -388,12 +399,13 @@ cd backend && npm run dev
 
 ## Environment Variables
 
-New variables added for session 7. All are auto-set by test scripts.
+New variables added for session 7. Token variables are auto-set by test scripts. `verificationToken` must be set manually.
 
 | Variable                  | Set by                  | Used by                                  |
 |---------------------------|-------------------------|------------------------------------------|
 | `refreshToken`            | Login / Re-Login        | Refresh, Logout, post-logout error cases |
 | `secondDeviceRefreshToken`| Login — Second Device   | Logout All verification                  |
+| `verificationToken`       | **Set manually** from email link | Verify Email request            |
 
 ---
 
@@ -426,7 +438,20 @@ New variables added for session 7. All are auto-set by test scripts.
 | [Error] Refresh — Device 1 Revoked by Logout All | `{ "refreshToken": "{{refreshToken}}" }` | `401` | ✅ |
 | [Error] Refresh — Device 2 Revoked by Logout All | `{ "refreshToken": "{{secondDeviceRefreshToken}}" }` | `401` | ✅ |
 
-### 5. Error Cases
+### 5. Email Verification
+
+> **Setup:** After running "Send Verification Email", copy the `?token=` value from the link in your inbox (or from the backend console log if Resend is in test mode) and paste it into the `verificationToken` environment variable before running "Verify Email".
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| **Send Verification Email** | none | `200` — email sent via Resend | |
+| **Verify Email** | query: `?token={{verificationToken}}` | `200` — `emailVerified: true` written to MongoDB | |
+| **[Error] Send Verification — Already Verified** | none | `400` — "already verified" | |
+| **[Error] Verify Email — Invalid Token** | query: `?token=thisisnotavalidtoken` | `400` | |
+| **[Error] Verify Email — Missing Token** | no query param | `400` | |
+| **[Error] Send Verification — No JWT** | none (no `Authorization` header) | `401` | |
+
+### 6. Error Cases
 | Request | Body Input | Expected | Tested |
 |---------|------------|----------|--------|
 | [Error] Refresh — Missing refreshToken | `{}` | `400` | ✅ |
@@ -440,6 +465,7 @@ New variables added for session 7. All are auto-set by test scripts.
 - Run folders top to bottom — each folder depends on the state set by the previous one
 - `deviceId` is optional on login/register — if omitted it's stored as `null` but the token still works
 - The "Second Device — Still Works After Single Logout" test proves per-device isolation — the key benefit of this design
+- For email verification in dev, check your Resend dashboard (test mode) or backend `console.log` to get the raw token if the email is not delivered to your inbox
 
 ---
 
