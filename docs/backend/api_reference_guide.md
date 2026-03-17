@@ -45,7 +45,7 @@ Google linking is required for Google Drive/Docs features. `user.hasGoogleLinked
 - `POST /api/notes` - Create manual note directly in app
 - `GET /api/notes` - List user's notes with filtering options (tags, visibility, search query, pagination)
 - `GET /api/notes/:noteId` - Retrieve specific note with full content and embedded summary
-- `PATCH /api/notes/:noteId` - Update note title, tags, content, or visibility
+- `PUT /api/notes/:noteId` - Update note title, tags, content, contentType, or visibility
 - `DELETE /api/notes/:noteId` - Soft delete note
 - `POST /api/notes/import` - Import Google Doc as note snapshot; PDF stored as Cloudinary `authenticated` resource
 - `POST /api/notes/upload` - Upload a local PDF as a note (multipart/form-data, field: `file`; optional: `title`, `type`, `tags`); PDF stored as Cloudinary `authenticated` resource
@@ -145,10 +145,10 @@ Activity is driven by `settings.activityVisibility` on the User — `private` (d
 ### **Resume Management**
 - `POST /api/resumes/upload` - Upload resume PDF with label and target role (multipart/form-data); stored as `type: authenticated` in Cloudinary
 - `GET /api/resumes` - List all resume versions for user
-- `GET /api/resumes/:resumeId` - Retrieve resume with metadata, file URL, and embedded feedback
 - `GET /api/resumes/:resumeId/download` - Generate a 10-minute signed download URL via `private_download_url`; requires ownership
 - `POST /api/resumes/:resumeId/feedback` - Generate AI-powered feedback via Groq (appended to embedded feedback array)
 - `GET /api/resumes/:resumeId/feedback` - Retrieve all feedback entries for a resume
+- `DELETE /api/resumes/:resumeId` - Soft delete resume
 
 Resume PDFs are stored as Cloudinary `authenticated` resources — direct URLs return 401. The `/download` endpoint generates a signed API-level URL that works regardless of the resource's upload type. Feedback is stored as an embedded array on the Resume document.
 
@@ -230,19 +230,20 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 | User Profile | 1 | Yes |
 | Google Linking | 2 | Yes |
 | Google Drive | 2 | Yes |
-| Notes | 8 | Yes |
+| Notes | 9 | Yes |
 | AI Summary | 1 | Yes |
-| Flashcards | 9 | Yes |
+| Flashcards | 8 | Yes |
 | Tasks | 5 | Yes |
 | Calendar | 1 | Yes |
 | Social (Friends) | 6 | Yes |
-| Social (Sharing) | 2 | Yes |
+| Social (Note Sharing) | 2 | Yes |
 | Social (Comments) | 4 | Yes |
 | Shared Tasks | 2 | Yes |
-| Resume | 4 | Yes |
+| Flashcard Set Sharing | 2 | Stretch |
+| Resume | 6 | Yes |
 | Applications | 7 | Yes |
 | Messaging | 5 | Yes |
 | Activity Feed | 1 | Stretch |
 | Offline Sync | 1 | Stretch |
 | Health | 1 | Yes |
-| **Total** | **72** | **70** |
+| **Total** | **76** | **72** |

@@ -118,7 +118,7 @@ Frontend base URL: `http://localhost:5173`
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
 | GET | `/api/users/search` | `pages/friends/Friends.jsx` → Find tab | Query param `q`; results shown as cards with Add button |
-| GET | `/api/users/:id` | Not yet wired | Returns public profile: `{ _id, username, firstName, lastName, avatarUrl, bio, createdAt }`. No email, tokens, or settings. JWT required. |
+| GET | `/api/users/:id` | Throughout app — clickable user avatars/names | Returns public profile: `{ _id, username, firstName, lastName, avatarUrl, bio, createdAt }`. No email, tokens, or settings. JWT required. |
 
 ---
 
@@ -141,11 +141,12 @@ Frontend base URL: `http://localhost:5173`
 | GET | `/api/applications` | `pages/applications/ApplicationsList.jsx` | Pipeline (kanban) + list view |
 | POST | `/api/applications` | `pages/applications/ApplicationsList.jsx` → Add modal | |
 | PUT | `/api/applications/:id` | `pages/applications/ApplicationDetail.jsx` → Edit | Stage, notes, role, company, etc. |
+| DELETE | `/api/applications/:id` | `pages/applications/ApplicationDetail.jsx` → delete | Soft delete |
 | GET | `/api/applications/dashboard` | Not yet exposed in UI | Summary stats |
 | POST | `/api/applications/:id/contacts` | Not yet exposed in UI | Add a contact to an application |
 | POST | `/api/applications/:id/reminders` | Not yet exposed in UI | Set a reminder |
 
-**Note:** No single GET or DELETE for applications in the backend. Detail page (`ApplicationDetail.jsx`) reads from router state or React Query cache passed from the list.
+**Note:** No single GET for applications — `ApplicationDetail.jsx` reads from router state or React Query cache passed from the list.
 
 ---
 
@@ -157,7 +158,8 @@ Frontend base URL: `http://localhost:5173`
 | GET | `/api/resumes` | `pages/resumes/Resumes.jsx` | Lists all uploaded resumes |
 | GET | `/api/resumes/:id/download` | `pages/resumes/Resumes.jsx` → Download button | Returns 10-min signed URL via `private_download_url`; opened in new tab |
 | POST | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → AI Feedback / Regenerate button | AI-generated feedback accordion; older entries browsable via history panel |
-| GET | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → history panel (N older button) | Paginated in-card history; data already embedded in resume object from list endpoint |
+| GET | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → history panel | Returns all feedback entries; browsable in-card history |
+| DELETE | `/api/resumes/:id` | Not yet exposed in UI | Soft delete resume |
 
 ---
 
@@ -174,6 +176,7 @@ Frontend base URL: `http://localhost:5173`
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
 | GET | `/api/google/files` | Not yet exposed in UI | List linked Google Drive files (requires Google account linked) |
+| GET | `/api/google/docs/:docId/preview` | Not yet exposed in UI | Preview document content without saving |
 
 ---
 
@@ -201,8 +204,7 @@ These backend endpoints exist but have no frontend UI yet:
 |----------|---------------|
 | `POST /api/auth/logout-all` | "Sign out all devices" button in Profile security tab |
 | `GET /api/notes/shared` | "Shared with me" section on NotesList |
-| `POST /api/notes/import` | Import button on NotesList |
-| `PUT /api/notes/:id/refresh` | Refresh note action |
+| `PUT /api/notes/:id/refresh` | Refresh button on NoteDetail (Google Doc notes only) |
 | `PUT /api/notes/:id/share` | Share note with friend button on NoteDetail |
 | `POST /api/notes/:id/flashcards/generate` | "Generate flashcards" button on NoteDetail |
 | `DELETE /api/comments/:id` | Delete comment button on NoteDetail |
@@ -216,5 +218,6 @@ These backend endpoints exist but have no frontend UI yet:
 | `GET /api/applications/dashboard` | Stats widget on Dashboard or Applications header |
 | `POST /api/applications/:id/contacts` | Contacts section on ApplicationDetail |
 | `POST /api/applications/:id/reminders` | Reminder section on ApplicationDetail |
-| `GET /api/resumes/:id/feedback` | Load prior feedback without regenerating |
-| `GET /api/google/files` | Google Drive file browser in Profile |
+| `DELETE /api/resumes/:id` | Delete button on Resumes page |
+| `GET /api/google/files` | Google Drive file browser in NotesList import modal |
+| `GET /api/google/docs/:docId/preview` | Preview step before importing a Google Doc |

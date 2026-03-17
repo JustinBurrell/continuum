@@ -76,18 +76,18 @@ This means you won't have a working UI until Phase 3, but your backend will be r
 ## Overall Progress
 
 **Total Phases**: 4
-**Completed Phases**: 2/4
+**Completed Phases**: 2/4 (Phase 3 web complete, mobile pending)
 **Total Tickets**: 65 (must-ship) + stretch
-**Completed Tickets**: 34/65
-**Current Phase**: Phase 3 - Frontend Integration
+**Completed Tickets**: 44/65
+**Current Phase**: Phase 3 - Frontend Integration (mobile)
 
 ---
 
 ## Current Status
 
-**Current Ticket**: WEB-1: Wire up login and registration to auth API
+**Current Ticket**: MOB-1: Build mobile auth screens
 **Phase**: Phase 3 - Frontend Integration
-**Status**: Phase 2 complete — all 27 API tickets merged and Postman-tested (API-23 through API-27 completed in sprint 5)
+**Status**: Phase 2 complete — all 27 API tickets merged and Postman-tested. Phase 3 web complete — all 10 web tickets done (auth, dashboard, notes, flashcards, tasks, calendar, friends, messages, resumes, applications, activity, profile). Mobile work (MOB-1 through MOB-7) not yet started.
 
 *Update this section as you progress through tickets*
 
@@ -491,34 +491,34 @@ API-27. [x] `test: test api-23 through api-26 endpoints with postman`
 
 #### Web Tickets
 
-WEB-1. [ ] `feat: wire up login and registration to auth api`
+WEB-1. [x] `feat: wire up login and registration to auth api`
    - Connect existing login/register forms to POST /api/auth endpoints
    - Store JWT in localStorage/context
    - Handle auth errors and validation
 
-WEB-2. [ ] `feat: add auth context and protected routing`
+WEB-2. [x] `feat: add auth context and protected routing`
    - Create AuthContext with login, logout, user state
    - Add ProtectedRoute wrapper component
    - Redirect unauthenticated users to login
    - Persist session across page refreshes
 
-WEB-3. [ ] `feat: create dashboard shell with navigation`
+WEB-3. [x] `feat: create dashboard shell with navigation`
    - Build main dashboard layout with sidebar/nav
    - Route between Notes, Flashcards, Tasks, Social, Career sections
 
-WEB-4. [ ] `feat: wire up notes list and google drive import`
+WEB-4. [x] `feat: wire up notes list and google drive import`
    - Connect notes list to GET /api/notes
    - Add Google Drive file picker → POST /api/notes/import
    - Implement search and tag filtering
    - Add note viewer and editor
 
-WEB-5. [ ] `feat: wire up ai summaries and flashcard study`
+WEB-5. [x] `feat: wire up ai summaries and flashcard study`
    - Connect summary generation to POST /api/notes/:id/summary
    - Build flashcard study view with flip animation
    - Connect flashcard CRUD to API
    - Add keyboard shortcuts for study navigation
 
-WEB-6. [ ] `feat: wire up tasks and calendar view`
+WEB-6. [x] `feat: wire up tasks and calendar view`
    - Connect task creation/editing to API
    - Build calendar grid component with GET /api/calendar
    - Implement status filters and inline editing
@@ -555,23 +555,23 @@ MOB-4. [ ] `feat: build mobile task and calendar screens`
 
 #### Web Tickets
 
-WEB-7. [ ] `feat: wire up friends and sharing ui`
+WEB-7. [x] `feat: wire up friends and sharing ui`
    - User search and friend request flow
    - Friends list
    - Note sharing controls
    - Shared notes feed
 
-WEB-8. [ ] `feat: wire up comments and likes`
+WEB-8. [x] `feat: wire up comments and likes`
    - Comment threads on shared notes
    - Like functionality
    - Display shared tasks in calendar
 
-WEB-9. [ ] `feat: wire up resume management`
+WEB-9. [x] `feat: wire up resume management`
    - Resume upload with drag and drop
    - Resume feedback display
    - Version management
 
-WEB-10. [ ] `feat: wire up application tracking dashboard`
+WEB-10. [x] `feat: wire up application tracking dashboard`
    - Application creation and editing
    - Pipeline dashboard (kanban-style or list by status)
    - Networking contacts and follow-up reminders
@@ -597,11 +597,11 @@ MOB-7. [ ] `feat: add stretch mobile features` *(stretch)*
    - Offline/sync status indicators
 
 ### Phase 3 Checkpoint
-- [ ] Web: All features connected to backend APIs
-- [ ] Web: Auth flow working (register, login, Google OAuth, protected routes)
-- [ ] Web: Notes, flashcards, tasks, calendar all functional
-- [ ] Web: Social features (friends, sharing, comments) working
-- [ ] Web: Career tools (resume, applications) working
+- [x] Web: All features connected to backend APIs
+- [x] Web: Auth flow working (register, login, Google OAuth, protected routes)
+- [x] Web: Notes, flashcards, tasks, calendar all functional
+- [x] Web: Social features (friends, sharing, comments) working
+- [x] Web: Career tools (resume, applications) working
 - [ ] Mobile: Auth flow with secure storage working
 - [ ] Mobile: Core features (notes, flashcards, tasks) functional
 - [ ] Mobile: Social and career features working
@@ -699,18 +699,20 @@ POL-14. [ ] `build: prepare android build for google play`
 ### Phase Completion
 - [x] Phase 1: Database Layer (12/12 tickets)
 - [x] Phase 2: Backend APIs (27/27 tickets)
-- [ ] Phase 3: Frontend Integration (0/17 tickets — 10 web + 7 mobile)
+- [ ] Phase 3: Frontend Integration (10/17 tickets — 10 web ✓, 7 mobile pending)
 - [ ] Phase 4: Polish & Showcase (0/14 tickets)
 
 ### Key Milestones
 - [x] All MongoDB models created and seeded
 - [x] All backend APIs tested via Postman
-- [ ] Authentication working on web and mobile
-- [ ] Google Docs import functional
-- [ ] AI summaries and flashcards working
-- [ ] Task and calendar system complete
-- [ ] Social features (friends, sharing, comments) working
-- [ ] Career tools (resume upload, AI feedback, applications) working
+- [x] Authentication working on web (register, login, Google OAuth, protected routes)
+- [x] Google Docs import functional (web)
+- [x] AI summaries and flashcards working (web)
+- [x] Task and calendar system complete (web)
+- [x] Social features (friends, sharing, comments) working (web)
+- [x] Career tools (resume upload, AI feedback, applications) working (web)
+- [ ] Authentication working on mobile
+- [ ] Core features working on mobile (notes, flashcards, tasks)
 - [ ] Android build running on device/emulator
 - [ ] All critical bugs fixed
 - [ ] Showcase demo prepared
@@ -765,5 +767,5 @@ Each phase succeeds when:
 
 ---
 
-*Last Updated: March 7, 2026*
-*Current Status: Phase 2 fully complete — all 27 API tickets merged and Postman-tested. Entering Phase 3 (frontend). All stretch goals (messaging, activity feed, offline sync, flashcard sharing) implemented.*
+*Last Updated: March 17, 2026*
+*Current Status: Phase 3 web fully complete — all 10 web tickets done (auth, dashboard, notes, flashcards, tasks, calendar, friends, messaging, resumes, applications, activity, profile). Next: Phase 3 mobile (MOB-1 through MOB-7). All stretch goals implemented on backend; messaging, activity feed wired on web.*

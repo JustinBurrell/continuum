@@ -361,11 +361,11 @@ User requests AI feedback
   → $push to resume.feedback[] array
   → Return updated resume with latest feedback
 
-User views feedback
-  → GET /api/resumes/:resumeId
-  → Returns resume with full feedback[] array
-  → Frontend shows latest feedback with option to view history
-  → Can regenerate feedback anytime (appends to array, doesn't overwrite)
+User views feedback history
+  → GET /api/resumes/:resumeId/feedback
+  → Returns all feedback entries for this resume (array, newest first)
+  → Frontend shows latest feedback with option to browse history
+  → Can regenerate anytime via POST /api/resumes/:resumeId/feedback (appends, doesn't overwrite)
 ```
 
 ### Application Tracking
