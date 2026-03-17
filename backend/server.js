@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
+const mongoSanitize = require('mongo-sanitize');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const connectDB = require('./config/database');
 const passport = require('./config/passport');
@@ -18,10 +19,21 @@ app.use(helmet());
 app.disable('x-powered-by');
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '50kb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50kb' }));
+
+// Strip MongoDB operator keys ($gt, $where, etc.) from all incoming data
+app.use((req, res, next) => {
+  req.body = mongoSanitize(req.body);
+  req.params = mongoSanitize(req.params);
+  req.query = mongoSanitize(req.query);
+  next();
+});
+
 app.use(passport.initialize());
 
 // Global rate limit — applied before all routes
@@ -51,6 +63,19 @@ app.get('/health', (req, res) => {
     message: 'Server is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Global error handler — must be last middleware
+app.use((err, req, res, next) => {
+  if (err.name === 'CastError' && err.kind === 'ObjectId') {
+    return res.status(400).json({ success: false, error: 'Invalid ID format' });
+  }
+  if (err.name === 'ValidationError') {
+    const messages = Object.values(err.errors).map(e => e.message);
+    return res.status(400).json({ success: false, error: messages.join(', ') });
+  }
+  const message = process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message;
+  res.status(err.status || 500).json({ success: false, error: message });
 });
 
 // Start server
