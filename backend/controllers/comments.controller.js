@@ -1,4 +1,7 @@
 const Comment = require('../models/Comment');
+const Note = require('../models/Note');
+const FlashcardSet = require('../models/FlashcardSet');
+const Task = require('../models/Task');
 const { createActivity } = require('../services/activity.service');
 
 // ============================================================
@@ -79,6 +82,36 @@ exports.getComments = async (req, res) => {
             success: false,
             error: `targetType must be one of: ${validTargetTypes.join(', ')}`,
         });
+    }
+
+    // Verify requester has access to the target before returning its comments
+    const userId = req.user._id;
+    if (targetType === 'note') {
+        const note = await Note.findOne({ _id: targetId, deletedAt: null });
+        if (!note) return res.status(404).json({ success: false, error: 'Target not found' });
+        const isOwner = note.userId.toString() === userId.toString();
+        const isShared = note.sharedWith.some(id => id.toString() === userId.toString());
+        const isPublic = note.visibility === 'public';
+        if (!isOwner && !isShared && !isPublic) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+    } else if (targetType === 'flashcardSet') {
+        const set = await FlashcardSet.findOne({ _id: targetId, deletedAt: null });
+        if (!set) return res.status(404).json({ success: false, error: 'Target not found' });
+        const isOwner = set.userId.toString() === userId.toString();
+        const isShared = set.sharedWith.some(id => id.toString() === userId.toString());
+        const isPublic = set.visibility === 'public';
+        if (!isOwner && !isShared && !isPublic) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+    } else if (targetType === 'task') {
+        const task = await Task.findOne({ _id: targetId, deletedAt: null });
+        if (!task) return res.status(404).json({ success: false, error: 'Target not found' });
+        const isOwner = task.userId.toString() === userId.toString();
+        const isParticipant = task.participants.some(p => p.userId.toString() === userId.toString());
+        if (!isOwner && !isParticipant) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
     }
 
     // Fetch all non-deleted comments on this target (top-level and replies together)
