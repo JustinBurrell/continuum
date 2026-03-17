@@ -16,6 +16,8 @@ const { PDFParse } = require('pdf-parse');
 //            importNote, uploadNote, refreshNote, shareNote, getSharedNotes
 // ============================================================
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // ----------------------------------------
 // Helper: uploadPdfToCloudinary
 // Purpose: Pipe a readable stream from Drive into Cloudinary
@@ -180,9 +182,10 @@ exports.getNotes = async (req, res) => {
 
     // Text search across title and content using case-insensitive regex
     if (search) {
+        const safeSearch = escapeRegex(search.trim().slice(0, 200));
         filter.$or = [
-            { title: { $regex: search, $options: 'i' } },
-            { content: { $regex: search, $options: 'i' } },
+            { title: { $regex: safeSearch, $options: 'i' } },
+            { content: { $regex: safeSearch, $options: 'i' } },
         ];
     }
 

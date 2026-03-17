@@ -7,6 +7,8 @@ const User = require('../models/User');
 // Endpoints: searchUsers
 // ============================================================
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // ----------------------------------------
 // GET /api/users/search
 // Purpose: Search for users by username or email (for friend requests)
@@ -43,7 +45,7 @@ exports.searchUsers = async (req, res) => {
         return res.status(400).json({ success: false, error: 'Search query must be at least 2 characters' });
     }
 
-    const regex = new RegExp(q.trim(), 'i');
+    const regex = new RegExp(escapeRegex(q.trim().slice(0, 100)), 'i');
 
     const users = await User.find({
         _id: { $ne: req.user._id },
