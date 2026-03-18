@@ -353,7 +353,7 @@ exports.shareSet = async (req, res) => {
             actorId: req.user._id,
             type: 'flashcard_shared',
             targetId: set._id,
-            targetType: 'flashcard_set',
+            targetType: 'flashcardSet',
             metadata: { setTitle: set.title },
         }).catch(() => {});
     }

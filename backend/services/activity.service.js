@@ -25,12 +25,10 @@ const User = require('../models/User');
 const createActivity = async ({ actorId, type, targetId, targetType, metadata }) => {
     // Look up the actor's activityVisibility setting
     const actor = await User.findById(actorId).select('settings.activityVisibility');
-    const visibility = actor?.settings?.activityVisibility ?? 'private';
+    const visibility = actor?.settings?.activityVisibility ?? 'friends';
 
-    // Private — don't create any Activity doc
-    if (visibility === 'private') return;
-
-    let visibleTo = [];
+    // Always include the actor so they see their own activity
+    let visibleTo = [actorId];
     let isPublic = false;
 
     if (visibility === 'friends') {
@@ -41,12 +39,10 @@ const createActivity = async ({ actorId, type, targetId, targetType, metadata })
             deletedAt: null,
         });
 
-        visibleTo = friendships.map(f =>
+        const friendIds = friendships.map(f =>
             f.user1.toString() === actorId.toString() ? f.user2 : f.user1
         );
-
-        // No friends yet — nothing to publish
-        if (visibleTo.length === 0) return;
+        visibleTo.push(...friendIds);
 
     } else if (visibility === 'public') {
         isPublic = true;

@@ -68,6 +68,7 @@ export default function FlashcardSetDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['flashcard-set', id] });
       queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
+      queryClient.invalidateQueries({ queryKey: ['activity'] });
       refetch();
       setShowShareModal(false);
     },

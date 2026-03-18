@@ -72,6 +72,7 @@ export default function NoteDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       queryClient.invalidateQueries({ queryKey: ['note', id] });
+      queryClient.invalidateQueries({ queryKey: ['activity'] });
       setShowShareModal(false);
     },
   });

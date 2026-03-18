@@ -41,6 +41,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
     queryClient.invalidateQueries({ queryKey: ['calendar'] });
+    queryClient.invalidateQueries({ queryKey: ['activity'] });
     onUpdated?.();
   };
 

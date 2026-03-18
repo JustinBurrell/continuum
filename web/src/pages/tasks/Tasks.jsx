@@ -51,6 +51,7 @@ export default function Tasks() {
   const invalidateTasks = () => {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
     queryClient.invalidateQueries({ queryKey: ['calendar'] });
+    queryClient.invalidateQueries({ queryKey: ['activity'] });
   };
 
   const createMutation = useMutation({

@@ -438,7 +438,6 @@ export default function Profile() {
                 <select {...profileForm.register('settings.activityVisibility')} className="input-field">
                   <option value="private">Private - only you</option>
                   <option value="friends">Friends only</option>
-                  <option value="public">Public - everyone</option>
                 </select>
               </div>
             </div>

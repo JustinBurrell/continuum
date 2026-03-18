@@ -45,6 +45,8 @@ export default function ShareModal({
   });
 
   // Reset state when modal opens
+  const sharedWithKey = JSON.stringify(currentSharedWith);
+  const participantsKey = JSON.stringify(currentParticipants?.map(p => p.userId));
   useEffect(() => {
     if (open) {
       if (mode === 'task') {
@@ -55,7 +57,8 @@ export default function ShareModal({
         setSelectedIds(new Set((currentSharedWith || []).map(id => id.toString?.() || id)));
       }
     }
-  }, [open, mode, currentVisibility, currentSharedWith, currentParticipants]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, mode, currentVisibility, sharedWithKey, participantsKey]);
 
   // The friends endpoint returns { friendships: [...] } where each has user1 & user2 populated.
   // Extract the friend (the user who isn't the current user).
