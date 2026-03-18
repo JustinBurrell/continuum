@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "f6a7b8c9-d0e1-2345-fabc-345678901005",
     "name": "Continuum — Session 8",
-    "description": "API-23: Profile Update | API-24: Activity Feed | API-25: Flashcard Set Sharing | API-26: Sync Queue.\n\nRun order: 1. Login → 2. Profile Update → 3. Activity Feed → 4. Flashcard Sharing → 5. Sync Queue → 6. Error Cases.\ntoken and flashcardSetId are auto-set by test scripts. Requires flashcardSetId from a prior session.",
+    "description": "API-23: Profile Update | API-24: Activity Feed | API-25: Flashcard Set Sharing | API-26: Sync Queue | API-27: Note Sharing & Auto-Message | API-28: Task Participant Management.\n\nRun order: 1. Login → 2. Profile Update → 3. Activity Feed → 4. Flashcard Sharing → 5. Sync Queue → 6. Note Sharing & Auto-Message → 7. Task Participant Management.\ntoken and flashcardSetId are auto-set by test scripts. Requires flashcardSetId from a prior session.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -597,6 +597,448 @@
               "raw": "{{baseUrl}}/api/sync",
               "host": ["{{baseUrl}}"],
               "path": ["api", "sync"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Note Sharing & Auto-Message",
+      "item": [
+        {
+          "name": "Create Note (for sharing tests)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('shareNoteId', json.note._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Share Test Note\",\n  \"content\": \"This note tests the sharing system.\",\n  \"contentType\": \"plain\",\n  \"tags\": [\"test\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/notes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Share Note — specific (User B)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visibility\": \"specific\",\n  \"sharedWith\": [\"{{secondUserId}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/notes/{{shareNoteId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notes", "{{shareNoteId}}", "share"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shared Notes — as User B (should see note)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{secondToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notes/shared",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notes", "shared"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Auto-Message — User B inbox has share message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    const convos = json.conversations || [];",
+                  "    const hasShareMsg = convos.some(c => c.lastMessage && c.lastMessage.content && c.lastMessage.content.includes('[shared:note:'));",
+                  "    pm.test('Auto-message sent on share', () => pm.expect(hasShareMsg).to.be.true);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{secondToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unshare Note — remove User B (keep specific, empty sharedWith)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visibility\": \"specific\",\n  \"sharedWith\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/notes/{{shareNoteId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notes", "{{shareNoteId}}", "share"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shared Notes — as User B (empty after unshare)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    const notes = json.notes || [];",
+                  "    const hasNote = notes.some(n => n._id === pm.environment.get('shareNoteId'));",
+                  "    pm.test('Unshared note no longer visible to User B', () => pm.expect(hasNote).to.be.false);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{secondToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notes/shared",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notes", "shared"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Activity — note_shared entry exists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    const feed = json.feed || [];",
+                  "    const hasShare = feed.some(a => a.type === 'note_shared');",
+                  "    pm.test('note_shared activity exists', () => pm.expect(hasShare).to.be.true);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"],
+              "query": [{ "key": "limit", "value": "20" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Task Participant Management",
+      "item": [
+        {
+          "name": "Create Shared Task with User B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('shareTaskId', json.task._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Participant Management Test Task\",\n  \"type\": \"assignment\",\n  \"priority\": \"medium\",\n  \"dueDate\": \"2026-04-15\",\n  \"isShared\": true,\n  \"participants\": [{ \"userId\": \"{{secondUserId}}\" }]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shared Tasks — as User B (should see task)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{secondToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/shared",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "shared"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Auto-Message — User B inbox has task share message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    const convos = json.conversations || [];",
+                  "    const hasShareMsg = convos.some(c => c.lastMessage && c.lastMessage.content && c.lastMessage.content.includes('[shared:task:'));",
+                  "    pm.test('Auto-message sent for shared task', () => pm.expect(hasShareMsg).to.be.true);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{secondToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH Participants — remove User B",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participants\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{shareTaskId}}/participants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{shareTaskId}}", "participants"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shared Tasks — as User B (empty after removal)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    const tasks = json.tasks || [];",
+                  "    const hasTask = tasks.some(t => t._id === pm.environment.get('shareTaskId'));",
+                  "    pm.test('Removed participant no longer sees task', () => pm.expect(hasTask).to.be.false);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{secondToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/shared",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "shared"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH Participants — re-add User B",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participants\": [{ \"userId\": \"{{secondUserId}}\" }]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{shareTaskId}}/participants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{shareTaskId}}", "participants"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shared Tasks — as User B (visible again after re-add)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    const tasks = json.tasks || [];",
+                  "    const hasTask = tasks.some(t => t._id === pm.environment.get('shareTaskId'));",
+                  "    pm.test('Re-added participant sees task again', () => pm.expect(hasTask).to.be.true);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{secondToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/shared",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "shared"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Activity — task_created entry exists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    const feed = json.feed || [];",
+                  "    const hasTask = feed.some(a => a.type === 'task_created');",
+                  "    pm.test('task_created activity exists', () => pm.expect(hasTask).to.be.true);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"],
+              "query": [{ "key": "limit", "value": "20" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] PATCH Participants — non-friend userId",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participants\": [{ \"userId\": \"000000000000000000000001\" }]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{shareTaskId}}/participants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{shareTaskId}}", "participants"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] PATCH Participants — No Token",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participants\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{shareTaskId}}/participants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{shareTaskId}}", "participants"]
             }
           },
           "response": []

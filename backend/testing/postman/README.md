@@ -494,6 +494,7 @@ cd backend && npm run dev
 ## Prerequisites
 
 - **Flashcard sharing tests** require `flashcardSetId` and `secondUserId` to be set, and User A and User B must be accepted friends
+- **Note sharing & task participant tests** require User A and User B to be accepted friends
 - Run session 5 setup first if starting fresh (Login User 1 + Login User 2 + Accept Friend Request)
 - `taskId` and `noteId` must be set for the Sync Queue batch test — re-run Create Task and Create Note from session 3-4 if needed
 
@@ -503,9 +504,11 @@ cd backend && npm run dev
 
 New variables added for session 8. Auto-set by test scripts.
 
-| Variable      | Set by                      | Used by                      |
-|---------------|-----------------------------|------------------------------|
-| `activityId`  | Get Activity Feed (if feed non-empty) | Reference only    |
+| Variable       | Set by                                 | Used by                                    |
+|----------------|----------------------------------------|--------------------------------------------|
+| `activityId`   | Get Activity Feed (if feed non-empty)  | Reference only                             |
+| `shareNoteId`  | Create Note (for sharing tests)        | Note sharing, unshare, auto-message tests  |
+| `shareTaskId`  | Create Shared Task with User B         | PATCH participants, shared tasks tests     |
 
 ---
 
@@ -566,6 +569,35 @@ Run folders top to bottom.
 | [Error] Empty operations array | `{ "operations": [] }` | `400` | ✅ |
 | [Error] No Token | operations array | `401` | ✅ |
 
+### 6. Note Sharing & Auto-Message (API-27)
+*(Requires User A and User B to be accepted friends)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Create Note (for sharing tests) | `{ "title", "content", "contentType", "tags" }` | `201` — sets `shareNoteId` | |
+| Share Note — specific (User B) | `{ "visibility": "specific", "sharedWith": ["{{secondUserId}}"] }` | `200` | |
+| Get Shared Notes — as User B (should see note) | none (User B token) | `200` — note appears in results | |
+| Verify Auto-Message — User B inbox | none (User B token) | `200` — `lastMessage.content` contains `[shared:note:` | |
+| Unshare Note — remove User B | `{ "visibility": "specific", "sharedWith": [] }` | `200` | |
+| Get Shared Notes — as User B (empty after unshare) | none (User B token) | `200` — note no longer in results | |
+| Verify Activity — note_shared entry exists | none | `200` — feed contains `type: note_shared` | |
+
+### 7. Task Participant Management (API-28)
+*(Requires User A and User B to be accepted friends)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Create Shared Task with User B | `{ "title", "dueDate", "isShared": true, "participants": [{ "userId" }] }` | `201` — sets `shareTaskId` | |
+| Get Shared Tasks — as User B (should see task) | none (User B token) | `200` — task appears | |
+| Verify Auto-Message — User B inbox (task) | none (User B token) | `200` — `lastMessage.content` contains `[shared:task:` | |
+| PATCH Participants — remove User B | `{ "participants": [] }` | `200` — `isShared: false` | |
+| Get Shared Tasks — as User B (empty after removal) | none (User B token) | `200` — task no longer in results | |
+| PATCH Participants — re-add User B | `{ "participants": [{ "userId": "{{secondUserId}}" }] }` | `200` — `isShared: true` | |
+| Get Shared Tasks — as User B (visible again) | none (User B token) | `200` — task appears | |
+| Verify Activity — task_created entry exists | none | `200` — feed contains `type: task_created` | |
+| [Error] PATCH Participants — non-friend userId | `{ "participants": [{ "userId": "000000000000000000000001" }] }` | `400` | |
+| [Error] PATCH Participants — No Token | `{ "participants": [] }` | `401` | |
+
 ---
 
 ## Tips
@@ -574,4 +606,6 @@ Run folders top to bottom.
 - Profile update uses `multipart/form-data` (not JSON) — the body type in Postman must be set to **form-data**
 - Activity feed will return empty if `activityVisibility` is still `private` — run "Set activityVisibility to friends" first, then trigger an activity (e.g. share a note), then check the feed
 - Flashcard sharing tests depend on an active friendship between User A and User B — run session 5 friend flow if starting fresh
+- Note sharing and task participant tests also require an active friendship — run session 5 friend flow if starting fresh
 - The sync "Update on Deleted Doc" and "Delete Already-Deleted" requests intentionally return `status: completed` — this is correct social-app behavior, not a bug
+- Auto-message tests check `GET /conversations` for `[shared:type:id]` prefix in `lastMessage.content`
