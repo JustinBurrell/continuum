@@ -126,7 +126,7 @@ Summary is stored as an embedded field on the Note document. When you `GET /api/
 ### **Activity Feed**
 - `GET /api/activity` - List activity feed for the authenticated user (limit/offset pagination)
 
-Activity is driven by `settings.activityVisibility` on the User — `private` (default) writes no activity, `friends` scopes to current friend list, `public` is visible to all. Activity types: `note_shared`, `task_created` (shared tasks only), `comment_added`, `like_added`, `flashcard_shared`.
+Activity is driven by `settings.activityVisibility` on the User (default: `friends`). The actor always sees their own activity regardless of this setting. `private` means only the actor sees their activity, `friends` also makes it visible to accepted friends, `public` makes it visible to all. Activity types: `note_shared`, `task_created` (shared tasks only), `comment_added`, `like_added`, `flashcard_shared`.
 
 ---
 
