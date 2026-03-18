@@ -16,6 +16,16 @@ const STATUS_LABELS = { todo: 'To Do', in_progress: 'In Progress', completed: 'C
 const STATUS_COLORS = { todo: 'neutral', in_progress: 'warning', completed: 'success' };
 const PRIORITIES = ['low', 'medium', 'high'];
 const TYPES = ['homework', 'study', 'project', 'exam', 'club', 'professional', 'personal', 'other'];
+const TYPE_COLORS = {
+  homework: { bg: '#dbeafe', text: '#1d4ed8' },
+  study: { bg: '#f5f0ff', text: '#6b21a8' },
+  project: { bg: '#fef3c7', text: '#b45309' },
+  exam: { bg: '#fce7f3', text: '#be185d' },
+  club: { bg: '#d1fae5', text: '#065f46' },
+  professional: { bg: '#e0e7ff', text: '#3730a3' },
+  personal: { bg: '#fef9c3', text: '#854d0e' },
+  other: { bg: '#f3f4f6', text: '#374151' },
+};
 
 // ----------------------------------------
 // TaskDetailModal
@@ -303,8 +313,8 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
                 fontWeight: 500,
                 padding: '4px 12px',
                 borderRadius: 999,
-                background: '#f5f0ff',
-                color: '#6b21a8',
+                background: (TYPE_COLORS[task.type] || TYPE_COLORS.other).bg,
+                color: (TYPE_COLORS[task.type] || TYPE_COLORS.other).text,
                 textTransform: 'capitalize',
               }}>
                 {task.type}

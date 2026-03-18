@@ -16,6 +16,17 @@ const STATUS_LABELS = { 'todo': 'To Do', 'in_progress': 'In Progress', 'complete
 const PRIORITIES = ['low', 'medium', 'high'];
 const TYPES = ['homework', 'study', 'project', 'exam', 'club', 'professional', 'personal', 'other'];
 
+const TYPE_COLORS = {
+  homework: { bg: '#dbeafe', text: '#1d4ed8' },
+  study: { bg: '#f5f0ff', text: '#6b21a8' },
+  project: { bg: '#fef3c7', text: '#b45309' },
+  exam: { bg: '#fce7f3', text: '#be185d' },
+  club: { bg: '#d1fae5', text: '#065f46' },
+  professional: { bg: '#e0e7ff', text: '#3730a3' },
+  personal: { bg: '#fef9c3', text: '#854d0e' },
+  other: { bg: '#f3f4f6', text: '#374151' },
+};
+
 const PRIORITY_COLORS = {
   high: { border: '#ef4444', bg: 'rgba(239,68,68,0.08)', dot: '#ef4444' },
   medium: { border: '#f59e0b', bg: 'rgba(245,158,11,0.08)', dot: '#f59e0b' },
@@ -404,8 +415,8 @@ function TaskCard({ task, onStatusChange, onDelete, onView }) {
               fontWeight: 600,
               padding: '2px 8px',
               borderRadius: 20,
-              background: '#f5f0ff',
-              color: '#6b21a8',
+              background: (TYPE_COLORS[task.type] || TYPE_COLORS.other).bg,
+              color: (TYPE_COLORS[task.type] || TYPE_COLORS.other).text,
               textTransform: 'capitalize',
             }}>
               {task.type}
