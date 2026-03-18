@@ -256,10 +256,20 @@ User navigates to Calendar page
 
 ### Shared Tasks
 ```
-Owner creates task → adds participants
-  → PUT /api/tasks/:taskId { isShared: true, participants: [{ userId }] }
+Owner creates task with participants:
+  → POST /api/tasks { title, ..., participants: [{ userId }] }
+  → Server validates each participant is an accepted friend
   → Each participant gets their own status entry (default: 'todo')
+  → isShared set to true when participants.length > 0
+  → Auto-message sent to each participant via share.service.js
   → Task appears on all participants' calendars
+
+Manage participants after creation:
+  → PATCH /api/tasks/:taskId/participants { participants: [{ userId }] }
+  → Server validates all participant userIds are accepted friends
+  → Tracks new vs existing participants — only sends auto-message to newly added users
+  → Preserves existing participant status entries for returning participants
+  → Sets isShared = updatedParticipants.length > 0
 
 Participant updates their status:
   → PATCH /api/tasks/:taskId/status { status: 'completed' }
@@ -269,7 +279,7 @@ Participant updates their status:
 
 Only owner can:
   → Edit title, description, dueDate, priority
-  → Add/remove participants
+  → Add/remove participants (via PATCH /tasks/:id/participants)
   → Delete the task
 ```
 
@@ -310,15 +320,28 @@ Share a note:
   → Note visible to all friends
   → OR { visibility: 'specific', sharedWith: [userId1, userId2] }
   → Note visible only to specified users
+  → Server validates each userId in sharedWith is an accepted friend
+  → When visibility is 'specific': auto-message sent to each recipient
+     → Uses share.service.js: finds/creates conversation, sends "[shared:note:id] ..." message
+     → Message appears in recipient's DM inbox with clickable link to the note
+
+Unshare:
+  → PUT /api/notes/:noteId/share { visibility: 'private' }
+  → Clears sharedWith[], note no longer visible to others
+
+Share a flashcard set:
+  → PATCH /api/flashcard-sets/:setId/share { visibility, sharedWith }
+  → Same pattern as notes: validates friendship, auto-messages on 'specific'
+  → Frontend renders share messages with clickable "View flashcards" link
 
 View shared content:
   → GET /api/notes/shared → returns notes shared with current user
-  → Includes notes where:
+  → GET /api/flashcard-sets/shared → returns sets shared with current user
+  → Includes items where:
      - visibility = 'friends' AND author is a friend
      - visibility = 'specific' AND current user in sharedWith[]
 
-Same pattern for flashcard sets (visibility + sharedWith fields exist)
-Tasks use isShared + participants[] pattern
+Tasks use isShared + participants[] pattern (see Shared Tasks section)
 ```
 
 ### Comments

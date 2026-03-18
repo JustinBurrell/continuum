@@ -99,10 +99,12 @@ Continuum makes sharing knowledge and coordinating with peers natural and effici
 
 **Key Capabilities**:
 - Friend system with request-based connections
-- One-click note and flashcard sharing
+- Granular sharing: share with all friends or pick specific friends from a friend picker
+- Automatic DM notification when content is shared with specific friends (clickable link to view)
 - Commenting and discussion threads on shared content
 - Like system to highlight valuable contributions
-- Shared tasks that appear on all participants' calendars
+- Shared tasks with participant management — add/remove collaborators after creation
+- Shared tasks appear on all participants' calendars with per-participant status tracking
 - Private direct messaging for coordination
 - Activity feed showing friends' recent shares
 

@@ -105,7 +105,7 @@ Summary is stored as an embedded field on the Note document. When you `GET /api/
 - `DELETE /api/friends/:friendId` - Remove friend
 
 ### **Content Sharing**
-- `PUT /api/notes/:noteId/share` - Update note visibility (private, friends, or specific users)
+- `PUT /api/notes/:noteId/share` - Update note visibility (private, friends, or specific users). When visibility is `specific`, an auto-message is sent to each user in `sharedWith` via the messaging system.
 - `GET /api/notes/shared` - List notes shared with the current user
 
 ### **Engagement**
@@ -115,11 +115,12 @@ Summary is stored as an embedded field on the Note document. When you `GET /api/
 - `DELETE /api/comments/:commentId` - Soft delete comment
 
 ### **Shared Tasks**
-- `PUT /api/tasks/:taskId` - Add participants to convert to shared task (update isShared + participants)
+- `PUT /api/tasks/:taskId` - Update task properties including participants
+- `PATCH /api/tasks/:taskId/participants` - Add or remove participants on a shared task (validates friendship). Sends auto-message to newly added participants via the messaging system.
 - `GET /api/tasks/shared` - List tasks shared with the current user
 
 ### **Flashcard Set Sharing**
-- `PATCH /api/flashcard-sets/:setId/share` - Update flashcard set visibility (private, friends, or specific users)
+- `PATCH /api/flashcard-sets/:setId/share` - Update flashcard set visibility (private, friends, or specific users). When visibility is `specific`, an auto-message is sent to each user in `sharedWith` via the messaging system.
 - `GET /api/flashcard-sets/shared` - List flashcard sets shared with the current user
 
 ### **Activity Feed**
@@ -238,7 +239,7 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 | Social (Friends) | 6 | Yes |
 | Social (Note Sharing) | 2 | Yes |
 | Social (Comments) | 4 | Yes |
-| Shared Tasks | 2 | Yes |
+| Shared Tasks | 3 | Yes |
 | Flashcard Set Sharing | 2 | Stretch |
 | Resume | 6 | Yes |
 | Applications | 7 | Yes |
@@ -246,4 +247,4 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 | Activity Feed | 1 | Stretch |
 | Offline Sync | 1 | Stretch |
 | Health | 1 | Yes |
-| **Total** | **76** | **72** |
+| **Total** | **77** | **73** |
