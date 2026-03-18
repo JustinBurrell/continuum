@@ -14,6 +14,7 @@ import { formatDate } from '@/lib/utils';
 const STATUSES = ['todo', 'in_progress', 'completed'];
 const STATUS_LABELS = { 'todo': 'To Do', 'in_progress': 'In Progress', 'completed': 'Completed' };
 const PRIORITIES = ['low', 'medium', 'high'];
+const TYPES = ['homework', 'study', 'project', 'exam', 'club', 'professional', 'personal', 'other'];
 
 const PRIORITY_COLORS = {
   high: { border: '#ef4444', bg: 'rgba(239,68,68,0.08)', dot: '#ef4444' },
@@ -29,7 +30,7 @@ const COLUMN_META = {
 
 const emptyForm = {
   title: '', description: '', priority: 'medium', status: 'todo',
-  dueDate: '', isShared: false, participants: [],
+  dueDate: '', type: '', isShared: false, participants: [],
 };
 
 export default function Tasks() {
@@ -179,14 +180,25 @@ export default function Tasks() {
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1.5">Due date</label>
-              <input
-                type="date"
-                className="input-field"
-                value={form.dueDate}
-                onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
-              />
+              <label className="text-sm font-medium text-foreground block mb-1.5">Type</label>
+              <select
+                className="input-field capitalize"
+                value={form.type}
+                onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+              >
+                <option value="">Select type</option>
+                {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-foreground block mb-1.5">Due date</label>
+            <input
+              type="date"
+              className="input-field"
+              value={form.dueDate}
+              onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
+            />
           </div>
           <div>
             <button
@@ -221,6 +233,7 @@ export default function Tasks() {
                 ...form,
                 isShared: form.participants.length > 0,
                 dueDate: form.dueDate || undefined,
+                type: form.type || undefined,
               })}
               loading={createMutation.isPending}
               disabled={!form.title.trim()}
@@ -383,17 +396,33 @@ function TaskCard({ task, onStatusChange, onDelete, onView }) {
         </p>
       )}
 
-      {task.dueDate && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-          fontSize: 11,
-          color: isOverdue ? '#ef4444' : '#a087b0',
-          marginBottom: 10,
-        }}>
-          {isOverdue ? <AlertCircle size={11} /> : <Clock size={11} />}
-          {isOverdue ? 'Overdue · ' : ''}{formatDate(task.dueDate)}
+      {(task.type || task.dueDate) && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+          {task.type && (
+            <span style={{
+              fontSize: 10,
+              fontWeight: 600,
+              padding: '2px 8px',
+              borderRadius: 20,
+              background: '#f5f0ff',
+              color: '#6b21a8',
+              textTransform: 'capitalize',
+            }}>
+              {task.type}
+            </span>
+          )}
+          {task.dueDate && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: 11,
+              color: isOverdue ? '#ef4444' : '#a087b0',
+            }}>
+              {isOverdue ? <AlertCircle size={11} /> : <Clock size={11} />}
+              {isOverdue ? 'Overdue · ' : ''}{formatDate(task.dueDate)}
+            </div>
+          )}
         </div>
       )}
 

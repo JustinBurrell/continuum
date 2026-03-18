@@ -15,6 +15,7 @@ const STATUSES = ['todo', 'in_progress', 'completed'];
 const STATUS_LABELS = { todo: 'To Do', in_progress: 'In Progress', completed: 'Completed' };
 const STATUS_COLORS = { todo: 'neutral', in_progress: 'warning', completed: 'success' };
 const PRIORITIES = ['low', 'medium', 'high'];
+const TYPES = ['homework', 'study', 'project', 'exam', 'club', 'professional', 'personal', 'other'];
 
 // ----------------------------------------
 // TaskDetailModal
@@ -71,6 +72,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
       title: task.title,
       description: task.description || '',
       priority: task.priority || 'medium',
+      type: task.type || '',
       dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
       isShared: task.isShared || false,
     });
@@ -165,16 +167,30 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 6 }}>
-                Due date
+                Type
               </label>
-              <input
-                type="date"
-                className="input-field"
+              <select
+                className="input-field capitalize"
                 style={{ borderColor: '#ede9fe', borderRadius: 12 }}
-                value={editForm.dueDate}
-                onChange={e => setEditForm(f => ({ ...f, dueDate: e.target.value }))}
-              />
+                value={editForm.type}
+                onChange={e => setEditForm(f => ({ ...f, type: e.target.value }))}
+              >
+                <option value="">Select type</option>
+                {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 6 }}>
+              Due date
+            </label>
+            <input
+              type="date"
+              className="input-field"
+              style={{ borderColor: '#ede9fe', borderRadius: 12 }}
+              value={editForm.dueDate}
+              onChange={e => setEditForm(f => ({ ...f, dueDate: e.target.value }))}
+            />
           </div>
 
           <button
@@ -204,7 +220,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
           <div className="flex gap-3 pt-2">
             <Button variant="outline" onClick={() => setEditing(false)} className="flex-1">Cancel</Button>
             <Button
-              onClick={() => updateMutation.mutate({ ...editForm, dueDate: editForm.dueDate || undefined })}
+              onClick={() => updateMutation.mutate({ ...editForm, dueDate: editForm.dueDate || undefined, type: editForm.type || undefined })}
               loading={updateMutation.isPending}
               disabled={!editForm.title?.trim()}
               className="flex-1"
@@ -269,7 +285,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
             </div>
           </div>
 
-          {/* Priority + shared badges */}
+          {/* Priority + type + shared badges */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{
               ...priorityPillStyle(task.priority || 'low'),
@@ -281,6 +297,19 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
             }}>
               {task.priority || 'low'} priority
             </span>
+            {task.type && (
+              <span style={{
+                fontSize: 12,
+                fontWeight: 500,
+                padding: '4px 12px',
+                borderRadius: 999,
+                background: '#f5f0ff',
+                color: '#6b21a8',
+                textTransform: 'capitalize',
+              }}>
+                {task.type}
+              </span>
+            )}
             {task.isShared && (
               <span style={{
                 fontSize: 12,
