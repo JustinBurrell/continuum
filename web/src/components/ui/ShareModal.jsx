@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Check, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
@@ -44,11 +44,10 @@ export default function ShareModal({
     enabled: open,
   });
 
-  // Reset state when modal opens
-  const sharedWithKey = JSON.stringify(currentSharedWith);
-  const participantsKey = JSON.stringify(currentParticipants?.map(p => p.userId));
+  // Reset state only when modal opens (open transitions false → true)
+  const prevOpen = useRef(false);
   useEffect(() => {
-    if (open) {
+    if (open && !prevOpen.current) {
       if (mode === 'task') {
         const ids = (currentParticipants || []).map(p => p.userId?.toString?.() || p.userId);
         setSelectedIds(new Set(ids));
@@ -57,8 +56,8 @@ export default function ShareModal({
         setSelectedIds(new Set((currentSharedWith || []).map(id => id.toString?.() || id)));
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, mode, currentVisibility, sharedWithKey, participantsKey]);
+    prevOpen.current = open;
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The friends endpoint returns { friendships: [...] } where each has user1 & user2 populated.
   // Extract the friend (the user who isn't the current user).

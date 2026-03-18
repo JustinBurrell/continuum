@@ -321,21 +321,53 @@ function AppItem({ app }) {
   );
 }
 
+const feedNameLink = (u) => (
+  <Link
+    key={u._id}
+    to="/users/view"
+    state={{ id: u._id }}
+    style={{ color: '#6b21a8', fontWeight: 600, textDecoration: 'none' }}
+  >
+    {[u.firstName, u.lastName].filter(Boolean).join(' ') || 'Someone'}
+  </Link>
+);
+
+function feedRenderNames(names) {
+  if (!names || names.length === 0) return null;
+  if (names.length === 1) return feedNameLink(names[0]);
+  if (names.length === 2) return <>{feedNameLink(names[0])} and {feedNameLink(names[1])}</>;
+  return <>{feedNameLink(names[0])}, {feedNameLink(names[1])}, and {names.length - 2} other{names.length - 2 !== 1 ? 's' : ''}</>;
+}
+
+function feedShareSuffix(m) {
+  if (m.isRecipient) return <> with you</>;
+  if (m.sharedWithAll) return <> with friends</>;
+  if (m.sharedWithNames?.length > 0) return <> with {feedRenderNames(m.sharedWithNames)}</>;
+  return null;
+}
+
 function getFeedSentence(item, name) {
   const m = item.metadata || {};
+  const bold = <span style={{ fontWeight: 700 }}>{name}</span>;
+  const suffix = feedShareSuffix(m);
+
   switch (item.type) {
     case 'note_shared':
-      return m.noteTitle ? `${name} shared their note "${truncate(m.noteTitle, 40)}"` : `${name} shared a note`;
+      return <>{bold} shared their note {m.noteTitle && <span style={{ color: '#a087b0' }}>"{truncate(m.noteTitle, 40)}"</span>}{suffix}</>;
     case 'flashcard_shared':
-      return m.setTitle ? `${name} shared a flashcard set "${truncate(m.setTitle, 40)}"` : `${name} shared a flashcard set`;
+      return <>{bold} shared a flashcard set {m.setTitle && <span style={{ color: '#a087b0' }}>"{truncate(m.setTitle, 40)}"</span>}{suffix}</>;
     case 'task_created':
-      return m.taskTitle ? `${name} created a new task "${truncate(m.taskTitle, 40)}"` : `${name} created a new task`;
+      return <>{bold} shared a task {m.taskTitle && <span style={{ color: '#a087b0' }}>"{truncate(m.taskTitle, 40)}"</span>}{suffix}</>;
     case 'comment_added':
-      return m.commentPreview ? `${name} commented: "${truncate(m.commentPreview, 50)}"` : `${name} left a comment`;
+      return m.commentPreview
+        ? <>{bold} commented: <span style={{ color: '#a087b0' }}>"{truncate(m.commentPreview, 50)}"</span></>
+        : <>{bold} left a comment</>;
     case 'like_added':
-      return m.commentPreview ? `${name} liked a comment: "${truncate(m.commentPreview, 50)}"` : `${name} liked a comment`;
+      return m.commentPreview
+        ? <>{bold} liked a comment: <span style={{ color: '#a087b0' }}>"{truncate(m.commentPreview, 50)}"</span></>
+        : <>{bold} liked a comment</>;
     default:
-      return `${name} did something`;
+      return <>{bold} did something</>;
   }
 }
 

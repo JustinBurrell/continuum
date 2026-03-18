@@ -5,7 +5,7 @@ const Friendship = require('../models/Friendship');
 const getGoogleDriveClient = require('../config/googleDrive');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
-const { createActivity } = require('../services/activity.service');
+const { createActivity, createShareActivities } = require('../services/activity.service');
 const { sendShareMessage } = require('../services/share.service');
 const { PDFParse } = require('pdf-parse');
 
@@ -555,20 +555,26 @@ exports.shareNote = async (req, res) => {
         { new: true, runValidators: true }
     );
 
-    // Only fire activity when going from private → shared for the first time
-    // Tweaking between friends/specific doesn't warrant a new share event
-    if (existing.visibility === 'private' && visibility !== 'private') {
-        createActivity({
+    // Create sharing activity entries
+    if (visibility === 'friends') {
+        createShareActivities({
             actorId: req.user._id,
             type: 'note_shared',
             targetId: note._id,
             targetType: 'note',
             metadata: { noteTitle: note.title },
-        }).catch(() => {}); // non-blocking — never fail the request over activity
-    }
-
-    // Send auto-message to each specific friend
-    if (visibility === 'specific' && sharedWith?.length > 0) {
+            shareAll: true,
+        }).catch(() => {});
+    } else if (visibility === 'specific' && sharedWith?.length > 0) {
+        createShareActivities({
+            actorId: req.user._id,
+            type: 'note_shared',
+            targetId: note._id,
+            targetType: 'note',
+            metadata: { noteTitle: note.title },
+            recipientIds: sharedWith,
+        }).catch(() => {});
+        // Send auto-message to each specific friend
         for (const recipientId of sharedWith) {
             sendShareMessage(req.user._id, recipientId, 'note', note.title, note._id).catch(() => {});
         }

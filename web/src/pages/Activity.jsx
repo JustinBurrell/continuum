@@ -12,31 +12,55 @@ function fullName(u) {
   return [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'Someone';
 }
 
+const nameLink = (u) => (
+  <Link
+    key={u._id}
+    to="/users/view"
+    state={{ id: u._id }}
+    style={{ color: '#6b21a8', fontWeight: 600, textDecoration: 'none' }}
+    onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+    onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+  >
+    {[u.firstName, u.lastName].filter(Boolean).join(' ') || 'Someone'}
+  </Link>
+);
+
+function renderNames(names) {
+  if (!names || names.length === 0) return null;
+  if (names.length === 1) return nameLink(names[0]);
+  if (names.length === 2) return <>{nameLink(names[0])} and {nameLink(names[1])}</>;
+  return <>{nameLink(names[0])}, {nameLink(names[1])}, and {names.length - 2} other{names.length - 2 !== 1 ? 's' : ''}</>;
+}
+
+function shareSuffix(m) {
+  if (m.isRecipient) return <> with you</>;
+  if (m.sharedWithAll) return <> with friends</>;
+  if (m.sharedWithNames?.length > 0) return <> with {renderNames(m.sharedWithNames)}</>;
+  return null;
+}
+
 function getActivitySentence(item, name) {
   const m = item.metadata || {};
+  const bold = <span style={{ fontWeight: 700 }}>{name}</span>;
+  const suffix = shareSuffix(m);
+
   switch (item.type) {
     case 'note_shared':
-      return m.noteTitle
-        ? <><span style={{ fontWeight: 700 }}>{name}</span> shared their note <span style={{ color: '#a087b0' }}>"{m.noteTitle}"</span></>
-        : <><span style={{ fontWeight: 700 }}>{name}</span> shared a note</>;
+      return <>{bold} shared their note {m.noteTitle && <span style={{ color: '#a087b0' }}>"{m.noteTitle}"</span>}{suffix}</>;
     case 'flashcard_shared':
-      return m.setTitle
-        ? <><span style={{ fontWeight: 700 }}>{name}</span> shared a flashcard set <span style={{ color: '#a087b0' }}>"{m.setTitle}"</span></>
-        : <><span style={{ fontWeight: 700 }}>{name}</span> shared a flashcard set</>;
+      return <>{bold} shared a flashcard set {m.setTitle && <span style={{ color: '#a087b0' }}>"{m.setTitle}"</span>}{suffix}</>;
     case 'task_created':
-      return m.taskTitle
-        ? <><span style={{ fontWeight: 700 }}>{name}</span> created a new task <span style={{ color: '#a087b0' }}>"{m.taskTitle}"</span></>
-        : <><span style={{ fontWeight: 700 }}>{name}</span> created a new task</>;
+      return <>{bold} shared a task {m.taskTitle && <span style={{ color: '#a087b0' }}>"{m.taskTitle}"</span>}{suffix}</>;
     case 'comment_added':
       return m.commentPreview
-        ? <><span style={{ fontWeight: 700 }}>{name}</span> commented: <span style={{ color: '#a087b0' }}>"{m.commentPreview}"</span></>
-        : <><span style={{ fontWeight: 700 }}>{name}</span> left a comment</>;
+        ? <>{bold} commented: <span style={{ color: '#a087b0' }}>"{m.commentPreview}"</span></>
+        : <>{bold} left a comment</>;
     case 'like_added':
       return m.commentPreview
-        ? <><span style={{ fontWeight: 700 }}>{name}</span> liked a comment: <span style={{ color: '#a087b0' }}>"{m.commentPreview}"</span></>
-        : <><span style={{ fontWeight: 700 }}>{name}</span> liked a comment</>;
+        ? <>{bold} liked a comment: <span style={{ color: '#a087b0' }}>"{m.commentPreview}"</span></>
+        : <>{bold} liked a comment</>;
     default:
-      return <><span style={{ fontWeight: 700 }}>{name}</span> did something</>;
+      return <>{bold} did something</>;
   }
 }
 

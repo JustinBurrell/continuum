@@ -1,6 +1,6 @@
 const Task = require('../models/Task');
 const Friendship = require('../models/Friendship');
-const { createActivity } = require('../services/activity.service');
+const { createActivity, createShareActivities } = require('../services/activity.service');
 const { sendShareMessage } = require('../services/share.service');
 
 // ============================================================
@@ -69,13 +69,14 @@ exports.createTask = async (req, res) => {
             : [],
     });
 
-    if (task.isShared) {
-        createActivity({
+    if (task.isShared && validatedParticipants.length > 0) {
+        createShareActivities({
             actorId: req.user._id,
             type: 'task_created',
             targetId: task._id,
             targetType: 'task',
-            metadata: { taskTitle: title, dueDate },
+            metadata: { taskTitle: title },
+            recipientIds: validatedParticipants.map(p => p.userId),
         }).catch(() => {});
 
         // Send auto-message to each participant
@@ -292,12 +293,13 @@ exports.updateParticipants = async (req, res) => {
 
     // Fire activity when participants are added
     if (newParticipantEntries.length > 0) {
-        createActivity({
+        createShareActivities({
             actorId: req.user._id,
             type: 'task_created',
             targetId: task._id,
             targetType: 'task',
-            metadata: { taskTitle: task.title, dueDate: task.dueDate },
+            metadata: { taskTitle: task.title },
+            recipientIds: newParticipantEntries.map(p => p.userId),
         }).catch(() => {});
     }
 

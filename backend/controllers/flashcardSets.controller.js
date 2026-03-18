@@ -2,7 +2,7 @@ const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
 const Friendship = require('../models/Friendship');
 const groqService = require('../services/groq.service');
-const { createActivity } = require('../services/activity.service');
+const { createActivity, createShareActivities } = require('../services/activity.service');
 const { sendShareMessage } = require('../services/share.service');
 
 // ============================================================
@@ -347,19 +347,26 @@ exports.shareSet = async (req, res) => {
         { new: true, runValidators: true }
     );
 
-    // Only fire activity when going from private → shared for the first time
-    if (existing.visibility === 'private' && visibility !== 'private') {
-        createActivity({
+    // Create sharing activity entries
+    if (visibility === 'friends') {
+        createShareActivities({
             actorId: req.user._id,
             type: 'flashcard_shared',
             targetId: set._id,
             targetType: 'flashcardSet',
             metadata: { setTitle: set.title },
+            shareAll: true,
         }).catch(() => {});
-    }
-
-    // Send auto-message to each specific friend
-    if (visibility === 'specific' && sharedWith?.length > 0) {
+    } else if (visibility === 'specific' && sharedWith?.length > 0) {
+        createShareActivities({
+            actorId: req.user._id,
+            type: 'flashcard_shared',
+            targetId: set._id,
+            targetType: 'flashcardSet',
+            metadata: { setTitle: set.title },
+            recipientIds: sharedWith,
+        }).catch(() => {});
+        // Send auto-message to each specific friend
         for (const recipientId of sharedWith) {
             sendShareMessage(req.user._id, recipientId, 'flashcardSet', set.title, set._id).catch(() => {});
         }
