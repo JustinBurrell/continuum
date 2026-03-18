@@ -447,7 +447,7 @@ User opens DM screen → selects a friend
   → Server sorts [userId, participantId] into canonical pair (min first)
   → Find-or-create: if Conversation with these two participants exists → return it (200)
   → If not → Conversation.create() with participants[], unreadCounts[] per user (201)
-  → Returns Conversation with participants populated
+  → Returns Conversation with participants populated (username, firstName, lastName, avatarUrl)
   → Frontend navigates to the conversation thread
 ```
 
@@ -459,7 +459,7 @@ User types and sends a message
   → Message.create({ conversationId, senderId, content, clientTimestamp })
   → Update conversation.lastMessage (denormalized for inbox performance)
   → Increment unreadCounts for all participants except the sender
-  → Returns new Message
+  → Returns new Message with senderId populated (username, firstName, lastName, avatarUrl)
 ```
 
 ### Inbox View
@@ -467,7 +467,7 @@ User types and sends a message
 User opens DM screen
   → GET /api/conversations
   → Returns all conversations for user, sorted by lastMessage.sentAt descending
-  → Each conversation includes: participants (populated), lastMessage, unreadCounts
+  → Each conversation includes: participants (populated with username, firstName, lastName, avatarUrl), lastMessage, unreadCounts
   → Frontend shows preview of latest message + unread badge per conversation
 ```
 

@@ -12,9 +12,9 @@ import { formatRelative } from '@/lib/utils';
 
 // Verified backend shape:
 // GET /conversations/:id/messages -> { messages[], hasMore }
-// Each message: { _id, conversationId, senderId: { _id, username, firstName, lastName }, content, createdAt }
+// Each message: { _id, conversationId, senderId: { _id, username, firstName, lastName, avatarUrl }, content, createdAt }
 // GET /conversations -> { conversations[] }
-// Each participant: { _id, username, firstName, lastName } (no avatarUrl in populate)
+// Each participant: { _id, username, firstName, lastName, avatarUrl }
 
 function fullName(u) {
   return [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || '';
@@ -155,7 +155,7 @@ export default function Conversation({ conversationId }) {
                 {/* Avatar slot */}
                 <div style={{ width: 28, flexShrink: 0 }}>
                   {!isOwn && isLastInGroup && (
-                    <Avatar name={senderName} src={null} size="sm" />
+                    <Avatar name={senderName} src={msg.senderId?.avatarUrl || null} size="sm" />
                   )}
                 </div>
 
