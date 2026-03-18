@@ -17,6 +17,7 @@ const NOTE_TYPES = ['all', 'general', 'lecture', 'research', 'todo', 'journal'];
 export default function NotesList() {
   const { user } = useAuth();
   const [search, setSearch] = useState('');
+  const [sharedSearch, setSharedSearch] = useState('');
   const [type, setType] = useState('all');
   const [sharedTab, setSharedTab] = useState(false);
 
@@ -30,12 +31,14 @@ export default function NotesList() {
   const [uploadFile, setUploadFile] = useState(null);     // File object
   const [uploadTitle, setUploadTitle] = useState('');
 
+  const activeSearch = sharedTab ? sharedSearch : search;
+
   const { data, isLoading } = useQuery({
-    queryKey: sharedTab ? ['notes-shared', { search }] : ['notes', { search, type }],
+    queryKey: sharedTab ? ['notes-shared', { search: sharedSearch }] : ['notes', { search, type }],
     queryFn: () => {
       if (sharedTab) {
         return api.get('/notes/shared', {
-          params: { ...(search && { search }) },
+          params: { ...(sharedSearch && { search: sharedSearch }) },
         }).then(r => r.data);
       }
       return api
@@ -168,8 +171,8 @@ export default function NotesList() {
           <input
             type="text"
             placeholder={sharedTab ? "Search shared notes..." : "Search notes..."}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={activeSearch}
+            onChange={(e) => sharedTab ? setSharedSearch(e.target.value) : setSearch(e.target.value)}
             style={{
               width: '100%',
               background: 'white',
@@ -249,7 +252,7 @@ export default function NotesList() {
           </h3>
           <p style={{ color: '#a087b0', fontSize: '0.875rem', marginBottom: 20 }}>
             {sharedTab
-              ? 'No notes have been shared with you yet.'
+              ? (sharedSearch ? 'No shared notes match your search.' : 'No notes have been shared with you yet.')
               : search || type !== 'all'
               ? 'Try adjusting your search or filters.'
               : 'Start capturing your thoughts and ideas.'}
