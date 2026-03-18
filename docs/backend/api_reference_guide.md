@@ -76,9 +76,9 @@ Summary is stored as an embedded field on the Note document. When you `GET /api/
 ## Task & Calendar Management
 
 ### **Task Operations**
-- `POST /api/tasks` - Create task with due date, priority, duration, and optional note link
+- `POST /api/tasks` - Create task with due date, priority, type (`homework|study|project|exam|club|professional|personal|other`), duration, and optional note link
 - `GET /api/tasks` - List tasks with time range and status filters
-- `PUT /api/tasks/:taskId` - Update task properties (title, status, priority, due date)
+- `PUT /api/tasks/:taskId` - Update task properties (title, status, priority, type, due date)
 - `PATCH /api/tasks/:taskId/status` - Quick status update
 - `DELETE /api/tasks/:taskId` - Soft delete task (owner only)
 
