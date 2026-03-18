@@ -94,89 +94,240 @@ export default function FlashcardSetDetail() {
 
   if (!set) {
     return (
-      <div className="text-center py-16">
-        <p className="text-secondary">Set not found.</p>
-        <Link to="/flashcards" className="text-primary text-sm hover:underline mt-2 block">Back to sets</Link>
+      <div style={{ textAlign: 'center', padding: '64px 0' }}>
+        <p style={{ color: '#a087b0', marginBottom: 8 }}>Set not found.</p>
+        <Link to="/flashcards" style={{ color: '#6b21a8', fontSize: '0.875rem', textDecoration: 'none' }}>
+          Back to sets
+        </Link>
       </div>
     );
   }
 
+  const cardCount = set.flashcards?.length || 0;
+
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
         <Link to="/flashcards">
-          <button className="p-2 rounded-lg hover:bg-accent text-secondary transition-colors">
+          <button
+            style={{
+              padding: 8,
+              borderRadius: 10,
+              border: 'none',
+              background: 'transparent',
+              color: '#a087b0',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              transition: 'background 0.12s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#111827'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+          >
             <ArrowLeft size={18} />
           </button>
         </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-foreground">{set.title}</h1>
-          {set.subject && <p className="text-sm text-secondary mt-0.5">{set.subject}</p>}
+        <div style={{ flex: 1 }}>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>
+            {set.title}
+          </h1>
+          {set.subject && (
+            <p style={{ fontSize: '0.875rem', color: '#a087b0', marginTop: 2 }}>{set.subject}</p>
+          )}
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
+        {/* Action buttons */}
+        <button
           onClick={handleShare}
-          loading={shareLoading}
+          disabled={shareLoading}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '7px 14px',
+            borderRadius: 12,
+            border: '1px solid #ede9fe',
+            background: 'white',
+            color: '#374151',
+            fontSize: '0.8125rem',
+            fontWeight: 500,
+            cursor: shareLoading ? 'not-allowed' : 'pointer',
+            opacity: shareLoading ? 0.7 : 1,
+          }}
         >
           <Share2 size={14} />
           {set.isShared ? (
-            <span className="flex items-center gap-1">
-              Shared <Badge variant="success" className="ml-1 text-xs">On</Badge>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              Shared
+              <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.6875rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20 }}>On</span>
             </span>
-          ) : (
-            'Share'
-          )}
-        </Button>
-        <Button variant="outline" size="sm" onClick={handleAiGenerate} loading={aiLoading}>
-          <Sparkles size={14} /> AI Generate
-        </Button>
-        <Button size="sm" onClick={() => setShowAddCard(true)}>
+          ) : 'Share'}
+        </button>
+
+        <button
+          onClick={handleAiGenerate}
+          disabled={aiLoading}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '7px 14px',
+            borderRadius: 12,
+            border: '1px solid #ede9fe',
+            background: 'white',
+            color: '#374151',
+            fontSize: '0.8125rem',
+            fontWeight: 500,
+            cursor: aiLoading ? 'not-allowed' : 'pointer',
+            opacity: aiLoading ? 0.7 : 1,
+          }}
+        >
+          <Sparkles size={14} style={{ color: '#6b21a8' }} />
+          {aiLoading ? 'Generating...' : 'AI Generate'}
+        </button>
+
+        <button
+          onClick={() => setShowAddCard(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '7px 14px',
+            borderRadius: 12,
+            border: '1px solid #ede9fe',
+            background: 'white',
+            color: '#374151',
+            fontSize: '0.8125rem',
+            fontWeight: 500,
+            cursor: 'pointer',
+          }}
+        >
           <Plus size={14} /> Add card
-        </Button>
+        </button>
+
         <Link to="/flashcards/study" state={{ id }}>
-          <Button size="sm" variant="secondary">
+          <button
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '7px 16px',
+              borderRadius: 12,
+              border: 'none',
+              background: '#6b21a8',
+              color: 'white',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
             <Play size={14} /> Study
-          </Button>
+          </button>
         </Link>
       </div>
 
-      <p className="text-sm text-secondary mb-6">{set.flashcards?.length || 0} cards</p>
+      <p style={{ fontSize: '0.8125rem', color: '#a087b0', marginBottom: 24, marginLeft: 42 }}>
+        {cardCount} {cardCount === 1 ? 'card' : 'cards'}
+      </p>
 
       {/* Cards grid */}
-      {set.flashcards?.length === 0 ? (
-        <div className="text-center py-12 text-secondary text-sm">
-          No cards yet. Add cards manually or use AI Generate.
+      {cardCount === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px 0' }}>
+          <div style={{
+            width: 56,
+            height: 56,
+            borderRadius: '50%',
+            background: '#f5f0ff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 14px',
+          }}>
+            <Sparkles size={22} style={{ color: '#6b21a8' }} />
+          </div>
+          <p style={{ color: '#a087b0', fontSize: '0.875rem' }}>
+            No cards yet. Add cards manually or use AI Generate.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {set.flashcards?.map((card, i) => (
-            <Card key={card._id || i} className="relative group">
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+            <div
+              key={card._id || i}
+              className="group"
+              style={{
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 16,
+                boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+                padding: '18px 20px',
+                position: 'relative',
+                transition: 'border-color 0.15s, box-shadow 0.15s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = '#6b21a8';
+                e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.12)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = '#ede9fe';
+                e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
+              }}
+            >
+              {/* Actions */}
+              <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 4, opacity: 0 }} className="group-hover:opacity-100">
                 <button
                   onClick={() => openEditCard(card)}
-                  className="p-1 rounded hover:bg-accent text-secondary hover:text-primary transition-colors"
+                  style={{
+                    padding: 4,
+                    borderRadius: 6,
+                    border: 'none',
+                    background: 'transparent',
+                    color: '#a087b0',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
                 >
                   <Pencil size={12} />
                 </button>
                 <button
                   onClick={() => deleteCardMutation.mutate(card._id)}
-                  className="p-1 rounded hover:bg-red-50 text-secondary hover:text-red-500 transition-colors"
+                  style={{
+                    padding: 4,
+                    borderRadius: 6,
+                    border: 'none',
+                    background: 'transparent',
+                    color: '#a087b0',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
                 >
                   <Trash2 size={12} />
                 </button>
               </div>
-              <div className="mb-3 pb-3 border-b border-border">
-                <p className="text-xs font-medium text-secondary mb-1">Front</p>
-                <p className="text-sm font-medium text-foreground">{card.front}</p>
+
+              {/* Front */}
+              <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #ede9fe' }}>
+                <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#6b21a8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
+                  Front
+                </p>
+                <p style={{ fontSize: '0.9rem', fontWeight: 600, color: '#111827', lineHeight: 1.45 }}>{card.front}</p>
               </div>
+
+              {/* Back */}
               <div>
-                <p className="text-xs font-medium text-secondary mb-1">Back</p>
-                <p className="text-sm text-foreground">{card.back}</p>
+                <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
+                  Back
+                </p>
+                <p style={{ fontSize: '0.875rem', color: '#374151', lineHeight: 1.5 }}>{card.back}</p>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}
@@ -185,18 +336,46 @@ export default function FlashcardSetDetail() {
       <Modal open={showAddCard} onClose={() => setShowAddCard(false)} title="Add flashcard">
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Front *</label>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
+              Front *
+            </label>
             <textarea
-              className="input-field min-h-[80px] resize-none"
+              style={{
+                width: '100%',
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 12,
+                padding: '9px 14px',
+                fontSize: '0.875rem',
+                color: '#111827',
+                outline: 'none',
+                minHeight: 80,
+                resize: 'none',
+                boxSizing: 'border-box',
+              }}
               placeholder="Question or term..."
               value={newCard.front}
               onChange={e => setNewCard(c => ({ ...c, front: e.target.value }))}
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Back *</label>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
+              Back *
+            </label>
             <textarea
-              className="input-field min-h-[80px] resize-none"
+              style={{
+                width: '100%',
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 12,
+                padding: '9px 14px',
+                fontSize: '0.875rem',
+                color: '#111827',
+                outline: 'none',
+                minHeight: 80,
+                resize: 'none',
+                boxSizing: 'border-box',
+              }}
               placeholder="Answer or definition..."
               value={newCard.back}
               onChange={e => setNewCard(c => ({ ...c, back: e.target.value }))}
@@ -224,18 +403,46 @@ export default function FlashcardSetDetail() {
       >
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Front *</label>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
+              Front *
+            </label>
             <textarea
-              className="input-field min-h-[80px] resize-none"
+              style={{
+                width: '100%',
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 12,
+                padding: '9px 14px',
+                fontSize: '0.875rem',
+                color: '#111827',
+                outline: 'none',
+                minHeight: 80,
+                resize: 'none',
+                boxSizing: 'border-box',
+              }}
               placeholder="Question or term..."
               value={editCard.front}
               onChange={e => setEditCard(c => ({ ...c, front: e.target.value }))}
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Back *</label>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
+              Back *
+            </label>
             <textarea
-              className="input-field min-h-[80px] resize-none"
+              style={{
+                width: '100%',
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 12,
+                padding: '9px 14px',
+                fontSize: '0.875rem',
+                color: '#111827',
+                outline: 'none',
+                minHeight: 80,
+                resize: 'none',
+                boxSizing: 'border-box',
+              }}
               placeholder="Answer or definition..."
               value={editCard.back}
               onChange={e => setEditCard(c => ({ ...c, back: e.target.value }))}

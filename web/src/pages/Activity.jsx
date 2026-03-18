@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Activity as ActivityIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/lib/api';
-import { Card } from '@/components/ui/Card';
 import Avatar from '@/components/ui/Avatar';
 import Skeleton from '@/components/ui/Skeleton';
 import { formatRelative } from '@/lib/utils';
@@ -16,43 +15,74 @@ function getActivitySentence(item, name) {
   switch (item.type) {
     case 'note_shared':
       return m.noteTitle
-        ? <><span className="font-semibold">{name}</span> shared their note <span className="text-secondary">"{m.noteTitle}"</span></>
-        : <><span className="font-semibold">{name}</span> shared a note</>;
+        ? <><span style={{ fontWeight: 700 }}>{name}</span> shared their note <span style={{ color: '#a087b0' }}>"{m.noteTitle}"</span></>
+        : <><span style={{ fontWeight: 700 }}>{name}</span> shared a note</>;
     case 'flashcard_shared':
       return m.setTitle
-        ? <><span className="font-semibold">{name}</span> shared a flashcard set <span className="text-secondary">"{m.setTitle}"</span></>
-        : <><span className="font-semibold">{name}</span> shared a flashcard set</>;
+        ? <><span style={{ fontWeight: 700 }}>{name}</span> shared a flashcard set <span style={{ color: '#a087b0' }}>"{m.setTitle}"</span></>
+        : <><span style={{ fontWeight: 700 }}>{name}</span> shared a flashcard set</>;
     case 'task_created':
       return m.taskTitle
-        ? <><span className="font-semibold">{name}</span> created a new task <span className="text-secondary">"{m.taskTitle}"</span></>
-        : <><span className="font-semibold">{name}</span> created a new task</>;
+        ? <><span style={{ fontWeight: 700 }}>{name}</span> created a new task <span style={{ color: '#a087b0' }}>"{m.taskTitle}"</span></>
+        : <><span style={{ fontWeight: 700 }}>{name}</span> created a new task</>;
     case 'comment_added':
       return m.commentPreview
-        ? <><span className="font-semibold">{name}</span> commented: <span className="text-secondary">"{m.commentPreview}"</span></>
-        : <><span className="font-semibold">{name}</span> left a comment</>;
+        ? <><span style={{ fontWeight: 700 }}>{name}</span> commented: <span style={{ color: '#a087b0' }}>"{m.commentPreview}"</span></>
+        : <><span style={{ fontWeight: 700 }}>{name}</span> left a comment</>;
     case 'like_added':
       return m.commentPreview
-        ? <><span className="font-semibold">{name}</span> liked a comment: <span className="text-secondary">"{m.commentPreview}"</span></>
-        : <><span className="font-semibold">{name}</span> liked a comment</>;
+        ? <><span style={{ fontWeight: 700 }}>{name}</span> liked a comment: <span style={{ color: '#a087b0' }}>"{m.commentPreview}"</span></>
+        : <><span style={{ fontWeight: 700 }}>{name}</span> liked a comment</>;
     default:
-      return <><span className="font-semibold">{name}</span> did something</>;
+      return <><span style={{ fontWeight: 700 }}>{name}</span> did something</>;
   }
 }
+
+const TYPE_COLORS = {
+  note_shared: '#6b21a8',
+  flashcard_shared: '#7c3aed',
+  task_created: '#2563eb',
+  comment_added: '#16a34a',
+  like_added: '#dc2626',
+};
 
 function ActivityItem({ item }) {
   const actor = item.userId;
   const name = fullName(actor);
-
   const actorId = actor?._id;
+  const dotColor = TYPE_COLORS[item.type] || '#a087b0';
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-border last:border-0">
-      <Link to="/users/view" state={{ id: actorId }} className="flex-shrink-0 mt-0.5">
-        <Avatar name={name} src={actor?.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
-      </Link>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm text-foreground">{getActivitySentence(item, name)}</p>
-        <p className="text-xs text-secondary mt-0.5">{formatRelative(item.createdAt)}</p>
+    <div style={{
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: 14,
+      padding: '14px 0',
+      borderBottom: '1px solid #ede9fe',
+      position: 'relative',
+    }}>
+      {/* Activity type dot */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <Link to="/users/view" state={{ id: actorId }} style={{ display: 'block' }}>
+          <Avatar name={name} src={actor?.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
+        </Link>
+        <div style={{
+          position: 'absolute',
+          bottom: -2,
+          right: -2,
+          width: 10,
+          height: 10,
+          borderRadius: '50%',
+          background: dotColor,
+          border: '2px solid #fff',
+        }} />
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.5 }}>
+          {getActivitySentence(item, name)}
+        </p>
+        <p style={{ fontSize: 11, color: '#c4b5d4', marginTop: 4 }}>{formatRelative(item.createdAt)}</p>
       </div>
     </div>
   );
@@ -68,29 +98,47 @@ export default function Activity() {
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Activity</h1>
-          <p className="text-secondary text-sm mt-0.5">Track what's happening</p>
-        </div>
+      {/* Page header */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+          Activity
+        </h1>
+        <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>Track what's happening</p>
       </div>
 
-      <Card className="p-0 overflow-hidden">
-        <div className="divide-y divide-border px-5">
+      <div style={{
+        background: '#fff',
+        border: '1px solid #ede9fe',
+        borderRadius: 16,
+        boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+        overflow: 'hidden',
+      }}>
+        <div style={{ padding: '0 20px' }}>
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex gap-3 py-3">
-                <Skeleton className="w-7 h-7 rounded-full flex-shrink-0" />
-                <div className="flex-1 space-y-1">
+              <div key={i} style={{ display: 'flex', gap: 14, padding: '14px 0', borderBottom: '1px solid #ede9fe' }}>
+                <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-3 w-20" />
                 </div>
               </div>
             ))
           ) : activities.length === 0 ? (
-            <div className="text-center py-12">
-              <ActivityIcon size={36} className="mx-auto mb-3 text-secondary/40" />
-              <p className="text-secondary text-sm">
+            <div style={{ textAlign: 'center', padding: '48px 0' }}>
+              <div style={{
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                background: '#f5f0ff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 12px',
+              }}>
+                <ActivityIcon size={24} style={{ color: '#a087b0' }} />
+              </div>
+              <p style={{ fontSize: 14, color: '#a087b0', margin: 0 }}>
                 No activity yet. Start creating notes, tasks, and more.
               </p>
             </div>
@@ -98,7 +146,7 @@ export default function Activity() {
             activities.map(item => <ActivityItem key={item._id} item={item} />)
           )}
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

@@ -108,58 +108,113 @@ export default function NotesList() {
 
   return (
     <div>
-      <div className="page-header">
+      {/* Page header */}
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="page-title">Notes</h1>
-          <p className="text-secondary text-sm mt-0.5">{data?.pagination?.total ?? notes.length} notes</p>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', color: '#111827', fontWeight: 700, lineHeight: 1.2 }}>
+            Notes
+          </h1>
+          <p style={{ color: '#a087b0', fontSize: '0.8125rem', marginTop: 2 }}>
+            {data?.pagination?.total ?? notes.length} notes
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => { setShowImport(true); setImportError(''); }}>
-            <Upload size={16} /> Import
-          </Button>
+          <button
+            onClick={() => { setShowImport(true); setImportError(''); }}
+            style={{
+              border: '1px solid #ede9fe',
+              background: 'white',
+              color: '#374151',
+              padding: '8px 16px',
+              borderRadius: 12,
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'pointer',
+            }}
+          >
+            <Upload size={15} /> Import
+          </button>
           <Link to="/notes/new">
-            <Button>
-              <Plus size={16} /> New note
-            </Button>
+            <button
+              style={{
+                background: '#6b21a8',
+                color: 'white',
+                padding: '8px 16px',
+                borderRadius: 12,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                cursor: 'pointer',
+                border: 'none',
+              }}
+            >
+              <Plus size={15} /> New note
+            </button>
           </Link>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Search + filter bar */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
+          <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#a087b0' }} />
           <input
             type="text"
             placeholder="Search notes..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="input-field pl-9"
             disabled={sharedTab}
+            style={{
+              width: '100%',
+              background: 'white',
+              border: '1px solid #ede9fe',
+              borderRadius: 12,
+              padding: '10px 16px 10px 40px',
+              fontSize: '0.875rem',
+              color: '#111827',
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
           />
         </div>
-        <div className="flex gap-2 flex-wrap">
-          {/* Shared with me toggle */}
+        <div className="flex gap-2 flex-wrap items-center">
           <button
             onClick={() => setSharedTab(v => !v)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              sharedTab
-                ? 'bg-primary text-white'
-                : 'bg-accent text-foreground/70 hover:text-primary'
-            }`}
+            style={{
+              padding: '7px 14px',
+              borderRadius: 20,
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              border: 'none',
+              cursor: 'pointer',
+              background: sharedTab ? '#6b21a8' : '#f5f0ff',
+              color: sharedTab ? 'white' : '#6b21a8',
+              transition: 'all 0.15s',
+            }}
           >
             Shared with me
           </button>
-
           {!sharedTab && NOTE_TYPES.map(t => (
             <button
               key={t}
               onClick={() => setType(t)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
-                type === t
-                  ? 'bg-primary text-white'
-                  : 'bg-accent text-foreground/70 hover:text-primary'
-              }`}
+              style={{
+                padding: '7px 14px',
+                borderRadius: 20,
+                fontSize: '0.8125rem',
+                fontWeight: 500,
+                border: 'none',
+                cursor: 'pointer',
+                background: type === t ? '#6b21a8' : '#f5f0ff',
+                color: type === t ? 'white' : '#6b21a8',
+                textTransform: 'capitalize',
+                transition: 'all 0.15s',
+              }}
             >
               {t}
             </button>
@@ -171,14 +226,27 @@ export default function NotesList() {
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-40" />
+            <Skeleton key={i} className="h-44" />
           ))}
         </div>
       ) : notes.length === 0 ? (
-        <div className="text-center py-16">
-          <FileText size={40} className="mx-auto mb-3 text-secondary/40" />
-          <h3 className="font-semibold text-foreground mb-1">No notes found</h3>
-          <p className="text-secondary text-sm mb-4">
+        <div style={{ textAlign: 'center', padding: '64px 0' }}>
+          <div style={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            background: '#f5f0ff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+          }}>
+            <FileText size={28} style={{ color: '#6b21a8' }} />
+          </div>
+          <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '1rem', marginBottom: 6 }}>
+            No notes found
+          </h3>
+          <p style={{ color: '#a087b0', fontSize: '0.875rem', marginBottom: 20 }}>
             {sharedTab
               ? 'No notes have been shared with you yet.'
               : search || type !== 'all'
@@ -187,7 +255,20 @@ export default function NotesList() {
           </p>
           {!sharedTab && !search && type === 'all' && (
             <Link to="/notes/new">
-              <Button size="sm">Create your first note</Button>
+              <button
+                style={{
+                  background: '#6b21a8',
+                  color: 'white',
+                  padding: '9px 20px',
+                  borderRadius: 12,
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                Create your first note
+              </button>
             </Link>
           )}
         </div>
@@ -221,16 +302,23 @@ export default function NotesList() {
         title="Import note"
       >
         {/* Tab switcher */}
-        <div className="flex gap-1 mb-4 p-1 rounded-lg" style={{ background: 'var(--bg-accent)' }}>
+        <div style={{ display: 'flex', gap: 4, marginBottom: 16, padding: 4, borderRadius: 10, background: '#f5f0ff' }}>
           {['drive', 'upload'].map(tab => (
             <button
               key={tab}
               onClick={() => { setImportTab(tab); setImportError(''); }}
-              className="flex-1 py-1.5 rounded-md text-xs font-medium transition-colors"
               style={{
-                background: importTab === tab ? 'var(--bg-card)' : 'transparent',
-                color: importTab === tab ? 'var(--text-primary)' : 'var(--text-secondary)',
+                flex: 1,
+                padding: '7px 0',
+                borderRadius: 8,
+                fontSize: '0.8125rem',
+                fontWeight: 500,
+                border: 'none',
+                cursor: 'pointer',
+                background: importTab === tab ? 'white' : 'transparent',
+                color: importTab === tab ? '#111827' : '#a087b0',
                 boxShadow: importTab === tab ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                transition: 'all 0.15s',
               }}
             >
               {tab === 'drive' ? 'Google Drive' : 'Upload PDF'}
@@ -241,14 +329,13 @@ export default function NotesList() {
         {/* Google Drive tab */}
         {importTab === 'drive' && (
           !user?.googleId ? (
-            <div className="text-center py-6 space-y-3">
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <div style={{ textAlign: 'center', padding: '24px 0' }}>
+              <p style={{ fontSize: '0.875rem', color: '#a087b0', marginBottom: 12 }}>
                 Connect your Google account to import documents from Drive.
               </p>
               <a
                 href="/profile"
-                className="inline-flex items-center gap-1.5 text-sm font-medium"
-                style={{ color: 'var(--primary)' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.875rem', fontWeight: 500, color: '#6b21a8' }}
               >
                 <ExternalLink size={13} /> Go to Profile to connect
               </a>
@@ -256,20 +343,30 @@ export default function NotesList() {
           ) : (
             <div className="space-y-3">
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
+                <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0' }} />
                 <input
-                  className="input-field pl-9"
+                  style={{
+                    width: '100%',
+                    background: 'white',
+                    border: '1px solid #ede9fe',
+                    borderRadius: 12,
+                    padding: '9px 14px 9px 36px',
+                    fontSize: '0.875rem',
+                    color: '#111827',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
                   placeholder="Search your Google Docs..."
                   value={driveSearch}
                   onChange={e => setDriveSearch(e.target.value)}
                   autoFocus
                 />
               </div>
-              <div className="max-h-64 overflow-y-auto space-y-1">
+              <div style={{ maxHeight: 240, overflowY: 'auto' }} className="space-y-1">
                 {driveLoading ? (
                   Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)
                 ) : driveFiles.length === 0 ? (
-                  <p className="text-sm text-center py-4" style={{ color: 'var(--text-secondary)' }}>
+                  <p style={{ fontSize: '0.875rem', textAlign: 'center', padding: '16px 0', color: '#a087b0' }}>
                     {driveSearch ? 'No docs match your search.' : 'No Google Docs found in your Drive.'}
                   </p>
                 ) : (
@@ -277,30 +374,36 @@ export default function NotesList() {
                     <button
                       key={file.id}
                       onClick={() => setSelectedFile(file)}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors"
                       style={{
-                        background: selectedFile?.id === file.id ? 'var(--primary-bg)' : 'transparent',
-                        border: selectedFile?.id === file.id ? '1px solid var(--primary)' : '1px solid transparent',
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '8px 12px',
+                        borderRadius: 10,
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        border: selectedFile?.id === file.id ? '1px solid #6b21a8' : '1px solid transparent',
+                        background: selectedFile?.id === file.id ? '#f5f0ff' : 'transparent',
+                        transition: 'all 0.12s',
                       }}
-                      onMouseEnter={e => { if (selectedFile?.id !== file.id) e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                      onMouseLeave={e => { if (selectedFile?.id !== file.id) e.currentTarget.style.background = 'transparent'; }}
                     >
-                      <FileText size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-                      <span className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>{file.name}</span>
+                      <FileText size={14} style={{ color: '#a087b0', flexShrink: 0 }} />
+                      <span style={{ fontSize: '0.875rem', color: '#111827', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
                       <a
                         href={file.webViewLink}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={e => e.stopPropagation()}
-                        className="ml-auto flex-shrink-0"
+                        style={{ flexShrink: 0 }}
                       >
-                        <ExternalLink size={12} style={{ color: 'var(--text-tertiary)' }} />
+                        <ExternalLink size={12} style={{ color: '#a087b0' }} />
                       </a>
                     </button>
                   ))
                 )}
               </div>
-              {importError && <p className="text-xs" style={{ color: 'var(--destructive)' }}>{importError}</p>}
+              {importError && <p style={{ fontSize: '0.75rem', color: '#ef4444' }}>{importError}</p>}
               <div className="flex gap-3 pt-1">
                 <Button variant="outline" onClick={() => setShowImport(false)} className="flex-1">Cancel</Button>
                 <Button
@@ -320,33 +423,52 @@ export default function NotesList() {
         {importTab === 'upload' && (
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#a087b0', marginBottom: 6 }}>
                 Title (optional — defaults to filename)
               </label>
               <input
-                className="input-field"
+                style={{
+                  width: '100%',
+                  background: 'white',
+                  border: '1px solid #ede9fe',
+                  borderRadius: 12,
+                  padding: '9px 14px',
+                  fontSize: '0.875rem',
+                  color: '#111827',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
                 placeholder="Note title..."
                 value={uploadTitle}
                 onChange={e => setUploadTitle(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#a087b0', marginBottom: 6 }}>
                 PDF file
               </label>
               <label
-                className="flex flex-col items-center justify-center gap-2 w-full rounded-lg border-2 border-dashed cursor-pointer transition-colors py-8"
                 style={{
-                  borderColor: uploadFile ? 'var(--primary)' : 'var(--border)',
-                  background: uploadFile ? 'var(--primary-bg)' : 'transparent',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  width: '100%',
+                  borderRadius: 12,
+                  border: `2px dashed ${uploadFile ? '#6b21a8' : '#ede9fe'}`,
+                  background: uploadFile ? '#f5f0ff' : 'transparent',
+                  cursor: 'pointer',
+                  padding: '32px 0',
+                  transition: 'all 0.15s',
                 }}
               >
-                <Upload size={22} style={{ color: uploadFile ? 'var(--primary)' : 'var(--text-tertiary)' }} />
-                <span className="text-sm" style={{ color: uploadFile ? 'var(--primary)' : 'var(--text-secondary)' }}>
+                <Upload size={22} style={{ color: uploadFile ? '#6b21a8' : '#a087b0' }} />
+                <span style={{ fontSize: '0.875rem', color: uploadFile ? '#6b21a8' : '#a087b0' }}>
                   {uploadFile ? uploadFile.name : 'Click to select a PDF'}
                 </span>
                 {uploadFile && (
-                  <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#a087b0' }}>
                     {(uploadFile.size / 1024 / 1024).toFixed(2)} MB
                   </span>
                 )}
@@ -361,7 +483,7 @@ export default function NotesList() {
                 />
               </label>
             </div>
-            {importError && <p className="text-xs" style={{ color: 'var(--destructive)' }}>{importError}</p>}
+            {importError && <p style={{ fontSize: '0.75rem', color: '#ef4444' }}>{importError}</p>}
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => setShowImport(false)} className="flex-1">Cancel</Button>
               <Button
@@ -382,19 +504,76 @@ export default function NotesList() {
 
 function NoteCard({ note, onDelete }) {
   return (
-    <Card className="relative group flex flex-col">
-      <div className="flex items-start justify-between mb-2">
-        <Badge variant="primary" className="capitalize">{note.type || 'note'}</Badge>
+    <div
+      className="group"
+      style={{
+        background: 'white',
+        border: '1px solid #ede9fe',
+        borderRadius: 16,
+        boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'border-color 0.15s, box-shadow 0.15s',
+        position: 'relative',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = '#6b21a8';
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.12)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = '#ede9fe';
+        e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
+      }}
+    >
+      {/* Top row: badge + actions */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <span style={{
+          display: 'inline-block',
+          background: '#f5f0ff',
+          color: '#6b21a8',
+          fontSize: '0.6875rem',
+          fontWeight: 600,
+          padding: '3px 10px',
+          borderRadius: 20,
+          textTransform: 'capitalize',
+          letterSpacing: '0.02em',
+        }}>
+          {note.type || 'note'}
+        </span>
         {onDelete && (
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, opacity: 0 }} className="group-hover:opacity-100" >
             <Link to="/notes/edit" state={{ id: note._id }}>
-              <button className="p-1.5 rounded-lg hover:bg-accent text-secondary hover:text-primary transition-colors">
+              <button style={{
+                padding: '5px',
+                borderRadius: 8,
+                border: 'none',
+                background: 'transparent',
+                color: '#a087b0',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+              >
                 <Edit3 size={13} />
               </button>
             </Link>
             <button
               onClick={onDelete}
-              className="p-1.5 rounded-lg hover:bg-red-50 text-secondary hover:text-red-500 transition-colors"
+              style={{
+                padding: '5px',
+                borderRadius: 8,
+                border: 'none',
+                background: 'transparent',
+                color: '#a087b0',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
             >
               <Trash2 size={13} />
             </button>
@@ -402,27 +581,51 @@ function NoteCard({ note, onDelete }) {
         )}
       </div>
 
-      <Link to="/notes/view" state={{ id: note._id }} className="flex-1">
-        <h3 className="font-semibold text-foreground text-sm mb-1.5 line-clamp-2 hover:text-primary transition-colors">
+      {/* Title + preview */}
+      <Link to="/notes/view" state={{ id: note._id }} style={{ flex: 1, textDecoration: 'none' }}>
+        <h3 style={{
+          fontWeight: 600,
+          color: '#111827',
+          fontSize: '0.9375rem',
+          marginBottom: 6,
+          lineHeight: 1.4,
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          transition: 'color 0.12s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
+        onMouseLeave={e => e.currentTarget.style.color = '#111827'}
+        >
           {note.title}
         </h3>
-        <p className="text-xs text-secondary line-clamp-4">
-          {truncate(stripHtml(note.content), 180)}
+        <p style={{
+          fontSize: '0.8125rem',
+          color: '#a087b0',
+          lineHeight: 1.55,
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}>
+          {truncate(stripHtml(note.content), 160)}
         </p>
       </Link>
 
-      <div className="mt-3 flex items-center justify-between">
+      {/* Footer */}
+      <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {note.tags?.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {note.tags.slice(0, 3).map(tag => (
-              <span key={tag} className="inline-flex items-center gap-0.5 text-xs text-secondary">
+              <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.75rem', color: '#a087b0' }}>
                 <Tag size={9} />{tag}
               </span>
             ))}
           </div>
         ) : <span />}
-        <span className="text-xs text-secondary">{formatRelative(note.updatedAt)}</span>
+        <span style={{ fontSize: '0.75rem', color: '#a087b0' }}>{formatRelative(note.updatedAt)}</span>
       </div>
-    </Card>
+    </div>
   );
 }

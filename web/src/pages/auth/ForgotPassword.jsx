@@ -23,15 +23,26 @@ export default function ForgotPassword() {
 
   if (sent) {
     return (
-      <div className="text-center py-4">
-        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-          <CheckCircle size={24} className="text-green-600" />
+      <div className="text-center py-6">
+        <div
+          className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
+          style={{ background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)' }}
+        >
+          <CheckCircle size={28} className="text-green-600" />
         </div>
-        <h2 className="text-lg font-semibold text-foreground mb-2">Check your email</h2>
-        <p className="text-sm text-secondary mb-6">
-          We've sent a password reset link. Check your inbox and follow the instructions.
+        <h2
+          className="text-xl font-bold text-[#6b21a8] mb-2"
+          style={{ fontFamily: 'Georgia, serif' }}
+        >
+          Check your email
+        </h2>
+        <p className="text-sm text-[#a087b0] mb-7 leading-relaxed max-w-xs mx-auto">
+          We sent a password reset link to your inbox. Follow the instructions to set a new password.
         </p>
-        <Link to="/login" className="text-primary text-sm font-medium hover:underline">
+        <Link
+          to="/login"
+          className="text-sm text-[#6b21a8] font-semibold hover:underline"
+        >
           Back to sign in
         </Link>
       </div>
@@ -40,19 +51,27 @@ export default function ForgotPassword() {
 
   return (
     <div>
-      <div className="mb-6 text-center">
-        <h1 className="text-xl font-bold text-foreground">Reset your password</h1>
-        <p className="text-sm text-secondary mt-1">
+      {/* Heading */}
+      <div className="mb-7 text-center">
+        <h1
+          className="text-2xl font-bold text-[#6b21a8] mb-1"
+          style={{ fontFamily: 'Georgia, serif' }}
+        >
+          Reset your password
+        </h1>
+        <p className="text-sm text-[#a087b0]">
           Enter your email and we'll send you a reset link
         </p>
       </div>
 
+      {/* Error banner */}
       {error && (
-        <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
+        <div className="mb-5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
           {error}
         </div>
       )}
 
+      {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input
           label="Email"
@@ -65,8 +84,10 @@ export default function ForgotPassword() {
         </Button>
       </form>
 
-      <p className="mt-5 text-center text-sm text-secondary">
-        <Link to="/login" className="text-primary font-medium hover:underline">
+      {/* Footer */}
+      <p className="mt-6 text-center text-sm text-[#a087b0]">
+        Remembered your password?{' '}
+        <Link to="/login" className="text-[#6b21a8] font-semibold hover:underline">
           Back to sign in
         </Link>
       </p>

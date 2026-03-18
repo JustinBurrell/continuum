@@ -4,9 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Clock, AlertCircle, Trash2, UserPlus } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
-import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
@@ -14,8 +12,19 @@ import { formatDate } from '@/lib/utils';
 
 const STATUSES = ['todo', 'in_progress', 'completed'];
 const STATUS_LABELS = { 'todo': 'To Do', 'in_progress': 'In Progress', 'completed': 'Completed' };
-const STATUS_COLORS = { todo: 'neutral', 'in_progress': 'warning', completed: 'success' };
 const PRIORITIES = ['low', 'medium', 'high'];
+
+const PRIORITY_COLORS = {
+  high: { border: '#ef4444', bg: 'rgba(239,68,68,0.08)', dot: '#ef4444' },
+  medium: { border: '#f59e0b', bg: 'rgba(245,158,11,0.08)', dot: '#f59e0b' },
+  low: { border: '#d1d5db', bg: 'transparent', dot: '#9ca3af' },
+};
+
+const COLUMN_META = {
+  todo: { label: 'To Do', accent: '#6b21a8' },
+  in_progress: { label: 'In Progress', accent: '#f59e0b' },
+  completed: { label: 'Completed', accent: '#22c55e' },
+};
 
 const emptyForm = {
   title: '', description: '', priority: 'medium', status: 'todo',
@@ -68,7 +77,6 @@ export default function Tasks() {
 
   const allTasks = data?.tasks || data?.data || [];
 
-  // Group by status for kanban
   const columns = STATUSES.map(status => ({
     status,
     tasks: allTasks.filter(t => t.status === status),
@@ -80,10 +88,13 @@ export default function Tasks() {
 
   return (
     <div>
-      <div className="page-header">
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 className="page-title">Tasks</h1>
-          <p className="text-secondary text-sm mt-0.5">{allTasks.length} tasks</p>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+            Tasks
+          </h1>
+          <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>{allTasks.length} tasks</p>
         </div>
         <Button onClick={() => setShowCreate(true)}>
           <Plus size={16} /> New task
@@ -91,35 +102,34 @@ export default function Tasks() {
       </div>
 
       {/* Tab toggle */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setSharedTab(false)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            !sharedTab
-              ? 'bg-primary text-white'
-              : 'bg-accent text-foreground/70 hover:text-primary'
-          }`}
-        >
-          My tasks
-        </button>
-        <button
-          onClick={() => setSharedTab(true)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            sharedTab
-              ? 'bg-primary text-white'
-              : 'bg-accent text-foreground/70 hover:text-primary'
-          }`}
-        >
-          Shared with me
-        </button>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        {[{ key: false, label: 'My tasks' }, { key: true, label: 'Shared with me' }].map(({ key, label }) => (
+          <button
+            key={String(key)}
+            onClick={() => setSharedTab(key)}
+            style={{
+              padding: '7px 16px',
+              borderRadius: 10,
+              fontSize: 13,
+              fontWeight: 500,
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              background: sharedTab === key ? '#6b21a8' : '#f5f0ff',
+              color: sharedTab === key ? '#fff' : '#6b21a8',
+            }}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
           {STATUSES.map(s => <Skeleton key={s} className="h-64" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
           {columns.map(col => (
             <KanbanColumn
               key={col.status}
@@ -212,16 +222,57 @@ export default function Tasks() {
 }
 
 function KanbanColumn({ status, tasks, onStatusChange, onDelete, onView }) {
+  const meta = COLUMN_META[status];
+
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center gap-2 mb-3">
-        <Badge variant={STATUS_COLORS[status]}>{STATUS_LABELS[status]}</Badge>
-        <span className="text-xs text-secondary font-medium">{tasks.length}</span>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* Column header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 12,
+        padding: '8px 12px',
+        borderRadius: 10,
+        background: 'rgba(107,33,168,0.04)',
+      }}>
+        <span style={{
+          display: 'inline-block',
+          width: 8,
+          height: 8,
+          borderRadius: '50%',
+          background: meta.accent,
+          flexShrink: 0,
+        }} />
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#374151', flex: 1 }}>
+          {meta.label}
+        </span>
+        <span style={{
+          fontSize: 11,
+          fontWeight: 600,
+          color: '#fff',
+          background: meta.accent,
+          borderRadius: 20,
+          padding: '1px 7px',
+          minWidth: 20,
+          textAlign: 'center',
+        }}>
+          {tasks.length}
+        </span>
       </div>
-      <div className="flex-1 space-y-3">
+
+      {/* Task cards */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {tasks.length === 0 ? (
-          <div className="h-24 rounded-xl border-2 border-dashed border-border flex items-center justify-center">
-            <p className="text-xs text-secondary">No tasks</p>
+          <div style={{
+            height: 80,
+            borderRadius: 12,
+            border: '2px dashed #ede9fe',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <p style={{ fontSize: 12, color: '#a087b0' }}>No tasks</p>
           </div>
         ) : (
           tasks.map(task => (
@@ -241,47 +292,114 @@ function KanbanColumn({ status, tasks, onStatusChange, onDelete, onView }) {
 
 function TaskCard({ task, onStatusChange, onDelete, onView }) {
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
+  const priorityStyle = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.low;
 
   return (
-    <Card className="group p-4 cursor-pointer" onClick={() => onView(task._id)}>
-      <div className="flex items-start gap-2 mb-2">
-        <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-          task.priority === 'high' ? 'bg-red-500' :
-          task.priority === 'medium' ? 'bg-amber-500' : 'bg-secondary/50'
-        }`} />
-        <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium text-foreground line-clamp-2 ${
-            task.status === 'completed' ? 'line-through text-secondary' : ''
-          }`}>
-            {task.title}
-          </p>
-          {task.description && (
-            <p className="text-xs text-secondary mt-0.5 line-clamp-2">{task.description}</p>
-          )}
-        </div>
-      </div>
+    <div
+      onClick={() => onView(task._id)}
+      className="group"
+      style={{
+        background: '#fff',
+        border: `1px solid #ede9fe`,
+        borderLeft: `3px solid ${priorityStyle.border}`,
+        borderRadius: 12,
+        padding: '12px 14px',
+        cursor: 'pointer',
+        boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+        transition: 'box-shadow 0.15s, transform 0.1s',
+        position: 'relative',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.12)';
+        e.currentTarget.style.transform = 'translateY(-1px)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
+        e.currentTarget.style.transform = 'translateY(0)';
+      }}
+    >
+      {/* Title */}
+      <p style={{
+        fontSize: 13,
+        fontWeight: 600,
+        color: task.status === 'completed' ? '#a087b0' : '#111827',
+        textDecoration: task.status === 'completed' ? 'line-through' : 'none',
+        marginBottom: 4,
+        lineHeight: 1.4,
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden',
+      }}>
+        {task.title}
+      </p>
+
+      {task.description && (
+        <p style={{
+          fontSize: 11,
+          color: '#a087b0',
+          marginBottom: 8,
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          lineHeight: 1.4,
+        }}>
+          {task.description}
+        </p>
+      )}
 
       {task.dueDate && (
-        <div className={`flex items-center gap-1 text-xs mb-3 ${isOverdue ? 'text-red-500' : 'text-secondary'}`}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          fontSize: 11,
+          color: isOverdue ? '#ef4444' : '#a087b0',
+          marginBottom: 10,
+        }}>
           {isOverdue ? <AlertCircle size={11} /> : <Clock size={11} />}
           {isOverdue ? 'Overdue · ' : ''}{formatDate(task.dueDate)}
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <select
           value={task.status}
           onChange={e => { e.stopPropagation(); onStatusChange(task._id, e.target.value); }}
           onClick={e => e.stopPropagation()}
-          className="text-xs border border-border rounded-lg px-2 py-1 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+          style={{
+            fontSize: 11,
+            border: '1px solid #ede9fe',
+            borderRadius: 8,
+            padding: '3px 8px',
+            background: '#fef7ff',
+            color: '#6b21a8',
+            fontWeight: 500,
+            outline: 'none',
+            cursor: 'pointer',
+          }}
         >
           {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
         </select>
-        <div className="flex items-center gap-1">
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {onDelete && (
             <button
               onClick={e => { e.stopPropagation(); onDelete(task._id); }}
-              className="p-1 rounded hover:bg-red-50 text-secondary hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+              style={{
+                padding: 4,
+                borderRadius: 6,
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                color: '#a087b0',
+                display: 'flex',
+                alignItems: 'center',
+                transition: 'color 0.15s, background 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.color = '#ef4444'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
             >
               <Trash2 size={13} />
             </button>
@@ -290,11 +408,13 @@ function TaskCard({ task, onStatusChange, onDelete, onView }) {
       </div>
 
       {task.isShared && task.participants?.length > 0 && (
-        <div className="flex items-center gap-1 mt-2">
-          <UserPlus size={11} className="text-secondary" />
-          <span className="text-xs text-secondary">{task.participants.length} collaborator{task.participants.length !== 1 ? 's' : ''}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 8 }}>
+          <UserPlus size={11} style={{ color: '#a087b0' }} />
+          <span style={{ fontSize: 11, color: '#a087b0' }}>
+            {task.participants.length} collaborator{task.participants.length !== 1 ? 's' : ''}
+          </span>
         </div>
       )}
-    </Card>
+    </div>
   );
 }

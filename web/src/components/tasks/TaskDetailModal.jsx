@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Clock, AlertCircle, UserPlus, Pencil, ArrowLeft } from 'lucide-react';
+import { Clock, AlertCircle, UserPlus, Pencil, ArrowLeft, Users } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Modal from '@/components/ui/Modal';
@@ -71,6 +71,12 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
 
   const isOverdue = task?.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
 
+  const priorityPillStyle = (priority) => {
+    if (priority === 'high') return { background: '#fef2f2', color: '#dc2626' };
+    if (priority === 'medium') return { background: '#fffbeb', color: '#b45309' };
+    return { background: '#f9fafb', color: '#6b7280' };
+  };
+
   return (
     <Modal open={open} onClose={handleClose} title={editing ? 'Edit task' : 'Task detail'}>
       {isLoading ? (
@@ -85,31 +91,57 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
         <div className="space-y-4">
           <button
             onClick={() => setEditing(false)}
-            className="flex items-center gap-1.5 text-xs text-secondary hover:text-foreground transition-colors mb-1"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              color: '#a087b0',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              marginBottom: 4,
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
+            onMouseLeave={e => e.currentTarget.style.color = '#a087b0'}
           >
             <ArrowLeft size={13} /> Back to detail
           </button>
+
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Title *</label>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 6 }}>
+              Title *
+            </label>
             <input
               className="input-field"
+              style={{ borderColor: '#ede9fe', borderRadius: 12 }}
               value={editForm.title}
               onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
             />
           </div>
+
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Description</label>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 6 }}>
+              Description
+            </label>
             <textarea
               className="input-field resize-none min-h-[72px]"
+              style={{ borderColor: '#ede9fe', borderRadius: 12 }}
               value={editForm.description}
               onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
             />
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1.5">Priority</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 6 }}>
+                Priority
+              </label>
               <select
                 className="input-field capitalize"
+                style={{ borderColor: '#ede9fe', borderRadius: 12 }}
                 value={editForm.priority}
                 onChange={e => setEditForm(f => ({ ...f, priority: e.target.value }))}
               >
@@ -117,24 +149,30 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1.5">Due date</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 6 }}>
+                Due date
+              </label>
               <input
                 type="date"
                 className="input-field"
+                style={{ borderColor: '#ede9fe', borderRadius: 12 }}
                 value={editForm.dueDate}
                 onChange={e => setEditForm(f => ({ ...f, dueDate: e.target.value }))}
               />
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#374151', cursor: 'pointer' }}>
             <input
               type="checkbox"
               className="accent-primary"
+              style={{ accentColor: '#6b21a8', width: 15, height: 15 }}
               checked={editForm.isShared}
               onChange={e => setEditForm(f => ({ ...f, isShared: e.target.checked }))}
             />
             Shared task
           </label>
+
           <div className="flex gap-3 pt-2">
             <Button variant="outline" onClick={() => setEditing(false)} className="flex-1">Cancel</Button>
             <Button
@@ -151,61 +189,125 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
         <div className="space-y-4">
           {/* Title */}
           <div className="flex items-start gap-3">
-            <div className={`w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0 ${
-              task.priority === 'high' ? 'bg-red-500' :
-              task.priority === 'medium' ? 'bg-amber-500' : 'bg-secondary/50'
-            }`} />
-            <h3 className={`text-base font-semibold text-foreground leading-snug ${
-              task.status === 'completed' ? 'line-through text-secondary' : ''
-            }`}>
+            <div style={{
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              marginTop: 5,
+              flexShrink: 0,
+              background: task.priority === 'high' ? '#ef4444' : task.priority === 'medium' ? '#f59e0b' : '#d1d5db',
+            }} />
+            <h3 style={{
+              fontFamily: 'Georgia, serif',
+              fontSize: 16,
+              fontWeight: 700,
+              color: '#111827',
+              lineHeight: 1.4,
+              margin: 0,
+              textDecoration: task.status === 'completed' ? 'line-through' : 'none',
+              opacity: task.status === 'completed' ? 0.55 : 1,
+            }}>
               {task.title}
             </h3>
           </div>
 
-          {/* Badges */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant={STATUS_COLORS[task.status]}>{STATUS_LABELS[task.status]}</Badge>
-            <Badge variant="neutral" className="capitalize">{task.priority || 'low'} priority</Badge>
-            {task.isShared && <Badge variant="primary">Shared</Badge>}
+          {/* Status pills */}
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 8 }}>
+              Status
+            </p>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {STATUSES.map(s => (
+                <button
+                  key={s}
+                  onClick={() => statusMutation.mutate(s)}
+                  disabled={statusMutation.isPending}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: task.status === s ? 600 : 400,
+                    padding: '5px 14px',
+                    borderRadius: 999,
+                    border: task.status === s ? 'none' : '1px solid #ede9fe',
+                    background: task.status === s ? '#6b21a8' : '#ffffff',
+                    color: task.status === s ? '#ffffff' : '#111827',
+                    cursor: statusMutation.isPending ? 'not-allowed' : 'pointer',
+                    opacity: statusMutation.isPending ? 0.6 : 1,
+                    transition: 'background 0.15s, color 0.15s',
+                  }}
+                >
+                  {STATUS_LABELS[s]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Priority + shared badges */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{
+              ...priorityPillStyle(task.priority || 'low'),
+              fontSize: 12,
+              fontWeight: 500,
+              padding: '4px 12px',
+              borderRadius: 999,
+              textTransform: 'capitalize',
+            }}>
+              {task.priority || 'low'} priority
+            </span>
+            {task.isShared && (
+              <span style={{
+                fontSize: 12,
+                fontWeight: 500,
+                padding: '4px 12px',
+                borderRadius: 999,
+                background: '#f5f0ff',
+                color: '#6b21a8',
+              }}>
+                Shared
+              </span>
+            )}
           </div>
 
           {/* Description */}
           {task.description && (
-            <p className="text-sm text-foreground/80 leading-relaxed">{task.description}</p>
+            <div style={{ background: '#f5f0ff', borderRadius: 12, padding: '12px' }}>
+              <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, margin: 0 }}>
+                {task.description}
+              </p>
+            </div>
           )}
 
           {/* Due date */}
           {task.dueDate && (
-            <div className={`flex items-center gap-1.5 text-sm ${isOverdue ? 'text-red-500' : 'text-secondary'}`}>
-              {isOverdue ? <AlertCircle size={14} /> : <Clock size={14} />}
-              <span>{isOverdue ? 'Overdue · ' : 'Due '}{formatDate(task.dueDate)}</span>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 13,
+              fontWeight: 500,
+              padding: '5px 12px',
+              borderRadius: 999,
+              background: isOverdue ? '#fef2f2' : '#f5f0ff',
+              color: isOverdue ? '#dc2626' : '#6b21a8',
+            }}>
+              {isOverdue ? <AlertCircle size={13} /> : <Clock size={13} />}
+              <span>{isOverdue ? 'Overdue: ' : 'Due '}{formatDate(task.dueDate)}</span>
             </div>
           )}
 
           {/* Participants */}
           {task.isShared && task.participants?.length > 0 && (
-            <div className="flex items-center gap-1.5 text-sm text-secondary">
-              <UserPlus size={14} />
-              <span>{task.participants.length} collaborator{task.participants.length !== 1 ? 's' : ''}</span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#f5f0ff', borderRadius: 12, padding: '8px 12px' }}>
+              <Users size={14} style={{ color: '#6b21a8', flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>
+                {task.participants.length} collaborator{task.participants.length !== 1 ? 's' : ''}
+              </span>
             </div>
           )}
 
-          {/* Status quick-change */}
-          <div>
-            <label className="text-xs font-medium text-secondary block mb-1.5">Change status</label>
-            <select
-              value={task.status}
-              onChange={e => statusMutation.mutate(e.target.value)}
-              disabled={statusMutation.isPending}
-              className="text-sm border border-border rounded-lg px-3 py-1.5 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
-            >
-              {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
-            </select>
-          </div>
-
-          <div className="flex gap-3 pt-2 border-t border-border">
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 12, paddingTop: 8, borderTop: '1px solid #ede9fe', marginTop: 4 }}>
             <Button variant="outline" onClick={handleClose} className="flex-1">Close</Button>
-            <Button onClick={openEdit} className="flex-1">
+            <Button onClick={openEdit} className="flex-1" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <Pencil size={14} /> Edit task
             </Button>
           </div>
