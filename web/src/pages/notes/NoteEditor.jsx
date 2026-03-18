@@ -249,7 +249,7 @@ export default function NoteEditor() {
               borderRadius: 12,
               padding: '14px 16px',
               fontSize: '0.9rem',
-              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+              fontFamily: 'inherit',
               lineHeight: 1.7,
               color: '#111827',
               outline: 'none',
@@ -260,7 +260,7 @@ export default function NoteEditor() {
             onBlur={e => e.currentTarget.style.borderColor = '#ede9fe'}
           />
           <p style={{ fontSize: '0.75rem', color: '#a087b0', marginTop: 6 }}>
-            HTML is supported. For a rich editor, the backend stores HTML content.
+            Supports plain text and Markdown.
           </p>
         </div>
 
