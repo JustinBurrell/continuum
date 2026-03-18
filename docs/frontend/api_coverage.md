@@ -68,7 +68,7 @@ Frontend base URL: `http://localhost:5173`
 | POST | `/api/flashcard-sets` | `pages/flashcards/FlashcardSets.jsx` → create modal | |
 | GET | `/api/flashcard-sets/:id` | `pages/flashcards/FlashcardSetDetail.jsx` | Cards array included |
 | DELETE | `/api/flashcard-sets/:id` | `pages/flashcards/FlashcardSets.jsx` → delete button | |
-| POST | `/api/flashcard-sets/generate` | `pages/flashcards/FlashcardSetDetail.jsx` → AI Generate | Body: `{ setId }` |
+| POST | `/api/flashcard-sets/generate` | No frontend trigger (backend-only endpoint) | Body: `{ content, title }` |
 | POST | `/api/flashcard-sets/:id/cards` | `pages/flashcards/FlashcardSetDetail.jsx` → Add card modal | Body: `{ front, back }` |
 | DELETE | `/api/flashcard-sets/:setId/cards/:cardId` | `pages/flashcards/FlashcardSetDetail.jsx` → card delete | |
 | PUT | `/api/flashcard-sets/:setId/cards/:cardId` | Not yet exposed in UI | Edit card text |

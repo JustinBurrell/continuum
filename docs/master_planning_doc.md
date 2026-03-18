@@ -324,7 +324,7 @@ API-8. [x] `feat: implement ai flashcard generation`
        - Uses note.content as input
        - FlashcardSet linked to noteId, isAIGenerated: true
        - Sets note.hasFlashcards = true
-     - POST /api/flashcard-sets/generate — generate from raw submitted content
+     - POST /api/flashcard-sets/generate — generate from raw submitted content (backend-only, no frontend trigger)
        - Body: { content, title } — user pastes or submits document text
        - FlashcardSet not linked to any note (noteId: null), isAIGenerated: true
    - Both endpoints: create FlashcardSet → bulk insert Flashcard docs → update totalCards

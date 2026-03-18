@@ -16,8 +16,6 @@ export default function FlashcardSetDetail() {
   const id = state?.id;
   const [showAddCard, setShowAddCard] = useState(false);
   const [newCard, setNewCard] = useState({ front: '', back: '' });
-  const [aiLoading, setAiLoading] = useState(false);
-
   // Edit card state
   const [editingCard, setEditingCard] = useState(null); // { _id, front, back }
   const [editCard, setEditCard] = useState({ front: '', back: '' });
@@ -52,16 +50,6 @@ export default function FlashcardSetDetail() {
       setEditingCard(null);
     },
   });
-
-  const handleAiGenerate = async () => {
-    setAiLoading(true);
-    try {
-      await api.post('/flashcard-sets/generate', { setId: id });
-      refetch();
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   const shareMutation = useMutation({
     mutationFn: (payload) => api.patch(`/flashcard-sets/${id}/share`, payload),
@@ -166,28 +154,6 @@ export default function FlashcardSetDetail() {
         </button>
 
         <button
-          onClick={handleAiGenerate}
-          disabled={aiLoading}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '7px 14px',
-            borderRadius: 12,
-            border: '1px solid #ede9fe',
-            background: 'white',
-            color: '#374151',
-            fontSize: '0.8125rem',
-            fontWeight: 500,
-            cursor: aiLoading ? 'not-allowed' : 'pointer',
-            opacity: aiLoading ? 0.7 : 1,
-          }}
-        >
-          <Sparkles size={14} style={{ color: '#6b21a8' }} />
-          {aiLoading ? 'Generating...' : 'AI Generate'}
-        </button>
-
-        <button
           onClick={() => setShowAddCard(true)}
           style={{
             display: 'flex',
@@ -247,7 +213,7 @@ export default function FlashcardSetDetail() {
             <Sparkles size={22} style={{ color: '#6b21a8' }} />
           </div>
           <p style={{ color: '#a087b0', fontSize: '0.875rem' }}>
-            No cards yet. Add cards manually or use AI Generate.
+            No cards yet. Add your first card to get started.
           </p>
         </div>
       ) : (
