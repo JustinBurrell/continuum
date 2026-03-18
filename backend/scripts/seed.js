@@ -824,8 +824,11 @@ async function seedComments(justin, friends, justinNotes, friendNoteMap, justinS
 async function seedActivities(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks, comments) {
   console.log('Seeding activities...');
   const allFriendIds = friends.map(f => f._id);
-  const allIds = [justin._id, ...allFriendIds];
   let count = 0;
+
+  // Helper: friend name objects for sharedWithNames metadata
+  const friendNameObj = (f) => ({ _id: f._id, firstName: f.firstName, lastName: f.lastName });
+  const allFriendNames = friends.map(friendNameObj);
 
   // Activity dates spread across Feb-Apr
   let actDate = new Date('2026-02-05');
@@ -836,24 +839,56 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
   };
 
   // Justin's shared notes activities
+  // Indices 1, 2 are 'specific' (shared with all friends), rest are 'friends'
+  const specificNoteIndices = [1, 2];
   const sharedNoteIndices = [0, 1, 2, 5, 6, 10, 13];
   for (const i of sharedNoteIndices) {
     const note = justinNotes[i];
     if (!note) continue;
-    await Activity.create({
-      userId: justin._id,
-      type: 'note_shared',
-      targetId: note._id,
-      targetType: 'note',
-      visibleTo: allFriendIds,
-      metadata: { noteTitle: seedData.justinNotes[i].title },
-      createdAt: bumpDate(),
-    });
-    count++;
+    const noteTitle = seedData.justinNotes[i].title;
+    const ts = bumpDate();
+
+    if (specificNoteIndices.includes(i)) {
+      // Specific friends — sharer sees names, each recipient sees "with you"
+      await Activity.create({
+        userId: justin._id,
+        type: 'note_shared',
+        targetId: note._id,
+        targetType: 'note',
+        visibleTo: [justin._id],
+        metadata: { noteTitle, sharedWithNames: allFriendNames },
+        createdAt: ts,
+      });
+      count++;
+      for (const friend of friends) {
+        await Activity.create({
+          userId: justin._id,
+          type: 'note_shared',
+          targetId: note._id,
+          targetType: 'note',
+          visibleTo: [friend._id],
+          metadata: { noteTitle, isRecipient: true },
+          createdAt: ts,
+        });
+        count++;
+      }
+    } else {
+      // Friends visibility — single activity with sharedWithAll
+      await Activity.create({
+        userId: justin._id,
+        type: 'note_shared',
+        targetId: note._id,
+        targetType: 'note',
+        visibleTo: [justin._id, ...allFriendIds],
+        metadata: { noteTitle, sharedWithAll: true },
+        createdAt: ts,
+      });
+      count++;
+    }
   }
 
-  // Justin's shared flashcard set activities
-  const sharedSetIndices = [0, 1, 2, 3, 4, 5, 6, 7, 9]; // indices into justinSets that are friends visibility
+  // Justin's shared flashcard set activities (all are 'friends' visibility)
+  const sharedSetIndices = [0, 1, 2, 3, 4, 5, 6, 7, 9];
   for (const i of sharedSetIndices) {
     const set = justinSets[i];
     if (!set || set.visibility === 'private') continue;
@@ -862,26 +897,42 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
       type: 'flashcard_shared',
       targetId: set._id,
       targetType: 'flashcardSet',
-      visibleTo: allFriendIds,
-      metadata: { setTitle: set.title },
+      visibleTo: [justin._id, ...allFriendIds],
+      metadata: { setTitle: set.title, sharedWithAll: true },
       createdAt: bumpDate(),
     });
     count++;
   }
 
-  // Shared task activity
+  // Shared task activity — shared with Alex Chen specifically
   const sharedTask = tasks.find(t => t.isShared);
   if (sharedTask) {
-    await Activity.create({
-      userId: justin._id,
-      type: 'task_created',
-      targetId: sharedTask._id,
-      targetType: 'task',
-      visibleTo: allFriendIds,
-      metadata: { taskTitle: sharedTask.title },
-      createdAt: bumpDate(),
-    });
-    count++;
+    const alex = friends.find(f => f.username === 'alexchen_cs');
+    const ts = bumpDate();
+    if (alex) {
+      // Sharer sees participant names
+      await Activity.create({
+        userId: justin._id,
+        type: 'task_created',
+        targetId: sharedTask._id,
+        targetType: 'task',
+        visibleTo: [justin._id, ...allFriendIds.filter(id => !id.equals(alex._id))],
+        metadata: { taskTitle: sharedTask.title, sharedWithNames: [friendNameObj(alex)] },
+        createdAt: ts,
+      });
+      count++;
+      // Recipient sees "with you"
+      await Activity.create({
+        userId: justin._id,
+        type: 'task_created',
+        targetId: sharedTask._id,
+        targetType: 'task',
+        visibleTo: [alex._id],
+        metadata: { taskTitle: sharedTask.title, isRecipient: true },
+        createdAt: ts,
+      });
+      count++;
+    }
   }
 
   // Justin's comment activities (pick 5)
@@ -892,7 +943,7 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
       type: 'comment_added',
       targetId: comment._id,
       targetType: 'comment',
-      visibleTo: allFriendIds,
+      visibleTo: [justin._id, ...allFriendIds],
       metadata: { commentPreview: comment.content.slice(0, 100) },
       createdAt: bumpDate(),
     });
@@ -903,8 +954,9 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
   for (const friend of friends) {
     const fNotes = friendNoteMap[friend.username];
     const fSets = friendSetMap[friend.username];
+    const otherFriendIds = allFriendIds.filter(id => !id.equals(friend._id));
 
-    // 2 note_shared activities
+    // 2 note_shared activities (friends visibility — shared with all)
     if (fNotes) {
       for (let i = 0; i < Math.min(2, fNotes.length); i++) {
         await Activity.create({
@@ -912,8 +964,8 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
           type: 'note_shared',
           targetId: fNotes[i]._id,
           targetType: 'note',
-          visibleTo: [justin._id, ...allFriendIds.filter(id => !id.equals(friend._id))],
-          metadata: { noteTitle: fNotes[i].title },
+          visibleTo: [friend._id, justin._id, ...otherFriendIds],
+          metadata: { noteTitle: fNotes[i].title, sharedWithAll: true },
           createdAt: bumpDate(),
         });
         count++;
@@ -927,8 +979,8 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
         type: 'flashcard_shared',
         targetId: fSets[0]._id,
         targetType: 'flashcardSet',
-        visibleTo: [justin._id, ...allFriendIds.filter(id => !id.equals(friend._id))],
-        metadata: { setTitle: fSets[0].title },
+        visibleTo: [friend._id, justin._id, ...otherFriendIds],
+        metadata: { setTitle: fSets[0].title, sharedWithAll: true },
         createdAt: bumpDate(),
       });
       count++;
@@ -942,7 +994,7 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
 
 // ─── SECTION 12: Share Messages ──────────────────────────────────────────────
 
-async function seedShareMessages(justin, friends, justinNotes, tasks) {
+async function seedShareMessages(justin, friends, justinNotes, justinSets, tasks) {
   console.log('Seeding share messages...');
   let count = 0;
 
@@ -951,6 +1003,16 @@ async function seedShareMessages(justin, friends, justinNotes, tasks) {
     if (note.visibility === 'specific' && note.sharedWith?.length > 0) {
       for (const recipientId of note.sharedWith) {
         await sendShareMessage(justin._id, recipientId, 'note', note.title, note._id);
+        count++;
+      }
+    }
+  }
+
+  // Send share messages for flashcard sets with visibility: 'specific'
+  for (const set of justinSets) {
+    if (set.visibility === 'specific' && set.sharedWith?.length > 0) {
+      for (const recipientId of set.sharedWith) {
+        await sendShareMessage(justin._id, recipientId, 'flashcardSet', set.title, set._id);
         count++;
       }
     }
@@ -1018,7 +1080,7 @@ async function main() {
     await seedConversations(justin, friends);
 
     // 8.5. Seed share messages (auto-messages for shared content)
-    await seedShareMessages(justin, friends, justinNotes, tasks);
+    await seedShareMessages(justin, friends, justinNotes, justinSets, tasks);
 
     // 9. Seed comments and activities
     const comments = await seedComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap);
