@@ -458,8 +458,8 @@ export default function Dashboard() {
   });
 
   const { data: activityData, isLoading: activityLoading } = useQuery({
-    queryKey: ['activity', { limit: 8 }],
-    queryFn: () => api.get('/activity', { params: { limit: 8 } }).then(r => r.data),
+    queryKey: ['activity', { limit: 4 }],
+    queryFn: () => api.get('/activity', { params: { limit: 4 } }).then(r => r.data),
   });
 
   const { data: appsData, isLoading: appsLoading } = useQuery({

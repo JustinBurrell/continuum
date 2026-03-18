@@ -290,6 +290,17 @@ exports.updateParticipants = async (req, res) => {
         sendShareMessage(req.user._id, p.userId, 'task', task.title, task._id).catch(() => {});
     }
 
+    // Fire activity when participants are added
+    if (newParticipantEntries.length > 0) {
+        createActivity({
+            actorId: req.user._id,
+            type: 'task_created',
+            targetId: task._id,
+            targetType: 'task',
+            metadata: { taskTitle: task.title, dueDate: task.dueDate },
+        }).catch(() => {});
+    }
+
     res.status(200).json({ success: true, task });
 };
 

@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Activity as ActivityIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/lib/api';
 import Avatar from '@/components/ui/Avatar';
+import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import { formatRelative } from '@/lib/utils';
 
@@ -88,13 +90,18 @@ function ActivityItem({ item }) {
   );
 }
 
+const PAGE_SIZE = 20;
+
 export default function Activity() {
+  const [limit, setLimit] = useState(PAGE_SIZE);
+
   const { data, isLoading } = useQuery({
-    queryKey: ['activity'],
-    queryFn: () => api.get('/activity').then(r => r.data),
+    queryKey: ['activity', { limit }],
+    queryFn: () => api.get('/activity', { params: { limit } }).then(r => r.data),
   });
 
-  const activities = data?.feed || data?.activities || data?.data || [];
+  const activities = data?.feed || [];
+  const hasMore = activities.length >= limit;
 
   return (
     <div>
@@ -143,7 +150,19 @@ export default function Activity() {
               </p>
             </div>
           ) : (
-            activities.map(item => <ActivityItem key={item._id} item={item} />)
+            <>
+              {activities.map(item => <ActivityItem key={item._id} item={item} />)}
+              {hasMore && (
+                <div style={{ padding: '16px 0', textAlign: 'center' }}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setLimit(prev => prev + PAGE_SIZE)}
+                  >
+                    Load more
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

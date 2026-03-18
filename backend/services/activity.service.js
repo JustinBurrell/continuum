@@ -7,10 +7,10 @@ const User = require('../models/User');
 // Purpose: Create activity feed entries based on the actor's activityVisibility setting
 // Used by: notes.controller, tasks.controller, comments.controller
 //
-// Visibility rules:
-//   'private' — no Activity doc created; actor's actions are invisible to others
-//   'friends' — visibleTo is populated with the actor's accepted friend IDs at creation time
-//   'public'  — isPublic: true; visible to all users without storing every userId in visibleTo
+// Visibility rules (actor always sees their own activity):
+//   'private' — only the actor sees their activity
+//   'friends' — actor + accepted friends see it (default)
+//   'public'  — isPublic: true; visible to all users
 // ============================================================
 
 /**
