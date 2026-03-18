@@ -39,9 +39,14 @@ function shareSuffix(m) {
   return null;
 }
 
-function getActivitySentence(item, name) {
+function getActivitySentence(item, actor) {
   const m = item.metadata || {};
-  const bold = <span style={{ fontWeight: 700 }}>{name}</span>;
+  const name = fullName(actor);
+  const bold = (
+    <Link to="/users/view" state={{ id: actor?._id }} style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}>
+      {name}
+    </Link>
+  );
   const suffix = shareSuffix(m);
 
   switch (item.type) {
@@ -106,7 +111,7 @@ function ActivityItem({ item }) {
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.5 }}>
-          {getActivitySentence(item, name)}
+          {getActivitySentence(item, actor)}
         </p>
         <p style={{ fontSize: 11, color: '#c4b5d4', marginTop: 4 }}>{formatRelative(item.createdAt)}</p>
       </div>
@@ -117,15 +122,17 @@ function ActivityItem({ item }) {
 const PAGE_SIZE = 20;
 
 export default function Activity() {
-  const [limit, setLimit] = useState(PAGE_SIZE);
+  const [page, setPage] = useState(1);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['activity', { limit }],
-    queryFn: () => api.get('/activity', { params: { limit } }).then(r => r.data),
+    queryKey: ['activity', { page }],
+    queryFn: () => api.get('/activity', { params: { limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE } }).then(r => r.data),
+    keepPreviousData: true,
   });
 
   const activities = data?.feed || [];
-  const hasMore = activities.length >= limit;
+  const total = data?.total || 0;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div>
@@ -134,7 +141,9 @@ export default function Activity() {
         <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
           Activity
         </h1>
-        <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>Track what's happening</p>
+        <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>
+          {total > 0 ? `${total} activit${total === 1 ? 'y' : 'ies'}` : 'Track what\'s happening'}
+        </p>
       </div>
 
       <div style={{
@@ -174,21 +183,87 @@ export default function Activity() {
               </p>
             </div>
           ) : (
-            <>
-              {activities.map(item => <ActivityItem key={item._id} item={item} />)}
-              {hasMore && (
-                <div style={{ padding: '16px 0', textAlign: 'center' }}>
-                  <Button
-                    variant="outline"
-                    onClick={() => setLimit(prev => prev + PAGE_SIZE)}
-                  >
-                    Load more
-                  </Button>
-                </div>
-              )}
-            </>
+            activities.map(item => <ActivityItem key={item._id} item={item} />)
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 4,
+            padding: '16px 20px',
+            borderTop: '1px solid #ede9fe',
+          }}>
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 8,
+                border: '1px solid #ede9fe',
+                background: 'white',
+                color: page === 1 ? '#d1d5db' : '#374151',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: page === 1 ? 'not-allowed' : 'pointer',
+                transition: 'all 0.12s',
+              }}
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+              .reduce((acc, p, idx, arr) => {
+                if (idx > 0 && p - arr[idx - 1] > 1) acc.push('...');
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, idx) =>
+                p === '...' ? (
+                  <span key={`ellipsis-${idx}`} style={{ padding: '0 4px', color: '#a087b0', fontSize: 13 }}>...</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 8,
+                      border: page === p ? 'none' : '1px solid #ede9fe',
+                      background: page === p ? '#6b21a8' : 'white',
+                      color: page === p ? 'white' : '#374151',
+                      fontSize: 13,
+                      fontWeight: page === p ? 700 : 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.12s',
+                    }}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 8,
+                border: '1px solid #ede9fe',
+                background: 'white',
+                color: page === totalPages ? '#d1d5db' : '#374151',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                transition: 'all 0.12s',
+              }}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

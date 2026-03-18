@@ -185,9 +185,15 @@ export default function Conversation({ conversationId }) {
 
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: isOwn ? 'flex-end' : 'flex-start', maxWidth: '68%' }}>
                   {!isOwn && isFirstInGroup && (
-                    <p style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', marginBottom: 4, marginLeft: 4 }}>
+                    <Link
+                      to="/users/view"
+                      state={{ id: msg.senderId?._id ?? msg.senderId }}
+                      style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', marginBottom: 4, marginLeft: 4, textDecoration: 'none', display: 'block' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
+                      onMouseLeave={e => e.currentTarget.style.color = '#a087b0'}
+                    >
                       {senderName}
-                    </p>
+                    </Link>
                   )}
 
                   {(() => {

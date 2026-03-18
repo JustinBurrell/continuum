@@ -138,7 +138,7 @@ export default function Calendar() {
           {view === 'week' ? (
             <WeekView days={days} weekDates={weekDates} now={now} onPrev={prevWeek} onNext={nextWeek} onViewTask={setViewingTaskId} />
           ) : (
-            <div style={cardStyle}>
+            <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 140px)', minHeight: 520 }}>
               {/* Month nav */}
               <div style={{
                 display: 'flex',
@@ -146,6 +146,7 @@ export default function Calendar() {
                 justifyContent: 'space-between',
                 padding: '14px 20px',
                 borderBottom: '1px solid #ede9fe',
+                flexShrink: 0,
               }}>
                 <button
                   onClick={prevMonth}
@@ -165,7 +166,7 @@ export default function Calendar() {
               </div>
 
               {/* Day of week header */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #ede9fe' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #ede9fe', flexShrink: 0 }}>
                 {DOW.map(d => (
                   <div key={d} style={{ padding: '10px 0', textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {d}
@@ -173,15 +174,15 @@ export default function Calendar() {
                 ))}
               </div>
 
-              {/* Date cells */}
+              {/* Date cells — fixed height grid with equal rows */}
               {isLoading ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', flex: 1 }}>
                   {Array.from({ length: 42 }).map((_, i) => (
                     <Skeleton key={i} className="h-20 rounded-none" />
                   ))}
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridTemplateRows: 'repeat(6, 1fr)', flex: 1, overflow: 'hidden' }}>
                   {dates.map(({ date, current }, i) => {
                     const key = toISO(date);
                     const tasksForDay = days[key] || [];
@@ -193,8 +194,7 @@ export default function Calendar() {
                         key={i}
                         onClick={() => setSelected(isSelected ? null : key)}
                         style={{
-                          minHeight: 100,
-                          padding: '10px 8px',
+                          padding: '6px 6px',
                           borderBottom: '1px solid #ede9fe',
                           borderRight: '1px solid #ede9fe',
                           cursor: 'pointer',
@@ -205,40 +205,45 @@ export default function Calendar() {
                             ? 'rgba(107,33,168,0.04)'
                             : '#fff',
                           opacity: current ? 1 : 0.35,
+                          overflow: 'hidden',
+                          display: 'flex',
+                          flexDirection: 'column',
                         }}
                       >
                         <div style={{
-                          width: 30,
-                          height: 30,
+                          width: 26,
+                          height: 26,
                           borderRadius: '50%',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: 13,
+                          fontSize: 12,
                           fontWeight: isToday ? 700 : 500,
                           background: isToday ? '#6b21a8' : 'transparent',
                           color: isToday ? '#fff' : '#374151',
-                          marginBottom: 6,
+                          marginBottom: 3,
+                          flexShrink: 0,
                         }}>
                           {date.getDate()}
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                          {tasksForDay.slice(0, 3).map(task => (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflow: 'hidden' }}>
+                          {tasksForDay.slice(0, 2).map(task => (
                             <div
                               key={task._id}
                               onClick={e => { e.stopPropagation(); setViewingTaskId(task._id); }}
                               style={{
-                                fontSize: 11,
+                                fontSize: 10,
                                 background: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : 'rgba(107,33,168,0.08)',
                                 color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#b45309' : '#6b21a8',
-                                borderRadius: 5,
-                                padding: '2px 6px',
+                                borderRadius: 4,
+                                padding: '1px 5px',
                                 overflow: 'hidden',
                                 whiteSpace: 'nowrap',
                                 textOverflow: 'ellipsis',
                                 fontWeight: 500,
                                 cursor: 'pointer',
                                 transition: 'opacity 0.12s',
+                                flexShrink: 0,
                               }}
                               onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
                               onMouseLeave={e => e.currentTarget.style.opacity = '1'}
@@ -246,8 +251,8 @@ export default function Calendar() {
                               {task.title}
                             </div>
                           ))}
-                          {tasksForDay.length > 3 && (
-                            <div style={{ fontSize: 10, color: '#a087b0', paddingLeft: 2, fontWeight: 500 }}>+{tasksForDay.length - 3} more</div>
+                          {tasksForDay.length > 2 && (
+                            <div style={{ fontSize: 9, color: '#a087b0', paddingLeft: 2, fontWeight: 500, flexShrink: 0 }}>+{tasksForDay.length - 2} more</div>
                           )}
                         </div>
                       </div>
@@ -382,6 +387,10 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
       borderRadius: 16,
       boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
       overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+      height: 'calc(100vh - 140px)',
+      minHeight: 400,
     }}>
       {/* Week nav */}
       <div style={{
@@ -390,6 +399,7 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
         justifyContent: 'space-between',
         padding: '14px 20px',
         borderBottom: '1px solid #ede9fe',
+        flexShrink: 0,
       }}>
         <button onClick={onPrev} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center' }}>
           <ChevronLeft size={16} />
@@ -401,7 +411,7 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
       </div>
 
       {/* Day columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', flex: 1, overflow: 'hidden' }}>
         {weekDates.map((date, i) => {
           const key = toISO(date);
           const isToday = key === toISO(now);
@@ -412,21 +422,23 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
               key={i}
               onClick={() => setSelected(isSelected ? null : key)}
               style={{
-                minHeight: 180,
                 padding: '10px 8px',
                 borderRight: '1px solid #ede9fe',
                 cursor: 'pointer',
                 transition: 'background 0.12s',
                 background: isSelected ? '#f5f0ff' : isToday ? 'rgba(107,33,168,0.04)' : '#fff',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
               }}
             >
-              <div style={{ textAlign: 'center', marginBottom: 12 }}>
+              <div style={{ textAlign: 'center', marginBottom: 12, flexShrink: 0 }}>
                 <p style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
                   {DOW[date.getDay()]}
                 </p>
                 <div style={{
-                  width: 32,
-                  height: 32,
+                  width: 30,
+                  height: 30,
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
@@ -440,7 +452,7 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
                   {date.getDate()}
                 </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1, overflow: 'hidden' }}>
                 {tasksForDay.slice(0, 4).map(task => (
                   <div
                     key={task._id}
@@ -457,6 +469,7 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
                       fontWeight: 500,
                       cursor: 'pointer',
                       transition: 'opacity 0.12s',
+                      flexShrink: 0,
                     }}
                     onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
                     onMouseLeave={e => e.currentTarget.style.opacity = '1'}
@@ -465,7 +478,7 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
                   </div>
                 ))}
                 {tasksForDay.length > 4 && (
-                  <div style={{ fontSize: 10, color: '#a087b0', paddingLeft: 2, fontWeight: 500 }}>+{tasksForDay.length - 4} more</div>
+                  <div style={{ fontSize: 10, color: '#a087b0', paddingLeft: 2, fontWeight: 500, flexShrink: 0 }}>+{tasksForDay.length - 4} more</div>
                 )}
               </div>
             </div>

@@ -226,6 +226,7 @@ Run folders top to bottom. **Do not run "Remove Friend" until after all Note Sha
 | Share Note — Friends | `{ "visibility": "friends" }` | `200` | ✅ |
 | Share Note — Specific Users | `{ "visibility": "specific", "sharedWith": ["{{secondUserId}}"] }` | `200` | ✅ |
 | Get Shared Notes — as User 2 | none | `200` — note appears in results | ✅ |
+| Get Shared Notes — Search (as User 2) | query: `?search=<title keyword>` | `200` — filtered shared notes matching search | |
 | Get Shared Notes — as User 1 | none | `200` — empty (User 1 has no notes shared with them) | ✅ |
 | [Error] Share with Non-Friend | `{ "visibility": "specific", "sharedWith": ["000000000000000000000000"] }` | `400` | ✅ |
 
@@ -577,6 +578,7 @@ Run folders top to bottom.
 | Create Note (for sharing tests) | `{ "title", "content", "contentType", "tags" }` | `201` — sets `shareNoteId` | |
 | Share Note — specific (User B) | `{ "visibility": "specific", "sharedWith": ["{{secondUserId}}"] }` | `200` | |
 | Get Shared Notes — as User B (should see note) | none (User B token) | `200` — note appears in results | |
+| Get Note by ID — as User B (shared access) | none (User B token, `shareNoteId`) | `200` — non-owner can view shared note | |
 | Verify Auto-Message — User B inbox | none (User B token) | `200` — `lastMessage.content` contains `[shared:note:` | |
 | Unshare Note — remove User B | `{ "visibility": "specific", "sharedWith": [] }` | `200` | |
 | Get Shared Notes — as User B (empty after unshare) | none (User B token) | `200` — note no longer in results | |

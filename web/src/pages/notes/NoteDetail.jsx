@@ -142,6 +142,7 @@ export default function NoteDetail() {
 
   const note = data?.note || data?.data;
   const comments = commentsData?.comments || commentsData?.data || [];
+  const isOwner = note && String(note.userId) === String(user?._id);
 
   if (isLoading) {
     return (
@@ -188,38 +189,44 @@ export default function NoteDetail() {
         </Link>
         <div style={{ flex: 1 }} />
 
-        <button
-          onClick={() => setShowShareModal(true)}
-          style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
-        >
-          <Share2 size={14} />
-          {note.visibility && note.visibility !== 'private' ? (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              Shared
-              <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.6875rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20 }}>
-                {note.visibility === 'friends' ? 'Friends' : `${note.sharedWith?.length || 0}`}
+        {isOwner && (
+          <button
+            onClick={() => setShowShareModal(true)}
+            style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+          >
+            <Share2 size={14} />
+            {note.visibility && note.visibility !== 'private' ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                Shared
+                <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.6875rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20 }}>
+                  {note.visibility === 'friends' ? 'Friends' : `${note.sharedWith?.length || 0}`}
+                </span>
               </span>
-            </span>
-          ) : 'Share'}
-        </button>
-        <Link to="/notes/edit" state={{ id }}>
-          <button style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <Edit3 size={14} /> Edit
+            ) : 'Share'}
           </button>
-        </Link>
+        )}
+        {isOwner && (
+          <Link to="/notes/edit" state={{ id }}>
+            <button style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+              <Edit3 size={14} /> Edit
+            </button>
+          </Link>
+        )}
         {note.pdfUrl && (
           <Button variant="outline" size="sm" onClick={handlePdfDownload} loading={pdfDownloading}>
             <Download size={14} /> PDF
           </Button>
         )}
-        <Button
-          variant="danger"
-          size="sm"
-          onClick={() => { if (window.confirm('Delete this note?')) deleteMutation.mutate(); }}
-          loading={deleteMutation.isPending}
-        >
-          <Trash2 size={14} />
-        </Button>
+        {isOwner && (
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => { if (window.confirm('Delete this note?')) deleteMutation.mutate(); }}
+            loading={deleteMutation.isPending}
+          >
+            <Trash2 size={14} />
+          </Button>
+        )}
       </div>
 
       {/* Note content card */}

@@ -44,7 +44,7 @@ Google linking is required for Google Drive/Docs features. `user.hasGoogleLinked
 ### **Note Management**
 - `POST /api/notes` - Create manual note directly in app
 - `GET /api/notes` - List user's notes with filtering options (tags, visibility, search query, pagination)
-- `GET /api/notes/:noteId` - Retrieve specific note with full content and embedded summary
+- `GET /api/notes/:noteId` - Retrieve specific note with full content and embedded summary. Accessible by owner, users in `sharedWith`, or friends when `visibility: 'friends'`
 - `PUT /api/notes/:noteId` - Update note title, tags, content, contentType, or visibility
 - `DELETE /api/notes/:noteId` - Soft delete note
 - `POST /api/notes/import` - Import Google Doc as note snapshot; PDF stored as Cloudinary `authenticated` resource
@@ -65,7 +65,7 @@ Summary is stored as an embedded field on the Note document. When you `GET /api/
 - `POST /api/notes/:noteId/flashcards/generate` - Auto-generate flashcards from note content via Groq
 - `POST /api/flashcard-sets` - Create flashcard set manually
 - `GET /api/flashcard-sets` - List user's flashcard sets
-- `GET /api/flashcard-sets/:setId` - Get set with all flashcards
+- `GET /api/flashcard-sets/:setId` - Get set with all flashcards. Accessible by owner, users in `sharedWith`, or friends when `visibility: 'friends'`
 - `POST /api/flashcard-sets/:setId/cards` - Add card to set
 - `PUT /api/flashcard-sets/:setId/cards/:cardId` - Edit flashcard front and back content
 - `PUT /api/flashcard-sets/:setId/cards/:cardId/progress` - Update study progress (correct/incorrect)
@@ -106,7 +106,7 @@ Summary is stored as an embedded field on the Note document. When you `GET /api/
 
 ### **Content Sharing**
 - `PUT /api/notes/:noteId/share` - Update note visibility (private, friends, or specific users). When visibility is `specific`, an auto-message is sent to each user in `sharedWith` via the messaging system.
-- `GET /api/notes/shared` - List notes shared with the current user
+- `GET /api/notes/shared` - List notes shared with the current user (supports `?search=` query param for title/content filtering)
 
 ### **Engagement**
 - `POST /api/comments` - Add comment on a note or flashcard set (targetId + targetType)

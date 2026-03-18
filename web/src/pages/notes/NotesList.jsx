@@ -31,10 +31,12 @@ export default function NotesList() {
   const [uploadTitle, setUploadTitle] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: sharedTab ? ['notes-shared'] : ['notes', { search, type }],
+    queryKey: sharedTab ? ['notes-shared', { search }] : ['notes', { search, type }],
     queryFn: () => {
       if (sharedTab) {
-        return api.get('/notes/shared').then(r => r.data);
+        return api.get('/notes/shared', {
+          params: { ...(search && { search }) },
+        }).then(r => r.data);
       }
       return api
         .get('/notes', {
@@ -165,10 +167,9 @@ export default function NotesList() {
           <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#a087b0' }} />
           <input
             type="text"
-            placeholder="Search notes..."
+            placeholder={sharedTab ? "Search shared notes..." : "Search notes..."}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            disabled={sharedTab}
             style={{
               width: '100%',
               background: 'white',

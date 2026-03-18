@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import Avatar from '@/components/ui/Avatar';
 import ShareModal from '@/components/ui/ShareModal';
+import { useAuth } from '@/context/AuthContext';
 import { formatDate } from '@/lib/utils';
 
 const STATUSES = ['todo', 'in_progress', 'completed'];
@@ -36,6 +37,7 @@ const TYPE_COLORS = {
 //   onUpdated — optional callback after a successful mutation (use to invalidate parent queries)
 // ----------------------------------------
 export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
+  const { user } = useAuth();
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [showParticipants, setShowParticipants] = useState(false);
@@ -96,6 +98,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
     onClose();
   };
 
+  const isOwner = task && String(task.userId) === String(user?._id);
   const isOverdue = task?.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
 
   const priorityPillStyle = (priority) => {
@@ -265,7 +268,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
             </h3>
           </div>
 
-          {/* Status pills */}
+          {/* Status pills — owner can change, others see read-only */}
           <div>
             <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 8 }}>
               Status
@@ -274,8 +277,8 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
               {STATUSES.map(s => (
                 <button
                   key={s}
-                  onClick={() => statusMutation.mutate(s)}
-                  disabled={statusMutation.isPending}
+                  onClick={() => isOwner && statusMutation.mutate(s)}
+                  disabled={!isOwner || statusMutation.isPending}
                   style={{
                     fontSize: 12,
                     fontWeight: task.status === s ? 600 : 400,
@@ -284,8 +287,8 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
                     border: task.status === s ? 'none' : '1px solid #ede9fe',
                     background: task.status === s ? '#6b21a8' : '#ffffff',
                     color: task.status === s ? '#ffffff' : '#111827',
-                    cursor: statusMutation.isPending ? 'not-allowed' : 'pointer',
-                    opacity: statusMutation.isPending ? 0.6 : 1,
+                    cursor: !isOwner ? 'default' : statusMutation.isPending ? 'not-allowed' : 'pointer',
+                    opacity: (!isOwner && task.status !== s) ? 0.5 : statusMutation.isPending ? 0.6 : 1,
                     transition: 'background 0.15s, color 0.15s',
                   }}
                 >
@@ -423,9 +426,11 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
           {/* Actions */}
           <div style={{ display: 'flex', gap: 12, paddingTop: 8, borderTop: '1px solid #ede9fe', marginTop: 4 }}>
             <Button variant="outline" onClick={handleClose} className="flex-1">Close</Button>
-            <Button onClick={openEdit} className="flex-1" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Pencil size={14} /> Edit task
-            </Button>
+            {isOwner && (
+              <Button onClick={openEdit} className="flex-1" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Pencil size={14} /> Edit task
+              </Button>
+            )}
           </div>
         </div>
       )}

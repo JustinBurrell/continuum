@@ -121,14 +121,23 @@ export default function Messages() {
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-                      <p style={{
-                        fontWeight: hasUnread ? 700 : 600,
-                        color: '#111827',
-                        fontSize: 14,
-                        margin: 0,
-                      }}>
+                      <Link
+                        to="/users/view"
+                        state={{ id: other?._id }}
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                          fontWeight: hasUnread ? 700 : 600,
+                          color: '#111827',
+                          fontSize: 14,
+                          margin: 0,
+                          textDecoration: 'none',
+                          display: 'block',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#111827'}
+                      >
                         {otherName}
-                      </p>
+                      </Link>
                       {lastMsg && (
                         <span style={{ fontSize: 11, color: '#a087b0', flexShrink: 0, marginLeft: 8 }}>
                           {formatRelative(lastMsg.sentAt || lastMsg.createdAt)}

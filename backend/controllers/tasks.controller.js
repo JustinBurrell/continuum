@@ -125,12 +125,20 @@ exports.getTasks = async (req, res) => {
 exports.getTaskById = async (req, res) => {
     const task = await Task.findOne({
         _id: req.params.id,
-        userId: req.user._id,
         deletedAt: null,
     }).populate('participants.userId', 'username firstName lastName avatarUrl');
 
     if (!task) {
         return res.status(404).json({ success: false, error: 'Task not found' });
+    }
+
+    // Access check: owner or participant
+    const userId = req.user._id.toString();
+    const isOwner = task.userId.toString() === userId;
+    const isParticipant = task.participants?.some(p => p.userId?._id?.toString() === userId || p.userId?.toString() === userId);
+
+    if (!isOwner && !isParticipant) {
+        return res.status(403).json({ success: false, error: 'Access denied' });
     }
 
     res.status(200).json({ success: true, task });

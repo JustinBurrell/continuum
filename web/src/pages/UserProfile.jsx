@@ -451,7 +451,7 @@ export default function UserProfile() {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>
-                          <span style={{ fontWeight: 700 }}>{name}</span> {label}
+                          <Link to="/users/view" state={{ id: profile?._id }} style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}>{name}</Link> {label}
                           {item.metadata?.noteTitle && (
                             <span style={{ color: '#a087b0' }}> · {item.metadata.noteTitle}</span>
                           )}

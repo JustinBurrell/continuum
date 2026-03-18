@@ -39,7 +39,7 @@ Frontend base URL: `http://localhost:5173`
 | PUT | `/api/notes/:id` | `pages/notes/NoteEditor.jsx` | Edit note content |
 | DELETE | `/api/notes/:id` | `pages/notes/NoteDetail.jsx` → delete button | Navigates back to list |
 | POST | `/api/notes/:id/summary` | `pages/notes/NoteDetail.jsx` → AI Summary card | Returns AI-generated summary |
-| GET | `/api/notes/shared` | Not yet exposed in UI | View notes shared with you |
+| GET | `/api/notes/shared` | `pages/notes/NotesList.jsx` → "Shared with me" tab (supports `?search=`) | View notes shared with you |
 | POST | `/api/notes/import` | `pages/notes/NotesList.jsx` → Import modal → Google Drive tab | Requires Google account linked |
 | POST | `/api/notes/upload` | `pages/notes/NotesList.jsx` → Import modal → Upload PDF tab | multipart/form-data; field: `file`; optional: `title`, `type`, `tags` |
 | GET | `/api/notes/:id/pdf` | `pages/notes/NoteDetail.jsx` → PDF button (visible when `note.pdfUrl` exists) | Returns 10-min signed Cloudinary URL |

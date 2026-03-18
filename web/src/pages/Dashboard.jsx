@@ -431,9 +431,14 @@ function feedShareSuffix(m) {
   return null;
 }
 
-function getFeedSentence(item, name) {
+function getFeedSentence(item, actor) {
   const m = item.metadata || {};
-  const bold = <span style={{ fontWeight: 700 }}>{name}</span>;
+  const name = fullName(actor);
+  const bold = (
+    <Link to="/users/view" state={{ id: actor?._id }} style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}>
+      {name}
+    </Link>
+  );
   const suffix = feedShareSuffix(m);
 
   switch (item.type) {
@@ -471,29 +476,29 @@ function FeedItem({ item }) {
         borderBottom: '1px solid #f5f0ff',
       }}
     >
-      <div
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: '50%',
-          background: 'rgba(107,33,168,0.08)',
-          border: '1.5px solid rgba(107,33,168,0.15)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          marginTop: 1,
-          overflow: 'hidden',
-        }}
-      >
-        {actor?.avatarUrl ? (
-          <img src={actor.avatarUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        ) : (
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#6b21a8' }}>{initial}</span>
-        )}
-      </div>
+      <Link to="/users/view" state={{ id: actor?._id }} style={{ flexShrink: 0, marginTop: 1 }}>
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            background: 'rgba(107,33,168,0.08)',
+            border: '1.5px solid rgba(107,33,168,0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+          }}
+        >
+          {actor?.avatarUrl ? (
+            <img src={actor.avatarUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#6b21a8' }}>{initial}</span>
+          )}
+        </div>
+      </Link>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{getFeedSentence(item, name)}</p>
+        <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{getFeedSentence(item, actor)}</p>
         <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>{formatRelative(item.createdAt)}</p>
       </div>
     </div>
@@ -804,7 +809,7 @@ export default function Dashboard() {
                       </Link>
                     </p>
                   )
-                  : apps.map(app => <AppItem key={app._id} app={app} />)
+                  : apps.slice(0, 3).map(app => <AppItem key={app._id} app={app} />)
               }
             </div>
           </Section>

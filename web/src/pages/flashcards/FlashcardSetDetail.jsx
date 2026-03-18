@@ -10,10 +10,12 @@ import Skeleton from '@/components/ui/Skeleton';
 import Modal from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
 import ShareModal from '@/components/ui/ShareModal';
+import { useAuth } from '@/context/AuthContext';
 
 export default function FlashcardSetDetail() {
   const { state } = useLocation();
   const id = state?.id;
+  const { user } = useAuth();
   const [showAddCard, setShowAddCard] = useState(false);
   const [newCard, setNewCard] = useState({ front: '', back: '' });
   // Edit card state
@@ -92,6 +94,7 @@ export default function FlashcardSetDetail() {
   }
 
   const cardCount = set.flashcards?.length || 0;
+  const isOwner = String(set.userId) === String(user?._id);
 
   return (
     <div>
@@ -126,51 +129,55 @@ export default function FlashcardSetDetail() {
         </div>
 
         {/* Action buttons */}
-        <button
-          onClick={() => setShowShareModal(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '7px 14px',
-            borderRadius: 12,
-            border: '1px solid #ede9fe',
-            background: 'white',
-            color: '#374151',
-            fontSize: '0.8125rem',
-            fontWeight: 500,
-            cursor: 'pointer',
-          }}
-        >
-          <Share2 size={14} />
-          {set.visibility && set.visibility !== 'private' ? (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              Shared
-              <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.6875rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20 }}>
-                {set.visibility === 'friends' ? 'Friends' : `${set.sharedWith?.length || 0}`}
+        {isOwner && (
+          <button
+            onClick={() => setShowShareModal(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '7px 14px',
+              borderRadius: 12,
+              border: '1px solid #ede9fe',
+              background: 'white',
+              color: '#374151',
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            <Share2 size={14} />
+            {set.visibility && set.visibility !== 'private' ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                Shared
+                <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.6875rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20 }}>
+                  {set.visibility === 'friends' ? 'Friends' : `${set.sharedWith?.length || 0}`}
+                </span>
               </span>
-            </span>
-          ) : 'Share'}
-        </button>
+            ) : 'Share'}
+          </button>
+        )}
 
-        <button
-          onClick={() => setShowAddCard(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '7px 14px',
-            borderRadius: 12,
-            border: '1px solid #ede9fe',
-            background: 'white',
-            color: '#374151',
-            fontSize: '0.8125rem',
-            fontWeight: 500,
-            cursor: 'pointer',
-          }}
-        >
-          <Plus size={14} /> Add card
-        </button>
+        {isOwner && (
+          <button
+            onClick={() => setShowAddCard(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '7px 14px',
+              borderRadius: 12,
+              border: '1px solid #ede9fe',
+              background: 'white',
+              color: '#374151',
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            <Plus size={14} /> Add card
+          </button>
+        )}
 
         <Link to="/flashcards/study" state={{ id }}>
           <button
@@ -240,43 +247,45 @@ export default function FlashcardSetDetail() {
                 e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
               }}
             >
-              {/* Actions */}
-              <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 4, opacity: 0 }} className="group-hover:opacity-100">
-                <button
-                  onClick={() => openEditCard(card)}
-                  style={{
-                    padding: 4,
-                    borderRadius: 6,
-                    border: 'none',
-                    background: 'transparent',
-                    color: '#a087b0',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
-                >
-                  <Pencil size={12} />
-                </button>
-                <button
-                  onClick={() => deleteCardMutation.mutate(card._id)}
-                  style={{
-                    padding: 4,
-                    borderRadius: 6,
-                    border: 'none',
-                    background: 'transparent',
-                    color: '#a087b0',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
+              {/* Actions — owner only */}
+              {isOwner && (
+                <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 4, opacity: 0 }} className="group-hover:opacity-100">
+                  <button
+                    onClick={() => openEditCard(card)}
+                    style={{
+                      padding: 4,
+                      borderRadius: 6,
+                      border: 'none',
+                      background: 'transparent',
+                      color: '#a087b0',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+                  >
+                    <Pencil size={12} />
+                  </button>
+                  <button
+                    onClick={() => deleteCardMutation.mutate(card._id)}
+                    style={{
+                      padding: 4,
+                      borderRadius: 6,
+                      border: 'none',
+                      background: 'transparent',
+                      color: '#a087b0',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              )}
 
               {/* Front */}
               <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #ede9fe' }}>
