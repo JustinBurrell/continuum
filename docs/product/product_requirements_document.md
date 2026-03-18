@@ -106,7 +106,7 @@ Continuum makes sharing knowledge and coordinating with peers natural and effici
 - Shared tasks with participant management — add/remove collaborators after creation
 - Shared tasks appear on all participants' calendars with per-participant status tracking
 - Private direct messaging for coordination
-- Activity feed showing friends' recent shares
+- Personalized activity feed: sharer sees who they shared with (clickable names), recipients see "shared with you"; all friends' activity visible based on privacy settings
 
 ### 5. Career Development Hub
 **Philosophy**: Professional preparation shouldn't be an afterthought.

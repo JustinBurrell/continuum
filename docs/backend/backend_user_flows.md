@@ -325,6 +325,16 @@ Share a note:
      → Uses share.service.js: finds/creates conversation, sends "[shared:note:id] ..." message
      → Message appears in recipient's DM inbox with clickable link to the note
 
+Activity on share:
+  → Fires on every share action (not just first time)
+  → visibility='friends': single activity "shared note X with friends" visible to actor + friends
+  → visibility='specific': personalized activities created via createShareActivities():
+     → Sharer sees: "shared note X with Alice, Bob" (recipient names clickable)
+     → Each recipient sees: "shared note X with you"
+     → Other friends of the sharer see the same as the sharer
+  → Recipient names stored in metadata.sharedWithNames for the sharer's activity
+  → Recipient activities have metadata.isRecipient = true
+
 Unshare:
   → PUT /api/notes/:noteId/share { visibility: 'private' }
   → Clears sharedWith[], note no longer visible to others
@@ -332,6 +342,7 @@ Unshare:
 Share a flashcard set:
   → PATCH /api/flashcard-sets/:setId/share { visibility, sharedWith }
   → Same pattern as notes: validates friendship, auto-messages on 'specific'
+  → Same personalized activity pattern as notes
   → Frontend renders share messages with clickable "View flashcards" link
 
 View shared content:
@@ -342,6 +353,7 @@ View shared content:
      - visibility = 'specific' AND current user in sharedWith[]
 
 Tasks use isShared + participants[] pattern (see Shared Tasks section)
+  → Same personalized activity pattern: sharer sees participant names, each participant sees "with you"
 ```
 
 ### Comments
