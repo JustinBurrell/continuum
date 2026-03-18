@@ -437,7 +437,16 @@ function TaskCard({ task, onStatusChange, onDelete, onView }) {
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+      {/* Footer: status + delete */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 8,
+        paddingTop: 8,
+        borderTop: '1px solid #f5f0ff',
+        marginTop: 4,
+      }}>
         <select
           value={task.status}
           onChange={e => { e.stopPropagation(); onStatusChange(task._id, e.target.value); }}
@@ -446,34 +455,42 @@ function TaskCard({ task, onStatusChange, onDelete, onView }) {
             fontSize: 11,
             border: '1px solid #ede9fe',
             borderRadius: 8,
-            padding: '3px 8px',
+            padding: '4px 10px',
             background: '#fef7ff',
             color: '#6b21a8',
-            fontWeight: 500,
+            fontWeight: 600,
             outline: 'none',
             cursor: 'pointer',
+            transition: 'border-color 0.15s',
           }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = '#c4b5fd'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = '#ede9fe'}
         >
           {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
         </select>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {onDelete && (
             <button
               onClick={e => { e.stopPropagation(); onDelete(task._id); }}
+              title="Delete task"
               style={{
-                padding: 4,
-                borderRadius: 6,
+                width: 28,
+                height: 28,
+                borderRadius: 8,
                 border: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
-                color: '#a087b0',
+                color: '#c4b5d4',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 transition: 'color 0.15s, background 0.15s',
+                opacity: 0,
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.color = '#ef4444'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+              className="group-hover:opacity-100"
+              onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#c4b5d4'; }}
             >
               <Trash2 size={13} />
             </button>

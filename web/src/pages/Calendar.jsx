@@ -132,7 +132,7 @@ export default function Calendar() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24 }}>
         {/* Calendar grid */}
         <div>
           {view === 'week' ? (
@@ -167,7 +167,7 @@ export default function Calendar() {
               {/* Day of week header */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #ede9fe' }}>
                 {DOW.map(d => (
-                  <div key={d} style={{ padding: '8px 0', textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <div key={d} style={{ padding: '10px 0', textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {d}
                   </div>
                 ))}
@@ -193,8 +193,8 @@ export default function Calendar() {
                         key={i}
                         onClick={() => setSelected(isSelected ? null : key)}
                         style={{
-                          minHeight: 76,
-                          padding: 8,
+                          minHeight: 100,
+                          padding: '10px 8px',
                           borderBottom: '1px solid #ede9fe',
                           borderRight: '1px solid #ede9fe',
                           cursor: 'pointer',
@@ -208,43 +208,46 @@ export default function Calendar() {
                         }}
                       >
                         <div style={{
-                          width: 26,
-                          height: 26,
+                          width: 30,
+                          height: 30,
                           borderRadius: '50%',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: isToday ? 700 : 500,
                           background: isToday ? '#6b21a8' : 'transparent',
                           color: isToday ? '#fff' : '#374151',
-                          marginBottom: 4,
+                          marginBottom: 6,
                         }}>
                           {date.getDate()}
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          {tasksForDay.slice(0, 2).map(task => (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                          {tasksForDay.slice(0, 3).map(task => (
                             <div
                               key={task._id}
                               onClick={e => { e.stopPropagation(); setViewingTaskId(task._id); }}
                               style={{
-                                fontSize: 10,
-                                background: 'rgba(107,33,168,0.1)',
-                                color: '#6b21a8',
-                                borderRadius: 4,
-                                padding: '1px 5px',
+                                fontSize: 11,
+                                background: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : 'rgba(107,33,168,0.08)',
+                                color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#b45309' : '#6b21a8',
+                                borderRadius: 5,
+                                padding: '2px 6px',
                                 overflow: 'hidden',
                                 whiteSpace: 'nowrap',
                                 textOverflow: 'ellipsis',
                                 fontWeight: 500,
                                 cursor: 'pointer',
+                                transition: 'opacity 0.12s',
                               }}
+                              onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+                              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                             >
                               {task.title}
                             </div>
                           ))}
-                          {tasksForDay.length > 2 && (
-                            <div style={{ fontSize: 10, color: '#a087b0', paddingLeft: 2 }}>+{tasksForDay.length - 2} more</div>
+                          {tasksForDay.length > 3 && (
+                            <div style={{ fontSize: 10, color: '#a087b0', paddingLeft: 2, fontWeight: 500 }}>+{tasksForDay.length - 3} more</div>
                           )}
                         </div>
                       </div>
@@ -409,7 +412,7 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
               key={i}
               onClick={() => setSelected(isSelected ? null : key)}
               style={{
-                minHeight: 140,
+                minHeight: 180,
                 padding: '10px 8px',
                 borderRight: '1px solid #ede9fe',
                 cursor: 'pointer',
@@ -417,13 +420,13 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
                 background: isSelected ? '#f5f0ff' : isToday ? 'rgba(107,33,168,0.04)' : '#fff',
               }}
             >
-              <div style={{ textAlign: 'center', marginBottom: 10 }}>
-                <p style={{ fontSize: 10, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+              <div style={{ textAlign: 'center', marginBottom: 12 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
                   {DOW[date.getDay()]}
                 </p>
                 <div style={{
-                  width: 28,
-                  height: 28,
+                  width: 32,
+                  height: 32,
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
@@ -438,28 +441,31 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {tasksForDay.slice(0, 3).map(task => (
+                {tasksForDay.slice(0, 4).map(task => (
                   <div
                     key={task._id}
                     onClick={e => { e.stopPropagation(); onViewTask(task._id); }}
                     style={{
-                      fontSize: 10,
-                      background: 'rgba(107,33,168,0.1)',
-                      color: '#6b21a8',
-                      borderRadius: 4,
-                      padding: '2px 5px',
+                      fontSize: 11,
+                      background: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : 'rgba(107,33,168,0.08)',
+                      color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#b45309' : '#6b21a8',
+                      borderRadius: 5,
+                      padding: '2px 6px',
                       overflow: 'hidden',
                       whiteSpace: 'nowrap',
                       textOverflow: 'ellipsis',
                       fontWeight: 500,
                       cursor: 'pointer',
+                      transition: 'opacity 0.12s',
                     }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                   >
                     {task.title}
                   </div>
                 ))}
-                {tasksForDay.length > 3 && (
-                  <div style={{ fontSize: 10, color: '#a087b0', paddingLeft: 2 }}>+{tasksForDay.length - 3} more</div>
+                {tasksForDay.length > 4 && (
+                  <div style={{ fontSize: 10, color: '#a087b0', paddingLeft: 2, fontWeight: 500 }}>+{tasksForDay.length - 4} more</div>
                 )}
               </div>
             </div>
