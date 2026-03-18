@@ -6,6 +6,7 @@ const getGoogleDriveClient = require('../config/googleDrive');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
 const { createActivity } = require('../services/activity.service');
+const { sendShareMessage } = require('../services/share.service');
 const { PDFParse } = require('pdf-parse');
 
 // ============================================================
@@ -564,6 +565,13 @@ exports.shareNote = async (req, res) => {
             targetType: 'note',
             metadata: { noteTitle: note.title },
         }).catch(() => {}); // non-blocking — never fail the request over activity
+    }
+
+    // Send auto-message to each specific friend
+    if (visibility === 'specific' && sharedWith?.length > 0) {
+        for (const recipientId of sharedWith) {
+            sendShareMessage(req.user._id, recipientId, 'note', note.title, note._id).catch(() => {});
+        }
     }
 
     res.status(200).json({ success: true, note });

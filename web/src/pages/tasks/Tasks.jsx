@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, Clock, AlertCircle, Trash2, UserPlus } from 'lucide-react';
+import { Plus, Clock, AlertCircle, Trash2, Users } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
+import ShareModal from '@/components/ui/ShareModal';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import { formatDate } from '@/lib/utils';
 
@@ -28,7 +29,7 @@ const COLUMN_META = {
 
 const emptyForm = {
   title: '', description: '', priority: 'medium', status: 'todo',
-  dueDate: '', isShared: false,
+  dueDate: '', isShared: false, participants: [],
 };
 
 export default function Tasks() {
@@ -37,6 +38,7 @@ export default function Tasks() {
   const [form, setForm] = useState(emptyForm);
   const [sharedTab, setSharedTab] = useState(false);
   const [viewingTaskId, setViewingTaskId] = useState(location.state?.openTaskId ?? null);
+  const [showSharePicker, setShowSharePicker] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: sharedTab ? ['tasks', 'shared'] : ['tasks', 'mine'],
@@ -185,20 +187,38 @@ export default function Tasks() {
               />
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-            <input
-              type="checkbox"
-              className="accent-primary"
-              checked={form.isShared}
-              onChange={e => setForm(f => ({ ...f, isShared: e.target.checked }))}
-            />
-            Shared task (allow collaborators)
-          </label>
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowSharePicker(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 14px',
+                borderRadius: 12,
+                border: '1px solid #ede9fe',
+                background: form.participants.length > 0 ? '#f5f0ff' : 'white',
+                color: form.participants.length > 0 ? '#6b21a8' : '#374151',
+                fontSize: '0.8125rem',
+                fontWeight: 500,
+                cursor: 'pointer',
+                width: '100%',
+                transition: 'all 0.12s',
+              }}
+            >
+              <Users size={14} />
+              {form.participants.length > 0
+                ? `${form.participants.length} collaborator${form.participants.length !== 1 ? 's' : ''} selected`
+                : 'Add collaborators (optional)'}
+            </button>
+          </div>
           <div className="flex gap-3 pt-2">
             <Button variant="outline" onClick={() => setShowCreate(false)} className="flex-1">Cancel</Button>
             <Button
               onClick={() => createMutation.mutate({
                 ...form,
+                isShared: form.participants.length > 0,
                 dueDate: form.dueDate || undefined,
               })}
               loading={createMutation.isPending}
@@ -210,6 +230,19 @@ export default function Tasks() {
           </div>
         </div>
       </Modal>
+
+      {/* Share picker for task creation */}
+      <ShareModal
+        open={showSharePicker}
+        onClose={() => setShowSharePicker(false)}
+        mode="task"
+        currentParticipants={form.participants}
+        onSave={({ participants }) => {
+          setForm(f => ({ ...f, participants, isShared: participants.length > 0 }));
+          setShowSharePicker(false);
+        }}
+        title="Add collaborators"
+      />
 
       <TaskDetailModal
         taskId={viewingTaskId}
@@ -408,9 +441,12 @@ function TaskCard({ task, onStatusChange, onDelete, onView }) {
       </div>
 
       {task.isShared && task.participants?.length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 8 }}>
-          <UserPlus size={11} style={{ color: '#a087b0' }} />
-          <span style={{ fontSize: 11, color: '#a087b0' }}>
+        <div
+          onClick={e => { e.stopPropagation(); onView(task._id); }}
+          style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 8, cursor: 'pointer' }}
+        >
+          <Users size={11} style={{ color: '#6b21a8' }} />
+          <span style={{ fontSize: 11, color: '#6b21a8', fontWeight: 500 }}>
             {task.participants.length} collaborator{task.participants.length !== 1 ? 's' : ''}
           </span>
         </div>

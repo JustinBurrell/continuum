@@ -15,6 +15,7 @@ const {
   Friendship, Conversation, Message, Comment, Activity,
 } = require('../models');
 const { generateSummary, generateFlashcards } = require('../services/groq.service');
+const { sendShareMessage } = require('../services/share.service');
 const seedData = require('./seed-data');
 
 const CLEAN = process.argv.includes('--clean');
@@ -939,6 +940,36 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
 
 // ─── Main ───────────────────────────────────────────────────────────────────
 
+// ─── SECTION 12: Share Messages ──────────────────────────────────────────────
+
+async function seedShareMessages(justin, friends, justinNotes, tasks) {
+  console.log('Seeding share messages...');
+  let count = 0;
+
+  // Send share messages for notes with visibility: 'specific'
+  for (const note of justinNotes) {
+    if (note.visibility === 'specific' && note.sharedWith?.length > 0) {
+      for (const recipientId of note.sharedWith) {
+        await sendShareMessage(justin._id, recipientId, 'note', note.title, note._id);
+        count++;
+      }
+    }
+  }
+
+  // Send share messages for shared tasks
+  for (const task of tasks) {
+    if (task.isShared && task.participants?.length > 0) {
+      for (const p of task.participants) {
+        const pId = p.userId?._id || p.userId;
+        await sendShareMessage(justin._id, pId, 'task', task.title, task._id);
+        count++;
+      }
+    }
+  }
+
+  console.log(`  Created ${count} share messages.`);
+}
+
 async function main() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
@@ -985,6 +1016,9 @@ async function main() {
 
     // 8. Seed conversations
     await seedConversations(justin, friends);
+
+    // 8.5. Seed share messages (auto-messages for shared content)
+    await seedShareMessages(justin, friends, justinNotes, tasks);
 
     // 9. Seed comments and activities
     const comments = await seedComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap);

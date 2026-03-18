@@ -23,6 +23,7 @@ router.get('/', tasksController.getTasks);
 router.get('/:id', tasksController.getTaskById);
 router.put('/:id', tasksController.updateTask);
 router.patch('/:id/status', tasksController.updateStatus);
+router.patch('/:id/participants', tasksController.updateParticipants);
 router.patch('/:id/participant-status', tasksController.updateParticipantStatus);
 router.delete('/:id', tasksController.deleteTask);
 

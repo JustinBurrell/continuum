@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Send, ArrowLeft } from 'lucide-react';
+import { Send, ArrowLeft, FileText, BookOpen, CheckSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
@@ -18,6 +18,30 @@ import { formatRelative } from '@/lib/utils';
 
 function fullName(u) {
   return [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || '';
+}
+
+// Parse share messages: [shared:contentType:contentId] display text
+function parseShareMessage(content) {
+  const match = content.match(/^\[shared:(\w+):([a-f0-9]+)\]\s*(.*)$/i);
+  if (!match) return null;
+  const [, contentType, contentId, displayText] = match;
+  let link, icon, label;
+  if (contentType === 'note') {
+    link = '/notes/view';
+    icon = FileText;
+    label = 'View note';
+  } else if (contentType === 'flashcardSet') {
+    link = '/flashcards/view';
+    icon = BookOpen;
+    label = 'View flashcards';
+  } else if (contentType === 'task') {
+    link = '/tasks';
+    icon = CheckSquare;
+    label = 'View tasks';
+  } else {
+    return null;
+  }
+  return { contentType, contentId, displayText, link, icon, label };
 }
 
 export default function Conversation({ conversationId }) {
@@ -166,21 +190,66 @@ export default function Conversation({ conversationId }) {
                     </p>
                   )}
 
-                  <div style={{
-                    padding: '9px 14px',
-                    fontSize: 14,
-                    lineHeight: 1.5,
-                    background: isOwn ? '#6b21a8' : '#fff',
-                    color: isOwn ? '#fff' : '#111827',
-                    border: isOwn ? 'none' : '1px solid #ede9fe',
-                    borderRadius: isOwn
+                  {(() => {
+                    const shareData = parseShareMessage(msg.content);
+                    const bubbleRadius = isOwn
                       ? `${isFirstInGroup ? 18 : 10}px ${isLastInGroup ? 4 : 18}px 18px 18px`
-                      : `${isFirstInGroup ? 18 : 10}px 18px 18px ${isLastInGroup ? 4 : 18}px`,
-                    wordBreak: 'break-word',
-                    boxShadow: isOwn ? 'none' : '0 1px 4px rgba(107,33,168,0.06)',
-                  }}>
-                    {msg.content}
-                  </div>
+                      : `${isFirstInGroup ? 18 : 10}px 18px 18px ${isLastInGroup ? 4 : 18}px`;
+
+                    if (shareData) {
+                      const Icon = shareData.icon;
+                      return (
+                        <div style={{
+                          padding: '12px 14px',
+                          fontSize: 14,
+                          lineHeight: 1.5,
+                          background: isOwn ? '#6b21a8' : '#fff',
+                          color: isOwn ? '#fff' : '#111827',
+                          border: isOwn ? 'none' : '1px solid #ede9fe',
+                          borderRadius: bubbleRadius,
+                          wordBreak: 'break-word',
+                          boxShadow: isOwn ? 'none' : '0 1px 4px rgba(107,33,168,0.06)',
+                        }}>
+                          <p style={{ margin: '0 0 8px 0' }}>{shareData.displayText}</p>
+                          <Link
+                            to={shareData.link}
+                            state={shareData.contentType !== 'task' ? { id: shareData.contentId } : { openTaskId: shareData.contentId }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              padding: '5px 12px',
+                              borderRadius: 8,
+                              background: isOwn ? 'rgba(255,255,255,0.2)' : '#f5f0ff',
+                              color: isOwn ? '#fff' : '#6b21a8',
+                              fontSize: 12,
+                              fontWeight: 600,
+                              textDecoration: 'none',
+                              transition: 'opacity 0.12s',
+                            }}
+                          >
+                            <Icon size={13} /> {shareData.label}
+                          </Link>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div style={{
+                        padding: '9px 14px',
+                        fontSize: 14,
+                        lineHeight: 1.5,
+                        background: isOwn ? '#6b21a8' : '#fff',
+                        color: isOwn ? '#fff' : '#111827',
+                        border: isOwn ? 'none' : '1px solid #ede9fe',
+                        borderRadius: bubbleRadius,
+                        wordBreak: 'break-word',
+                        boxShadow: isOwn ? 'none' : '0 1px 4px rgba(107,33,168,0.06)',
+                      }}>
+                        {msg.content}
+                      </div>
+                    );
+                  })()}
 
                   {isLastInGroup && (
                     <p style={{ fontSize: 10, color: '#c4b5d4', marginTop: 4, marginLeft: isOwn ? 0 : 4, marginRight: isOwn ? 4 : 0 }}>

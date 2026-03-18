@@ -3,6 +3,7 @@ const Flashcard = require('../models/Flashcard');
 const Friendship = require('../models/Friendship');
 const groqService = require('../services/groq.service');
 const { createActivity } = require('../services/activity.service');
+const { sendShareMessage } = require('../services/share.service');
 
 // ============================================================
 // FLASHCARD SETS CONTROLLER
@@ -355,6 +356,13 @@ exports.shareSet = async (req, res) => {
             targetType: 'flashcard_set',
             metadata: { setTitle: set.title },
         }).catch(() => {});
+    }
+
+    // Send auto-message to each specific friend
+    if (visibility === 'specific' && sharedWith?.length > 0) {
+        for (const recipientId of sharedWith) {
+            sendShareMessage(req.user._id, recipientId, 'flashcardSet', set.title, set._id).catch(() => {});
+        }
     }
 
     res.status(200).json({ success: true, set });

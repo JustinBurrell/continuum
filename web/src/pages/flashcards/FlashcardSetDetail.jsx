@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import Modal from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
+import ShareModal from '@/components/ui/ShareModal';
 
 export default function FlashcardSetDetail() {
   const { state } = useLocation();
@@ -22,7 +23,7 @@ export default function FlashcardSetDetail() {
   const [editCard, setEditCard] = useState({ front: '', back: '' });
 
   // Share state
-  const [shareLoading, setShareLoading] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['flashcard-set', id],
@@ -62,17 +63,15 @@ export default function FlashcardSetDetail() {
     }
   };
 
-  const handleShare = async () => {
-    setShareLoading(true);
-    try {
-      const newSharedValue = !set.isShared;
-      await api.patch(`/flashcard-sets/${id}/share`, { isShared: newSharedValue });
+  const shareMutation = useMutation({
+    mutationFn: (payload) => api.patch(`/flashcard-sets/${id}/share`, payload),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['flashcard-set', id] });
+      queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
       refetch();
-    } finally {
-      setShareLoading(false);
-    }
-  };
+      setShowShareModal(false);
+    },
+  });
 
   const openEditCard = (card) => {
     setEditingCard(card);
@@ -139,8 +138,7 @@ export default function FlashcardSetDetail() {
 
         {/* Action buttons */}
         <button
-          onClick={handleShare}
-          disabled={shareLoading}
+          onClick={() => setShowShareModal(true)}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -152,15 +150,16 @@ export default function FlashcardSetDetail() {
             color: '#374151',
             fontSize: '0.8125rem',
             fontWeight: 500,
-            cursor: shareLoading ? 'not-allowed' : 'pointer',
-            opacity: shareLoading ? 0.7 : 1,
+            cursor: 'pointer',
           }}
         >
           <Share2 size={14} />
-          {set.isShared ? (
+          {set.visibility && set.visibility !== 'private' ? (
             <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               Shared
-              <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.6875rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20 }}>On</span>
+              <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.6875rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20 }}>
+                {set.visibility === 'friends' ? 'Friends' : `${set.sharedWith?.length || 0}`}
+              </span>
             </span>
           ) : 'Share'}
         </button>
@@ -394,6 +393,16 @@ export default function FlashcardSetDetail() {
           </div>
         </div>
       </Modal>
+
+      {/* Share modal */}
+      <ShareModal
+        open={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        currentVisibility={set.visibility || 'private'}
+        currentSharedWith={set.sharedWith || []}
+        onSave={(payload) => shareMutation.mutate(payload)}
+        saving={shareMutation.isPending}
+      />
 
       {/* Edit card modal */}
       <Modal

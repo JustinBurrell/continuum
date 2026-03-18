@@ -1,6 +1,7 @@
 const Task = require('../models/Task');
 const Friendship = require('../models/Friendship');
 const { createActivity } = require('../services/activity.service');
+const { sendShareMessage } = require('../services/share.service');
 
 // ============================================================
 // TASKS CONTROLLER
@@ -76,6 +77,11 @@ exports.createTask = async (req, res) => {
             targetType: 'task',
             metadata: { taskTitle: title, dueDate },
         }).catch(() => {});
+
+        // Send auto-message to each participant
+        for (const p of validatedParticipants) {
+            sendShareMessage(req.user._id, p.userId, 'task', title, task._id).catch(() => {});
+        }
     }
 
     res.status(201).json({ success: true, task });
@@ -120,7 +126,7 @@ exports.getTaskById = async (req, res) => {
         _id: req.params.id,
         userId: req.user._id,
         deletedAt: null,
-    });
+    }).populate('participants.userId', 'username firstName lastName avatarUrl');
 
     if (!task) {
         return res.status(404).json({ success: false, error: 'Task not found' });
@@ -230,6 +236,61 @@ exports.getSharedTasks = async (req, res) => {
     }).sort({ dueDate: 1 });
 
     res.status(200).json({ success: true, tasks });
+};
+
+// ----------------------------------------
+// PATCH /api/tasks/:id/participants
+// Purpose: Add or remove participants on an existing shared task
+// Body: { participants: [{ userId }] }
+// Replaces the full participant list — all userIds must be accepted friends
+// ----------------------------------------
+exports.updateParticipants = async (req, res) => {
+    const { participants } = req.body;
+
+    if (!Array.isArray(participants)) {
+        return res.status(400).json({ success: false, error: 'participants must be an array' });
+    }
+
+    const task = await Task.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        deletedAt: null,
+    });
+
+    if (!task) {
+        return res.status(404).json({ success: false, error: 'Task not found' });
+    }
+
+    // Validate all participant userIds are accepted friends
+    const userId = req.user._id.toString();
+    for (const p of participants) {
+        const [u1, u2] = [userId, p.userId].sort();
+        const friendship = await Friendship.findOne({ user1: u1, user2: u2, status: 'accepted', deletedAt: null });
+        if (!friendship) {
+            return res.status(400).json({ success: false, error: `User ${p.userId} is not an accepted friend` });
+        }
+    }
+
+    // Determine new participants (not in old list) for auto-messages
+    const oldParticipantIds = new Set(task.participants.map(p => p.userId.toString()));
+    const newParticipantEntries = participants.filter(p => !oldParticipantIds.has(p.userId.toString()));
+
+    // Replace participants — preserve existing status for returning participants
+    const updatedParticipants = participants.map(p => {
+        const existing = task.participants.find(ep => ep.userId.toString() === p.userId.toString());
+        return existing || { userId: p.userId, status: 'todo' };
+    });
+
+    task.participants = updatedParticipants;
+    task.isShared = updatedParticipants.length > 0;
+    await task.save();
+
+    // Send auto-message to newly added participants
+    for (const p of newParticipantEntries) {
+        sendShareMessage(req.user._id, p.userId, 'task', task.title, task._id).catch(() => {});
+    }
+
+    res.status(200).json({ success: true, task });
 };
 
 // ----------------------------------------

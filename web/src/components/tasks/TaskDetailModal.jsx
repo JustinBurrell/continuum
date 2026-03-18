@@ -1,12 +1,14 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Clock, AlertCircle, UserPlus, Pencil, ArrowLeft, Users } from 'lucide-react';
+import { Clock, AlertCircle, Pencil, ArrowLeft, Users } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
 import Skeleton from '@/components/ui/Skeleton';
+import Avatar from '@/components/ui/Avatar';
+import ShareModal from '@/components/ui/ShareModal';
 import { formatDate } from '@/lib/utils';
 
 const STATUSES = ['todo', 'in_progress', 'completed'];
@@ -25,6 +27,8 @@ const PRIORITIES = ['low', 'medium', 'high'];
 export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
+  const [showParticipants, setShowParticipants] = useState(false);
+  const [showSharePicker, setShowSharePicker] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['tasks', 'detail', taskId],
@@ -53,6 +57,14 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
     onSuccess: invalidateAll,
   });
 
+  const participantsMutation = useMutation({
+    mutationFn: (payload) => api.patch(`/tasks/${taskId}/participants`, payload),
+    onSuccess: () => {
+      invalidateAll();
+      setShowSharePicker(false);
+    },
+  });
+
   const openEdit = () => {
     setEditForm({
       title: task.title,
@@ -66,6 +78,8 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
 
   const handleClose = () => {
     setEditing(false);
+    setShowParticipants(false);
+    setShowSharePicker(false);
     onClose();
   };
 
@@ -162,16 +176,29 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
             </div>
           </div>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#374151', cursor: 'pointer' }}>
-            <input
-              type="checkbox"
-              className="accent-primary"
-              style={{ accentColor: '#6b21a8', width: 15, height: 15 }}
-              checked={editForm.isShared}
-              onChange={e => setEditForm(f => ({ ...f, isShared: e.target.checked }))}
-            />
-            Shared task
-          </label>
+          <button
+            type="button"
+            onClick={() => setShowSharePicker(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 14px',
+              borderRadius: 12,
+              border: '1px solid #ede9fe',
+              background: task?.participants?.length > 0 ? '#f5f0ff' : 'white',
+              color: task?.participants?.length > 0 ? '#6b21a8' : '#374151',
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+              width: '100%',
+            }}
+          >
+            <Users size={14} />
+            {task?.participants?.length > 0
+              ? `${task.participants.length} collaborator${task.participants.length !== 1 ? 's' : ''}`
+              : 'Add collaborators'}
+          </button>
 
           <div className="flex gap-3 pt-2">
             <Button variant="outline" onClick={() => setEditing(false)} className="flex-1">Cancel</Button>
@@ -296,11 +323,60 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
 
           {/* Participants */}
           {task.isShared && task.participants?.length > 0 && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#f5f0ff', borderRadius: 12, padding: '8px 12px' }}>
-              <Users size={14} style={{ color: '#6b21a8', flexShrink: 0 }} />
-              <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>
-                {task.participants.length} collaborator{task.participants.length !== 1 ? 's' : ''}
-              </span>
+            <div>
+              <button
+                onClick={() => setShowParticipants(v => !v)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: '#f5f0ff',
+                  borderRadius: 12,
+                  padding: '8px 12px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background 0.12s',
+                }}
+              >
+                <Users size={14} style={{ color: '#6b21a8', flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: '#6b21a8', fontWeight: 500 }}>
+                  {task.participants.length} collaborator{task.participants.length !== 1 ? 's' : ''}
+                </span>
+              </button>
+              {showParticipants && (
+                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6, background: '#fef7ff', borderRadius: 12, padding: '10px 12px', border: '1px solid #ede9fe' }}>
+                  {task.participants.map(p => {
+                    const pUser = p.userId;
+                    const name = pUser?.firstName
+                      ? `${pUser.firstName} ${pUser.lastName || ''}`
+                      : pUser?.username || p.userId?.toString?.() || 'Unknown';
+                    return (
+                      <Link
+                        key={p.userId?._id || p.userId}
+                        to="/users/view"
+                        state={{ id: pUser?._id || p.userId }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', padding: '4px 6px', borderRadius: 8, transition: 'background 0.12s' }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <Avatar name={name} src={pUser?.avatarUrl} size="sm" />
+                        <span style={{ fontSize: 13, color: '#111827', fontWeight: 500 }}>{name}</span>
+                        <span style={{
+                          fontSize: 11,
+                          fontWeight: 500,
+                          padding: '2px 8px',
+                          borderRadius: 20,
+                          background: p.status === 'completed' ? '#dcfce7' : p.status === 'in_progress' ? '#fef3c7' : '#f3f4f6',
+                          color: p.status === 'completed' ? '#16a34a' : p.status === 'in_progress' ? '#b45309' : '#6b7280',
+                          marginLeft: 'auto',
+                        }}>
+                          {STATUS_LABELS[p.status] || p.status}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -313,6 +389,17 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
           </div>
         </div>
       )}
+
+      {/* Share picker for editing participants */}
+      <ShareModal
+        open={showSharePicker}
+        onClose={() => setShowSharePicker(false)}
+        mode="task"
+        currentParticipants={task?.participants || []}
+        onSave={(payload) => participantsMutation.mutate(payload)}
+        saving={participantsMutation.isPending}
+        title="Manage collaborators"
+      />
     </Modal>
   );
 }

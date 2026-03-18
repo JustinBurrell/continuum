@@ -13,6 +13,7 @@ import Badge from '@/components/ui/Badge';
 import Skeleton from '@/components/ui/Skeleton';
 import Avatar from '@/components/ui/Avatar';
 import Modal from '@/components/ui/Modal';
+import ShareModal from '@/components/ui/ShareModal';
 import { useAuth } from '@/context/AuthContext';
 import { formatDate, formatRelative } from '@/lib/utils';
 
@@ -27,8 +28,6 @@ export default function NoteDetail() {
 
   // Share state
   const [showShareModal, setShowShareModal] = useState(false);
-  const [shareVisibility, setShareVisibility] = useState('friends');
-  const [shareMsg, setShareMsg] = useState('');
 
   // Flashcard generation state
   const [flashcardMsg, setFlashcardMsg] = useState('');
@@ -71,12 +70,9 @@ export default function NoteDetail() {
   const shareNoteMutation = useMutation({
     mutationFn: (payload) => api.put(`/notes/${id}/share`, payload),
     onSuccess: () => {
-      setShareMsg('Visibility updated!');
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       queryClient.invalidateQueries({ queryKey: ['note', id] });
-    },
-    onError: (err) => {
-      setShareMsg(err.response?.data?.error || 'Failed to share note.');
+      setShowShareModal(false);
     },
   });
 
@@ -192,10 +188,18 @@ export default function NoteDetail() {
         <div style={{ flex: 1 }} />
 
         <button
-          onClick={() => { setShowShareModal(true); setShareMsg(''); }}
+          onClick={() => setShowShareModal(true)}
           style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
         >
-          <Share2 size={14} /> Share
+          <Share2 size={14} />
+          {note.visibility && note.visibility !== 'private' ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              Shared
+              <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.6875rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20 }}>
+                {note.visibility === 'friends' ? 'Friends' : `${note.sharedWith?.length || 0}`}
+              </span>
+            </span>
+          ) : 'Share'}
         </button>
         <Link to="/notes/edit" state={{ id }}>
           <button style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
@@ -477,50 +481,15 @@ export default function NoteDetail() {
       </div>
 
       {/* Share modal */}
-      <Modal open={showShareModal} onClose={() => setShowShareModal(false)} title="Share note">
-        <div className="space-y-4">
-          <div>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
-              Who can see this note?
-            </label>
-            <select
-              style={{
-                width: '100%',
-                background: 'white',
-                border: '1px solid #ede9fe',
-                borderRadius: 12,
-                padding: '9px 14px',
-                fontSize: '0.875rem',
-                color: '#111827',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-              value={shareVisibility}
-              onChange={e => { setShareVisibility(e.target.value); setShareMsg(''); }}
-            >
-              <option value="private">Private - only you</option>
-              <option value="friends">Friends - all your friends</option>
-            </select>
-          </div>
-          {shareMsg && (
-            <p style={{ fontSize: '0.75rem', color: shareMsg.includes('updated') ? '#16a34a' : '#ef4444' }}>
-              {shareMsg}
-            </p>
-          )}
-          <div className="flex gap-3 pt-2">
-            <Button variant="outline" onClick={() => setShowShareModal(false)} className="flex-1">
-              Cancel
-            </Button>
-            <Button
-              onClick={() => shareNoteMutation.mutate({ visibility: shareVisibility })}
-              loading={shareNoteMutation.isPending}
-              className="flex-1"
-            >
-              Save
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <ShareModal
+        open={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        currentVisibility={note.visibility || 'private'}
+        currentSharedWith={note.sharedWith || []}
+        onSave={(payload) => shareNoteMutation.mutate(payload)}
+        saving={shareNoteMutation.isPending}
+        title="Share note"
+      />
     </div>
   );
 }
