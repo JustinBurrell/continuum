@@ -43,7 +43,7 @@ exports.startConversation = async (req, res) => {
     const existing = await Conversation.findOne({
         participants: { $all: participants },
         deletedAt: null,
-    }).populate('participants', 'username firstName lastName');
+    }).populate('participants', 'username firstName lastName avatarUrl');
 
     if (existing) {
         return res.status(200).json({ success: true, conversation: existing });
@@ -58,7 +58,7 @@ exports.startConversation = async (req, res) => {
         ],
     });
 
-    await conversation.populate('participants', 'username firstName lastName');
+    await conversation.populate('participants', 'username firstName lastName avatarUrl');
 
     res.status(201).json({ success: true, conversation });
 };
@@ -74,7 +74,7 @@ exports.getConversations = async (req, res) => {
         participants: userId,
         deletedAt: null,
     })
-        .populate('participants', 'username firstName lastName')
+        .populate('participants', 'username firstName lastName avatarUrl')
         .sort({ 'lastMessage.sentAt': -1, createdAt: -1 });
 
     res.status(200).json({ success: true, conversations });
@@ -142,7 +142,7 @@ exports.sendMessage = async (req, res) => {
 
     await conversation.save();
 
-    await message.populate('senderId', 'username firstName lastName');
+    await message.populate('senderId', 'username firstName lastName avatarUrl');
 
     res.status(201).json({ success: true, message });
 };
@@ -182,7 +182,7 @@ exports.getMessages = async (req, res) => {
         deletedAt: null,
         createdAt: { $lt: before },
     })
-        .populate('senderId', 'username firstName lastName')
+        .populate('senderId', 'username firstName lastName avatarUrl')
         .sort({ createdAt: -1 })
         .limit(limit + 1); // fetch one extra to determine hasMore
 

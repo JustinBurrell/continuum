@@ -70,94 +70,206 @@ export default function NoteEditor() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div style={{ maxWidth: 720, margin: '0 auto' }}>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
         <Link to={isEdit ? '/notes/view' : '/notes'} state={isEdit ? { id } : undefined}>
-          <button className="p-2 rounded-lg hover:bg-accent text-secondary hover:text-foreground transition-colors">
+          <button
+            style={{
+              padding: 8,
+              borderRadius: 10,
+              border: 'none',
+              background: 'transparent',
+              color: '#a087b0',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              transition: 'background 0.12s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#111827'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+          >
             <ArrowLeft size={18} />
           </button>
         </Link>
-        <h1 className="font-bold text-xl text-foreground flex-1">
+        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.25rem', fontWeight: 700, color: '#111827', flex: 1 }}>
           {isEdit ? 'Edit note' : 'New note'}
         </h1>
-        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            border: '1px solid #ede9fe',
+            background: 'white',
+            color: '#374151',
+            padding: '7px 14px',
+            borderRadius: 12,
+            fontSize: '0.8125rem',
+            fontWeight: 500,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            cursor: 'pointer',
+          }}
+        >
           <X size={14} /> Cancel
-        </Button>
-        <Button size="sm" onClick={handleSave} loading={saveMutation.isPending} disabled={!form.title.trim()}>
-          <Save size={14} /> Save
-        </Button>
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={!form.title.trim() || saveMutation.isPending}
+          style={{
+            background: '#6b21a8',
+            color: 'white',
+            padding: '7px 16px',
+            borderRadius: 12,
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            cursor: !form.title.trim() || saveMutation.isPending ? 'not-allowed' : 'pointer',
+            opacity: !form.title.trim() || saveMutation.isPending ? 0.6 : 1,
+            border: 'none',
+            transition: 'opacity 0.15s',
+          }}
+        >
+          <Save size={14} /> {saveMutation.isPending ? 'Saving...' : 'Save'}
+        </button>
       </div>
 
-      <Card className="space-y-5">
-        {/* Title */}
-        <div>
+      {/* Editor card */}
+      <div style={{
+        background: 'white',
+        border: '1px solid #ede9fe',
+        borderRadius: 16,
+        boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+        padding: '28px 32px',
+      }}>
+        {/* Title input */}
+        <div style={{ marginBottom: 24, borderBottom: '1px solid #ede9fe', paddingBottom: 20 }}>
           <input
             type="text"
             placeholder="Note title..."
             value={form.title}
             onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
-            className="w-full text-2xl font-bold bg-transparent border-none outline-none text-foreground placeholder:text-secondary/50 pb-2 border-b border-border"
+            style={{
+              width: '100%',
+              fontSize: '1.5rem',
+              fontFamily: 'Georgia, serif',
+              fontWeight: 700,
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              color: '#111827',
+              boxSizing: 'border-box',
+            }}
           />
         </div>
 
         {/* Meta row */}
-        <div className="flex flex-wrap gap-4">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
+          {/* Type select */}
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1">Type</label>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#a087b0', marginBottom: 6 }}>
+              Type
+            </label>
             <select
               value={form.type}
               onChange={(e) => setForm(f => ({ ...f, type: e.target.value }))}
-              className="input-field py-1.5 text-xs w-auto pr-8"
+              style={{
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 10,
+                padding: '7px 28px 7px 12px',
+                fontSize: '0.8125rem',
+                color: '#111827',
+                outline: 'none',
+                cursor: 'pointer',
+                textTransform: 'capitalize',
+              }}
             >
               {NOTE_TYPES.map(t => (
-                <option key={t} value={t} className="capitalize">{t}</option>
+                <option key={t} value={t} style={{ textTransform: 'capitalize' }}>{t}</option>
               ))}
             </select>
           </div>
-          <div className="flex-1">
-            <label className="block text-xs font-medium text-secondary mb-1">Tags (comma separated)</label>
+
+          {/* Tags */}
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#a087b0', marginBottom: 6 }}>
+              Tags (comma separated)
+            </label>
             <input
               type="text"
               placeholder="math, calculus, midterm..."
               value={form.tags}
               onChange={(e) => setForm(f => ({ ...f, tags: e.target.value }))}
-              className="input-field py-1.5 text-xs"
+              style={{
+                width: '100%',
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 10,
+                padding: '7px 12px',
+                fontSize: '0.8125rem',
+                color: '#111827',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
             />
           </div>
-          <div className="flex items-end pb-1">
-            <label className="flex items-center gap-2 cursor-pointer text-xs text-foreground">
+
+          {/* Public toggle */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 2 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.8125rem', color: '#374151' }}>
               <input
                 type="checkbox"
                 checked={form.isPublic}
                 onChange={(e) => setForm(f => ({ ...f, isPublic: e.target.checked }))}
-                className="accent-primary"
+                style={{ accentColor: '#6b21a8', width: 15, height: 15 }}
               />
               Public note
             </label>
           </div>
         </div>
 
-        {/* Content */}
+        {/* Content textarea */}
         <div>
-          <label className="block text-xs font-medium text-secondary mb-2">Content</label>
+          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#a087b0', marginBottom: 8 }}>
+            Content
+          </label>
           <textarea
             placeholder="Start writing your note..."
             value={form.content}
             onChange={(e) => setForm(f => ({ ...f, content: e.target.value }))}
-            className="input-field min-h-[400px] resize-y font-mono text-sm leading-relaxed"
+            style={{
+              width: '100%',
+              minHeight: 400,
+              resize: 'vertical',
+              background: '#fef7ff',
+              border: '1px solid #ede9fe',
+              borderRadius: 12,
+              padding: '14px 16px',
+              fontSize: '0.9rem',
+              fontFamily: 'inherit',
+              lineHeight: 1.7,
+              color: '#111827',
+              outline: 'none',
+              boxSizing: 'border-box',
+              transition: 'border-color 0.15s',
+            }}
+            onFocus={e => e.currentTarget.style.borderColor = '#6b21a8'}
+            onBlur={e => e.currentTarget.style.borderColor = '#ede9fe'}
           />
-          <p className="text-xs text-secondary mt-1">
-            HTML is supported. For a rich editor, the backend stores HTML content.
+          <p style={{ fontSize: '0.75rem', color: '#a087b0', marginTop: 6 }}>
+            Supports plain text and Markdown.
           </p>
         </div>
 
         {saveMutation.isError && (
-          <p className="text-sm text-red-500">
+          <p style={{ fontSize: '0.875rem', color: '#ef4444', marginTop: 12 }}>
             {saveMutation.error?.response?.data?.error || 'Failed to save note.'}
           </p>
         )}
-      </Card>
+      </div>
     </div>
   );
 }

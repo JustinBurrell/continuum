@@ -17,16 +17,21 @@ exports.getActivityFeed = async (req, res) => {
     const limit = Math.min(Number(req.query.limit) || 20, 50);
     const offset = Number(req.query.offset) || 0;
 
-    const feed = await Activity.find({
+    const filter = {
         $or: [
             { visibleTo: req.user._id },
             { isPublic: true },
         ],
-    })
-        .sort({ createdAt: -1 })
-        .skip(offset)
-        .limit(limit)
-        .populate('userId', 'firstName lastName username avatarUrl');
+    };
 
-    res.status(200).json({ success: true, feed });
+    const [feed, total] = await Promise.all([
+        Activity.find(filter)
+            .sort({ createdAt: -1 })
+            .skip(offset)
+            .limit(limit)
+            .populate('userId', 'firstName lastName username avatarUrl'),
+        Activity.countDocuments(filter),
+    ]);
+
+    res.status(200).json({ success: true, feed, total });
 };

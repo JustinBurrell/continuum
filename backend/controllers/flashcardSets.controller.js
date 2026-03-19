@@ -2,7 +2,8 @@ const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
 const Friendship = require('../models/Friendship');
 const groqService = require('../services/groq.service');
-const { createActivity } = require('../services/activity.service');
+const { createActivity, createShareActivities } = require('../services/activity.service');
+const { sendShareMessage } = require('../services/share.service');
 
 // ============================================================
 // FLASHCARD SETS CONTROLLER
@@ -101,16 +102,38 @@ exports.getSets = async (req, res) => {
 exports.getSetById = async (req, res) => {
     const set = await FlashcardSet.findOne({
         _id: req.params.id,
-        userId: req.user._id,
         deletedAt: null,
     }).populate({
         path: 'flashcards',
-        match: { deletedAt: null },  // exclude soft-deleted cards
+        match: { deletedAt: null },
         options: { sort: { order: 1 } },
     });
 
     if (!set) {
         return res.status(404).json({ success: false, error: 'Flashcard set not found' });
+    }
+
+    // Access check: owner, specific share, or friends visibility
+    const userId = req.user._id.toString();
+    const isOwner = set.userId.toString() === userId;
+    const isSharedWith = set.sharedWith?.some(id => id.toString() === userId);
+    const isFriendsVisible = set.visibility === 'friends';
+
+    if (!isOwner && !isSharedWith) {
+        if (!isFriendsVisible) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+        const friendship = await Friendship.findOne({
+            $or: [
+                { user1: req.user._id, user2: set.userId },
+                { user1: set.userId, user2: req.user._id },
+            ],
+            status: 'accepted',
+            deletedAt: null,
+        });
+        if (!friendship) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
     }
 
     res.status(200).json({ success: true, set });
@@ -346,15 +369,29 @@ exports.shareSet = async (req, res) => {
         { new: true, runValidators: true }
     );
 
-    // Only fire activity when going from private → shared for the first time
-    if (existing.visibility === 'private' && visibility !== 'private') {
-        createActivity({
+    // Create sharing activity entries
+    if (visibility === 'friends') {
+        createShareActivities({
             actorId: req.user._id,
             type: 'flashcard_shared',
             targetId: set._id,
-            targetType: 'flashcard_set',
+            targetType: 'flashcardSet',
             metadata: { setTitle: set.title },
+            shareAll: true,
         }).catch(() => {});
+    } else if (visibility === 'specific' && sharedWith?.length > 0) {
+        createShareActivities({
+            actorId: req.user._id,
+            type: 'flashcard_shared',
+            targetId: set._id,
+            targetType: 'flashcardSet',
+            metadata: { setTitle: set.title },
+            recipientIds: sharedWith,
+        }).catch(() => {});
+        // Send auto-message to each specific friend
+        for (const recipientId of sharedWith) {
+            sendShareMessage(req.user._id, recipientId, 'flashcardSet', set.title, set._id).catch(() => {});
+        }
     }
 
     res.status(200).json({ success: true, set });

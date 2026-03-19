@@ -24,17 +24,25 @@ export default function ResetPassword() {
 
   return (
     <div>
-      <div className="mb-6 text-center">
-        <h1 className="text-xl font-bold text-foreground">Set new password</h1>
-        <p className="text-sm text-secondary mt-1">Choose a strong password for your account</p>
+      {/* Heading */}
+      <div className="mb-7 text-center">
+        <h1
+          className="text-2xl font-bold text-[#6b21a8] mb-1"
+          style={{ fontFamily: 'Georgia, serif' }}
+        >
+          Set new password
+        </h1>
+        <p className="text-sm text-[#a087b0]">Choose a strong password for your account</p>
       </div>
 
+      {/* Error banner */}
       {error && (
-        <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
+        <div className="mb-5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
           {error}
         </div>
       )}
 
+      {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input
           label="New password"
@@ -60,8 +68,9 @@ export default function ResetPassword() {
         </Button>
       </form>
 
-      <p className="mt-5 text-center text-sm text-secondary">
-        <Link to="/login" className="text-primary font-medium hover:underline">
+      {/* Footer */}
+      <p className="mt-6 text-center text-sm text-[#a087b0]">
+        <Link to="/login" className="text-[#6b21a8] font-semibold hover:underline">
           Back to sign in
         </Link>
       </p>

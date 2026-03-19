@@ -5,7 +5,8 @@ const Friendship = require('../models/Friendship');
 const getGoogleDriveClient = require('../config/googleDrive');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
-const { createActivity } = require('../services/activity.service');
+const { createActivity, createShareActivities } = require('../services/activity.service');
+const { sendShareMessage } = require('../services/share.service');
 const { PDFParse } = require('pdf-parse');
 
 // ============================================================
@@ -224,12 +225,35 @@ exports.getNotes = async (req, res) => {
 exports.getNoteById = async (req, res) => {
     const note = await Note.findOne({
         _id: req.params.id,
-        userId: req.user._id,
         deletedAt: null,
     });
 
     if (!note) {
         return res.status(404).json({ success: false, error: 'Note not found' });
+    }
+
+    // Access check: owner, specific share, or friends visibility
+    const userId = req.user._id.toString();
+    const isOwner = note.userId.toString() === userId;
+    const isSharedWith = note.sharedWith?.some(id => id.toString() === userId);
+    const isFriendsVisible = note.visibility === 'friends';
+
+    if (!isOwner && !isSharedWith) {
+        if (!isFriendsVisible) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+        // Verify friendship for 'friends' visibility
+        const friendship = await Friendship.findOne({
+            $or: [
+                { user1: req.user._id, user2: note.userId },
+                { user1: note.userId, user2: req.user._id },
+            ],
+            status: 'accepted',
+            deletedAt: null,
+        });
+        if (!friendship) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
     }
 
     // Track engagement — increment view count and update last viewed timestamp
@@ -554,16 +578,29 @@ exports.shareNote = async (req, res) => {
         { new: true, runValidators: true }
     );
 
-    // Only fire activity when going from private → shared for the first time
-    // Tweaking between friends/specific doesn't warrant a new share event
-    if (existing.visibility === 'private' && visibility !== 'private') {
-        createActivity({
+    // Create sharing activity entries
+    if (visibility === 'friends') {
+        createShareActivities({
             actorId: req.user._id,
             type: 'note_shared',
             targetId: note._id,
             targetType: 'note',
             metadata: { noteTitle: note.title },
-        }).catch(() => {}); // non-blocking — never fail the request over activity
+            shareAll: true,
+        }).catch(() => {});
+    } else if (visibility === 'specific' && sharedWith?.length > 0) {
+        createShareActivities({
+            actorId: req.user._id,
+            type: 'note_shared',
+            targetId: note._id,
+            targetType: 'note',
+            metadata: { noteTitle: note.title },
+            recipientIds: sharedWith,
+        }).catch(() => {});
+        // Send auto-message to each specific friend
+        for (const recipientId of sharedWith) {
+            sendShareMessage(req.user._id, recipientId, 'note', note.title, note._id).catch(() => {});
+        }
     }
 
     res.status(200).json({ success: true, note });
@@ -578,6 +615,7 @@ exports.shareNote = async (req, res) => {
 // ----------------------------------------
 exports.getSharedNotes = async (req, res) => {
     const userId = req.user._id;
+    const { search } = req.query;
 
     // Step 1: Get all accepted friend IDs for the current user
     const friendships = await Friendship.find({
@@ -590,15 +628,32 @@ exports.getSharedNotes = async (req, res) => {
         f.user1.toString() === userId.toString() ? f.user2 : f.user1
     );
 
-    // Step 2: Find notes accessible to the current user (owned by others)
-    const notes = await Note.find({
+    // Step 2: Build filter for notes accessible to the current user (owned by others)
+    const accessFilter = [
+        { visibility: 'friends', userId: { $in: friendIds } },
+        { visibility: 'specific', sharedWith: userId },
+    ];
+
+    const filter = {
         deletedAt: null,
         userId: { $ne: userId },
-        $or: [
-            { visibility: 'friends', userId: { $in: friendIds } },
-            { visibility: 'specific', sharedWith: userId },
-        ],
-    })
+    };
+
+    // Step 3: Apply text search if provided — combine with access filter using $and
+    if (search) {
+        const safeSearch = escapeRegex(search.trim().slice(0, 200));
+        filter.$and = [
+            { $or: accessFilter },
+            { $or: [
+                { title: { $regex: safeSearch, $options: 'i' } },
+                { content: { $regex: safeSearch, $options: 'i' } },
+            ]},
+        ];
+    } else {
+        filter.$or = accessFilter;
+    }
+
+    const notes = await Note.find(filter)
         .populate('userId', 'username firstName lastName')
         .sort({ createdAt: -1 });
 

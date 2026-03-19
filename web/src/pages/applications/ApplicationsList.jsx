@@ -4,23 +4,46 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Briefcase, Search } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
-import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
 import { formatDate } from '@/lib/utils';
 
 const STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
-const STAGE_VARIANTS = {
-  draft: 'neutral', applied: 'primary', interview: 'warning',
-  offer: 'success', rejected: 'danger', withdrawn: 'neutral',
+
+const STAGE_STYLES = {
+  draft:     { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
+  applied:   { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
+  interview: { bg: '#fdf4ff', color: '#7c3aed', border: '#e9d5ff' },
+  offer:     { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
+  rejected:  { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
+  withdrawn: { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
 };
 
 const emptyForm = {
   company: '', position: '', status: 'applied', location: '',
   jobUrl: '', salary: '', notes: '', appliedAt: '',
 };
+
+function StageBadge({ stage }) {
+  const s = STAGE_STYLES[stage] || STAGE_STYLES.draft;
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      padding: '3px 10px',
+      borderRadius: 20,
+      fontSize: 11,
+      fontWeight: 600,
+      background: s.bg,
+      color: s.color,
+      border: `1px solid ${s.border}`,
+      textTransform: 'capitalize',
+    }}>
+      {stage}
+    </span>
+  );
+}
 
 export default function ApplicationsList() {
   const [view, setView] = useState('list');
@@ -70,19 +93,31 @@ export default function ApplicationsList() {
 
   return (
     <div>
-      <div className="page-header">
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 className="page-title">Applications</h1>
-          <p className="text-secondary text-sm mt-0.5">{data?.total ?? apps.length} total</p>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+            Applications
+          </h1>
+          <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>{data?.total ?? apps.length} total</p>
         </div>
-        <div className="flex gap-2">
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {['pipeline', 'list'].map(v => (
             <button
               key={v}
               onClick={() => setView(v)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
-                view === v ? 'bg-primary text-white' : 'bg-accent text-foreground/70 hover:text-primary'
-              }`}
+              style={{
+                padding: '7px 14px',
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+                textTransform: 'capitalize',
+                transition: 'all 0.15s',
+                background: view === v ? '#6b21a8' : '#f5f0ff',
+                color: view === v ? '#fff' : '#6b21a8',
+              }}
             >
               {v}
             </button>
@@ -94,104 +129,184 @@ export default function ApplicationsList() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative flex-1">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+        <div style={{ position: 'relative' }}>
+          <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0' }} />
           <input
-            className="input-field pl-9"
+            className="input-field"
+            style={{ paddingLeft: 36 }}
             placeholder="Search company or role..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex gap-2 flex-wrap">
-          {['all', ...STAGES].map(s => (
-            <button
-              key={s}
-              onClick={() => setStageFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
-                stageFilter === s ? 'bg-primary text-white' : 'bg-accent text-foreground/70 hover:text-primary'
-              }`}
-            >
-              {s}
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {['all', ...STAGES].map(s => {
+            const active = stageFilter === s;
+            const style = s !== 'all' ? STAGE_STYLES[s] : null;
+            return (
+              <button
+                key={s}
+                onClick={() => setStageFilter(s)}
+                style={{
+                  padding: '5px 14px',
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  border: active && s !== 'all' ? `1px solid ${style?.border}` : active ? '1px solid #6b21a8' : '1px solid #ede9fe',
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
+                  transition: 'all 0.15s',
+                  background: active ? (s === 'all' ? '#6b21a8' : style?.bg) : '#fff',
+                  color: active ? (s === 'all' ? '#fff' : style?.color) : '#a087b0',
+                }}
+              >
+                {s}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
           {STAGES.map(s => <Skeleton key={s} className="h-48" />)}
         </div>
       ) : view === 'pipeline' ? (
         /* Pipeline kanban */
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 overflow-x-auto">
-          {(stageFilter === 'all' ? STAGES : [stageFilter]).map(stage => (
-            <div key={stage} className="min-w-[180px]">
-              <div className="flex items-center gap-2 mb-3">
-                <Badge variant={STAGE_VARIANTS[stage]} className="capitalize">{stage}</Badge>
-                <span className="text-xs text-secondary">{byStage[stage].length}</span>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${stageFilter === 'all' ? STAGES.length : 1}, 1fr)`, gap: 16, overflowX: 'auto' }}>
+          {(stageFilter === 'all' ? STAGES : [stageFilter]).map(stage => {
+            const s = STAGE_STYLES[stage];
+            return (
+              <div key={stage} style={{ minWidth: 180 }}>
+                {/* Column header */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: 10,
+                  padding: '7px 12px',
+                  borderRadius: 10,
+                  background: 'rgba(107,33,168,0.03)',
+                }}>
+                  <span style={{
+                    display: 'inline-block',
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: s.color,
+                    flexShrink: 0,
+                  }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'capitalize', flex: 1 }}>
+                    {stage}
+                  </span>
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: '#fff',
+                    background: s.color,
+                    borderRadius: 20,
+                    padding: '1px 7px',
+                  }}>
+                    {byStage[stage].length}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {byStage[stage].length === 0 ? (
+                    <div style={{
+                      height: 72,
+                      borderRadius: 12,
+                      border: '2px dashed #ede9fe',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <p style={{ fontSize: 11, color: '#a087b0' }}>Empty</p>
+                    </div>
+                  ) : (
+                    byStage[stage].map(app => (
+                      <PipelineCard
+                        key={app._id}
+                        app={app}
+                        stages={STAGES}
+                        onStageChange={(status) => updateStageMutation.mutate({ id: app._id, status })}
+                        stateApp={app}
+                      />
+                    ))
+                  )}
+                </div>
               </div>
-              <div className="space-y-3">
-                {byStage[stage].length === 0 ? (
-                  <div className="h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center">
-                    <p className="text-xs text-secondary">Empty</p>
-                  </div>
-                ) : (
-                  byStage[stage].map(app => (
-                    <PipelineCard
-                      key={app._id}
-                      app={app}
-                      stages={STAGES}
-                      onStageChange={(status) => updateStageMutation.mutate({ id: app._id, status })}
-                      stateApp={app}
-                    />
-                  ))
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         /* List view */
         apps.length === 0 ? (
-          <div className="text-center py-16">
-            <Briefcase size={40} className="mx-auto mb-3 text-secondary/40" />
+          <div style={{ textAlign: 'center', padding: '64px 0' }}>
+            <Briefcase size={40} style={{ margin: '0 auto 12px', color: '#d4c5e8' }} />
             {stageFilter !== 'all' || search ? (
               <>
-                <h3 className="font-semibold text-foreground mb-1">No applications found</h3>
-                <p className="text-secondary text-sm">No applications match this filter.</p>
+                <h3 style={{ fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>No applications found</h3>
+                <p style={{ color: '#a087b0', fontSize: 14 }}>No applications match this filter.</p>
               </>
             ) : (
               <>
-                <h3 className="font-semibold text-foreground mb-1">No applications yet</h3>
-                <p className="text-secondary text-sm mb-4">Start tracking your job applications.</p>
+                <h3 style={{ fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>No applications yet</h3>
+                <p style={{ color: '#a087b0', fontSize: 14, marginBottom: 16 }}>Start tracking your job applications.</p>
                 <Button size="sm" onClick={() => setShowCreate(true)}>Add your first application</Button>
               </>
             )}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {apps.map(app => (
-              <Card key={app._id} className="flex items-center gap-4 p-4">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Briefcase size={18} className="text-primary" />
+              <div
+                key={app._id}
+                style={{
+                  background: '#fff',
+                  border: '1px solid #ede9fe',
+                  borderRadius: 16,
+                  boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+                  padding: '14px 18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 16,
+                  transition: 'box-shadow 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.1)'}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)'}
+              >
+                <div style={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: 12,
+                  background: 'rgba(107,33,168,0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <Briefcase size={18} style={{ color: '#6b21a8' }} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <Link to="/applications/view" state={{ id: app._id, application: app }} className="hover:text-primary transition-colors">
-                    <p className="font-semibold text-foreground text-sm">{app.company}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <Link
+                    to="/applications/view"
+                    state={{ id: app._id, application: app }}
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>{app.company}</p>
                   </Link>
-                  <p className="text-xs text-secondary">{app.position}</p>
-                  {app.location && <p className="text-xs text-secondary/60">{app.location}</p>}
+                  <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>{app.position}</p>
+                  {app.location && <p style={{ fontSize: 11, color: '#c4b5d4', margin: '2px 0 0' }}>{app.location}</p>}
                 </div>
-                <div className="flex items-center gap-3">
-                  {app.appliedAt && <p className="text-xs text-secondary">{formatDate(app.appliedAt)}</p>}
-                  <Badge variant={STAGE_VARIANTS[app.status]} className="capitalize">{app.status}</Badge>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {app.appliedAt && <p style={{ fontSize: 12, color: '#a087b0' }}>{formatDate(app.appliedAt)}</p>}
+                  <StageBadge stage={app.status} />
                   <Link to="/applications/view" state={{ id: app._id, application: app }}>
                     <Button variant="ghost" size="sm">View</Button>
                   </Link>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         )
@@ -255,7 +370,7 @@ export default function ApplicationsList() {
               <label className="text-sm font-medium text-foreground block mb-1.5">Salary range</label>
               <input
                 className="input-field"
-                placeholder="$120k–$160k"
+                placeholder="$120k-$160k"
                 value={form.salary}
                 onChange={e => setForm(f => ({ ...f, salary: e.target.value }))}
               />
@@ -301,21 +416,43 @@ export default function ApplicationsList() {
 
 function PipelineCard({ app, stages, onStageChange, stateApp }) {
   return (
-    <Card className="p-3">
-      <p className="font-semibold text-foreground text-sm">{app.company}</p>
-      <p className="text-xs text-secondary mt-0.5 mb-2">{app.position}</p>
-      {app.location && <p className="text-xs text-secondary/60 mb-2">{app.location}</p>}
+    <div style={{
+      background: '#fff',
+      border: '1px solid #ede9fe',
+      borderRadius: 12,
+      boxShadow: '0 1px 6px rgba(107,33,168,0.06)',
+      padding: '12px 14px',
+      transition: 'box-shadow 0.15s',
+    }}
+      onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(107,33,168,0.1)'}
+      onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 6px rgba(107,33,168,0.06)'}
+    >
+      <p style={{ fontWeight: 700, fontSize: 13, color: '#111827', margin: 0 }}>{app.company}</p>
+      <p style={{ fontSize: 11, color: '#a087b0', margin: '3px 0 8px' }}>{app.position}</p>
+      {app.location && <p style={{ fontSize: 11, color: '#c4b5d4', marginBottom: 8 }}>{app.location}</p>}
       <select
         value={app.status}
         onChange={e => onStageChange(e.target.value)}
-        className="text-xs border border-border rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-primary/30 w-full mb-2"
         onClick={e => e.stopPropagation()}
+        style={{
+          fontSize: 11,
+          border: '1px solid #ede9fe',
+          borderRadius: 8,
+          padding: '4px 8px',
+          background: '#fef7ff',
+          color: '#6b21a8',
+          fontWeight: 600,
+          width: '100%',
+          marginBottom: 10,
+          outline: 'none',
+          cursor: 'pointer',
+        }}
       >
         {stages.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
       </select>
       <Link to="/applications/view" state={{ id: app._id, application: stateApp }}>
         <Button variant="outline" size="sm" className="w-full text-xs">View / Edit</Button>
       </Link>
-    </Card>
+    </div>
   );
 }

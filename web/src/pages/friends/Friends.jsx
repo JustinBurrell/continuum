@@ -5,7 +5,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { useAuth } from '@/context/AuthContext';
-import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
 import Skeleton from '@/components/ui/Skeleton';
@@ -83,7 +82,7 @@ export default function Friends() {
   const searchResults = searchData?.users || searchData?.data || [];
 
   // Backend populates user1 and user2 with { username, firstName, lastName }
-  // No requester/recipient fields — determine other user by comparing _id to current user
+  // No requester/recipient fields -- determine other user by comparing _id to current user
   const getOtherUser = (f) => {
     return f.user1?._id?.toString() === user?._id?.toString() ? f.user2 : f.user1;
   };
@@ -92,67 +91,115 @@ export default function Friends() {
     [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'Unknown';
 
   const tabs = [
-    { key: 'friends', label: `Friends (${friendships.length})` },
-    { key: 'requests', label: `Requests (${requests.length})` },
-    { key: 'sent', label: sentRequests.length > 0 ? `Sent (${sentRequests.length})` : 'Sent' },
-    { key: 'find', label: 'Find people' },
+    { key: 'friends', label: 'Friends', count: friendships.length },
+    { key: 'requests', label: 'Requests', count: requests.length },
+    { key: 'sent', label: 'Sent', count: sentRequests.length },
+    { key: 'find', label: 'Find people', count: null },
   ];
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Friends</h1>
-          <p className="text-secondary text-sm mt-0.5">Manage your connections</p>
-        </div>
+      {/* Page header */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+          Friends
+        </h1>
+        <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>Manage your connections</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        {tabs.map(t => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              tab === t.key
-                ? 'bg-primary text-white'
-                : 'bg-accent text-foreground/70 hover:text-primary'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 24, flexWrap: 'wrap' }}>
+        {tabs.map(t => {
+          const active = tab === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '7px 16px',
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                background: active ? '#6b21a8' : '#f5f0ff',
+                color: active ? '#fff' : '#6b21a8',
+              }}
+            >
+              {t.label}
+              {t.count !== null && t.count > 0 && (
+                <span style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  padding: '1px 6px',
+                  borderRadius: 10,
+                  background: active ? 'rgba(255,255,255,0.25)' : 'rgba(107,33,168,0.15)',
+                  color: active ? '#fff' : '#6b21a8',
+                }}>
+                  {t.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Friends list */}
       {tab === 'friends' && (
         <div>
           {friendsLoading ? (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
             </div>
           ) : friendships.length === 0 ? (
-            <div className="text-center py-16">
-              <Users size={40} className="mx-auto mb-3 text-secondary/40" />
-              <h3 className="font-semibold text-foreground mb-1">No friends yet</h3>
-              <p className="text-secondary text-sm mb-4">Find people to connect with.</p>
+            <div style={{ textAlign: 'center', padding: '64px 0' }}>
+              <div style={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                background: '#f5f0ff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+              }}>
+                <Users size={28} style={{ color: '#a087b0' }} />
+              </div>
+              <h3 style={{ fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>No friends yet</h3>
+              <p style={{ color: '#a087b0', fontSize: 14, marginBottom: 16 }}>Find people to connect with.</p>
               <Button size="sm" onClick={() => setTab('find')}>Find people</Button>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {friendships.map(f => {
                 const friendUser = getOtherUser(f);
                 if (!friendUser) return null;
                 return (
-                  <Card key={f._id} className="flex items-center gap-4 p-4">
-                    <Link to="/users/view" state={{ id: friendUser._id }} className="no-underline flex items-center gap-4 flex-1 min-w-0">
+                  <div
+                    key={f._id}
+                    style={{
+                      background: '#fff',
+                      border: '1px solid #ede9fe',
+                      borderRadius: 16,
+                      boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+                      padding: '14px 18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 14,
+                    }}
+                  >
+                    <Link to="/users/view" state={{ id: friendUser._id }} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
                       <Avatar name={fullName(friendUser)} src={friendUser.avatarUrl} size="md" />
-                      <div className="min-w-0">
-                        <p className="font-medium text-foreground text-sm hover:text-primary transition-colors">{fullName(friendUser)}</p>
-                        <p className="text-xs text-secondary">@{friendUser.username}</p>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>{fullName(friendUser)}</p>
+                        <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>@{friendUser.username}</p>
                       </div>
                     </Link>
-                    <div className="flex gap-2">
+                    <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                       <Button
                         size="sm"
                         variant="outline"
@@ -161,17 +208,28 @@ export default function Friends() {
                       >
                         <MessageCircle size={13} /> Message
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
+                      <button
                         onClick={() => {
                           if (window.confirm('Remove friend?')) removeMutation.mutate(f._id);
                         }}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: 8,
+                          border: '1px solid #ede9fe',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          color: '#a087b0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          transition: 'color 0.15s, border-color 0.15s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.borderColor = '#fecaca'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#ede9fe'; }}
                       >
-                        <UserMinus size={13} />
-                      </Button>
+                        <UserMinus size={14} />
+                      </button>
                     </div>
-                  </Card>
+                  </div>
                 );
               })}
             </div>
@@ -183,30 +241,41 @@ export default function Friends() {
       {tab === 'requests' && (
         <div>
           {requestsLoading ? (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
             </div>
           ) : requests.length === 0 ? (
-            <div className="text-center py-12 text-secondary text-sm">
+            <div style={{ textAlign: 'center', padding: '48px 0', color: '#a087b0', fontSize: 14 }}>
               No pending friend requests.
             </div>
           ) : (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {requests.map(req => {
-                // Backend populates user1/user2; the requester is the other user
                 const requester = getOtherUser(req);
                 return (
-                  <Card key={req._id} className="flex items-center gap-4 p-4">
-                    <Link to="/users/view" state={{ id: requester?._id }} className="flex-shrink-0">
+                  <div
+                    key={req._id}
+                    style={{
+                      background: '#fff',
+                      border: '1px solid #ede9fe',
+                      borderRadius: 16,
+                      boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+                      padding: '14px 18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 14,
+                    }}
+                  >
+                    <Link to="/users/view" state={{ id: requester?._id }} style={{ flexShrink: 0 }}>
                       <Avatar name={fullName(requester)} src={requester?.avatarUrl} className="hover:opacity-80 transition-opacity" />
                     </Link>
-                    <div className="flex-1 min-w-0">
-                      <Link to="/users/view" state={{ id: requester?._id }} className="font-medium text-foreground text-sm hover:text-primary transition-colors">
-                        {fullName(requester)}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Link to="/users/view" state={{ id: requester?._id }} style={{ textDecoration: 'none' }}>
+                        <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>{fullName(requester)}</p>
                       </Link>
-                      <p className="text-xs text-secondary">@{requester?.username} wants to connect</p>
+                      <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>@{requester?.username} wants to connect</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                       <Button
                         size="sm"
                         onClick={() => acceptMutation.mutate(req._id)}
@@ -222,7 +291,7 @@ export default function Friends() {
                         <X size={13} /> Decline
                       </Button>
                     </div>
-                  </Card>
+                  </div>
                 );
               })}
             </div>
@@ -234,27 +303,39 @@ export default function Friends() {
       {tab === 'sent' && (
         <div>
           {sentLoading ? (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
             </div>
           ) : sentRequests.length === 0 ? (
-            <div className="text-center py-12 text-secondary text-sm">
+            <div style={{ textAlign: 'center', padding: '48px 0', color: '#a087b0', fontSize: 14 }}>
               No pending outgoing requests.
             </div>
           ) : (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {sentRequests.map(req => {
                 const recipient = getOtherUser(req);
                 return (
-                  <Card key={req._id} className="flex items-center gap-4 p-4">
-                    <Link to="/users/view" state={{ id: recipient?._id }} className="flex-shrink-0">
+                  <div
+                    key={req._id}
+                    style={{
+                      background: '#fff',
+                      border: '1px solid #ede9fe',
+                      borderRadius: 16,
+                      boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+                      padding: '14px 18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 14,
+                    }}
+                  >
+                    <Link to="/users/view" state={{ id: recipient?._id }} style={{ flexShrink: 0 }}>
                       <Avatar name={fullName(recipient)} src={recipient?.avatarUrl} className="hover:opacity-80 transition-opacity" />
                     </Link>
-                    <div className="flex-1 min-w-0">
-                      <Link to="/users/view" state={{ id: recipient?._id }} className="font-medium text-foreground text-sm hover:text-primary transition-colors">
-                        {fullName(recipient)}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Link to="/users/view" state={{ id: recipient?._id }} style={{ textDecoration: 'none' }}>
+                        <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>{fullName(recipient)}</p>
                       </Link>
-                      <p className="text-xs text-secondary">@{recipient?.username} · Request pending</p>
+                      <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>@{recipient?.username} · Request pending</p>
                     </div>
                     <Button
                       size="sm"
@@ -264,7 +345,7 @@ export default function Friends() {
                     >
                       <X size={13} /> Revoke
                     </Button>
-                  </Card>
+                  </div>
                 );
               })}
             </div>
@@ -274,11 +355,12 @@ export default function Friends() {
 
       {/* Find people */}
       {tab === 'find' && (
-        <div className="space-y-5">
-          <div className="relative">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0' }} />
             <input
-              className="input-field pl-9"
+              className="input-field"
+              style={{ paddingLeft: 36 }}
               placeholder="Search users by name or username..."
               value={searchQ}
               onChange={e => setSearchQ(e.target.value)}
@@ -286,20 +368,32 @@ export default function Friends() {
           </div>
 
           {searchQ.length >= 2 && (
-            <div className="space-y-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {searchResults.length === 0 ? (
-                <p className="text-sm text-secondary text-center py-4">No users found.</p>
+                <p style={{ fontSize: 13, color: '#a087b0', textAlign: 'center', padding: '16px 0' }}>No users found.</p>
               ) : (
                 searchResults.map(u => (
-                  <Card key={u._id} className="flex items-center gap-3 p-3">
-                    <Link to="/users/view" state={{ id: u._id }} className="flex-shrink-0">
+                  <div
+                    key={u._id}
+                    style={{
+                      background: '#fff',
+                      border: '1px solid #ede9fe',
+                      borderRadius: 14,
+                      boxShadow: '0 1px 6px rgba(107,33,168,0.05)',
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                    }}
+                  >
+                    <Link to="/users/view" state={{ id: u._id }} style={{ flexShrink: 0 }}>
                       <Avatar name={fullName(u)} src={u.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
                     </Link>
-                    <div className="flex-1">
-                      <Link to="/users/view" state={{ id: u._id }} className="font-medium text-sm hover:text-primary transition-colors">
-                        {fullName(u)}
+                    <div style={{ flex: 1 }}>
+                      <Link to="/users/view" state={{ id: u._id }} style={{ textDecoration: 'none' }}>
+                        <p style={{ fontWeight: 600, fontSize: 13, color: '#111827', margin: 0 }}>{fullName(u)}</p>
                       </Link>
-                      <p className="text-xs text-secondary">@{u.username}</p>
+                      <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>@{u.username}</p>
                     </div>
                     <Button
                       size="sm"
@@ -309,17 +403,17 @@ export default function Friends() {
                     >
                       <UserPlus size={12} /> Add
                     </Button>
-                  </Card>
+                  </div>
                 ))
               )}
             </div>
           )}
 
           {sendRequestMutation.isSuccess && (
-            <p className="text-xs text-green-600">Friend request sent!</p>
+            <p style={{ fontSize: 12, color: '#16a34a' }}>Friend request sent!</p>
           )}
           {sendRequestMutation.isError && (
-            <p className="text-xs text-red-500">
+            <p style={{ fontSize: 12, color: '#dc2626' }}>
               {sendRequestMutation.error?.response?.data?.error || 'Failed to send request'}
             </p>
           )}

@@ -9,10 +9,9 @@ import {
 } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
-import { Card } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
+import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import { formatDate, formatRelative } from '@/lib/utils';
 
@@ -40,6 +39,14 @@ const ACTIVITY_LABELS = {
   like_added: 'liked something',
 };
 
+const ACTIVITY_COLORS = {
+  note_shared: '#6b21a8',
+  flashcard_shared: '#7c3aed',
+  task_created: '#2563eb',
+  comment_added: '#16a34a',
+  like_added: '#dc2626',
+};
+
 export default function UserProfile() {
   const { state } = useLocation();
   const id = state?.id;
@@ -61,7 +68,7 @@ export default function UserProfile() {
     enabled: !!id,
   });
 
-  // Friendship status — fetch all three states in parallel
+  // Friendship status -- fetch all three states in parallel
   const { data: friendsData } = useQuery({
     queryKey: ['friends'],
     queryFn: () => api.get('/friends').then(r => r.data),
@@ -77,7 +84,6 @@ export default function UserProfile() {
 
   const profile = profileData?.user;
 
-  // Determine friendship status
   const friendships = friendsData?.friendships || friendsData?.data || [];
   const pendingRequests = pendingData?.friendships || pendingData?.data || [];
   const sentRequests = sentData?.friendships || sentData?.data || [];
@@ -154,31 +160,38 @@ export default function UserProfile() {
     },
   });
 
-  // ─── Loading state ─────────────────────────────────────────────────────────
+  // Loading state
   if (profileLoading) {
     return (
-      <div className="max-w-2xl mx-auto space-y-4 pt-2">
-        <Skeleton className="h-4 w-20" />
-        <Card className="p-6">
-          <div className="flex items-start gap-5">
+      <div style={{ maxWidth: 680, margin: '0 auto', paddingTop: 8 }}>
+        <Skeleton className="h-4 w-20 mb-4" />
+        <div style={{
+          background: '#fff',
+          border: '1px solid #ede9fe',
+          borderRadius: 16,
+          boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+          padding: '24px',
+          marginBottom: 16,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20 }}>
             <Skeleton className="w-20 h-20 rounded-full flex-shrink-0" />
-            <div className="space-y-2 flex-1 pt-1">
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4 }}>
               <Skeleton className="h-6 w-48" />
               <Skeleton className="h-4 w-28" />
               <Skeleton className="h-4 w-36" />
             </div>
           </div>
           <Skeleton className="h-16 w-full mt-5" />
-        </Card>
+        </div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="text-center py-20">
-        <p className="text-secondary mb-2">User not found.</p>
-        <button onClick={() => navigate(-1)} className="text-primary text-sm hover:underline">
+      <div style={{ textAlign: 'center', padding: '80px 0' }}>
+        <p style={{ color: '#a087b0', marginBottom: 8 }}>User not found.</p>
+        <button onClick={() => navigate(-1)} style={{ color: '#6b21a8', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
           Go back
         </button>
       </div>
@@ -188,44 +201,77 @@ export default function UserProfile() {
   const name = fullName(profile);
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Back */}
+    <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      {/* Back button */}
       <button
         onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-foreground mb-5 transition-colors"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          fontSize: 13,
+          color: '#a087b0',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          marginBottom: 20,
+          transition: 'color 0.12s',
+          padding: 0,
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
+        onMouseLeave={e => e.currentTarget.style.color = '#a087b0'}
       >
         <ArrowLeft size={14} /> Back
       </button>
 
-      {/* ── Profile header ─────────────────────────────────────────────────── */}
-      <Card className="p-6 mb-4">
-        <div className="flex items-start gap-5">
-          <Avatar name={name} src={profile.avatarUrl} size="lg" className="flex-shrink-0 mt-0.5" />
+      {/* Profile header */}
+      <div style={{
+        background: '#fff',
+        border: '1px solid #ede9fe',
+        borderRadius: 16,
+        boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+        padding: '24px',
+        marginBottom: 16,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20 }}>
+          <Avatar name={name} src={profile.avatarUrl} size="lg" style={{ flexShrink: 0, marginTop: 2 }} />
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <div>
-                <h1 className="text-xl font-bold text-foreground leading-tight">{name}</h1>
-                <p className="text-sm text-secondary flex items-center gap-1 mt-0.5">
+                <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.25rem', fontWeight: 800, color: '#111827', margin: 0, lineHeight: 1.2 }}>
+                  {name}
+                </h1>
+                <p style={{ fontSize: 13, color: '#a087b0', display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
                   <AtSign size={12} />{profile.username}
                 </p>
                 {profile.createdAt && (
-                  <p className="text-xs text-secondary/70 flex items-center gap-1 mt-1">
+                  <p style={{ fontSize: 11, color: '#c4b5d4', display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
                     <Calendar size={11} /> Joined {formatDate(profile.createdAt)}
                   </p>
                 )}
               </div>
 
-              {/* Friendship badge */}
               {isFriend && (
-                <Badge variant="success" className="text-xs px-2.5 py-1 flex items-center gap-1">
-                  <UserCheck size={11} /> Friends
-                </Badge>
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '4px 12px',
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  background: '#f0fdf4',
+                  color: '#16a34a',
+                  border: '1px solid #bbf7d0',
+                }}>
+                  <UserCheck size={12} /> Friends
+                </span>
               )}
             </div>
 
             {/* Action buttons */}
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
               {isFriend ? (
                 <>
                   <Button
@@ -235,26 +281,37 @@ export default function UserProfile() {
                   >
                     <MessageCircle size={13} /> Message
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
+                  <button
                     onClick={() => {
                       if (window.confirm(`Remove ${name} as a friend?`)) removeMutation.mutate();
                     }}
-                    loading={removeMutation.isPending}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '6px 12px',
+                      borderRadius: 8,
+                      border: '1px solid #ede9fe',
+                      background: 'transparent',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: '#a087b0',
+                      cursor: 'pointer',
+                      transition: 'color 0.15s, border-color 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.borderColor = '#fecaca'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#ede9fe'; }}
                   >
                     <UserMinus size={13} /> Remove
-                  </Button>
+                  </button>
                 </>
               ) : pendingEntry ? (
-                // They sent me a request
                 <Button size="sm" onClick={() => acceptMutation.mutate()} loading={acceptMutation.isPending}>
                   <UserPlus size={13} /> Accept request
                 </Button>
               ) : sentEntry ? (
-                // I sent them a request
                 <Button size="sm" variant="outline" onClick={() => cancelMutation.mutate()} loading={cancelMutation.isPending}>
-                  <Clock size={13} /> Request sent · Revoke
+                  <Clock size={13} /> Request sent - Revoke
                 </Button>
               ) : (
                 <Button size="sm" variant="outline" onClick={() => sendRequestMutation.mutate()} loading={sendRequestMutation.isPending}>
@@ -267,52 +324,70 @@ export default function UserProfile() {
 
         {/* Bio */}
         {profile.bio && (
-          <p className="text-sm text-foreground/80 leading-relaxed mt-5 pt-5 border-t border-border">
+          <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginTop: 20, paddingTop: 20, borderTop: '1px solid #ede9fe' }}>
             {profile.bio}
           </p>
         )}
-      </Card>
+      </div>
 
-      {/* ── Friend-only content ────────────────────────────────────────────── */}
+      {/* Friend-only content */}
       {isFriend && (
         <>
           {/* Shared notes */}
-          <section className="mb-5">
-            <div className="flex items-center gap-2 mb-3 px-0.5">
-              <FileText size={13} className="text-secondary" />
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-secondary">
+          <section style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, paddingLeft: 2 }}>
+              <FileText size={13} style={{ color: '#a087b0' }} />
+              <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', margin: 0 }}>
                 Shared Notes
               </h2>
             </div>
 
             {sharedNotes.length === 0 ? (
-              <Card className="py-8 text-center">
-                <p className="text-sm text-secondary">{name} hasn't shared any notes with you yet.</p>
-              </Card>
+              <div style={{
+                background: '#fff',
+                border: '1px solid #ede9fe',
+                borderRadius: 16,
+                padding: '32px 0',
+                textAlign: 'center',
+              }}>
+                <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>{name} hasn't shared any notes with you yet.</p>
+              </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 {sharedNotes.map(note => (
                   <Link
                     key={note._id}
                     to="/notes/view"
                     state={{ id: note._id }}
-                    className="no-underline"
+                    style={{ textDecoration: 'none' }}
                   >
-                    <Card className="p-4 hover:border-primary/30 transition-colors cursor-pointer h-full">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <p className="font-semibold text-sm text-foreground leading-snug line-clamp-2 flex-1">
+                    <div style={{
+                      background: '#fff',
+                      border: '1px solid #ede9fe',
+                      borderRadius: 16,
+                      boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+                      padding: '16px 18px',
+                      cursor: 'pointer',
+                      transition: 'border-color 0.15s, box-shadow 0.15s',
+                      height: '100%',
+                    }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(107,33,168,0.3)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(107,33,168,0.1)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = '#ede9fe'; e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)'; }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                        <p style={{ fontWeight: 700, fontSize: 13, color: '#111827', lineHeight: 1.4, margin: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                           {note.title || 'Untitled'}
                         </p>
                         {note.type && (
-                          <Badge variant={NOTE_TYPE_VARIANTS[note.type] || 'neutral'} className="text-xs capitalize flex-shrink-0">
+                          <Badge variant={NOTE_TYPE_VARIANTS[note.type] || 'neutral'} className="text-xs capitalize" style={{ flexShrink: 0 }}>
                             {note.type}
                           </Badge>
                         )}
                       </div>
                       {note.createdAt && (
-                        <p className="text-xs text-secondary/70">{formatDate(note.createdAt)}</p>
+                        <p style={{ fontSize: 11, color: '#c4b5d4', margin: 0 }}>{formatDate(note.createdAt)}</p>
                       )}
-                    </Card>
+                    </div>
                   </Link>
                 ))}
               </div>
@@ -321,36 +396,68 @@ export default function UserProfile() {
 
           {/* Recent activity */}
           <section>
-            <div className="flex items-center gap-2 mb-3 px-0.5">
-              <ActivityIcon size={13} className="text-secondary" />
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-secondary">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, paddingLeft: 2 }}>
+              <ActivityIcon size={13} style={{ color: '#a087b0' }} />
+              <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', margin: 0 }}>
                 Recent Activity
               </h2>
             </div>
 
             {recentActivity.length === 0 ? (
-              <Card className="py-8 text-center">
-                <p className="text-sm text-secondary">No recent activity to show.</p>
-              </Card>
+              <div style={{
+                background: '#fff',
+                border: '1px solid #ede9fe',
+                borderRadius: 16,
+                padding: '32px 0',
+                textAlign: 'center',
+              }}>
+                <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>No recent activity to show.</p>
+              </div>
             ) : (
-              <Card className="divide-y divide-border">
-                {recentActivity.map(item => {
+              <div style={{
+                background: '#fff',
+                border: '1px solid #ede9fe',
+                borderRadius: 16,
+                boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+                overflow: 'hidden',
+              }}>
+                {recentActivity.map((item, idx) => {
                   const Icon = ACTIVITY_ICONS[item.type] || ActivityIcon;
                   const label = ACTIVITY_LABELS[item.type] || item.type;
+                  const color = ACTIVITY_COLORS[item.type] || '#a087b0';
                   return (
-                    <div key={item._id} className="flex items-start gap-3 px-4 py-3">
-                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Icon size={13} className="text-primary" />
+                    <div
+                      key={item._id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 12,
+                        padding: '14px 20px',
+                        borderBottom: idx < recentActivity.length - 1 ? '1px solid #ede9fe' : 'none',
+                      }}
+                    >
+                      <div style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        background: `${color}14`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        marginTop: 1,
+                      }}>
+                        <Icon size={14} style={{ color }} />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-foreground">
-                          <span className="font-medium">{name}</span> {label}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>
+                          <Link to="/users/view" state={{ id: profile?._id }} style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}>{name}</Link> {label}
                           {item.metadata?.noteTitle && (
-                            <span className="text-secondary"> · {item.metadata.noteTitle}</span>
+                            <span style={{ color: '#a087b0' }}> · {item.metadata.noteTitle}</span>
                           )}
                         </p>
                         {item.createdAt && (
-                          <p className="text-xs text-secondary/70 mt-0.5">
+                          <p style={{ fontSize: 11, color: '#c4b5d4', margin: '3px 0 0' }}>
                             {formatRelative ? formatRelative(item.createdAt) : formatDate(item.createdAt)}
                           </p>
                         )}
@@ -358,7 +465,7 @@ export default function UserProfile() {
                     </div>
                   );
                 })}
-              </Card>
+              </div>
             )}
           </section>
         </>

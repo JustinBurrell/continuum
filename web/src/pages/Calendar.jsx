@@ -51,6 +51,14 @@ const MONTHS = [
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const STATUS_LABELS = { todo: 'To Do', in_progress: 'In Progress', completed: 'Completed' };
 
+const cardStyle = {
+  background: '#fff',
+  border: '1px solid #ede9fe',
+  borderRadius: 16,
+  boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+  overflow: 'hidden',
+};
+
 export default function Calendar() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -95,16 +103,28 @@ export default function Calendar() {
 
   return (
     <div>
-      <div className="page-header">
-        <h1 className="page-title">Calendar</h1>
-        <div className="flex gap-2">
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+          Calendar
+        </h1>
+        <div style={{ display: 'flex', gap: 6 }}>
           {['month', 'week'].map(v => (
             <button
               key={v}
               onClick={() => setView(v)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
-                view === v ? 'bg-primary text-white' : 'bg-accent text-foreground/70 hover:text-primary'
-              }`}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+                textTransform: 'capitalize',
+                transition: 'all 0.15s',
+                background: view === v ? '#6b21a8' : '#f5f0ff',
+                color: view === v ? '#fff' : '#6b21a8',
+              }}
             >
               {v}
             </button>
@@ -112,44 +132,57 @@ export default function Calendar() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24 }}>
         {/* Calendar grid */}
-        <div className="lg:col-span-3">
+        <div>
           {view === 'week' ? (
             <WeekView days={days} weekDates={weekDates} now={now} onPrev={prevWeek} onNext={nextWeek} onViewTask={setViewingTaskId} />
           ) : (
-            <Card className="p-0 overflow-hidden">
+            <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 140px)', minHeight: 520 }}>
               {/* Month nav */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-                <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-accent text-secondary transition-colors">
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 20px',
+                borderBottom: '1px solid #ede9fe',
+                flexShrink: 0,
+              }}>
+                <button
+                  onClick={prevMonth}
+                  style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center' }}
+                >
                   <ChevronLeft size={16} />
                 </button>
-                <h2 className="font-semibold text-foreground">
+                <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', fontWeight: 700, color: '#111827', margin: 0 }}>
                   {MONTHS[month]} {year}
                 </h2>
-                <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-accent text-secondary transition-colors">
+                <button
+                  onClick={nextMonth}
+                  style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center' }}
+                >
                   <ChevronRight size={16} />
                 </button>
               </div>
 
               {/* Day of week header */}
-              <div className="grid grid-cols-7 border-b border-border">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #ede9fe', flexShrink: 0 }}>
                 {DOW.map(d => (
-                  <div key={d} className="px-2 py-2 text-center text-xs font-medium text-secondary">
+                  <div key={d} style={{ padding: '10px 0', textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {d}
                   </div>
                 ))}
               </div>
 
-              {/* Date cells */}
+              {/* Date cells — fixed height grid with equal rows */}
               {isLoading ? (
-                <div className="grid grid-cols-7 gap-px bg-border">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', flex: 1 }}>
                   {Array.from({ length: 42 }).map((_, i) => (
                     <Skeleton key={i} className="h-20 rounded-none" />
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-7">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridTemplateRows: 'repeat(6, 1fr)', flex: 1, overflow: 'hidden' }}>
                   {dates.map(({ date, current }, i) => {
                     const key = toISO(date);
                     const tasksForDay = days[key] || [];
@@ -160,29 +193,66 @@ export default function Calendar() {
                       <div
                         key={i}
                         onClick={() => setSelected(isSelected ? null : key)}
-                        className={`min-h-[72px] p-2 border-b border-r border-border cursor-pointer transition-colors ${
-                          isSelected ? 'bg-accent' :
-                          isToday ? 'bg-primary/5' :
-                          'hover:bg-accent/50'
-                        } ${!current ? 'opacity-40' : ''}`}
+                        style={{
+                          padding: '6px 6px',
+                          borderBottom: '1px solid #ede9fe',
+                          borderRight: '1px solid #ede9fe',
+                          cursor: 'pointer',
+                          transition: 'background 0.12s',
+                          background: isSelected
+                            ? '#f5f0ff'
+                            : isToday
+                            ? 'rgba(107,33,168,0.04)'
+                            : '#fff',
+                          opacity: current ? 1 : 0.35,
+                          overflow: 'hidden',
+                          display: 'flex',
+                          flexDirection: 'column',
+                        }}
                       >
-                        <div className={`text-xs font-medium mb-1 w-6 h-6 flex items-center justify-center rounded-full ${
-                          isToday ? 'bg-primary text-white' : 'text-foreground'
-                        }`}>
+                        <div style={{
+                          width: 26,
+                          height: 26,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 12,
+                          fontWeight: isToday ? 700 : 500,
+                          background: isToday ? '#6b21a8' : 'transparent',
+                          color: isToday ? '#fff' : '#374151',
+                          marginBottom: 3,
+                          flexShrink: 0,
+                        }}>
                           {date.getDate()}
                         </div>
-                        <div className="space-y-0.5">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflow: 'hidden' }}>
                           {tasksForDay.slice(0, 2).map(task => (
                             <div
                               key={task._id}
                               onClick={e => { e.stopPropagation(); setViewingTaskId(task._id); }}
-                              className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 truncate hover:bg-primary/20 transition-colors"
+                              style={{
+                                fontSize: 10,
+                                background: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : 'rgba(107,33,168,0.08)',
+                                color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#b45309' : '#6b21a8',
+                                borderRadius: 4,
+                                padding: '1px 5px',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap',
+                                textOverflow: 'ellipsis',
+                                fontWeight: 500,
+                                cursor: 'pointer',
+                                transition: 'opacity 0.12s',
+                                flexShrink: 0,
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+                              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                             >
                               {task.title}
                             </div>
                           ))}
                           {tasksForDay.length > 2 && (
-                            <div className="text-xs text-secondary">+{tasksForDay.length - 2} more</div>
+                            <div style={{ fontSize: 9, color: '#a087b0', paddingLeft: 2, fontWeight: 500, flexShrink: 0 }}>+{tasksForDay.length - 2} more</div>
                           )}
                         </div>
                       </div>
@@ -190,72 +260,102 @@ export default function Calendar() {
                   })}
                 </div>
               )}
-            </Card>
+            </div>
           )}
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Selected day tasks */}
           {selected && (
-            <Card>
-              <h3 className="font-semibold text-foreground mb-3 text-sm">
-                {new Date(selected + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            <div style={cardStyle}>
+              <div style={{ padding: '14px 16px' }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: '0 0 12px' }}>
+                  {new Date(selected + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </h3>
+                {selectedTasks.length === 0 ? (
+                  <p style={{ fontSize: 12, color: '#a087b0' }}>No tasks on this day.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {selectedTasks.map(task => (
+                      <div
+                        key={task._id}
+                        onClick={() => setViewingTaskId(task._id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 8,
+                          cursor: 'pointer',
+                          padding: '6px 8px',
+                          borderRadius: 8,
+                          transition: 'background 0.12s',
+                          margin: '0 -8px',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <div style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          marginTop: 5,
+                          flexShrink: 0,
+                          background: task.priority === 'high' ? '#ef4444' : task.priority === 'medium' ? '#f59e0b' : '#d1d5db',
+                        }} />
+                        <div>
+                          <p style={{ fontSize: 12, fontWeight: 600, color: '#111827', margin: 0 }}>{task.title}</p>
+                          <Badge variant={task.status === 'completed' ? 'success' : task.status === 'in_progress' ? 'warning' : 'neutral'} className="text-xs mt-0.5">
+                            {STATUS_LABELS[task.status] || task.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Overdue */}
+          <div style={cardStyle}>
+            <div style={{ padding: '14px 16px' }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <AlertCircle size={14} style={{ color: '#ef4444' }} /> Overdue
               </h3>
-              {selectedTasks.length === 0 ? (
-                <p className="text-xs text-secondary">No tasks on this day.</p>
+              {overdue.length === 0 ? (
+                <p style={{ fontSize: 12, color: '#a087b0' }}>No overdue tasks. Nice work.</p>
               ) : (
-                <div className="space-y-2">
-                  {selectedTasks.map(task => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {overdue.map(task => (
                     <div
                       key={task._id}
                       onClick={() => setViewingTaskId(task._id)}
-                      className="flex items-start gap-2 cursor-pointer rounded-lg px-2 py-1 -mx-2 hover:bg-accent transition-colors"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 8,
+                        cursor: 'pointer',
+                        padding: '6px 8px',
+                        borderRadius: 8,
+                        transition: 'background 0.12s',
+                        margin: '0 -8px',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
-                        task.priority === 'high' ? 'bg-red-500' :
-                        task.priority === 'medium' ? 'bg-amber-500' : 'bg-secondary/50'
-                      }`} />
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', marginTop: 5, background: '#ef4444', flexShrink: 0 }} />
                       <div>
-                        <p className="text-xs font-medium text-foreground">{task.title}</p>
-                        <Badge variant={task.status === 'completed' ? 'success' : task.status === 'in_progress' ? 'warning' : 'neutral'} className="text-xs mt-0.5">
-                          {STATUS_LABELS[task.status] || task.status}
-                        </Badge>
+                        <p style={{ fontSize: 12, fontWeight: 600, color: '#111827', margin: 0, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{task.title}</p>
+                        <p style={{ fontSize: 11, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 3, marginTop: 2 }}>
+                          <Clock size={9} /> {new Date(task.dueDate).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
-            </Card>
-          )}
-
-          {/* Overdue */}
-          <Card>
-            <h3 className="font-semibold text-foreground mb-3 text-sm flex items-center gap-1.5">
-              <AlertCircle size={14} className="text-red-500" /> Overdue
-            </h3>
-            {overdue.length === 0 ? (
-              <p className="text-xs text-secondary">No overdue tasks 🎉</p>
-            ) : (
-              <div className="space-y-2">
-                {overdue.map(task => (
-                  <div
-                    key={task._id}
-                    onClick={() => setViewingTaskId(task._id)}
-                    className="flex items-start gap-2 cursor-pointer rounded-lg px-2 py-1 -mx-2 hover:bg-accent transition-colors"
-                  >
-                    <div className="w-1.5 h-1.5 rounded-full mt-1.5 bg-red-500 flex-shrink-0" />
-                    <div>
-                      <p className="text-xs font-medium text-foreground line-clamp-1">{task.title}</p>
-                      <p className="text-xs text-red-500 flex items-center gap-0.5 mt-0.5">
-                        <Clock size={9} /> {new Date(task.dueDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -277,23 +377,41 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
   const selectedTasks = selected ? (days[selected] || []) : [];
 
   const weekLabel = weekDates.length > 0
-    ? `${weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${weekDates[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+    ? `${weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekDates[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
     : '';
 
   return (
-    <Card className="p-0 overflow-hidden">
+    <div style={{
+      background: '#fff',
+      border: '1px solid #ede9fe',
+      borderRadius: 16,
+      boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+      height: 'calc(100vh - 140px)',
+      minHeight: 400,
+    }}>
       {/* Week nav */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-        <button onClick={onPrev} className="p-1.5 rounded-lg hover:bg-accent text-secondary transition-colors">
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '14px 20px',
+        borderBottom: '1px solid #ede9fe',
+        flexShrink: 0,
+      }}>
+        <button onClick={onPrev} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center' }}>
           <ChevronLeft size={16} />
         </button>
-        <h2 className="font-semibold text-foreground text-sm">{weekLabel}</h2>
-        <button onClick={onNext} className="p-1.5 rounded-lg hover:bg-accent text-secondary transition-colors">
+        <h2 style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>{weekLabel}</h2>
+        <button onClick={onNext} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center' }}>
           <ChevronRight size={16} />
         </button>
       </div>
+
       {/* Day columns */}
-      <div className="grid grid-cols-7 border-b border-border">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', flex: 1, overflow: 'hidden' }}>
         {weekDates.map((date, i) => {
           const key = toISO(date);
           const isToday = key === toISO(now);
@@ -303,56 +421,113 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
             <div
               key={i}
               onClick={() => setSelected(isSelected ? null : key)}
-              className={`min-h-[120px] p-2 border-r border-border cursor-pointer transition-colors ${isSelected ? 'bg-accent' : isToday ? 'bg-primary/5' : 'hover:bg-accent/50'}`}
+              style={{
+                padding: '10px 8px',
+                borderRight: '1px solid #ede9fe',
+                cursor: 'pointer',
+                transition: 'background 0.12s',
+                background: isSelected ? '#f5f0ff' : isToday ? 'rgba(107,33,168,0.04)' : '#fff',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+              }}
             >
-              <div className="mb-2 text-center">
-                <p className="text-xs text-secondary font-medium">{DOW[date.getDay()]}</p>
-                <div className={`mx-auto mt-0.5 w-7 h-7 flex items-center justify-center rounded-full text-xs font-semibold ${isToday ? 'bg-primary text-white' : 'text-foreground'}`}>
+              <div style={{ textAlign: 'center', marginBottom: 12, flexShrink: 0 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                  {DOW[date.getDay()]}
+                </p>
+                <div style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  background: isToday ? '#6b21a8' : 'transparent',
+                  color: isToday ? '#fff' : '#374151',
+                  margin: '4px auto 0',
+                }}>
                   {date.getDate()}
                 </div>
               </div>
-              <div className="space-y-0.5">
-                {tasksForDay.slice(0, 3).map(task => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1, overflow: 'hidden' }}>
+                {tasksForDay.slice(0, 4).map(task => (
                   <div
                     key={task._id}
                     onClick={e => { e.stopPropagation(); onViewTask(task._id); }}
-                    className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 truncate hover:bg-primary/20 transition-colors"
+                    style={{
+                      fontSize: 11,
+                      background: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : 'rgba(107,33,168,0.08)',
+                      color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#b45309' : '#6b21a8',
+                      borderRadius: 5,
+                      padding: '2px 6px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      transition: 'opacity 0.12s',
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                   >
                     {task.title}
                   </div>
                 ))}
-                {tasksForDay.length > 3 && (
-                  <div className="text-xs text-secondary">+{tasksForDay.length - 3} more</div>
+                {tasksForDay.length > 4 && (
+                  <div style={{ fontSize: 10, color: '#a087b0', paddingLeft: 2, fontWeight: 500, flexShrink: 0 }}>+{tasksForDay.length - 4} more</div>
                 )}
               </div>
             </div>
           );
         })}
       </div>
+
       {/* Selected day detail */}
       {selected && (
-        <div className="px-4 py-3 border-t border-border">
-          <p className="text-xs font-semibold text-secondary mb-2">
+        <div style={{ padding: '12px 20px', borderTop: '1px solid #ede9fe', background: '#fef7ff' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#6b21a8', marginBottom: 8 }}>
             {new Date(selected + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
           {selectedTasks.length === 0 ? (
-            <p className="text-xs text-secondary">No tasks</p>
+            <p style={{ fontSize: 12, color: '#a087b0' }}>No tasks</p>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {selectedTasks.map(task => (
                 <div
                   key={task._id}
                   onClick={() => onViewTask(task._id)}
-                  className="flex items-center gap-1.5 bg-accent rounded-lg px-2.5 py-1.5 cursor-pointer hover:bg-accent/70 transition-colors"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    background: '#fff',
+                    border: '1px solid #ede9fe',
+                    borderRadius: 8,
+                    padding: '5px 10px',
+                    cursor: 'pointer',
+                    transition: 'border-color 0.12s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = '#6b21a8'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#ede9fe'}
                 >
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${task.priority === 'high' ? 'bg-red-500' : task.priority === 'medium' ? 'bg-amber-500' : 'bg-secondary/50'}`} />
-                  <span className="text-xs text-foreground font-medium">{task.title}</span>
+                  <div style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    flexShrink: 0,
+                    background: task.priority === 'high' ? '#ef4444' : task.priority === 'medium' ? '#f59e0b' : '#d1d5db',
+                  }} />
+                  <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{task.title}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
       )}
-    </Card>
+    </div>
   );
 }

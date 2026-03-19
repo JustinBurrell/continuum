@@ -21,9 +21,9 @@ export default function MessagesLayout() {
   const { state } = useLocation();
   const [showNew, setShowNew] = useState(false);
   const [friendSearch, setFriendSearch] = useState('');
+  const [search, setSearch] = useState('');
   const [activeConversationId, setActiveConversationId] = useState(state?.conversationId ?? null);
 
-  // Clear router state after consuming it so back-navigation doesn't re-open the same convo
   useEffect(() => {
     if (state?.conversationId) window.history.replaceState({}, '');
   }, []);
@@ -58,55 +58,75 @@ export default function MessagesLayout() {
     return getName(friend).toLowerCase().includes(friendSearch.toLowerCase());
   });
 
+  const filteredConversations = conversations.filter(conv => {
+    if (!search.trim()) return true;
+    const other = conv.participants?.find(p => p._id !== user?._id);
+    return getName(other).toLowerCase().includes(search.toLowerCase());
+  });
+
   return (
-    <div className="flex h-[calc(100vh-0px)] -mt-8 -mx-8">
-      {/* Left panel — conversation list */}
-      <div
-        className="flex flex-col flex-shrink-0 border-r"
-        style={{ width: 280, background: 'var(--bg-card)', borderColor: 'var(--border)' }}
-      >
+    <div style={{ display: 'flex', height: 'calc(100vh)', marginTop: -32, marginLeft: -32, marginRight: -32 }}>
+      {/* Left panel */}
+      <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#fff', borderRight: '1px solid #ede9fe' }}>
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <h2 className="font-semibold" style={{ fontSize: 15, color: 'var(--text-primary)' }}>Messages</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 12px', borderBottom: '1px solid #ede9fe' }}>
+          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Messages</h2>
           <button
             onClick={() => setShowNew(true)}
-            className="flex items-center justify-center rounded-md transition-colors"
-            style={{ width: 28, height: 28 }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+            style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            <Plus size={16} style={{ color: 'var(--text-secondary)' }} />
+            <Plus size={16} style={{ color: '#6b21a8' }} />
           </button>
         </div>
 
+        {/* Search input */}
+        <div style={{ padding: '10px 12px', borderBottom: '1px solid #ede9fe' }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+            <input
+              type="text"
+              placeholder="Search conversations..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{ width: '100%', padding: '7px 10px 7px 30px', borderRadius: 20, border: '1px solid #ede9fe', background: '#fef7ff', fontSize: 12, color: '#111827', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
+              onFocus={e => e.target.style.borderColor = '#6b21a8'}
+              onBlur={e => e.target.style.borderColor = '#ede9fe'}
+            />
+          </div>
+        </div>
+
         {/* Conversation list */}
-        <div className="flex-1 overflow-y-auto">
+        <div style={{ flex: 1, overflowY: 'auto' }}>
           {isLoading ? (
-            <div className="p-3 space-y-2">
+            <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 p-2">
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px' }}>
                   <Skeleton className="w-9 h-9 rounded-full flex-shrink-0" />
-                  <div className="flex-1 space-y-1.5">
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <Skeleton className="h-3 w-24" />
                     <Skeleton className="h-3 w-36" />
                   </div>
                 </div>
               ))}
             </div>
-          ) : conversations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full pb-16 px-6 text-center">
-              <MessageCircle size={32} style={{ color: 'var(--text-tertiary)', marginBottom: 8 }} />
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>No conversations yet</p>
+          ) : filteredConversations.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: '0 24px 64px', textAlign: 'center' }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                <MessageCircle size={22} style={{ color: '#6b21a8' }} />
+              </div>
+              <p style={{ fontSize: 13, color: '#111827', fontWeight: 600, margin: '0 0 4px' }}>No conversations yet</p>
+              <p style={{ fontSize: 12, color: '#a087b0', margin: '0 0 12px' }}>Start a conversation with a friend</p>
               <button
                 onClick={() => setShowNew(true)}
-                className="mt-3 text-sm font-medium"
-                style={{ color: 'var(--primary)' }}
+                style={{ fontSize: 13, fontWeight: 600, color: '#6b21a8', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               >
                 Start one
               </button>
             </div>
           ) : (
-            conversations.map(conv => {
+            filteredConversations.map(conv => {
               const other = conv.participants?.find(p => p._id !== user?._id);
               const lastMsg = conv.lastMessage;
               const isLastMine = lastMsg?.senderId === user?._id;
@@ -116,40 +136,45 @@ export default function MessagesLayout() {
                 <div
                   key={conv._id}
                   onClick={() => setActiveConversationId(conv._id)}
-                  className={`flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer border-b ${
-                    isActive ? 'bg-primary-bg' : 'hover:bg-[var(--bg-hover)]'
-                  }`}
-                  style={{ borderColor: 'var(--border)' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    height: 72,
+                    padding: '0 16px',
+                    cursor: 'pointer',
+                    background: isActive ? '#f5f0ff' : 'transparent',
+                    borderLeft: isActive ? '3px solid #6b21a8' : '3px solid transparent',
+                    borderBottom: '1px solid #ede9fe',
+                    transition: 'background 0.15s',
+                    boxSizing: 'border-box',
+                  }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#fef7ff'; }}
+                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <Avatar name={getName(other)} src={other?.avatarUrl} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                  <Avatar name={getName(other)} src={other?.avatarUrl} size="md" />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {getName(other)}
                       </p>
-                      {lastMsg?.sentAt && (
-                        <span style={{ fontSize: 11, color: 'var(--text-tertiary)', flexShrink: 0, marginLeft: 8 }}>
-                          {formatRelative(lastMsg.sentAt)}
-                        </span>
-                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: 8 }}>
+                        {lastMsg?.sentAt && (
+                          <span style={{ fontSize: 11, color: '#a087b0' }}>{formatRelative(lastMsg.sentAt)}</span>
+                        )}
+                        {conv.unreadCount > 0 && (
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6b21a8', flexShrink: 0 }} />
+                        )}
+                      </div>
                     </div>
                     {lastMsg ? (
-                      <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
-                        {isLastMine ? 'You: ' : ''}
-                        {truncate(lastMsg.content, 50)}
+                      <p style={{ fontSize: 12, color: '#a087b0', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {isLastMine ? 'You: ' : ''}{truncate(lastMsg.content, 50)}
                       </p>
                     ) : (
-                      <p className="text-xs italic" style={{ color: 'var(--text-tertiary)' }}>No messages yet</p>
+                      <p style={{ fontSize: 12, color: '#a087b0', margin: 0, fontStyle: 'italic' }}>No messages yet</p>
                     )}
                   </div>
-                  {conv.unreadCount > 0 && (
-                    <div
-                      className="flex items-center justify-center flex-shrink-0"
-                      style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--primary)' }}
-                    >
-                      <span style={{ color: '#fff', fontSize: 10, fontWeight: 600 }}>{conv.unreadCount}</span>
-                    </div>
-                  )}
                 </div>
               );
             })
@@ -157,8 +182,8 @@ export default function MessagesLayout() {
         </div>
       </div>
 
-      {/* Right panel — conversation thread or empty */}
-      <div className="flex-1 overflow-hidden" style={{ background: 'var(--bg)' }}>
+      {/* Right panel */}
+      <div style={{ flex: 1, overflow: 'hidden', background: '#fef7ff' }}>
         {activeConversationId ? (
           <Conversation conversationId={activeConversationId} />
         ) : (
@@ -168,20 +193,22 @@ export default function MessagesLayout() {
 
       {/* New message modal */}
       <Modal open={showNew} onClose={() => { setShowNew(false); setFriendSearch(''); }} title="New message">
-        <div className="space-y-3">
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
             <input
-              className="input-field pl-9"
               placeholder="Search friends..."
               value={friendSearch}
               onChange={e => setFriendSearch(e.target.value)}
               autoFocus
+              style={{ width: '100%', padding: '9px 12px 9px 34px', borderRadius: 10, border: '1px solid #ede9fe', background: '#fef7ff', fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
+              onFocus={e => e.target.style.borderColor = '#6b21a8'}
+              onBlur={e => e.target.style.borderColor = '#ede9fe'}
             />
           </div>
-          <div className="space-y-1 max-h-64 overflow-y-auto">
+          <div style={{ maxHeight: 256, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {filteredFriends.length === 0 ? (
-              <p className="text-sm text-center py-4" style={{ color: 'var(--text-secondary)' }}>
+              <p style={{ fontSize: 13, color: '#a087b0', textAlign: 'center', padding: '16px 0' }}>
                 {friendships.length === 0 ? 'Add friends first to message them.' : 'No friends found.'}
               </p>
             ) : (
@@ -190,15 +217,15 @@ export default function MessagesLayout() {
                 return (
                   <button
                     key={f._id}
-                    className="w-full flex items-center gap-3 p-2.5 rounded-lg transition-colors text-left"
                     onClick={() => newConvMutation.mutate(friend?._id)}
-                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
                     <Avatar name={getName(friend)} src={friend?.avatarUrl} size="sm" />
                     <div>
-                      <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{getName(friend)}</p>
-                      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>@{friend?.username}</p>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, lineHeight: 1.3 }}>{getName(friend)}</p>
+                      <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>@{friend?.username}</p>
                     </div>
                   </button>
                 );
@@ -213,10 +240,12 @@ export default function MessagesLayout() {
 
 export function MessagesEmpty() {
   return (
-    <div className="flex flex-col items-center justify-center h-full" style={{ color: 'var(--text-tertiary)' }}>
-      <MessageCircle size={40} style={{ marginBottom: 12, opacity: 0.4 }} />
-      <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Select a conversation</p>
-      <p className="text-xs mt-1">or start a new one</p>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+      <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+        <MessageCircle size={28} style={{ color: '#6b21a8' }} />
+      </div>
+      <p style={{ fontFamily: 'Georgia, serif', fontSize: 18, fontWeight: 700, color: '#6b21a8', margin: '0 0 6px' }}>Select a conversation</p>
+      <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>or start a new one</p>
     </div>
   );
 }

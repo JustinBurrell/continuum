@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getInitials, cn } from '@/lib/utils';
+import Avatar from '@/components/ui/Avatar';
 
 const navGroups = [
   {
@@ -42,25 +43,22 @@ export default function Sidebar() {
   return (
     <aside
       className="flex flex-col flex-shrink-0 h-screen"
-      style={{ width: 220, background: 'var(--bg-sidebar)', borderRight: '1px solid var(--border)' }}
+      style={{ width: 240, background: '#ffffff', borderRight: '1px solid #ede9fe' }}
     >
       {/* Brand */}
-      <div className="px-4 pt-5 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
-        <a href="/" className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
+      <div style={{ padding: '20px 16px 16px' }}>
+        <a href="/" className="flex items-center gap-2.5" style={{ textDecoration: 'none' }}>
           <div
             className="flex items-center justify-center flex-shrink-0"
-            style={{
-              width: 28, height: 28, borderRadius: 6,
-              background: 'var(--primary)',
-            }}
+            style={{ width: 32, height: 32, borderRadius: 8, background: '#6b21a8' }}
           >
-            <span style={{ color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: 'Lora, serif' }}>C</span>
+            <span style={{ color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'Georgia, serif' }}>C</span>
           </div>
           <span style={{
-            fontFamily: 'Lora, serif',
+            fontFamily: 'Georgia, serif',
             fontWeight: 600,
-            fontSize: 17,
-            color: 'var(--text-primary)',
+            fontSize: 18,
+            color: '#111827',
             letterSpacing: '-0.02em',
           }}>
             Continuum
@@ -69,22 +67,58 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
+      <nav className="flex-1 overflow-y-auto space-y-4" style={{ padding: '12px 8px' }}>
         {navGroups.map((group) => (
           <div key={group.label}>
-            <p className="section-label px-2.5 mb-1">{group.label}</p>
-            <ul className="space-y-px">
+            <p style={{
+              fontSize: 10,
+              fontWeight: 500,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#a087b0',
+              marginBottom: 6,
+              padding: '0 10px',
+            }}>
+              {group.label}
+            </p>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
               {group.items.map(({ to, label, icon: Icon }) => (
                 <li key={to}>
                   <NavLink
                     to={to}
                     end={to === '/dashboard'}
-                    className={({ isActive }) =>
-                      cn('nav-link', isActive && 'nav-link-active')
-                    }
+                    style={({ isActive }) => ({
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '8px 10px',
+                      borderRadius: isActive ? '0 8px 8px 0' : 10,
+                      fontSize: 13,
+                      fontWeight: isActive ? 600 : 400,
+                      color: isActive ? '#6b21a8' : '#4b5563',
+                      background: isActive ? '#f5f0ff' : 'transparent',
+                      borderLeft: isActive ? '3px solid #6b21a8' : '3px solid transparent',
+                      paddingLeft: isActive ? 7 : 10,
+                      textDecoration: 'none',
+                      transition: 'background 0.15s, color 0.15s',
+                    })}
+                    onMouseEnter={e => {
+                      if (!e.currentTarget.getAttribute('data-active')) {
+                        e.currentTarget.style.background = '#f5f0ff';
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (!e.currentTarget.getAttribute('data-active')) {
+                        e.currentTarget.style.background = 'transparent';
+                      }
+                    }}
                   >
-                    <Icon size={15} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-                    <span>{label}</span>
+                    {({ isActive }) => (
+                      <>
+                        <Icon size={16} strokeWidth={1.75} style={{ flexShrink: 0, color: isActive ? '#6b21a8' : '#4b5563' }} />
+                        <span>{label}</span>
+                      </>
+                    )}
                   </NavLink>
                 </li>
               ))}
@@ -94,45 +128,76 @@ export default function Sidebar() {
       </nav>
 
       {/* User footer */}
-      <div className="p-2" style={{ borderTop: '1px solid var(--border)' }}>
+      <div style={{ padding: 12, borderTop: '1px solid #ede9fe' }}>
         <button
           onClick={() => navigate('/profile')}
-          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md transition-colors text-left"
-          style={{ background: 'transparent' }}
-          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+          className="w-full text-left transition-colors"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '8px 10px',
+            borderRadius: 12,
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            width: '100%',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          <div
-            className="flex items-center justify-center flex-shrink-0"
-            style={{
-              width: 28, height: 28, borderRadius: '50%',
-              background: user?.avatarUrl ? 'transparent' : 'var(--primary-bg)',
+          <Avatar name={fullName} src={user?.avatarUrl} size="sm" />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#111827',
+              lineHeight: 1.3,
               overflow: 'hidden',
-            }}
-          >
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt={fullName} className="w-full h-full object-cover" />
-            ) : (
-              <span style={{ color: 'var(--primary)', fontSize: 11, fontWeight: 600 }}>
-                {getInitials(fullName || 'U')}
-              </span>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)', lineHeight: 1.3 }}>
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              margin: 0,
+            }}>
               {fullName}
             </p>
-            <p className="text-xs truncate" style={{ color: 'var(--text-tertiary)', lineHeight: 1.3 }}>
-              {user?.email}
+            <p style={{
+              fontSize: 11,
+              color: '#a087b0',
+              lineHeight: 1.3,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              margin: 0,
+            }}>
+              {user?.email || user?.username}
             </p>
           </div>
         </button>
         <button
-          onClick={() => { logout(); navigate('/login'); }}
-          className="mt-0.5 w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors"
-          style={{ color: 'var(--text-tertiary)' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--destructive-bg)'; e.currentTarget.style.color = 'var(--destructive)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+          onClick={() => { logout(); navigate('/'); }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 13,
+            padding: '8px 10px',
+            borderRadius: 8,
+            color: '#a087b0',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            width: '100%',
+            marginTop: 2,
+            transition: 'background 0.15s, color 0.15s',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = '#fef2f2';
+            e.currentTarget.style.color = '#dc2626';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = '#a087b0';
+          }}
         >
           <LogOut size={14} strokeWidth={1.75} />
           Sign out

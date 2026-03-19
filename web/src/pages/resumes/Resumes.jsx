@@ -3,7 +3,6 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, FileCheck, Sparkles, Download, ChevronDown, ChevronUp, History, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
-import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import { formatDate } from '@/lib/utils';
@@ -60,12 +59,15 @@ export default function Resumes() {
 
   return (
     <div>
-      <div className="page-header">
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 className="page-title">Resumes</h1>
-          <p className="text-secondary text-sm mt-0.5">{resumes.length} uploaded</p>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+            Resumes
+          </h1>
+          <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>{resumes.length} uploaded</p>
         </div>
-        <div className="flex gap-2">
+        <div style={{ display: 'flex', gap: 8 }}>
           <input
             ref={fileInputRef}
             type="file"
@@ -81,7 +83,6 @@ export default function Resumes() {
 
       {/* Drop zone */}
       <div
-        className="border-2 border-dashed border-primary/30 rounded-xl p-8 text-center mb-6 cursor-pointer hover:border-primary/60 hover:bg-accent/50 transition-all"
         onClick={() => fileInputRef.current?.click()}
         onDragOver={e => e.preventDefault()}
         onDrop={e => {
@@ -89,22 +90,45 @@ export default function Resumes() {
           const file = e.dataTransfer.files[0];
           if (file?.type === 'application/pdf') handleUpload(file);
         }}
+        style={{
+          border: '2px dashed rgba(107,33,168,0.25)',
+          borderRadius: 16,
+          padding: '32px 0',
+          textAlign: 'center',
+          marginBottom: 24,
+          cursor: 'pointer',
+          background: '#fef7ff',
+          transition: 'border-color 0.15s, background 0.15s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b21a8'; e.currentTarget.style.background = '#f5f0ff'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(107,33,168,0.25)'; e.currentTarget.style.background = '#fef7ff'; }}
       >
-        <FileCheck size={32} className="mx-auto mb-2 text-primary/40" />
-        <p className="text-sm font-medium text-foreground mb-1">Upload your resume</p>
-        <p className="text-xs text-secondary">Drag & drop PDF here, or click to browse</p>
+        <div style={{
+          width: 52,
+          height: 52,
+          borderRadius: 14,
+          background: 'rgba(107,33,168,0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 12px',
+        }}>
+          <FileCheck size={24} style={{ color: '#6b21a8' }} />
+        </div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: '#374151', margin: '0 0 4px' }}>Upload your resume</p>
+        <p style={{ fontSize: 12, color: '#a087b0', margin: 0 }}>Drag and drop a PDF here, or click to browse</p>
       </div>
 
       {isLoading ? (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-32" />)}
         </div>
       ) : resumes.length === 0 ? (
-        <div className="text-center py-8 text-secondary text-sm">
+        <div style={{ textAlign: 'center', padding: '32px 0', color: '#a087b0', fontSize: 14 }}>
           No resumes uploaded yet. Upload your first resume to get AI-powered feedback.
         </div>
       ) : (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {resumes.map(resume => (
             <ResumeCard
               key={resume._id}
@@ -133,7 +157,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
   const hasFeedback = resume.feedback?.length > 0;
   const allFeedback = resume.feedback || [];
   const latestFeedback = allFeedback[allFeedback.length - 1];
-  const olderFeedback = allFeedback.slice(0, -1).reverse(); // older entries, newest first
+  const olderFeedback = allFeedback.slice(0, -1).reverse();
   const [downloading, setDownloading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [historyIndex, setHistoryIndex] = useState(0);
@@ -150,26 +174,66 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
     }
   };
 
+  const score = latestFeedback?.overallScore;
+  const scoreColor = score >= 80 ? '#16a34a' : score >= 60 ? '#f59e0b' : score !== undefined ? '#dc2626' : '#a087b0';
+
   return (
-    <Card>
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <FileCheck size={22} className="text-primary" />
+    <div style={{
+      background: '#fff',
+      border: '1px solid #ede9fe',
+      borderRadius: 16,
+      boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+      padding: '18px 22px',
+    }}>
+      {/* Header row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: hasFeedback ? 14 : 0 }}>
+        <div style={{
+          width: 48,
+          height: 48,
+          borderRadius: 14,
+          background: 'rgba(107,33,168,0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          position: 'relative',
+        }}>
+          <FileCheck size={22} style={{ color: '#6b21a8' }} />
+          {score !== undefined && (
+            <div style={{
+              position: 'absolute',
+              bottom: -6,
+              right: -6,
+              background: scoreColor,
+              color: '#fff',
+              borderRadius: 10,
+              fontSize: 9,
+              fontWeight: 700,
+              padding: '2px 5px',
+              lineHeight: 1,
+            }}>
+              {score}
+            </div>
+          )}
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-foreground">{resume.fileName || resume.name || 'Untitled Resume'}</p>
-          <p className="text-xs text-secondary mt-0.5">
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>
+            {resume.fileName || resume.name || 'Untitled Resume'}
+          </p>
+          <p style={{ fontSize: 11, color: '#a087b0', margin: '3px 0 0' }}>
             Uploaded {formatDate(resume.createdAt)}
             {resume.fileSize && ` · ${(resume.fileSize / 1024).toFixed(0)} KB`}
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap justify-end">
+
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
           <Button size="sm" variant="ghost" onClick={onAiFeedback} loading={feedbackLoading}>
             <Sparkles size={13} /> {hasFeedback ? 'Regenerate' : 'AI Feedback'}
           </Button>
           {resume.fileUrl && (
             <Button size="sm" variant="outline" onClick={handleDownload} loading={downloading}>
-              <Download size={13} /> Download
+              <Download size={13} />
             </Button>
           )}
           <Button size="sm" variant="danger" onClick={onDelete} loading={deleteLoading}>
@@ -178,47 +242,83 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
         </div>
       </div>
 
-      {/* AI Feedback accordion */}
+      {/* AI Feedback section */}
       {hasFeedback && (
-        <div className="mt-4 border-t border-border pt-4">
-          <div className="flex items-center gap-2">
+        <div style={{ borderTop: '1px solid #ede9fe', paddingTop: 14 }}>
+          {/* Feedback toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
               onClick={onToggleFeedback}
-              className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors flex-1 text-left"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                flex: 1,
+                textAlign: 'left',
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#374151',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                transition: 'color 0.12s',
+              }}
             >
-              <Sparkles size={14} className="text-primary" />
+              <Sparkles size={14} style={{ color: '#6b21a8' }} />
               AI Feedback
               {latestFeedback?.overallScore !== undefined && (
-                <span className="ml-1 text-xs font-semibold" style={{ color: 'var(--primary)' }}>
+                <span style={{
+                  background: scoreColor,
+                  color: '#fff',
+                  borderRadius: 20,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                }}>
                   {latestFeedback.overallScore}/100
                 </span>
               )}
-              {expanded ? <ChevronUp size={14} className="ml-auto" /> : <ChevronDown size={14} className="ml-auto" />}
+              {expanded ? <ChevronUp size={14} style={{ marginLeft: 'auto', color: '#a087b0' }} /> : <ChevronDown size={14} style={{ marginLeft: 'auto', color: '#a087b0' }} />}
             </button>
+
             {olderFeedback.length > 0 && (
               <button
                 onClick={() => setShowHistory(v => !v)}
-                className="flex items-center gap-1 text-xs text-secondary hover:text-primary transition-colors px-2 py-1 rounded-lg hover:bg-accent"
-                title="View feedback history"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 11,
+                  color: '#a087b0',
+                  background: 'none',
+                  border: '1px solid #ede9fe',
+                  borderRadius: 8,
+                  padding: '4px 10px',
+                  cursor: 'pointer',
+                  transition: 'color 0.12s',
+                }}
               >
                 <History size={13} />
                 {olderFeedback.length} older
               </button>
             )}
           </div>
+
+          {/* Expanded feedback */}
           {expanded && latestFeedback && (
-            <div className="mt-3 space-y-4">
-              <p className="text-xs text-secondary">
+            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>
                 {formatDate(latestFeedback.generatedAt)} · {latestFeedback.model || 'AI'}
               </p>
 
               {latestFeedback.strengths?.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-tertiary)' }}>Strengths</p>
-                  <ul className="space-y-1">
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', marginBottom: 8 }}>Strengths</p>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {latestFeedback.strengths.map((s, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--primary)' }} />
+                      <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: '#374151' }}>
+                        <span style={{ marginTop: 6, width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: '#6b21a8' }} />
                         {s}
                       </li>
                     ))}
@@ -228,11 +328,11 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
 
               {latestFeedback.improvements?.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-tertiary)' }}>Improvements</p>
-                  <ul className="space-y-1">
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', marginBottom: 8 }}>Improvements</p>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {latestFeedback.improvements.map((s, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--warning, #f59e0b)' }} />
+                      <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: '#374151' }}>
+                        <span style={{ marginTop: 6, width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: '#f59e0b' }} />
                         {s}
                       </li>
                     ))}
@@ -242,18 +342,21 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
 
               {latestFeedback.sections?.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-tertiary)' }}>Section Scores</p>
-                  <div className="space-y-2">
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', marginBottom: 8 }}>Section Scores</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {latestFeedback.sections.map((sec, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <span className="text-xs flex-1 truncate" style={{ color: 'var(--text-secondary)' }}>{sec.name}</span>
-                        <div className="flex-1 h-1.5 rounded-full" style={{ background: 'var(--border)' }}>
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{ width: `${sec.score ?? 0}%`, background: 'var(--primary)' }}
-                          />
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 12, color: '#6b7280', flex: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{sec.name}</span>
+                        <div style={{ flex: 2, height: 6, borderRadius: 10, background: '#ede9fe' }}>
+                          <div style={{
+                            height: '100%',
+                            borderRadius: 10,
+                            background: '#6b21a8',
+                            width: `${sec.score ?? 0}%`,
+                            transition: 'width 0.4s',
+                          }} />
                         </div>
-                        <span className="text-xs font-medium w-8 text-right" style={{ color: 'var(--text-secondary)' }}>{sec.score}</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#6b21a8', width: 28, textAlign: 'right' }}>{sec.score}</span>
                       </div>
                     ))}
                   </div>
@@ -261,24 +364,24 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
               )}
 
               {latestFeedback.keywordOptimization && (
-                <div className="rounded-lg p-3 space-y-2" style={{ background: 'var(--primary-bg)' }}>
-                  <p className="text-xs font-semibold" style={{ color: 'var(--primary)' }}>Keyword Optimization</p>
+                <div style={{ borderRadius: 12, padding: '12px 14px', background: '#f5f0ff', border: '1px solid #ede9fe' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#6b21a8', marginBottom: 8 }}>Keyword Optimization</p>
                   {latestFeedback.keywordOptimization.presentKeywords?.length > 0 && (
-                    <div>
-                      <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Present</p>
-                      <div className="flex flex-wrap gap-1">
+                    <div style={{ marginBottom: 8 }}>
+                      <p style={{ fontSize: 10, color: '#a087b0', marginBottom: 4 }}>Present</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                         {latestFeedback.keywordOptimization.presentKeywords.map((kw, i) => (
-                          <span key={i} className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(107,33,168,0.1)', color: 'var(--primary)' }}>{kw}</span>
+                          <span key={i} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: 'rgba(107,33,168,0.1)', color: '#6b21a8' }}>{kw}</span>
                         ))}
                       </div>
                     </div>
                   )}
                   {latestFeedback.keywordOptimization.missingKeywords?.length > 0 && (
                     <div>
-                      <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Missing</p>
-                      <div className="flex flex-wrap gap-1">
+                      <p style={{ fontSize: 10, color: '#a087b0', marginBottom: 4 }}>Missing</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                         {latestFeedback.keywordOptimization.missingKeywords.map((kw, i) => (
-                          <span key={i} className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(245,158,11,0.1)', color: 'var(--warning, #f59e0b)' }}>{kw}</span>
+                          <span key={i} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: 'rgba(245,158,11,0.1)', color: '#b45309' }}>{kw}</span>
                         ))}
                       </div>
                     </div>
@@ -290,28 +393,26 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
 
           {/* Feedback history */}
           {showHistory && olderFeedback.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-tertiary)' }}>
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #ede9fe' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', margin: 0 }}>
                   Feedback history ({olderFeedback.length})
                 </p>
-                <div className="flex items-center gap-1">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <button
                     onClick={() => setHistoryIndex(i => Math.max(0, i - 1))}
                     disabled={historyIndex === 0}
-                    className="p-1 rounded hover:bg-accent disabled:opacity-30 transition-colors"
+                    style={{ padding: 4, borderRadius: 6, border: 'none', background: 'none', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center', opacity: historyIndex === 0 ? 0.3 : 1 }}
                   >
-                    <ChevronUp size={13} style={{ color: 'var(--text-secondary)' }} />
+                    <ChevronUp size={13} />
                   </button>
-                  <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    {historyIndex + 1}/{olderFeedback.length}
-                  </span>
+                  <span style={{ fontSize: 11, color: '#a087b0' }}>{historyIndex + 1}/{olderFeedback.length}</span>
                   <button
                     onClick={() => setHistoryIndex(i => Math.min(olderFeedback.length - 1, i + 1))}
                     disabled={historyIndex === olderFeedback.length - 1}
-                    className="p-1 rounded hover:bg-accent disabled:opacity-30 transition-colors"
+                    style={{ padding: 4, borderRadius: 6, border: 'none', background: 'none', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center', opacity: historyIndex === olderFeedback.length - 1 ? 0.3 : 1 }}
                   >
-                    <ChevronDown size={13} style={{ color: 'var(--text-secondary)' }} />
+                    <ChevronDown size={13} />
                   </button>
                 </div>
               </div>
@@ -319,24 +420,22 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
                 const hf = olderFeedback[historyIndex];
                 if (!hf) return null;
                 return (
-                  <div className="rounded-lg p-3 space-y-3" style={{ background: 'var(--bg-accent)', border: '1px solid var(--border)' }}>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <div style={{ borderRadius: 12, padding: '12px 14px', background: '#fef7ff', border: '1px solid #ede9fe' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                      <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>
                         {formatDate(hf.generatedAt)} · {hf.model || 'AI'}
                       </p>
                       {hf.overallScore !== undefined && (
-                        <span className="text-xs font-semibold" style={{ color: 'var(--primary)' }}>
-                          {hf.overallScore}/100
-                        </span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#6b21a8' }}>{hf.overallScore}/100</span>
                       )}
                     </div>
                     {hf.strengths?.length > 0 && (
-                      <div>
-                        <p className="text-xs font-medium mb-1" style={{ color: 'var(--text-tertiary)' }}>Strengths</p>
-                        <ul className="space-y-0.5">
+                      <div style={{ marginBottom: 8 }}>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: '#a087b0', marginBottom: 4 }}>Strengths</p>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                           {hf.strengths.map((s, i) => (
-                            <li key={i} className="text-xs flex items-start gap-1.5" style={{ color: 'var(--text-primary)' }}>
-                              <span className="mt-1.5 w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--primary)' }} />
+                            <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151' }}>
+                              <span style={{ marginTop: 5, width: 5, height: 5, borderRadius: '50%', flexShrink: 0, background: '#6b21a8' }} />
                               {s}
                             </li>
                           ))}
@@ -345,11 +444,11 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
                     )}
                     {hf.improvements?.length > 0 && (
                       <div>
-                        <p className="text-xs font-medium mb-1" style={{ color: 'var(--text-tertiary)' }}>Improvements</p>
-                        <ul className="space-y-0.5">
+                        <p style={{ fontSize: 10, fontWeight: 700, color: '#a087b0', marginBottom: 4 }}>Improvements</p>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                           {hf.improvements.map((s, i) => (
-                            <li key={i} className="text-xs flex items-start gap-1.5" style={{ color: 'var(--text-primary)' }}>
-                              <span className="mt-1.5 w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--warning, #f59e0b)' }} />
+                            <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151' }}>
+                              <span style={{ marginTop: 5, width: 5, height: 5, borderRadius: '50%', flexShrink: 0, background: '#f59e0b' }} />
                               {s}
                             </li>
                           ))}
@@ -363,6 +462,6 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
           )}
         </div>
       )}
-    </Card>
+    </div>
   );
 }

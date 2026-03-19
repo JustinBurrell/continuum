@@ -256,10 +256,20 @@ User navigates to Calendar page
 
 ### Shared Tasks
 ```
-Owner creates task → adds participants
-  → PUT /api/tasks/:taskId { isShared: true, participants: [{ userId }] }
+Owner creates task with participants:
+  → POST /api/tasks { title, ..., participants: [{ userId }] }
+  → Server validates each participant is an accepted friend
   → Each participant gets their own status entry (default: 'todo')
+  → isShared set to true when participants.length > 0
+  → Auto-message sent to each participant via share.service.js
   → Task appears on all participants' calendars
+
+Manage participants after creation:
+  → PATCH /api/tasks/:taskId/participants { participants: [{ userId }] }
+  → Server validates all participant userIds are accepted friends
+  → Tracks new vs existing participants — only sends auto-message to newly added users
+  → Preserves existing participant status entries for returning participants
+  → Sets isShared = updatedParticipants.length > 0
 
 Participant updates their status:
   → PATCH /api/tasks/:taskId/status { status: 'completed' }
@@ -269,7 +279,7 @@ Participant updates their status:
 
 Only owner can:
   → Edit title, description, dueDate, priority
-  → Add/remove participants
+  → Add/remove participants (via PATCH /tasks/:id/participants)
   → Delete the task
 ```
 
@@ -310,15 +320,40 @@ Share a note:
   → Note visible to all friends
   → OR { visibility: 'specific', sharedWith: [userId1, userId2] }
   → Note visible only to specified users
+  → Server validates each userId in sharedWith is an accepted friend
+  → When visibility is 'specific': auto-message sent to each recipient
+     → Uses share.service.js: finds/creates conversation, sends "[shared:note:id] ..." message
+     → Message appears in recipient's DM inbox with clickable link to the note
+
+Activity on share:
+  → Fires on every share action (not just first time)
+  → visibility='friends': single activity "shared note X with friends" visible to actor + friends
+  → visibility='specific': personalized activities created via createShareActivities():
+     → Sharer sees: "shared note X with Alice, Bob" (recipient names clickable)
+     → Each recipient sees: "shared note X with you"
+     → Other friends of the sharer see the same as the sharer
+  → Recipient names stored in metadata.sharedWithNames for the sharer's activity
+  → Recipient activities have metadata.isRecipient = true
+
+Unshare:
+  → PUT /api/notes/:noteId/share { visibility: 'private' }
+  → Clears sharedWith[], note no longer visible to others
+
+Share a flashcard set:
+  → PATCH /api/flashcard-sets/:setId/share { visibility, sharedWith }
+  → Same pattern as notes: validates friendship, auto-messages on 'specific'
+  → Same personalized activity pattern as notes
+  → Frontend renders share messages with clickable "View flashcards" link
 
 View shared content:
   → GET /api/notes/shared → returns notes shared with current user
-  → Includes notes where:
+  → GET /api/flashcard-sets/shared → returns sets shared with current user
+  → Includes items where:
      - visibility = 'friends' AND author is a friend
      - visibility = 'specific' AND current user in sharedWith[]
 
-Same pattern for flashcard sets (visibility + sharedWith fields exist)
-Tasks use isShared + participants[] pattern
+Tasks use isShared + participants[] pattern (see Shared Tasks section)
+  → Same personalized activity pattern: sharer sees participant names, each participant sees "with you"
 ```
 
 ### Comments
@@ -447,7 +482,7 @@ User opens DM screen → selects a friend
   → Server sorts [userId, participantId] into canonical pair (min first)
   → Find-or-create: if Conversation with these two participants exists → return it (200)
   → If not → Conversation.create() with participants[], unreadCounts[] per user (201)
-  → Returns Conversation with participants populated
+  → Returns Conversation with participants populated (username, firstName, lastName, avatarUrl)
   → Frontend navigates to the conversation thread
 ```
 
@@ -459,7 +494,7 @@ User types and sends a message
   → Message.create({ conversationId, senderId, content, clientTimestamp })
   → Update conversation.lastMessage (denormalized for inbox performance)
   → Increment unreadCounts for all participants except the sender
-  → Returns new Message
+  → Returns new Message with senderId populated (username, firstName, lastName, avatarUrl)
 ```
 
 ### Inbox View
@@ -467,7 +502,7 @@ User types and sends a message
 User opens DM screen
   → GET /api/conversations
   → Returns all conversations for user, sorted by lastMessage.sentAt descending
-  → Each conversation includes: participants (populated), lastMessage, unreadCounts
+  → Each conversation includes: participants (populated with username, firstName, lastName, avatarUrl), lastMessage, unreadCounts
   → Frontend shows preview of latest message + unread badge per conversation
 ```
 

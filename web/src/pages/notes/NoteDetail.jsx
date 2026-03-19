@@ -13,6 +13,7 @@ import Badge from '@/components/ui/Badge';
 import Skeleton from '@/components/ui/Skeleton';
 import Avatar from '@/components/ui/Avatar';
 import Modal from '@/components/ui/Modal';
+import ShareModal from '@/components/ui/ShareModal';
 import { useAuth } from '@/context/AuthContext';
 import { formatDate, formatRelative } from '@/lib/utils';
 
@@ -27,8 +28,6 @@ export default function NoteDetail() {
 
   // Share state
   const [showShareModal, setShowShareModal] = useState(false);
-  const [shareVisibility, setShareVisibility] = useState('friends');
-  const [shareMsg, setShareMsg] = useState('');
 
   // Flashcard generation state
   const [flashcardMsg, setFlashcardMsg] = useState('');
@@ -71,12 +70,10 @@ export default function NoteDetail() {
   const shareNoteMutation = useMutation({
     mutationFn: (payload) => api.put(`/notes/${id}/share`, payload),
     onSuccess: () => {
-      setShareMsg('Visibility updated!');
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       queryClient.invalidateQueries({ queryKey: ['note', id] });
-    },
-    onError: (err) => {
-      setShareMsg(err.response?.data?.error || 'Failed to share note.');
+      queryClient.invalidateQueries({ queryKey: ['activity'] });
+      setShowShareModal(false);
     },
   });
 
@@ -145,10 +142,11 @@ export default function NoteDetail() {
 
   const note = data?.note || data?.data;
   const comments = commentsData?.comments || commentsData?.data || [];
+  const isOwner = note && String(note.userId) === String(user?._id);
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="max-w-3xl mx-auto space-y-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-4 w-64" />
         <Skeleton className="h-64 w-full" />
@@ -158,9 +156,9 @@ export default function NoteDetail() {
 
   if (!note) {
     return (
-      <div className="text-center py-16">
-        <p className="text-secondary">Note not found.</p>
-        <Link to="/notes" className="text-primary hover:underline text-sm mt-2 block">
+      <div style={{ textAlign: 'center', padding: '64px 0' }}>
+        <p style={{ color: '#a087b0', marginBottom: 8 }}>Note not found.</p>
+        <Link to="/notes" style={{ color: '#6b21a8', fontSize: '0.875rem', textDecoration: 'none' }}>
           Back to notes
         </Link>
       </div>
@@ -168,79 +166,144 @@ export default function NoteDetail() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div style={{ maxWidth: 720, margin: '0 auto' }}>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
         <Link to="/notes">
-          <button className="p-2 rounded-lg hover:bg-accent text-secondary hover:text-foreground transition-colors">
+          <button style={{
+            padding: 8,
+            borderRadius: 10,
+            border: 'none',
+            background: 'transparent',
+            color: '#a087b0',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            transition: 'background 0.12s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#111827'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+          >
             <ArrowLeft size={18} />
           </button>
         </Link>
-        <div className="flex-1" />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => { setShowShareModal(true); setShareMsg(''); }}
-        >
-          <Share2 size={14} /> Share
-        </Button>
-        <Link to="/notes/edit" state={{ id }}>
-          <Button variant="outline" size="sm">
-            <Edit3 size={14} /> Edit
-          </Button>
-        </Link>
+        <div style={{ flex: 1 }} />
+
+        {isOwner && (
+          <button
+            onClick={() => setShowShareModal(true)}
+            style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+          >
+            <Share2 size={14} />
+            {note.visibility && note.visibility !== 'private' ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                Shared
+                <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.6875rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20 }}>
+                  {note.visibility === 'friends' ? 'Friends' : `${note.sharedWith?.length || 0}`}
+                </span>
+              </span>
+            ) : 'Share'}
+          </button>
+        )}
+        {isOwner && (
+          <Link to="/notes/edit" state={{ id }}>
+            <button style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+              <Edit3 size={14} /> Edit
+            </button>
+          </Link>
+        )}
         {note.pdfUrl && (
           <Button variant="outline" size="sm" onClick={handlePdfDownload} loading={pdfDownloading}>
             <Download size={14} /> PDF
           </Button>
         )}
-        <Button
-          variant="danger"
-          size="sm"
-          onClick={() => { if (window.confirm('Delete this note?')) deleteMutation.mutate(); }}
-          loading={deleteMutation.isPending}
-        >
-          <Trash2 size={14} />
-        </Button>
+        {isOwner && (
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => { if (window.confirm('Delete this note?')) deleteMutation.mutate(); }}
+            loading={deleteMutation.isPending}
+          >
+            <Trash2 size={14} />
+          </Button>
+        )}
       </div>
 
-      {/* Note content */}
-      <Card className="mb-6">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">{note.title}</h1>
-            <div className="flex items-center gap-3 text-xs text-secondary">
-              <Badge variant="primary" className="capitalize">{note.type || 'note'}</Badge>
-              <span className="flex items-center gap-1">
-                <Clock size={11} /> {formatDate(note.updatedAt)}
-              </span>
-            </div>
+      {/* Note content card */}
+      <div style={{
+        background: 'white',
+        border: '1px solid #ede9fe',
+        borderRadius: 16,
+        boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+        padding: '28px 32px',
+        marginBottom: 20,
+      }}>
+        {/* Title + meta */}
+        <div style={{ marginBottom: 16 }}>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', marginBottom: 10, lineHeight: 1.3 }}>
+            {note.title}
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{
+              display: 'inline-block',
+              background: '#f5f0ff',
+              color: '#6b21a8',
+              fontSize: '0.6875rem',
+              fontWeight: 600,
+              padding: '3px 10px',
+              borderRadius: 20,
+              textTransform: 'capitalize',
+            }}>
+              {note.type || 'note'}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: '#a087b0' }}>
+              <Clock size={11} /> {formatDate(note.updatedAt)}
+            </span>
           </div>
         </div>
 
+        {/* Tags */}
         {note.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
             {note.tags.map(tag => (
-              <span key={tag} className="flex items-center gap-1 text-xs text-secondary bg-accent px-2 py-0.5 rounded-full">
+              <span key={tag} style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: '0.75rem',
+                color: '#6b21a8',
+                background: '#f5f0ff',
+                padding: '3px 10px',
+                borderRadius: 20,
+              }}>
                 <Tag size={10} /> {tag}
               </span>
             ))}
           </div>
         )}
 
+        {/* Content */}
         <div
-          className="prose prose-sm max-w-none text-foreground"
+          className="prose prose-sm max-w-none"
+          style={{ color: '#1f2937', lineHeight: 1.7 }}
           dangerouslySetInnerHTML={{ __html: note.content }}
         />
-      </Card>
+      </div>
 
-      {/* AI Summary */}
-      <Card className="mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-foreground flex items-center gap-2">
-            <Sparkles size={16} className="text-primary" /> AI Summary
+      {/* AI Summary card */}
+      <div style={{
+        background: 'white',
+        border: '1px solid #ede9fe',
+        borderRadius: 16,
+        boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+        padding: '24px 28px',
+        marginBottom: 20,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '0.9375rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Sparkles size={16} style={{ color: '#6b21a8' }} /> AI Summary
           </h3>
-          <div className="flex items-center gap-2">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Button
               size="sm"
               variant="outline"
@@ -249,45 +312,66 @@ export default function NoteDetail() {
             >
               <BookOpen size={14} /> Generate Flashcards
             </Button>
-            <Button size="sm" variant="ghost" onClick={handleAiSummary} loading={aiLoading}>
-              Generate
-            </Button>
+            <button
+              onClick={handleAiSummary}
+              disabled={aiLoading}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 10,
+                border: 'none',
+                background: '#f5f0ff',
+                color: '#6b21a8',
+                fontSize: '0.8125rem',
+                fontWeight: 500,
+                cursor: aiLoading ? 'not-allowed' : 'pointer',
+                opacity: aiLoading ? 0.6 : 1,
+              }}
+            >
+              {aiLoading ? 'Generating...' : 'Generate'}
+            </button>
           </div>
         </div>
+
         {flashcardMsg && (
-          <p className={`text-xs mb-3 ${flashcardMsg.includes('created') ? 'text-green-600' : 'text-red-500'}`}>
+          <p style={{ fontSize: '0.75rem', marginBottom: 12, color: flashcardMsg.includes('created') ? '#16a34a' : '#ef4444' }}>
             {flashcardMsg}
             {flashcardSetId && (
-              <Link to="/flashcards" className="ml-2 text-primary hover:underline font-medium">
+              <Link to="/flashcards" style={{ marginLeft: 8, color: '#6b21a8', fontWeight: 500, textDecoration: 'none' }}>
                 View flashcards
               </Link>
             )}
           </p>
         )}
-        {aiError && <p className="text-xs text-red-500 mb-2">{aiError}</p>}
+        {aiError && <p style={{ fontSize: '0.75rem', color: '#ef4444', marginBottom: 8 }}>{aiError}</p>}
         {(() => {
           const displaySummary = aiSummary
             || note?.summary?.quickSummary
             || note?.summary?.detailedSummary;
           return displaySummary ? (
-            <p className="text-sm text-foreground/80 leading-relaxed">{displaySummary}</p>
+            <p style={{ fontSize: '0.875rem', color: '#374151', lineHeight: 1.7 }}>{displaySummary}</p>
           ) : (
-            <p className="text-sm text-secondary">
+            <p style={{ fontSize: '0.875rem', color: '#a087b0' }}>
               Click "Generate" to get an AI-powered summary of this note.
             </p>
           );
         })()}
-      </Card>
+      </div>
 
-      {/* Comments */}
-      <Card>
-        <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-          <MessageCircle size={16} className="text-primary" /> Comments ({comments.length})
+      {/* Comments card */}
+      <div style={{
+        background: 'white',
+        border: '1px solid #ede9fe',
+        borderRadius: 16,
+        boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+        padding: '24px 28px',
+      }}>
+        <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '0.9375rem', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+          <MessageCircle size={16} style={{ color: '#6b21a8' }} /> Comments ({comments.length})
         </h3>
 
-        <div className="space-y-4 mb-5">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>
           {comments.length === 0 ? (
-            <p className="text-sm text-secondary">No comments yet. Be the first to comment.</p>
+            <p style={{ fontSize: '0.875rem', color: '#a087b0' }}>No comments yet. Be the first to comment.</p>
           ) : (
             comments.map(c => {
               const author = getCommentAuthor(c);
@@ -295,39 +379,70 @@ export default function NoteDetail() {
               const isLiked = c.likes?.includes(user?._id);
               const likeCount = c.likes?.length || 0;
               return (
-                <div key={c._id} className="flex gap-3 group">
-                  <Link to="/users/view" state={{ id: c.userId?._id ?? c.userId }} className="flex-shrink-0">
-                    <Avatar name={fullName(author)} src={author.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
+                <div key={c._id} className="group" style={{ display: 'flex', gap: 12 }}>
+                  <Link to="/users/view" state={{ id: c.userId?._id ?? c.userId }} style={{ flexShrink: 0 }}>
+                    <Avatar name={fullName(author)} src={author.avatarUrl} size="sm" />
                   </Link>
-                  <div className="flex-1 bg-accent rounded-xl px-4 py-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Link to="/users/view" state={{ id: c.userId?._id ?? c.userId }} className="text-xs font-semibold text-foreground hover:text-primary transition-colors">
+                  <div style={{
+                    flex: 1,
+                    background: '#fef7ff',
+                    borderRadius: 12,
+                    padding: '10px 14px',
+                    border: '1px solid #ede9fe',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <Link to="/users/view" state={{ id: c.userId?._id ?? c.userId }}
+                        style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827', textDecoration: 'none' }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#111827'}
+                      >
                         {fullName(author)}
                       </Link>
-                      <span className="text-xs text-secondary">{formatRelative(c.createdAt)}</span>
-                      <div className="ml-auto flex items-center gap-1.5">
+                      <span style={{ fontSize: '0.75rem', color: '#a087b0' }}>{formatRelative(c.createdAt)}</span>
+                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
                         <button
                           onClick={() => likeCommentMutation.mutate(c._id)}
-                          className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md transition-colors ${
-                            isLiked
-                              ? 'text-red-500 bg-red-50'
-                              : 'text-secondary hover:text-red-500 hover:bg-red-50'
-                          }`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            fontSize: '0.75rem',
+                            padding: '3px 8px',
+                            borderRadius: 8,
+                            border: 'none',
+                            cursor: 'pointer',
+                            background: isLiked ? '#fef2f2' : 'transparent',
+                            color: isLiked ? '#ef4444' : '#a087b0',
+                            transition: 'all 0.12s',
+                          }}
                         >
-                          <Heart size={12} className={isLiked ? 'fill-current' : ''} />
+                          <Heart size={12} style={{ fill: isLiked ? '#ef4444' : 'none' }} />
                           {likeCount > 0 && <span>{likeCount}</span>}
                         </button>
                         {isOwn && (
                           <button
                             onClick={() => deleteCommentMutation.mutate(c._id)}
-                            className="p-1 rounded-md text-secondary hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                            className="opacity-0 group-hover:opacity-100"
+                            style={{
+                              padding: '3px',
+                              borderRadius: 6,
+                              border: 'none',
+                              background: 'transparent',
+                              color: '#a087b0',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              transition: 'all 0.12s',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
                           >
                             <Trash size={12} />
                           </button>
                         )}
                       </div>
                     </div>
-                    <p className="text-sm text-foreground">{c.content}</p>
+                    <p style={{ fontSize: '0.875rem', color: '#1f2937', lineHeight: 1.5 }}>{c.content}</p>
                   </div>
                 </div>
               );
@@ -336,9 +451,9 @@ export default function NoteDetail() {
         </div>
 
         {/* Comment input */}
-        <div className="flex gap-3">
-          <Avatar name={user?.name || user?.username} src={user?.avatar} size="sm" />
-          <div className="flex-1 flex gap-2">
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <Avatar name={user?.name || user?.username} src={user?.avatarUrl} size="sm" />
+          <div style={{ flex: 1, display: 'flex', gap: 8 }}>
             <input
               type="text"
               placeholder="Write a comment..."
@@ -350,7 +465,16 @@ export default function NoteDetail() {
                   commentMutation.mutate(comment.trim());
                 }
               }}
-              className="input-field flex-1"
+              style={{
+                flex: 1,
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 12,
+                padding: '9px 14px',
+                fontSize: '0.875rem',
+                color: '#111827',
+                outline: 'none',
+              }}
             />
             <Button
               size="sm"
@@ -362,43 +486,18 @@ export default function NoteDetail() {
             </Button>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Share modal */}
-      <Modal open={showShareModal} onClose={() => setShowShareModal(false)} title="Share note">
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">
-              Who can see this note?
-            </label>
-            <select
-              className="input-field"
-              value={shareVisibility}
-              onChange={e => { setShareVisibility(e.target.value); setShareMsg(''); }}
-            >
-              <option value="private">Private — only you</option>
-              <option value="friends">Friends — all your friends</option>
-            </select>
-          </div>
-          {shareMsg && (
-            <p className={`text-xs ${shareMsg.includes('updated') ? 'text-green-600' : 'text-red-500'}`}>
-              {shareMsg}
-            </p>
-          )}
-          <div className="flex gap-3 pt-2">
-            <Button variant="outline" onClick={() => setShowShareModal(false)} className="flex-1">
-              Cancel
-            </Button>
-            <Button
-              onClick={() => shareNoteMutation.mutate({ visibility: shareVisibility })}
-              loading={shareNoteMutation.isPending}
-              className="flex-1"
-            >
-              Save
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <ShareModal
+        open={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        currentVisibility={note.visibility || 'private'}
+        currentSharedWith={note.sharedWith || []}
+        onSave={(payload) => shareNoteMutation.mutate(payload)}
+        saving={shareNoteMutation.isPending}
+        title="Share note"
+      />
     </div>
   );
 }

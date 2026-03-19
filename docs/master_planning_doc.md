@@ -87,7 +87,7 @@ This means you won't have a working UI until Phase 3, but your backend will be r
 
 **Current Ticket**: MOB-1: Build mobile auth screens
 **Phase**: Phase 3 - Frontend Integration
-**Status**: Phase 2 complete — all 27 API tickets merged and Postman-tested. Phase 3 web complete — all 10 web tickets done (auth, dashboard, notes, flashcards, tasks, calendar, friends, messages, resumes, applications, activity, profile). Mobile work (MOB-1 through MOB-7) not yet started.
+**Status**: Phase 2 complete — all 27 API tickets merged and Postman-tested. Phase 3 web complete — all 10 web tickets done (auth, dashboard, notes, flashcards, tasks, calendar, friends, messages, resumes, applications, activity, profile). Sharing system fix complete — ShareModal with friend picker, auto-DM on share, personalized activity feed (sharer sees recipient names, recipients see "with you"), PATCH /tasks/:id/participants endpoint for post-creation participant management. Postman tests added for note sharing, task participants, and auto-message verification. Mobile work (MOB-1 through MOB-7) not yet started.
 
 *Update this section as you progress through tickets*
 
@@ -324,7 +324,7 @@ API-8. [x] `feat: implement ai flashcard generation`
        - Uses note.content as input
        - FlashcardSet linked to noteId, isAIGenerated: true
        - Sets note.hasFlashcards = true
-     - POST /api/flashcard-sets/generate — generate from raw submitted content
+     - POST /api/flashcard-sets/generate — generate from raw submitted content (backend-only, no frontend trigger)
        - Body: { content, title } — user pastes or submits document text
        - FlashcardSet not linked to any note (noteId: null), isAIGenerated: true
    - Both endpoints: create FlashcardSet → bulk insert Flashcard docs → update totalCards
@@ -399,6 +399,7 @@ API-17. [x] `feat: add application tracking endpoints`
 API-18. [x] `feat: implement shared tasks with participants`
    - Update task endpoints to support isShared and participants
    - GET /api/tasks/shared — list tasks shared with user
+   - PATCH /api/tasks/:id/participants — add/remove participants after creation (validates friendship, sends auto-DM to new participants)
    - Shared tasks appear in all participants' calendars
 
 API-19. [x] `test: test all session 5 endpoints with postman`
@@ -444,7 +445,8 @@ API-25. [x] `feat: add shared flashcard sets endpoint`
    - Matches existing GET /api/notes/shared pattern (API-14)
    - Filter: visibility: 'friends' + user is friends with owner, OR visibility: 'specific' + userId in sharedWith
    - Return sets with flashcard count, do not populate all cards (performance)
-   - Wire `flashcard_shared` activity: fire createActivity when a flashcard set visibility changes from 'private' → shared (same pattern as note_shared in API-24)
+   - Wire `flashcard_shared` activity: fire createShareActivities on share (personalized per recipient)
+   - Auto-DM sent to each specific friend via share.service.js
 
 API-26. [x] `feat: add syncqueue processing endpoint`
    - POST /api/sync — process a batch of queued offline operations
@@ -767,5 +769,5 @@ Each phase succeeds when:
 
 ---
 
-*Last Updated: March 17, 2026*
-*Current Status: Phase 3 web fully complete — all 10 web tickets done (auth, dashboard, notes, flashcards, tasks, calendar, friends, messaging, resumes, applications, activity, profile). Next: Phase 3 mobile (MOB-1 through MOB-7). All stretch goals implemented on backend; messaging, activity feed wired on web.*
+*Last Updated: March 18, 2026*
+*Current Status: Phase 3 web fully complete — all 10 web tickets done (auth, dashboard, notes, flashcards, tasks, calendar, friends, messaging, resumes, applications, activity, profile). Sharing system fixed and enhanced: flashcard set 400 bug resolved, specific friend picker added to notes/flashcards/tasks, auto-DM on share, reusable ShareModal component, participant management after task creation, clickable share messages in conversations. Next: Phase 3 mobile (MOB-1 through MOB-7). All stretch goals implemented on backend; messaging, activity feed wired on web.*

@@ -4,7 +4,6 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { MessageCircle, Plus, Search } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
-import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
 import Modal from '@/components/ui/Modal';
@@ -40,10 +39,13 @@ export default function Messages() {
 
   return (
     <div>
-      <div className="page-header">
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 className="page-title">Messages</h1>
-          <p className="text-secondary text-sm mt-0.5">{conversations.length} conversations</p>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+            Messages
+          </h1>
+          <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>{conversations.length} conversations</p>
         </div>
         <Button onClick={() => setShowNew(true)}>
           <Plus size={16} /> New message
@@ -51,61 +53,130 @@ export default function Messages() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
         </div>
       ) : conversations.length === 0 ? (
-        <div className="text-center py-16">
-          <MessageCircle size={40} className="mx-auto mb-3 text-secondary/40" />
-          <h3 className="font-semibold text-foreground mb-1">No conversations yet</h3>
-          <p className="text-secondary text-sm mb-4">Start a conversation with a friend.</p>
+        <div style={{ textAlign: 'center', padding: '64px 0' }}>
+          <div style={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            background: '#f5f0ff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+          }}>
+            <MessageCircle size={28} style={{ color: '#a087b0' }} />
+          </div>
+          <h3 style={{ fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>No conversations yet</h3>
+          <p style={{ color: '#a087b0', fontSize: 14, marginBottom: 16 }}>Start a conversation with a friend.</p>
           <Button size="sm" onClick={() => setShowNew(true)}>
             <Plus size={14} /> New message
           </Button>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {conversations.map(conv => {
             const other = conv.participants?.find(p =>
               (p._id ?? p._id?.toString()) !== (user?._id ?? user?._id?.toString())
             );
             const otherName = [other?.firstName, other?.lastName].filter(Boolean).join(' ') || other?.username || 'Unknown';
             const lastMsg = conv.lastMessage;
+            const hasUnread = conv.unreadCount > 0;
+
             return (
-              <Link key={conv._id} to={`/messages/${conv._id}`}>
-                <Card className="flex items-center gap-4 p-4 hover:shadow-card-hover transition-shadow cursor-pointer">
+              <Link key={conv._id} to={`/messages/${conv._id}`} style={{ textDecoration: 'none' }}>
+                <div
+                  style={{
+                    background: hasUnread ? '#fef7ff' : '#fff',
+                    border: `1px solid ${hasUnread ? '#e9d5ff' : '#ede9fe'}`,
+                    borderRadius: 16,
+                    boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+                    padding: '14px 18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 14,
+                    cursor: 'pointer',
+                    transition: 'box-shadow 0.15s, transform 0.1s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.1)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
                   <Link
                     to="/users/view"
                     state={{ id: other?._id }}
                     onClick={e => e.stopPropagation()}
-                    className="flex-shrink-0"
+                    style={{ flexShrink: 0 }}
                   >
                     <Avatar name={otherName} src={other?.avatarUrl} size="md" className="hover:opacity-80 transition-opacity" />
                   </Link>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <p className="font-semibold text-foreground text-sm">{otherName}</p>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
+                      <Link
+                        to="/users/view"
+                        state={{ id: other?._id }}
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                          fontWeight: hasUnread ? 700 : 600,
+                          color: '#111827',
+                          fontSize: 14,
+                          margin: 0,
+                          textDecoration: 'none',
+                          display: 'block',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#111827'}
+                      >
+                        {otherName}
+                      </Link>
                       {lastMsg && (
-                        <span className="text-xs text-secondary">
+                        <span style={{ fontSize: 11, color: '#a087b0', flexShrink: 0, marginLeft: 8 }}>
                           {formatRelative(lastMsg.sentAt || lastMsg.createdAt)}
                         </span>
                       )}
                     </div>
                     {lastMsg ? (
-                      <p className="text-xs text-secondary truncate">
+                      <p style={{
+                        fontSize: 12,
+                        color: hasUnread ? '#6b21a8' : '#a087b0',
+                        fontWeight: hasUnread ? 600 : 400,
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                        textOverflow: 'ellipsis',
+                        margin: 0,
+                      }}>
                         {lastMsg.senderId === user?._id ? 'You: ' : ''}
                         {truncate(lastMsg.content, 60)}
                       </p>
                     ) : (
-                      <p className="text-xs text-secondary italic">No messages yet</p>
+                      <p style={{ fontSize: 12, color: '#a087b0', fontStyle: 'italic', margin: 0 }}>No messages yet</p>
                     )}
                   </div>
-                  {conv.unreadCount > 0 && (
-                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs text-white font-medium">{conv.unreadCount}</span>
+
+                  {hasUnread && (
+                    <div style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      background: '#6b21a8',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}>
+                      <span style={{ fontSize: 10, color: '#fff', fontWeight: 700 }}>{conv.unreadCount}</span>
                     </div>
                   )}
-                </Card>
+                </div>
               </Link>
             );
           })}
@@ -136,21 +207,31 @@ export default function Messages() {
                 return (
                   <div
                     key={f._id}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent cursor-pointer transition-colors"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '10px 12px',
+                      borderRadius: 12,
+                      cursor: 'pointer',
+                      transition: 'background 0.12s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     onClick={() => newConvMutation.mutate(friend?._id)}
                   >
                     <Avatar name={friend?.name || friend?.username} src={friend?.avatar} size="sm" />
                     <div>
-                      <p className="font-medium text-sm text-foreground">{friend?.name}</p>
-                      <p className="text-xs text-secondary">@{friend?.username}</p>
+                      <p style={{ fontWeight: 600, fontSize: 13, color: '#111827', margin: 0 }}>{friend?.name}</p>
+                      <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>@{friend?.username}</p>
                     </div>
                   </div>
                 );
               })}
             {friends.length === 0 && (
-              <p className="text-sm text-secondary text-center py-4">
+              <p style={{ fontSize: 13, color: '#a087b0', textAlign: 'center', padding: '16px 0' }}>
                 No friends yet.{' '}
-                <Link to="/friends" className="text-primary hover:underline" onClick={() => setShowNew(false)}>
+                <Link to="/friends" style={{ color: '#6b21a8' }} onClick={() => setShowNew(false)}>
                   Add friends first
                 </Link>
               </p>

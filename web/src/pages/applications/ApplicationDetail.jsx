@@ -8,19 +8,51 @@ import {
 } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
-import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
 
 const STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
-const STAGE_VARIANTS = {
-  draft: 'neutral', applied: 'primary', interview: 'warning',
-  offer: 'success', rejected: 'danger', withdrawn: 'neutral',
+
+const STAGE_STYLES = {
+  draft:     { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
+  applied:   { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
+  interview: { bg: '#fdf4ff', color: '#7c3aed', border: '#e9d5ff' },
+  offer:     { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
+  rejected:  { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
+  withdrawn: { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
 };
 
 const emptyContact = { name: '', email: '', role: '', linkedIn: '' };
 const emptyReminder = { description: '', date: '' };
+
+const cardStyle = {
+  background: '#fff',
+  border: '1px solid #ede9fe',
+  borderRadius: 16,
+  boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+  padding: '20px 24px',
+  marginBottom: 16,
+};
+
+function StageBadge({ stage }) {
+  const s = STAGE_STYLES[stage] || STAGE_STYLES.draft;
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      padding: '5px 14px',
+      borderRadius: 20,
+      fontSize: 12,
+      fontWeight: 700,
+      background: s.bg,
+      color: s.color,
+      border: `1px solid ${s.border}`,
+      textTransform: 'capitalize',
+    }}>
+      {stage}
+    </span>
+  );
+}
 
 export default function ApplicationDetail() {
   const location = useLocation();
@@ -29,16 +61,15 @@ export default function ApplicationDetail() {
   const [form, setForm] = useState(null);
 
   // Contacts state
-  const [contacts, setContacts] = useState(null); // null = use app.contacts
+  const [contacts, setContacts] = useState(null);
   const [contactForm, setContactForm] = useState(emptyContact);
   const [showContactForm, setShowContactForm] = useState(false);
 
   // Reminders state
-  const [reminders, setReminders] = useState(null); // null = use app.reminders
+  const [reminders, setReminders] = useState(null);
   const [reminderForm, setReminderForm] = useState(emptyReminder);
   const [showReminderForm, setShowReminderForm] = useState(false);
 
-  // Get application from router state (passed from list) or list cache
   const stateApp = location.state?.application;
   const cachedList = queryClient.getQueryData(['applications']);
   const listApps = cachedList?.applications || cachedList?.data || [];
@@ -58,7 +89,6 @@ export default function ApplicationDetail() {
   const addContactMutation = useMutation({
     mutationFn: (payload) => api.post(`/applications/${id}/contacts`, payload),
     onSuccess: (res) => {
-      // Backend returns { contact, application } — read contacts from returned application
       const updatedContacts = res.data?.application?.contacts || [...(contacts ?? app?.contacts ?? []), { ...contactForm }];
       setContacts(updatedContacts);
       setContactForm(emptyContact);
@@ -69,7 +99,6 @@ export default function ApplicationDetail() {
   const addReminderMutation = useMutation({
     mutationFn: (payload) => api.post(`/applications/${id}/reminders`, payload),
     onSuccess: (res) => {
-      // Backend returns { reminder, application } — field is followUpReminders
       const updatedReminders = res.data?.application?.followUpReminders || [...(reminders ?? app?.followUpReminders ?? []), { ...reminderForm }];
       setReminders(updatedReminders);
       setReminderForm(emptyReminder);
@@ -79,9 +108,9 @@ export default function ApplicationDetail() {
 
   if (!app) {
     return (
-      <div className="text-center py-16">
-        <p className="text-secondary">Application not found.</p>
-        <Link to="/applications" className="text-primary text-sm hover:underline mt-2 block">Back</Link>
+      <div style={{ textAlign: 'center', padding: '64px 0' }}>
+        <p style={{ color: '#a087b0', marginBottom: 8 }}>Application not found.</p>
+        <Link to="/applications" style={{ color: '#6b21a8', fontSize: 13 }}>Back to applications</Link>
       </div>
     );
   }
@@ -91,15 +120,25 @@ export default function ApplicationDetail() {
   const displayReminders = reminders ?? app?.followUpReminders ?? [];
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div style={{ maxWidth: 680, margin: '0 auto' }}>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
         <Link to="/applications">
-          <button className="p-2 rounded-lg hover:bg-accent text-secondary transition-colors">
+          <button style={{
+            padding: 8,
+            borderRadius: 10,
+            border: 'none',
+            background: '#f5f0ff',
+            cursor: 'pointer',
+            color: '#6b21a8',
+            display: 'flex',
+            alignItems: 'center',
+            transition: 'background 0.15s',
+          }}>
             <ArrowLeft size={18} />
           </button>
         </Link>
-        <div className="flex-1" />
+        <div style={{ flex: 1 }} />
         {editing ? (
           <>
             <Button variant="outline" size="sm" onClick={() => { setEditing(false); setForm(null); }}>
@@ -117,7 +156,7 @@ export default function ApplicationDetail() {
       </div>
 
       {/* Main card */}
-      <Card className="mb-5">
+      <div style={cardStyle}>
         {editing ? (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -187,30 +226,30 @@ export default function ApplicationDetail() {
           </div>
         ) : (
           <>
-            <div className="flex items-start justify-between mb-4">
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">{app.company}</h1>
-                <p className="text-secondary mt-0.5">{app.position}</p>
+                <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+                  {app.company}
+                </h1>
+                <p style={{ fontSize: 15, color: '#a087b0', marginTop: 4 }}>{app.position}</p>
               </div>
-              <Badge variant={STAGE_VARIANTS[app.status]} className="capitalize text-sm px-3 py-1">
-                {app.status}
-              </Badge>
+              <StageBadge stage={app.status} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {app.location && (
-                <div className="flex items-center gap-2 text-secondary">
-                  <MapPin size={14} /> {app.location}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6b7280' }}>
+                  <MapPin size={14} style={{ color: '#a087b0' }} /> {app.location}
                 </div>
               )}
               {app.salary && (
-                <div className="flex items-center gap-2 text-secondary">
-                  <DollarSign size={14} /> {app.salary}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6b7280' }}>
+                  <DollarSign size={14} style={{ color: '#a087b0' }} /> {app.salary}
                 </div>
               )}
               {app.appliedAt && (
-                <div className="flex items-center gap-2 text-secondary">
-                  <Calendar size={14} /> Applied {formatDate(app.appliedAt)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6b7280' }}>
+                  <Calendar size={14} style={{ color: '#a087b0' }} /> Applied {formatDate(app.appliedAt)}
                 </div>
               )}
               {app.jobUrl && (
@@ -218,7 +257,7 @@ export default function ApplicationDetail() {
                   href={app.jobUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-primary hover:underline"
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6b21a8', textDecoration: 'none' }}
                 >
                   <ExternalLink size={14} /> Job posting
                 </a>
@@ -226,20 +265,20 @@ export default function ApplicationDetail() {
             </div>
 
             {app.notes && (
-              <div className="mt-4 pt-4 border-t border-border">
-                <p className="text-xs font-medium text-secondary mb-2">Notes</p>
-                <p className="text-sm text-foreground">{app.notes}</p>
+              <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #ede9fe' }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Notes</p>
+                <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{app.notes}</p>
               </div>
             )}
           </>
         )}
-      </Card>
+      </div>
 
       {/* Contacts section */}
-      <Card className="mb-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-foreground flex items-center gap-2">
-            <User size={16} className="text-primary" /> Contacts
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+            <User size={16} style={{ color: '#6b21a8' }} /> Contacts
           </h2>
           <Button size="sm" variant="outline" onClick={() => setShowContactForm(v => !v)}>
             <Plus size={13} /> Add contact
@@ -247,27 +286,43 @@ export default function ApplicationDetail() {
         </div>
 
         {displayContacts.length === 0 && !showContactForm && (
-          <p className="text-sm text-secondary">No contacts added yet.</p>
+          <p style={{ fontSize: 13, color: '#a087b0' }}>No contacts added yet.</p>
         )}
 
         {displayContacts.length > 0 && (
-          <div className="space-y-3 mb-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: showContactForm ? 16 : 0 }}>
             {displayContacts.map((c, i) => (
-              <div key={i} className="flex items-start gap-3 p-3 bg-accent rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <User size={14} className="text-primary" />
+              <div key={i} style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 12,
+                padding: '12px 14px',
+                background: '#f5f0ff',
+                borderRadius: 12,
+              }}>
+                <div style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: 'rgba(107,33,168,0.12)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <User size={15} style={{ color: '#6b21a8' }} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">{c.name}</p>
-                  {c.role && <p className="text-xs text-secondary">{c.role}</p>}
-                  <div className="flex flex-wrap gap-3 mt-1">
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{c.name}</p>
+                  {c.role && <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>{c.role}</p>}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 6 }}>
                     {c.email && (
-                      <a href={`mailto:${c.email}`} className="flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a href={`mailto:${c.email}`} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b21a8', textDecoration: 'none' }}>
                         <Mail size={11} /> {c.email}
                       </a>
                     )}
                     {c.linkedIn && (
-                      <a href={c.linkedIn} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-secondary hover:text-primary">
+                      <a href={c.linkedIn} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#a087b0', textDecoration: 'none' }}>
                         <Phone size={11} /> LinkedIn
                       </a>
                     )}
@@ -279,7 +334,7 @@ export default function ApplicationDetail() {
         )}
 
         {showContactForm && (
-          <div className="border border-border rounded-xl p-4 space-y-3">
+          <div style={{ border: '1px solid #ede9fe', borderRadius: 12, padding: '14px 16px' }} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-secondary block mb-1">Name *</label>
@@ -340,13 +395,13 @@ export default function ApplicationDetail() {
             </div>
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Reminders section */}
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-foreground flex items-center gap-2">
-            <Bell size={16} className="text-primary" /> Reminders
+      <div style={{ ...cardStyle, marginBottom: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+            <Bell size={16} style={{ color: '#6b21a8' }} /> Reminders
           </h2>
           <Button size="sm" variant="outline" onClick={() => setShowReminderForm(v => !v)}>
             <Plus size={13} /> Add reminder
@@ -354,20 +409,37 @@ export default function ApplicationDetail() {
         </div>
 
         {displayReminders.length === 0 && !showReminderForm && (
-          <p className="text-sm text-secondary">No reminders set yet.</p>
+          <p style={{ fontSize: 13, color: '#a087b0' }}>No reminders set yet.</p>
         )}
 
         {displayReminders.length > 0 && (
-          <div className="space-y-3 mb-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: showReminderForm ? 16 : 0 }}>
             {displayReminders.map((r, i) => (
-              <div key={r._id || i} className="flex items-start gap-3 p-3 bg-accent rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0">
-                  <Bell size={14} className="text-amber-500" />
+              <div key={r._id || i} style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 12,
+                padding: '12px 14px',
+                background: '#fffbeb',
+                borderRadius: 12,
+                border: '1px solid #fde68a',
+              }}>
+                <div style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: '#fef3c7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <Bell size={15} style={{ color: '#f59e0b' }} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground">{r.description}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>{r.description}</p>
                   {r.date && (
-                    <p className="text-xs text-secondary mt-0.5 flex items-center gap-1">
+                    <p style={{ fontSize: 11, color: '#a087b0', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
                       <Calendar size={10} />
                       {new Date(r.date).toLocaleString()}
                     </p>
@@ -379,7 +451,7 @@ export default function ApplicationDetail() {
         )}
 
         {showReminderForm && (
-          <div className="border border-border rounded-xl p-4 space-y-3">
+          <div style={{ border: '1px solid #ede9fe', borderRadius: 12, padding: '14px 16px' }} className="space-y-3">
             <div>
               <label className="text-xs font-medium text-secondary block mb-1">Description *</label>
               <textarea
@@ -390,7 +462,7 @@ export default function ApplicationDetail() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-secondary block mb-1">Date & time</label>
+              <label className="text-xs font-medium text-secondary block mb-1">Date &amp; time</label>
               <input
                 type="datetime-local"
                 className="input-field"
@@ -417,7 +489,7 @@ export default function ApplicationDetail() {
             </div>
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }

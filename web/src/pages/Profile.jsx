@@ -9,7 +9,6 @@ import {
 import { useNavigate, Link } from 'react-router-dom';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
 import Input from '@/components/ui/Input';
@@ -18,6 +17,15 @@ import Skeleton from '@/components/ui/Skeleton';
 import { useForm } from 'react-hook-form';
 import { formatDate } from '@/lib/utils';
 import { useToast } from '@/components/ui/Toast';
+
+const cardStyle = {
+  background: '#fff',
+  border: '1px solid #ede9fe',
+  borderRadius: 16,
+  boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+  padding: '20px 24px',
+  marginBottom: 16,
+};
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
@@ -112,7 +120,7 @@ export default function Profile() {
 
   const notifMutation = useMutation({
     mutationFn: (vals) => {
-      // Send as FormData so values arrive as strings — backend compares === 'true'
+      // Send as FormData so values arrive as strings -- backend compares === 'true'
       const fd = new FormData();
       fd.append('settings.emailNotifications', vals.emailNotifications);
       fd.append('settings.pushNotifications', vals.pushNotifications);
@@ -172,67 +180,86 @@ export default function Profile() {
   ];
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="page-title">Settings</h1>
-        <p className="text-secondary text-sm mt-0.5">Your account and preferences</p>
+    <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+          Settings
+        </h1>
+        <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>Your account and preferences</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 flex-wrap">
+      <div style={{ display: 'flex', gap: 6, marginBottom: 24, flexWrap: 'wrap' }}>
         {tabs.map(t => (
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === t.key
-                ? 'bg-primary text-white'
-                : 'bg-accent text-foreground/70 hover:text-primary'
-            }`}
+            style={{
+              padding: '7px 16px',
+              borderRadius: 10,
+              fontSize: 13,
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              background: activeTab === t.key ? '#6b21a8' : '#f5f0ff',
+              color: activeTab === t.key ? '#fff' : '#6b21a8',
+            }}
           >
             {t.label}
           </button>
         ))}
       </div>
 
-      {/* ── Overview ── */}
+      {/* Overview */}
       {activeTab === 'overview' && (
-        <div className="space-y-5">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {/* Email verification banner */}
           {me && !me.emailVerified && (
-            <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-              <ShieldAlert size={16} className="text-amber-500 flex-shrink-0" />
-              <p className="text-sm text-amber-800 flex-1">
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              background: '#fffbeb',
+              border: '1px solid #fde68a',
+              borderRadius: 12,
+              padding: '12px 16px',
+              marginBottom: 16,
+            }}>
+              <ShieldAlert size={16} style={{ color: '#f59e0b', flexShrink: 0 }} />
+              <p style={{ fontSize: 13, color: '#92400e', flex: 1, margin: 0 }}>
                 Your email is not verified. Verify it to secure your account.
               </p>
               <button
                 onClick={() => setActiveTab('integrations')}
-                className="text-xs font-medium text-amber-700 hover:text-amber-900 underline flex-shrink-0"
+                style={{ fontSize: 12, fontWeight: 600, color: '#b45309', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
               >
                 Verify now
               </button>
             </div>
           )}
 
-          {/* Profile header */}
-          <Card className="p-6">
-            <div className="flex items-center gap-5">
-              <Avatar name={fullName} src={me?.avatarUrl} size="xl" className="flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <h2 className="text-xl font-bold text-foreground">{fullName || 'Your Name'}</h2>
-                <p className="text-sm text-secondary flex items-center gap-1 mt-0.5">
+          {/* Profile header card */}
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <Avatar name={fullName} src={me?.avatarUrl} size="xl" style={{ flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#111827', margin: 0 }}>
+                  {fullName || 'Your Name'}
+                </h2>
+                <p style={{ fontSize: 13, color: '#a087b0', display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
                   <AtSign size={12} /> {me?.username}
                 </p>
                 {me?.createdAt && (
-                  <p className="text-xs text-secondary/70 flex items-center gap-1 mt-1">
+                  <p style={{ fontSize: 11, color: '#c4b5d4', display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
                     <CalendarIcon size={11} /> Joined {formatDate(me.createdAt)}
                   </p>
                 )}
-                <p className="text-xs text-secondary mt-1 flex items-center gap-1">
+                <p style={{ fontSize: 11, color: '#c4b5d4', display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
                   <Users size={11} /> {friendships.length} friend{friendships.length !== 1 ? 's' : ''}
                 </p>
                 {me?.bio && (
-                  <p className="text-sm text-foreground/80 mt-3 pt-3 border-t border-border leading-relaxed">
+                  <p style={{ fontSize: 13, color: '#374151', marginTop: 12, paddingTop: 12, borderTop: '1px solid #ede9fe', lineHeight: 1.6 }}>
                     {me.bio}
                   </p>
                 )}
@@ -241,17 +268,20 @@ export default function Profile() {
                 Edit
               </Button>
             </div>
-          </Card>
+          </div>
 
-          {/* Content lists */}
+          {/* Content sections */}
           <OverviewSection
             icon={FileText}
             label="Notes"
             items={notes.slice(0, 5)}
             renderItem={n => (
-              <Link key={n._id} to="/notes/view" state={{ id: n._id }} className="flex items-center justify-between px-4 py-2.5 hover:bg-accent transition-colors group">
-                <span className="text-sm text-foreground truncate">{n.title || 'Untitled'}</span>
-                <ChevronRight size={13} className="text-secondary opacity-0 group-hover:opacity-100 flex-shrink-0" />
+              <Link key={n._id} to="/notes/view" state={{ id: n._id }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', textDecoration: 'none', transition: 'background 0.12s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontSize: 13, color: '#374151', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{n.title || 'Untitled'}</span>
+                <ChevronRight size={13} style={{ color: '#a087b0', flexShrink: 0 }} />
               </Link>
             )}
             emptyMsg="No notes yet."
@@ -264,9 +294,12 @@ export default function Profile() {
             label="Tasks"
             items={tasks.slice(0, 5)}
             renderItem={t => (
-              <Link key={t._id} to="/tasks" className="flex items-center justify-between px-4 py-2.5 hover:bg-accent transition-colors group">
-                <span className="text-sm text-foreground truncate">{t.title || 'Untitled'}</span>
-                <ChevronRight size={13} className="text-secondary opacity-0 group-hover:opacity-100 flex-shrink-0" />
+              <Link key={t._id} to="/tasks" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', textDecoration: 'none', transition: 'background 0.12s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontSize: 13, color: '#374151', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{t.title || 'Untitled'}</span>
+                <ChevronRight size={13} style={{ color: '#a087b0', flexShrink: 0 }} />
               </Link>
             )}
             emptyMsg="No tasks yet."
@@ -279,9 +312,12 @@ export default function Profile() {
             label="Flashcard Sets"
             items={flashcardSets.slice(0, 5)}
             renderItem={s => (
-              <Link key={s._id} to="/flashcards/view" state={{ id: s._id }} className="flex items-center justify-between px-4 py-2.5 hover:bg-accent transition-colors group">
-                <span className="text-sm text-foreground truncate">{s.title || 'Untitled'}</span>
-                <ChevronRight size={13} className="text-secondary opacity-0 group-hover:opacity-100 flex-shrink-0" />
+              <Link key={s._id} to="/flashcards/view" state={{ id: s._id }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', textDecoration: 'none', transition: 'background 0.12s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontSize: 13, color: '#374151', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{s.title || 'Untitled'}</span>
+                <ChevronRight size={13} style={{ color: '#a087b0', flexShrink: 0 }} />
               </Link>
             )}
             emptyMsg="No flashcard sets yet."
@@ -294,9 +330,12 @@ export default function Profile() {
             label="Applications"
             items={applications.slice(0, 5)}
             renderItem={a => (
-              <Link key={a._id} to="/applications/view" state={{ id: a._id }} className="flex items-center justify-between px-4 py-2.5 hover:bg-accent transition-colors group">
-                <span className="text-sm text-foreground truncate">{a.company || a.position || 'Untitled'}</span>
-                <ChevronRight size={13} className="text-secondary opacity-0 group-hover:opacity-100 flex-shrink-0" />
+              <Link key={a._id} to="/applications/view" state={{ id: a._id }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', textDecoration: 'none', transition: 'background 0.12s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontSize: 13, color: '#374151', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{a.company || a.position || 'Untitled'}</span>
+                <ChevronRight size={13} style={{ color: '#a087b0', flexShrink: 0 }} />
               </Link>
             )}
             emptyMsg="No applications yet."
@@ -309,9 +348,12 @@ export default function Profile() {
             label="Resumes"
             items={resumes.slice(0, 5)}
             renderItem={r => (
-              <Link key={r._id} to="/resumes" className="flex items-center justify-between px-4 py-2.5 hover:bg-accent transition-colors group">
-                <span className="text-sm text-foreground truncate">{r.title || r.fileName || 'Untitled'}</span>
-                <ChevronRight size={13} className="text-secondary opacity-0 group-hover:opacity-100 flex-shrink-0" />
+              <Link key={r._id} to="/resumes" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', textDecoration: 'none', transition: 'background 0.12s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontSize: 13, color: '#374151', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{r.title || r.fileName || 'Untitled'}</span>
+                <ChevronRight size={13} style={{ color: '#a087b0', flexShrink: 0 }} />
               </Link>
             )}
             emptyMsg="No resumes yet."
@@ -321,30 +363,44 @@ export default function Profile() {
         </div>
       )}
 
-      {/* ── Edit Profile ── */}
+      {/* Edit Profile */}
       {activeTab === 'editProfile' && (
         <form
           onSubmit={profileForm.handleSubmit(data => profileMutation.mutate(data))}
-          className="space-y-5"
+          style={{ display: 'flex', flexDirection: 'column', gap: 0 }}
         >
           {/* Avatar */}
-          <Card>
-            <h3 className="font-semibold text-foreground mb-4">Profile photo</h3>
-            <div className="flex items-center gap-5">
-              <div className="relative">
+          <div style={cardStyle}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: '0 0 16px' }}>Profile photo</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <div style={{ position: 'relative' }}>
                 <Avatar name={fullName} src={me?.avatarUrl} size="xl" />
                 <button
                   type="button"
                   onClick={() => avatarInputRef.current?.click()}
-                  className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary rounded-full flex items-center justify-center shadow-sm hover:bg-primary-hover transition-colors"
+                  style={{
+                    position: 'absolute',
+                    bottom: -4,
+                    right: -4,
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    background: '#6b21a8',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(107,33,168,0.3)',
+                  }}
                 >
-                  <Camera size={13} className="text-white" />
+                  <Camera size={13} style={{ color: '#fff' }} />
                 </button>
               </div>
               <div>
-                <p className="font-medium text-foreground">{fullName}</p>
-                <p className="text-sm text-secondary">@{me?.username}</p>
-                <p className="text-xs text-secondary mt-1">Click the camera to update your photo</p>
+                <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>{fullName}</p>
+                <p style={{ fontSize: 13, color: '#a087b0', margin: '3px 0 0' }}>@{me?.username}</p>
+                <p style={{ fontSize: 11, color: '#c4b5d4', margin: '4px 0 0' }}>Click the camera icon to update your photo</p>
               </div>
             </div>
             <input
@@ -357,18 +413,18 @@ export default function Profile() {
                 if (file) avatarMutation.mutate(file);
               }}
             />
-          </Card>
+          </div>
 
           {/* Info */}
-          <Card>
-            <h3 className="font-semibold text-foreground mb-4">Personal info</h3>
+          <div style={cardStyle}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: '0 0 16px' }}>Personal info</h3>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <Input label="First name" {...profileForm.register('firstName')} />
                 <Input label="Last name" {...profileForm.register('lastName')} />
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground block mb-1.5">Bio</label>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Bio</label>
                 <textarea
                   {...profileForm.register('bio')}
                   className="input-field resize-none min-h-[80px]"
@@ -376,113 +432,126 @@ export default function Profile() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground block mb-1.5">
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
                   Activity visibility
                 </label>
                 <select {...profileForm.register('settings.activityVisibility')} className="input-field">
-                  <option value="private">Private — only you</option>
+                  <option value="private">Private - only you</option>
                   <option value="friends">Friends only</option>
-                  <option value="public">Public — everyone</option>
                 </select>
               </div>
             </div>
-            <div className="mt-5 flex justify-end">
+            <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12 }}>
+              {profileMutation.isSuccess && (
+                <p style={{ fontSize: 12, color: '#16a34a', margin: 0 }}>Profile updated!</p>
+              )}
               <Button type="submit" loading={profileMutation.isPending}>
                 <Save size={15} /> Save changes
               </Button>
             </div>
-            {profileMutation.isSuccess && (
-              <p className="text-xs text-green-600 mt-2 text-right">Profile updated!</p>
-            )}
-          </Card>
+          </div>
         </form>
       )}
 
-      {/* ── Notifications ── */}
+      {/* Notifications */}
       {activeTab === 'notifications' && (
-        <form onSubmit={notifForm.handleSubmit(vals => notifMutation.mutate(vals))} className="space-y-4">
-          <Card>
-            <h3 className="font-semibold text-foreground mb-1">Notification preferences</h3>
-            <p className="text-xs text-secondary mb-5">Choose how you want to be notified.</p>
+        <form onSubmit={notifForm.handleSubmit(vals => notifMutation.mutate(vals))}>
+          <div style={cardStyle}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: '0 0 4px' }}>Notification preferences</h3>
+            <p style={{ fontSize: 12, color: '#a087b0', margin: '0 0 20px' }}>Choose how you want to be notified.</p>
 
-            <div className="space-y-4">
-              <label className="flex items-center justify-between cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Bell size={14} className="text-primary" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {[
+                { key: 'emailNotifications', label: 'Email notifications', desc: 'Receive updates and alerts via email' },
+                { key: 'pushNotifications', label: 'Push notifications', desc: 'Receive in-browser push alerts' },
+              ].map((item, idx) => (
+                <label
+                  key={item.key}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    padding: '14px 0',
+                    borderTop: idx > 0 ? '1px solid #ede9fe' : 'none',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      background: 'rgba(107,33,168,0.08)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}>
+                      <Bell size={15} style={{ color: '#6b21a8' }} />
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#374151', margin: 0 }}>{item.label}</p>
+                      <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>{item.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Email notifications</p>
-                    <p className="text-xs text-secondary">Receive updates and alerts via email</p>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 accent-primary"
-                  checked={notifForm.watch('emailNotifications')}
-                  {...notifForm.register('emailNotifications')}
-                  onChange={e => notifForm.setValue('emailNotifications', e.target.checked)}
-                />
-              </label>
-              <div className="border-t border-border" />
-              <label className="flex items-center justify-between cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Bell size={14} className="text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Push notifications</p>
-                    <p className="text-xs text-secondary">Receive in-browser push alerts</p>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 accent-primary"
-                  checked={notifForm.watch('pushNotifications')}
-                  {...notifForm.register('pushNotifications')}
-                  onChange={e => notifForm.setValue('pushNotifications', e.target.checked)}
-                />
-              </label>
+                  <input
+                    type="checkbox"
+                    style={{ width: 16, height: 16, accentColor: '#6b21a8' }}
+                    checked={notifForm.watch(item.key)}
+                    {...notifForm.register(item.key)}
+                    onChange={e => notifForm.setValue(item.key, e.target.checked)}
+                  />
+                </label>
+              ))}
             </div>
 
-            <div className="mt-6 flex items-center justify-end gap-3">
-              {notifSaved && <p className="text-xs text-green-600">Saved!</p>}
+            <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>
+              {notifSaved && <p style={{ fontSize: 12, color: '#16a34a', margin: 0 }}>Saved!</p>}
               <Button type="submit" loading={notifMutation.isPending}>
                 <Save size={15} /> Save
               </Button>
             </div>
-          </Card>
+          </div>
         </form>
       )}
 
-      {/* ── Integrations ── */}
+      {/* Integrations */}
       {activeTab === 'integrations' && (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {/* Email verification */}
-          <Card>
-            <div className="flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${me?.emailVerified ? 'bg-green-50' : 'bg-amber-50'}`}>
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: me?.emailVerified ? '#f0fdf4' : '#fffbeb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
                 {me?.emailVerified
-                  ? <ShieldCheck size={18} className="text-green-600" />
-                  : <ShieldAlert size={18} className="text-amber-500" />
+                  ? <ShieldCheck size={20} style={{ color: '#16a34a' }} />
+                  : <ShieldAlert size={20} style={{ color: '#f59e0b' }} />
                 }
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-foreground">Email verification</p>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>Email verification</p>
                   {me?.emailVerified
                     ? <Badge variant="success">Verified</Badge>
                     : <Badge variant="warning">Unverified</Badge>
                   }
                 </div>
-                <p className="text-xs text-secondary mt-0.5 flex items-center gap-1">
-                  <Mail size={10} /> {me?.email}
+                <p style={{ fontSize: 12, color: '#a087b0', display: 'flex', alignItems: 'center', gap: 4, margin: 0 }}>
+                  <Mail size={11} /> {me?.email}
                 </p>
                 {verifySent && (
-                  <p className="text-xs text-green-600 mt-1">Check your inbox — link sent!</p>
+                  <p style={{ fontSize: 12, color: '#16a34a', margin: '4px 0 0' }}>Check your inbox - link sent!</p>
                 )}
                 {sendVerifyMutation.isError && (
-                  <p className="text-xs text-red-500 mt-1">
+                  <p style={{ fontSize: 12, color: '#dc2626', margin: '4px 0 0' }}>
                     {sendVerifyMutation.error?.response?.data?.error || 'Failed to send. Try again.'}
                   </p>
                 )}
@@ -498,26 +567,36 @@ export default function Profile() {
                 </Button>
               )}
             </div>
-          </Card>
+          </div>
 
-          <Card>
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
+          {/* Google */}
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: '#eff6ff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
               </div>
-              <div className="flex-1">
-                <p className="font-semibold text-foreground">Google Account</p>
-                <p className="text-xs text-secondary">
-                  {me?.googleId ? 'Connected · Drive export enabled' : 'Not connected — link to enable Drive export'}
+              <div style={{ flex: 1 }}>
+                <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>Google Account</p>
+                <p style={{ fontSize: 12, color: '#a087b0', margin: '3px 0 0' }}>
+                  {me?.googleId ? 'Connected. Drive export enabled.' : 'Not connected. Link to enable Drive export.'}
                 </p>
               </div>
               {me?.googleId ? (
-                <div className="flex items-center gap-2">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Badge variant="success">Connected</Badge>
                   <Button size="sm" variant="outline" onClick={() =>
                     api.delete('/auth/me/google/link').catch((err) => {
@@ -534,38 +613,62 @@ export default function Profile() {
                 </Button>
               )}
             </div>
-          </Card>
+          </div>
 
-          <Card>
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
-                <RefreshCw size={18} className="text-green-600" />
+          {/* Drive import */}
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: '#f0fdf4',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <RefreshCw size={20} style={{ color: '#16a34a' }} />
               </div>
-              <div className="flex-1">
-                <p className="font-semibold text-foreground">Google Drive Import</p>
-                <p className="text-xs text-secondary mt-0.5">
+              <div style={{ flex: 1 }}>
+                <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>Google Drive Import</p>
+                <p style={{ fontSize: 12, color: '#a087b0', margin: '3px 0 0', lineHeight: 1.5 }}>
                   {me?.googleId
                     ? 'Your account is connected. Import Google Docs directly from the Notes page using the Import button.'
                     : 'Connect your Google Account above to import documents from Google Drive into Notes.'}
                 </p>
               </div>
             </div>
-          </Card>
+          </div>
 
-          <Card>
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
-                <LogOut size={18} className="text-red-500" />
+          {/* Sign out all */}
+          <div style={{
+            ...cardStyle,
+            border: '1px solid #fecaca',
+            background: '#fff',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: '#fef2f2',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <LogOut size={20} style={{ color: '#dc2626' }} />
               </div>
-              <div className="flex-1">
-                <p className="font-semibold text-foreground">Sign out all devices</p>
-                <p className="text-xs text-secondary">End all active sessions across every device</p>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>Sign out all devices</p>
+                <p style={{ fontSize: 12, color: '#a087b0', margin: '3px 0 0' }}>End all active sessions across every device</p>
               </div>
               <Button size="sm" variant="danger" onClick={handleLogoutAll} loading={logoutAllLoading}>
                 <LogOut size={13} /> Sign out all
               </Button>
             </div>
-          </Card>
+          </div>
         </div>
       )}
     </div>
@@ -574,25 +677,47 @@ export default function Profile() {
 
 function OverviewSection({ icon: Icon, label, items, renderItem, emptyMsg, allCount, allLink }) {
   return (
-    <Card className="overflow-hidden p-0">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <h3 className="text-xs font-semibold uppercase tracking-widest text-secondary flex items-center gap-2">
+    <div style={{
+      background: '#fff',
+      border: '1px solid #ede9fe',
+      borderRadius: 16,
+      boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+      overflow: 'hidden',
+      marginBottom: 16,
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '12px 20px',
+        borderBottom: '1px solid #ede9fe',
+      }}>
+        <h3 style={{
+          fontSize: 11,
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          color: '#a087b0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          margin: 0,
+        }}>
           <Icon size={12} /> {label}
         </h3>
         {allCount > 0 && (
-          <Link to={allLink} className="text-xs text-primary hover:underline">
+          <Link to={allLink} style={{ fontSize: 12, color: '#6b21a8', textDecoration: 'none' }}>
             View all ({allCount})
           </Link>
         )}
       </div>
       {items.length === 0 ? (
-        <p className="text-sm text-secondary px-4 py-3">{emptyMsg}</p>
+        <p style={{ fontSize: 13, color: '#a087b0', padding: '12px 20px', margin: 0 }}>{emptyMsg}</p>
       ) : (
-        <div className="divide-y divide-border">
+        <div>
           {items.map(item => renderItem(item))}
         </div>
       )}
-    </Card>
+    </div>
   );
 }
-

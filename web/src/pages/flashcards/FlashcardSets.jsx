@@ -42,57 +42,104 @@ export default function FlashcardSets() {
 
   return (
     <div>
-      <div className="page-header">
+      {/* Page header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
         <div>
-          <h1 className="page-title">Flashcards</h1>
-          <p className="text-secondary text-sm mt-0.5">{sets.length} sets</p>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', color: '#111827', fontWeight: 700, lineHeight: 1.2 }}>
+            Flashcards
+          </h1>
+          <p style={{ color: '#a087b0', fontSize: '0.8125rem', marginTop: 2 }}>
+            {sets.length} {sets.length === 1 ? 'set' : 'sets'}
+          </p>
         </div>
-        <Button onClick={() => setShowCreate(true)}>
-          <Plus size={16} /> New set
-        </Button>
+        <button
+          onClick={() => setShowCreate(true)}
+          style={{
+            background: '#6b21a8',
+            color: 'white',
+            padding: '8px 16px',
+            borderRadius: 12,
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            cursor: 'pointer',
+            border: 'none',
+          }}
+        >
+          <Plus size={15} /> New set
+        </button>
       </div>
 
       {/* Tab toggle */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setSharedTab(false)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            !sharedTab
-              ? 'bg-primary text-white'
-              : 'bg-accent text-foreground/70 hover:text-primary'
-          }`}
-        >
-          My sets
-        </button>
-        <button
-          onClick={() => setSharedTab(true)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            sharedTab
-              ? 'bg-primary text-white'
-              : 'bg-accent text-foreground/70 hover:text-primary'
-          }`}
-        >
-          Shared with me
-        </button>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        {[
+          { label: 'My sets', value: false },
+          { label: 'Shared with me', value: true },
+        ].map(({ label, value }) => (
+          <button
+            key={label}
+            onClick={() => setSharedTab(value)}
+            style={{
+              padding: '7px 18px',
+              borderRadius: 20,
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              border: 'none',
+              cursor: 'pointer',
+              background: sharedTab === value ? '#6b21a8' : '#f5f0ff',
+              color: sharedTab === value ? 'white' : '#6b21a8',
+              transition: 'all 0.15s',
+            }}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-36" />)}
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40" />)}
         </div>
       ) : sets.length === 0 ? (
-        <div className="text-center py-16">
-          <BookOpen size={40} className="mx-auto mb-3 text-secondary/40" />
-          <h3 className="font-semibold text-foreground mb-1">
+        <div style={{ textAlign: 'center', padding: '64px 0' }}>
+          <div style={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            background: '#f5f0ff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+          }}>
+            <BookOpen size={28} style={{ color: '#6b21a8' }} />
+          </div>
+          <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '1rem', marginBottom: 6 }}>
             {sharedTab ? 'No shared sets' : 'No flashcard sets'}
           </h3>
-          <p className="text-secondary text-sm mb-4">
+          <p style={{ color: '#a087b0', fontSize: '0.875rem', marginBottom: 20 }}>
             {sharedTab
               ? 'No flashcard sets have been shared with you yet.'
               : 'Create your first set to start studying.'}
           </p>
           {!sharedTab && (
-            <Button size="sm" onClick={() => setShowCreate(true)}>Create a set</Button>
+            <button
+              onClick={() => setShowCreate(true)}
+              style={{
+                background: '#6b21a8',
+                color: 'white',
+                padding: '9px 20px',
+                borderRadius: 12,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Create a set
+            </button>
           )}
         </div>
       ) : (
@@ -113,27 +160,65 @@ export default function FlashcardSets() {
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="New flashcard set">
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Title *</label>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
+              Title *
+            </label>
             <input
-              className="input-field"
+              style={{
+                width: '100%',
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 12,
+                padding: '9px 14px',
+                fontSize: '0.875rem',
+                color: '#111827',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
               placeholder="e.g. Biology Chapter 5"
               value={newSet.title}
               onChange={e => setNewSet(s => ({ ...s, title: e.target.value }))}
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Subject</label>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
+              Subject
+            </label>
             <input
-              className="input-field"
+              style={{
+                width: '100%',
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 12,
+                padding: '9px 14px',
+                fontSize: '0.875rem',
+                color: '#111827',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
               placeholder="e.g. Biology"
               value={newSet.subject}
               onChange={e => setNewSet(s => ({ ...s, subject: e.target.value }))}
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Description</label>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
+              Description
+            </label>
             <textarea
-              className="input-field min-h-[80px] resize-none"
+              style={{
+                width: '100%',
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 12,
+                padding: '9px 14px',
+                fontSize: '0.875rem',
+                color: '#111827',
+                outline: 'none',
+                minHeight: 80,
+                resize: 'none',
+                boxSizing: 'border-box',
+              }}
               placeholder="Optional description..."
               value={newSet.description}
               onChange={e => setNewSet(s => ({ ...s, description: e.target.value }))}
@@ -160,21 +245,75 @@ export default function FlashcardSets() {
 
 function FlashcardSetCard({ set, onDelete }) {
   return (
-    <Card className="group relative flex flex-col">
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          <BookOpen size={18} className="text-primary" />
+    <div
+      className="group"
+      style={{
+        background: 'white',
+        border: '1px solid #ede9fe',
+        borderRadius: 16,
+        boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'border-color 0.15s, box-shadow 0.15s',
+        position: 'relative',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = '#6b21a8';
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.12)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = '#ede9fe';
+        e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
+      }}
+    >
+      {/* Top row */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{
+          width: 42,
+          height: 42,
+          borderRadius: 12,
+          background: '#f5f0ff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <BookOpen size={18} style={{ color: '#6b21a8' }} />
         </div>
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div style={{ display: 'flex', gap: 4, opacity: 0 }} className="group-hover:opacity-100">
           <Link to="/flashcards/view" state={{ id: set._id }}>
-            <button className="p-1.5 rounded-lg hover:bg-accent text-secondary hover:text-primary transition-colors">
+            <button
+              style={{
+                padding: 5,
+                borderRadius: 8,
+                border: 'none',
+                background: 'transparent',
+                color: '#a087b0',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+            >
               <Edit3 size={13} />
             </button>
           </Link>
           {onDelete && (
             <button
               onClick={onDelete}
-              className="p-1.5 rounded-lg hover:bg-red-50 text-secondary hover:text-red-500 transition-colors"
+              style={{
+                padding: 5,
+                borderRadius: 8,
+                border: 'none',
+                background: 'transparent',
+                color: '#a087b0',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
             >
               <Trash2 size={13} />
             </button>
@@ -182,22 +321,67 @@ function FlashcardSetCard({ set, onDelete }) {
         </div>
       </div>
 
-      <Link to="/flashcards/view" state={{ id: set._id }} className="flex-1">
-        <h3 className="font-semibold text-foreground mb-1 hover:text-primary transition-colors line-clamp-2">
+      {/* Title + subject */}
+      <Link to="/flashcards/view" state={{ id: set._id }} style={{ flex: 1, textDecoration: 'none' }}>
+        <h3 style={{
+          fontWeight: 600,
+          color: '#111827',
+          fontSize: '0.9375rem',
+          marginBottom: 4,
+          lineHeight: 1.4,
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          transition: 'color 0.12s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
+        onMouseLeave={e => e.currentTarget.style.color = '#111827'}
+        >
           {set.title}
         </h3>
-        {set.subject && <p className="text-xs text-secondary mb-2">{set.subject}</p>}
-        <Badge variant="neutral">{set.totalCards ?? 0} cards</Badge>
+        {set.subject && (
+          <p style={{ fontSize: '0.8125rem', color: '#a087b0', marginBottom: 8 }}>{set.subject}</p>
+        )}
+        <span style={{
+          display: 'inline-block',
+          background: '#f5f0ff',
+          color: '#6b21a8',
+          fontSize: '0.75rem',
+          fontWeight: 500,
+          padding: '3px 10px',
+          borderRadius: 20,
+        }}>
+          {set.totalCards ?? 0} cards
+        </span>
       </Link>
 
-      <div className="flex items-center justify-between mt-4">
-        <span className="text-xs text-secondary">{formatRelative(set.updatedAt)}</span>
+      {/* Footer */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
+        <span style={{ fontSize: '0.75rem', color: '#a087b0' }}>{formatRelative(set.updatedAt)}</span>
         <Link to="/flashcards/study" state={{ id: set._id }}>
-          <Button size="sm" variant="outline">
+          <button
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '6px 14px',
+              borderRadius: 10,
+              border: '1px solid #ede9fe',
+              background: 'white',
+              color: '#374151',
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.12s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b21a8'; e.currentTarget.style.color = '#6b21a8'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#ede9fe'; e.currentTarget.style.color = '#374151'; }}
+          >
             <Play size={12} /> Study
-          </Button>
+          </button>
         </Link>
       </div>
-    </Card>
+    </div>
   );
 }

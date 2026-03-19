@@ -1,35 +1,33 @@
 import { Link } from 'react-router-dom';
-import { Linkedin, Globe, FileText, ExternalLink } from 'lucide-react';
+import { Linkedin, Globe, FileText, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
-// TODO: Replace these with actual URLs
-const JUSTIN_LINKEDIN = 'https://linkedin.com/in/justinburrell';
-const JUSTIN_WEBSITE = 'https://justinburrell.com';
-const JUSTIN_RESUME = 'https://justinburrell.com/resume';
+const JUSTIN_LINKEDIN = 'https://www.linkedin.com/in/thejustinburrell/';
+const JUSTIN_WEBSITE = 'https://www.thejustinburrell.com/';
+const JUSTIN_RESUME =
+  'https://prlxghfadjdnxqoqwlla.supabase.co/storage/v1/object/public/assets/assets/documents/Justin%20Burrell%20Resume.pdf';
 
 function NavBar({ user }) {
   return (
-    <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
+    <header className="sticky top-0 z-40 border-b" style={{ backgroundColor: 'rgba(254,247,255,0.9)', backdropFilter: 'blur(12px)', borderColor: '#ede9fe' }}>
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 no-underline">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #6b21a8, #a087b0)' }}>
             <span className="text-white font-bold text-sm">C</span>
           </div>
-          <span className="font-serif font-bold text-xl text-primary tracking-tight">Continuum</span>
+          <span className="font-bold text-xl tracking-tight" style={{ fontFamily: 'Georgia, serif', color: '#6b21a8' }}>Continuum</span>
         </Link>
         <nav className="hidden md:flex items-center gap-1 mr-2">
-          <Link to="/product" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors px-3 py-2">Product</Link>
-          <Link to="/about" className="text-sm font-medium text-primary border-b-2 border-primary px-3 py-2">About</Link>
+          <Link to="/product" className="text-sm font-medium px-3 py-2" style={{ color: 'rgba(17,24,39,0.6)' }}>Product</Link>
+          <Link to="/about" className="text-sm font-semibold px-3 py-2 border-b-2" style={{ color: '#6b21a8', borderColor: '#6b21a8' }}>About</Link>
         </nav>
         <div className="flex items-center gap-3">
           {user ? (
-            <Link to="/dashboard" className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors">
-              Go to Dashboard
-            </Link>
+            <Link to="/dashboard" className="text-sm font-semibold text-white px-4 py-2 rounded-lg" style={{ background: '#6b21a8' }}>Go to Dashboard</Link>
           ) : (
             <>
-              <Link to="/login" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors px-4 py-2">Sign in</Link>
-              <Link to="/register" className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors">Get started</Link>
+              <Link to="/login" className="text-sm font-medium px-4 py-2" style={{ color: 'rgba(17,24,39,0.6)' }}>Sign in</Link>
+              <Link to="/register" className="text-sm font-semibold text-white px-4 py-2 rounded-lg" style={{ background: '#6b21a8', boxShadow: '0 1px 8px rgba(107,33,168,0.25)' }}>Get started</Link>
             </>
           )}
         </div>
@@ -42,165 +40,232 @@ export default function About() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen" style={{ backgroundColor: '#fef7ff' }}>
       <NavBar user={user} />
 
       {/* Hero */}
-      <section className="max-w-3xl mx-auto px-6 pt-20 pb-16 text-center">
-        <h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight leading-tight mb-5">
-          About Continuum
-        </h1>
-        <p className="text-lg text-secondary leading-relaxed">
-          Built for students navigating school and career at the same time — because no one should
-          have to juggle ten different apps to stay on top of their life.
-        </p>
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)', width: 800, height: 600, borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(107,33,168,0.07) 0%, transparent 70%)' }} />
+        </div>
+        <div className="relative max-w-3xl mx-auto px-6 pt-20 pb-20 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 border" style={{ background: '#f5f0ff', borderColor: 'rgba(107,33,168,0.2)' }}>
+            <Sparkles size={12} style={{ color: '#6b21a8' }} />
+            <span className="text-xs font-semibold" style={{ color: '#6b21a8' }}>Our story</span>
+          </div>
+          <h1 className="font-bold tracking-tight leading-tight mb-6" style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2.2rem, 5vw, 3.2rem)', color: '#111827' }}>
+            Built for the student who is trying to do it all
+          </h1>
+          <p className="text-lg leading-relaxed max-w-xl mx-auto" style={{ color: '#6B7280' }}>
+            Continuum was built because students deserve a single workspace that connects
+            their academic grind to their career ambitions, without juggling ten different apps.
+          </p>
+        </div>
       </section>
 
-      {/* Origin story */}
-      <section className="max-w-3xl mx-auto px-6 pb-20">
-        <div className="bg-card border border-border rounded-2xl p-8 md:p-12">
-          <h2 className="text-2xl font-bold text-foreground mb-6">How it started</h2>
-          <div className="space-y-5 text-secondary leading-relaxed">
+      {/* Story */}
+      <section className="max-w-3xl mx-auto px-6 py-20">
+        <div className="rounded-2xl border p-10" style={{ background: 'white', borderColor: '#ede9fe', boxShadow: '0 4px 30px rgba(107,33,168,0.07)' }}>
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-1 h-7 rounded-full" style={{ background: 'linear-gradient(180deg, #6b21a8, #a087b0)' }} />
+            <h2 className="font-bold" style={{ fontFamily: 'Georgia, serif', fontSize: '1.4rem', color: '#111827' }}>How it started</h2>
+          </div>
+          <div className="space-y-5 leading-relaxed" style={{ color: '#6B7280', fontSize: '1rem' }}>
             <p>
-              Continuum was built as part of <span className="font-semibold text-foreground">TEI 2026</span> —
-              The Entrepreneurs Initiative — a selective program at Lehigh University that supports
-              student founders building real products. TEI pushed us to move fast, validate ideas,
-              and ship something students would actually use.
+              Continuum started inside{' '}
+              <span className="font-semibold" style={{ color: '#111827' }}>TEI 2026</span>, The Entrepreneurs
+              Initiative at Lehigh University. TEI is a selective program that supports student founders
+              building real products. The program pushed a fast cadence: validate the idea, ship fast, get feedback.
             </p>
             <p>
-              The inspiration came from a real problem: students managing notes in one app, tasks
-              in another, job applications in a spreadsheet, and flashcards in a fourth tool —
-              with none of it connected. Continuum was designed to close that gap.
+              The problem was personal. Students are constantly switching between a notes app, a task manager, a
+              spreadsheet for job applications, and a separate flashcard tool. None of it talks to each other.
+              Continuum was built to close that gap by putting everything in one place.
             </p>
             <p>
-              The project was also supported through partnerships with{' '}
-              <span className="font-semibold text-foreground">Google Play</span> and{' '}
-              <span className="font-semibold text-foreground">All Star Code</span> — an organization
-              dedicated to increasing diversity in tech by providing computer science education and
-              career development to underrepresented young men. These partnerships grounded
-              Continuum in a real mission: building tools that work for the students who need them most.
+              The project grew beyond the classroom. Continuum gained support from{' '}
+              <span className="font-semibold" style={{ color: '#111827' }}>Google Play</span>, which provided
+              resources and distribution support for student-built technology. It also received backing from{' '}
+              <span className="font-semibold" style={{ color: '#111827' }}>All Star Code</span>, a nonprofit
+              dedicated to expanding access to computer science education and career pathways for
+              underrepresented young men in tech.
             </p>
             <p>
-              The platform is built on a Node.js + Express backend with MongoDB, a React frontend,
-              and a suite of AI features powered by Groq. Every feature — from note summaries to
-              resume scoring — was designed to reduce friction, not add it.
+              That backing shaped the mission. Continuum is not just a productivity tool. It is a platform
+              built with intention, for the students who need it most.
             </p>
           </div>
         </div>
       </section>
 
       {/* Mission */}
-      <section className="bg-primary">
-        <div className="max-w-3xl mx-auto px-6 py-16 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">The mission</h2>
-          <p className="text-white/80 leading-relaxed text-lg max-w-xl mx-auto">
-            Give every student — regardless of background — a single, intelligent workspace
-            that connects their academic work to their career ambitions.
+      <section style={{ background: 'linear-gradient(135deg, #6b21a8 0%, #4c1671 100%)' }}>
+        <div className="max-w-3xl mx-auto px-6 py-20 text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest mb-5" style={{ color: 'rgba(255,255,255,0.55)', letterSpacing: '0.18em' }}>The mission</p>
+          <h2 className="font-bold text-white mb-6" style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', lineHeight: 1.3 }}>
+            Give every student a single,<br />intelligent workspace.
+          </h2>
+          <p className="text-lg leading-relaxed max-w-lg mx-auto" style={{ color: 'rgba(255,255,255,0.75)' }}>
+            Regardless of background or resources, connecting their academic work to
+            their career ambitions, in one place.
           </p>
         </div>
       </section>
 
-      {/* Meet the team */}
+      {/* Founder */}
       <section className="max-w-3xl mx-auto px-6 py-20">
-        <h2 className="text-2xl font-bold text-foreground mb-2">Meet the team</h2>
-        <p className="text-secondary mb-10">The people behind Continuum.</p>
+        <div className="mb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#a087b0', letterSpacing: '0.15em' }}>The founder</p>
+          <h2 className="font-bold" style={{ fontFamily: 'Georgia, serif', fontSize: '1.6rem', color: '#111827' }}>Meet Justin</h2>
+        </div>
 
-        <div className="bg-card border border-border rounded-2xl p-8 flex flex-col sm:flex-row gap-8 items-start">
-          {/* Avatar */}
-          <div className="flex-shrink-0">
-            <div
-              className="w-20 h-20 rounded-full bg-primary flex items-center justify-center"
-              style={{ fontSize: 28, fontWeight: 700, color: '#fff', fontFamily: 'serif' }}
-            >
-              JB
-            </div>
-          </div>
+        <div className="rounded-2xl border overflow-hidden" style={{ background: 'white', borderColor: '#ede9fe', boxShadow: '0 4px 30px rgba(107,33,168,0.07)' }}>
+          {/* Top accent bar */}
+          <div style={{ height: 4, background: 'linear-gradient(90deg, #6b21a8, #a087b0)' }} />
 
-          {/* Info */}
-          <div className="flex-1">
-            <div className="flex flex-wrap items-center gap-3 mb-1">
-              <h3 className="text-xl font-bold text-foreground">Justin Burrell</h3>
-              <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                Founder
-              </span>
-            </div>
-            <p className="text-sm text-secondary mb-1">
-              Senior at Lehigh University &mdash; Computer Science
-            </p>
-            <p className="text-sm text-secondary mb-6 leading-relaxed">
-              Built Continuum end-to-end: architecture, backend API (70+ endpoints), frontend,
-              AI integrations, and infrastructure. Passionate about building tools that make a
-              real difference for students navigating the gap between school and career.
-            </p>
+          <div className="p-10">
+            <div className="flex flex-col sm:flex-row gap-8 items-start">
+              {/* Avatar */}
+              <div className="flex-shrink-0">
+                <div
+                  className="w-24 h-24 rounded-2xl flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg, #6b21a8, #a087b0)', fontSize: 28, fontWeight: 700, color: '#fff', fontFamily: 'Georgia, serif', letterSpacing: 1 }}
+                >
+                  JB
+                </div>
+                <div className="mt-3 text-center">
+                  <div style={{ fontSize: 11, fontWeight: 600, color: '#6b21a8', background: 'rgba(107,33,168,0.08)', borderRadius: 8, padding: '3px 10px', display: 'inline-block' }}>Founder</div>
+                </div>
+              </div>
 
-            {/* Links */}
-            <div className="flex flex-wrap gap-3">
-              <a
-                href={JUSTIN_LINKEDIN}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm font-medium text-foreground border border-border rounded-lg px-4 py-2 hover:bg-accent hover:border-primary/30 transition-colors no-underline"
-              >
-                <Linkedin size={15} className="text-[#0077b5]" /> LinkedIn
-              </a>
-              <a
-                href={JUSTIN_WEBSITE}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm font-medium text-foreground border border-border rounded-lg px-4 py-2 hover:bg-accent hover:border-primary/30 transition-colors no-underline"
-              >
-                <Globe size={15} className="text-primary" /> Website
-              </a>
-              <a
-                href={JUSTIN_RESUME}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm font-medium text-foreground border border-border rounded-lg px-4 py-2 hover:bg-accent hover:border-primary/30 transition-colors no-underline"
-              >
-                <FileText size={15} className="text-primary" /> Resume
-              </a>
+              {/* Info */}
+              <div className="flex-1">
+                <h3 className="font-bold mb-1" style={{ fontSize: '1.3rem', color: '#111827' }}>Justin Burrell</h3>
+                <p className="text-sm mb-6" style={{ color: '#9CA3AF' }}>
+                  Senior at Lehigh University, Computer Science
+                </p>
+                <p className="text-sm leading-relaxed mb-4" style={{ color: '#6B7280' }}>
+                  Justin built Continuum from the ground up: architecture, a 70-plus endpoint REST API,
+                  a full React frontend, three AI integrations with Groq, Google OAuth, and cloud infrastructure
+                  on top of MongoDB and Cloudinary.
+                </p>
+                <p className="text-sm leading-relaxed mb-8" style={{ color: '#6B7280' }}>
+                  The goal has always been the same: build something that makes a real difference for
+                  students navigating the gap between school and career.
+                </p>
+
+                {/* Links */}
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href={JUSTIN_LINKEDIN}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-semibold rounded-xl px-4 py-2.5 border no-underline transition-all"
+                    style={{ color: '#111827', borderColor: '#e5e7eb', background: 'white' }}
+                  >
+                    <Linkedin size={15} style={{ color: '#0077b5' }} /> LinkedIn
+                  </a>
+                  <a
+                    href={JUSTIN_WEBSITE}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-semibold rounded-xl px-4 py-2.5 border no-underline transition-all"
+                    style={{ color: '#111827', borderColor: '#e5e7eb', background: 'white' }}
+                  >
+                    <Globe size={15} style={{ color: '#6b21a8' }} /> Website
+                  </a>
+                  <a
+                    href={JUSTIN_RESUME}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-semibold rounded-xl px-4 py-2.5 no-underline transition-all"
+                    style={{ color: 'white', background: '#6b21a8', boxShadow: '0 2px 10px rgba(107,33,168,0.25)' }}
+                  >
+                    <FileText size={15} /> Resume
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Partnerships */}
-      <section className="max-w-3xl mx-auto px-6 pb-20">
-        <h2 className="text-2xl font-bold text-foreground mb-2">Supported by</h2>
-        <p className="text-secondary mb-8">Organizations that made this possible.</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <section className="max-w-3xl mx-auto px-6 pb-24">
+        <div className="mb-8">
+          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#a087b0', letterSpacing: '0.15em' }}>Backed by</p>
+          <h2 className="font-bold" style={{ fontFamily: 'Georgia, serif', fontSize: '1.6rem', color: '#111827' }}>Organizations that made this possible</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
             {
-              name: 'TEI 2026',
-              description: "Lehigh University's Entrepreneurs Initiative — a selective program supporting student founders building real ventures.",
-            },
-            {
               name: 'Google Play',
-              description: 'Partnership providing resources and distribution support for student-built technology products.',
+              sub: 'Partnership',
+              description: 'Resources and distribution support for student-built technology products.',
+              accent: true,
             },
             {
               name: 'All Star Code',
-              description: 'A nonprofit expanding access to computer science education and career pathways for underrepresented young men in tech.',
+              sub: 'Nonprofit',
+              description: 'Expanding access to CS education and career pathways for underrepresented young men in tech.',
+              accent: false,
             },
           ].map(org => (
-            <div key={org.name} className="bg-card border border-border rounded-xl p-5">
-              <h3 className="font-semibold text-foreground mb-2">{org.name}</h3>
-              <p className="text-xs text-secondary leading-relaxed">{org.description}</p>
+            <div
+              key={org.name}
+              className="rounded-xl p-5 border"
+              style={{
+                background: org.accent ? 'rgba(107,33,168,0.04)' : 'white',
+                borderColor: org.accent ? 'rgba(107,33,168,0.2)' : '#e5e7eb',
+                boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
+              }}
+            >
+              <div className="mb-3">
+                <h3 className="font-bold" style={{ fontSize: 14, color: '#111827' }}>{org.name}</h3>
+                <p style={{ fontSize: 11, color: '#a087b0', fontWeight: 500 }}>{org.sub}</p>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: '#6B7280' }}>{org.description}</p>
             </div>
           ))}
         </div>
       </section>
 
+      {/* CTA */}
+      <section className="max-w-3xl mx-auto px-6 pb-24">
+        <div className="rounded-2xl border px-8 py-14 text-center" style={{ background: '#f5f0ff', borderColor: '#ede9fe' }}>
+          <h2 className="font-bold mb-3" style={{ fontFamily: 'Georgia, serif', fontSize: '1.75rem', color: '#111827' }}>
+            Ready to get started?
+          </h2>
+          <p className="mb-8 text-sm" style={{ color: '#6B7280' }}>
+            Join Continuum. Free to use, built for students.
+          </p>
+          {user ? (
+            <Link to="/dashboard" className="inline-flex items-center gap-2 text-white font-semibold px-6 py-3 rounded-xl" style={{ background: '#6b21a8', boxShadow: '0 4px 20px rgba(107,33,168,0.3)' }}>
+              Go to Dashboard <ArrowRight size={15} />
+            </Link>
+          ) : (
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link to="/register" className="inline-flex items-center justify-center gap-2 text-white font-semibold px-6 py-3 rounded-xl" style={{ background: '#6b21a8', boxShadow: '0 4px 20px rgba(107,33,168,0.3)' }}>
+                Create your account <ArrowRight size={15} />
+              </Link>
+              <Link to="/login" className="inline-flex items-center justify-center gap-2 font-semibold px-6 py-3 rounded-xl border" style={{ background: 'white', borderColor: '#d1d5db', color: '#374151' }}>
+                Sign in
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="border-t border-border">
+      <footer style={{ borderTop: '1px solid #E5E7EB' }}>
         <div className="max-w-6xl mx-auto px-6 py-8 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 no-underline">
-            <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
+            <div className="w-6 h-6 rounded flex items-center justify-center" style={{ background: '#6b21a8' }}>
               <span className="text-white font-bold text-xs">C</span>
             </div>
-            <span className="font-semibold text-foreground text-sm">Continuum</span>
+            <span className="font-semibold text-sm" style={{ color: '#111827' }}>Continuum</span>
           </Link>
-          <p className="text-xs text-secondary">Your academic &amp; career companion.</p>
+          <p className="text-xs" style={{ color: '#9CA3AF' }}>Your academic and career companion.</p>
         </div>
       </footer>
     </div>

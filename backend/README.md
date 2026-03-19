@@ -1,53 +1,133 @@
 # Continuum Backend
 
-Backend API server for Continuum application.
+REST API for the Continuum platform. Built with Node.js, Express 5, and MongoDB.
 
-## Setup
+---
 
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Create a `.env` file in the root directory:
-```env
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-
-# MongoDB Configuration
-MONGODB_URI=mongodb://localhost:27017/continuum
-
-# JWT Secret (will be used in Sprint 1)
-JWT_SECRET=your-secret-key-change-in-production
-
-# Google OAuth (will be used in Sprint 1)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-
-# Frontend URL (for CORS)
-FRONTEND_URL=http://localhost:3000
-```
-
-3. Make sure MongoDB is running locally or update `MONGODB_URI` to your MongoDB connection string.
-
-4. Start the server:
-```bash
-npm start
-```
-
-## Health Check
-
-Visit `http://localhost:5000/health` to verify the server is running.
-
-## Project Structure
+## Architecture
 
 ```
 backend/
-├── config/          # Configuration files (database, etc.)
-├── middleware/      # Custom middleware
-├── models/          # Mongoose models
-├── routes/          # API routes
-├── server.js        # Entry point
-└── .env            # Environment variables (not in git)
+  server.js          Entry point, middleware stack, route registration
+  config/            MongoDB connection, Passport strategy, Groq client
+  controllers/       Request handlers, one file per resource
+  routes/            Express routers, one file per resource
+  models/            Mongoose schemas
+  middleware/        Auth guard, rate limiter, file upload handlers
+  services/          Groq AI service, activity service
+  scripts/           One-off scripts (seeding, migrations)
 ```
+
+---
+
+## API surface
+
+16 route groups, ~70 endpoints total.
+
+| Route group           | Description                                          |
+| --------------------- | ---------------------------------------------------- |
+| `/api/auth`           | Register, login, logout, token refresh, password reset |
+| `/api/google`         | Google OAuth initiation, callback, account link/unlink |
+| `/api/notes`          | CRUD, AI summary generation, flashcard extraction    |
+| `/api/flashcard-sets` | CRUD, add/remove cards, PDF-to-flashcard import      |
+| `/api/tasks`          | Kanban tasks with status and due date                |
+| `/api/calendar`       | Calendar events                                      |
+| `/api/friends`        | Friend requests, accept/decline, remove              |
+| `/api/users`          | Profile reads, avatar upload, account settings       |
+| `/api/comments`       | Comments on notes                                    |
+| `/api/applications`   | Job application CRUD with status pipeline            |
+| `/api/resumes`        | PDF upload, text extraction, AI feedback             |
+| `/api/conversations`  | Direct message threads between users                 |
+| `/api/messages`       | Messages within a conversation                       |
+| `/api/activity`       | User activity feed                                   |
+| `/api/sync`           | Offline sync queue (mobile)                          |
+
+All responses follow `{ success: boolean, data? }` or `{ success: false, error: string }`.
+
+---
+
+## Authentication
+
+- Access tokens are short-lived JWTs signed with HS256, sent via `Authorization: Bearer`.
+- Refresh tokens are stored in MongoDB with expiry and rotated on each use.
+- Google OAuth uses Passport.js (passport-google-oauth20). On callback, a JWT is issued and the user is redirected to the frontend with the token in the query string.
+- Passwords are hashed with bcryptjs (cost factor 12).
+
+---
+
+## AI integration
+
+All AI calls go through `services/groq.service.js` using the Groq API.
+
+Model: `llama-3.1-8b-instant`. Chosen for free-tier rate limits viable for multi-user traffic (14.4K RPD, 500K TPD). Prompts use `temperature: 0.3` and `response_format: { type: 'json_object' }` where available to ensure deterministic, parseable output. Input is capped at 50,000 characters per call.
+
+| Function                 | Input          | Output                                                                |
+| ------------------------ | -------------- | --------------------------------------------------------------------- |
+| `generateSummary`        | Note content   | `{ quickSummary, detailedSummary }` -- structured markdown sections   |
+| `generateFlashcards`     | Note or PDF text | `{ cards: [{ front, back }] }` -- 5-20 Q&A pairs                   |
+| `generateResumeFeedback` | Resume text    | Scored feedback: strengths, improvements, per-section scores, keyword analysis |
+
+---
+
+## Security
+
+| Concern              | Implementation                                                 |
+| -------------------- | -------------------------------------------------------------- |
+| HTTP headers         | Helmet (removes `X-Powered-By`, sets CSP/HSTS/etc.)            |
+| CORS                 | Restricted to `FRONTEND_URL` with explicit allowed methods     |
+| Rate limiting        | `express-rate-limit` applied globally to all `/api` routes     |
+| NoSQL injection      | `mongo-sanitize` strips `$`-prefixed keys from body, params, query |
+| XSS / HTML injection | `sanitize-html` applied to user-generated content              |
+| Body size            | Requests capped at 200kb                                       |
+| Auth guard           | `middleware/auth.middleware.js` verifies JWT on protected routes |
+
+---
+
+## Data models
+
+| Model          | Key fields                                                          |
+| -------------- | ------------------------------------------------------------------- |
+| `User`         | email, passwordHash, googleId, avatar, friends, refreshTokens       |
+| `Note`         | owner, title, content, aiSummary, tags, collaborators               |
+| `FlashcardSet` | owner, cards `[{ front, back }]`, source (manual/AI/PDF)            |
+| `Task`         | owner, title, status (todo/in-progress/done), dueDate               |
+| `Application`  | owner, company, role, status, notes, appliedAt                      |
+| `Resume`       | owner, cloudinaryUrl, extractedText, aiFeedback                     |
+| `Conversation` | participants `[userId]`, lastMessage                                |
+| `Message`      | conversation, sender, body, readBy                                  |
+| `Friendship`   | requester, recipient, status (pending/accepted)                     |
+| `Activity`     | user, type, metadata, createdAt                                     |
+| `RefreshToken` | userId, token, expiresAt                                            |
+| `SyncQueue`    | userId, operations (offline mobile sync)                            |
+
+---
+
+## Environment variables
+
+```
+MONGO_URI
+JWT_SECRET
+JWT_REFRESH_SECRET
+GROQ_API_KEY
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
+CLOUDINARY_CLOUD_NAME
+CLOUDINARY_API_KEY
+CLOUDINARY_API_SECRET
+RESEND_API_KEY
+FRONTEND_URL
+PORT
+NODE_ENV
+```
+
+---
+
+## Running locally
+
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Health check: `GET /health`
