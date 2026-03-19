@@ -1,4 +1,4 @@
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 export default function AuthLayout() {
@@ -29,14 +29,14 @@ export default function AuthLayout() {
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2.5 mb-2">
+          <Link to="/" className="inline-flex items-center gap-2.5 mb-2 no-underline">
             <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-lg">
               <span className="text-white text-base font-bold">C</span>
             </div>
             <span className="font-serif font-bold text-2xl text-primary tracking-tight">
               Continuum
             </span>
-          </div>
+          </Link>
           <p className="text-secondary text-sm">Your academic & career companion</p>
         </div>
 

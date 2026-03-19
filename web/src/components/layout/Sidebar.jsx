@@ -174,7 +174,7 @@ export default function Sidebar() {
           </div>
         </button>
         <button
-          onClick={() => { logout(); navigate('/login'); }}
+          onClick={() => { logout(); navigate('/'); }}
           style={{
             display: 'flex',
             alignItems: 'center',
