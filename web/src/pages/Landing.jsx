@@ -147,29 +147,6 @@ export default function Landing() {
             </Link>
           </div>
 
-          {/* Backed by */}
-          <p className="text-xs font-medium" style={{ color: '#a087b0' }}>
-            Backed by <span style={{ color: '#6b21a8', fontWeight: 600 }}>Google Play</span> and <span style={{ color: '#6b21a8', fontWeight: 600 }}>All Star Code</span>
-          </p>
-        </div>
-      </section>
-
-      {/* Stats bar */}
-      <section className="border-y" style={{ borderColor: '#ede9fe', background: '#f5f0ff' }}>
-        <div className="max-w-4xl mx-auto px-6 py-6">
-          <div className="flex flex-wrap justify-center gap-10">
-            {[
-              { value: '70+', label: 'API endpoints' },
-              { value: '3', label: 'AI-powered features' },
-              { value: '15', label: 'database collections' },
-              { value: '1', label: 'platform for everything' },
-            ].map(s => (
-              <div key={s.label} className="text-center">
-                <p className="font-bold" style={{ fontFamily: 'Georgia, serif', fontSize: '1.75rem', color: '#6b21a8', lineHeight: 1 }}>{s.value}</p>
-                <p className="text-xs mt-1.5 font-medium" style={{ color: '#9CA3AF' }}>{s.label}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 

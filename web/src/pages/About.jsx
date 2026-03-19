@@ -63,25 +63,6 @@ export default function About() {
         </div>
       </section>
 
-      {/* Stats bar */}
-      <section className="border-y" style={{ borderColor: '#ede9fe', background: '#f5f0ff' }}>
-        <div className="max-w-4xl mx-auto px-6 py-8">
-          <div className="flex flex-wrap justify-center gap-12">
-            {[
-              { value: '70+', label: 'API endpoints built' },
-              { value: '3', label: 'AI-powered features' },
-              { value: '15', label: 'database collections' },
-              { value: '1', label: 'platform for everything' },
-            ].map(s => (
-              <div key={s.label} className="text-center">
-                <p className="font-bold" style={{ fontFamily: 'Georgia, serif', fontSize: '2rem', color: '#6b21a8', lineHeight: 1 }}>{s.value}</p>
-                <p className="text-sm mt-1.5" style={{ color: '#9CA3AF' }}>{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Story */}
       <section className="max-w-3xl mx-auto px-6 py-20">
         <div className="rounded-2xl border p-10" style={{ background: 'white', borderColor: '#ede9fe', boxShadow: '0 4px 30px rgba(107,33,168,0.07)' }}>
@@ -215,19 +196,13 @@ export default function About() {
           <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#a087b0', letterSpacing: '0.15em' }}>Backed by</p>
           <h2 className="font-bold" style={{ fontFamily: 'Georgia, serif', fontSize: '1.6rem', color: '#111827' }}>Organizations that made this possible</h2>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
-            {
-              name: 'TEI 2026',
-              sub: 'Lehigh University',
-              description: "The Entrepreneurs Initiative, a selective program at Lehigh supporting student founders building real ventures.",
-              accent: true,
-            },
             {
               name: 'Google Play',
               sub: 'Partnership',
               description: 'Resources and distribution support for student-built technology products.',
-              accent: false,
+              accent: true,
             },
             {
               name: 'All Star Code',
