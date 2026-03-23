@@ -179,7 +179,7 @@ function FlashcardSetCard({ set }) {
           border: '1px solid #ede9fe',
           borderRadius: 16,
           boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
-          padding: '1rem 1.125rem',
+          padding: '1.125rem 1.25rem',
           height: '100%',
           cursor: 'pointer',
           transition: 'box-shadow 0.18s, border-color 0.18s, transform 0.18s',
@@ -198,18 +198,17 @@ function FlashcardSetCard({ set }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <span
             style={{
-              fontSize: 10,
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
+              fontSize: 9,
+              fontWeight: 600,
               background: set.isAIGenerated ? '#fef3c7' : 'rgba(107,33,168,0.08)',
               color: set.isAIGenerated ? '#b45309' : '#6b21a8',
-              padding: '3px 8px',
-              borderRadius: 6,
+              padding: '2px 7px',
+              borderRadius: 20,
               lineHeight: 1.5,
+              whiteSpace: 'nowrap',
             }}
           >
-            {set.isAIGenerated ? 'AI' : 'Manual'}
+            {set.isAIGenerated ? 'AI Generated' : 'Manual Creation'}
           </span>
           <span style={{ fontSize: 11, color: '#9CA3AF' }}>
             {set.totalCards || 0} card{(set.totalCards || 0) !== 1 ? 's' : ''}
