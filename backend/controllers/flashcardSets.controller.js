@@ -228,6 +228,40 @@ exports.duplicateSet = async (req, res) => {
 };
 
 // ----------------------------------------
+// PATCH /api/flashcard-sets/:id
+// Purpose: Update a flashcard set's title and/or description
+// Body: { title?, description? } — at least one required
+// Owner-only
+// ----------------------------------------
+exports.updateSet = async (req, res) => {
+    const { title, description } = req.body;
+
+    if (title === undefined && description === undefined) {
+        return res.status(400).json({ success: false, error: 'At least one of title or description is required' });
+    }
+
+    if (title !== undefined && title.trim().length === 0) {
+        return res.status(400).json({ success: false, error: 'Title cannot be empty' });
+    }
+
+    const updates = {};
+    if (title !== undefined) updates.title = title.trim();
+    if (description !== undefined) updates.description = description.trim();
+
+    const set = await FlashcardSet.findOneAndUpdate(
+        { _id: req.params.id, userId: req.user._id, deletedAt: null },
+        updates,
+        { new: true, runValidators: true }
+    );
+
+    if (!set) {
+        return res.status(404).json({ success: false, error: 'Flashcard set not found' });
+    }
+
+    res.status(200).json({ success: true, set });
+};
+
+// ----------------------------------------
 // POST /api/flashcard-sets/:id/cards
 // Purpose: Add a card to an existing set
 // Body: { front, back }
