@@ -51,25 +51,28 @@ Alternatively, this can be deferred and addressed as a separate feature rather t
 
 #### `backend/controllers/comments.controller.js`
 
-- `getComments` (`targetType === 'flashcardSet'` branch): replace `isPublic` check with three-tier guard (owner → sharedWith → friends + friendship query)
-- `addComment`: add three-tier access check for `targetType === 'flashcardSet'` before inserting
+- `getComments` (`targetType === 'flashcardSet'` branch): replace `isPublic` check with three-tier guard (owner → sharedWith → friends + friendship query) — **implemented**
+- `addComment`: add three-tier access check for all target types before inserting (note, flashcardSet, task) — **implemented**
 
-#### `backend/controllers/flashcardSets.controller.js` *(optional — duplicate feature)*
+#### `backend/controllers/flashcardSets.controller.js`
 
-- `duplicateSet` (new): access-guarded copy endpoint at `POST /api/flashcard-sets/:id/duplicate`
+- `getSetById`: add `.populate('userId', 'username firstName lastName avatarUrl')` so creator info is available to the frontend — **implemented**
+  - **Note:** after adding populate, the access check must use `set.userId._id ?? set.userId` (not `set.userId.toString()`) because `userId` is now a populated object
+- `duplicateSet` (new): access-guarded copy endpoint at `POST /api/flashcard-sets/:id/duplicate` — **implemented**
   - Verifies access via three-tier check
-  - Creates new FlashcardSet with `userId = req.user._id`, same cards array, `isAIGenerated = false` (or carry over original flag), clears per-card `userProgress`
+  - Creates new FlashcardSet with `userId = req.user._id`, same cards array, carries over `isAIGenerated` flag, clears per-card `userProgress`
 
-#### `backend/routes/flashcardSets.routes.js` *(if adding duplicate)*
+#### `backend/routes/flashcardSets.routes.js`
 
-- Add `POST /:id/duplicate → duplicateSet`
+- `POST /:id/duplicate → duplicateSet` — **implemented**
 
 ### Frontend
 
-#### Flashcard set detail page
+#### `web/src/pages/flashcards/FlashcardSetDetail.jsx`
 
-- Ensure comments section renders for shared users (not gated behind ownership)
-- If duplicate endpoint is added: show a "Save a copy" button for shared users in place of Edit/Delete
+- Comments section (post, like, delete) visible to all users with access — **implemented**
+- Creator attribution row shown for non-owners with link to their profile — **implemented**
+- "Save a copy" button shown for non-owners, disabled after first use — **implemented**
 
 ---
 
