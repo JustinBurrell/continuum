@@ -21,6 +21,7 @@ router.get('/shared', flashcardSetsController.getSharedSets);
 router.post('/', flashcardSetsController.createSet);
 router.get('/', flashcardSetsController.getSets);
 router.get('/:id', flashcardSetsController.getSetById);
+router.patch('/:id', flashcardSetsController.updateSet);
 router.delete('/:id', flashcardSetsController.deleteSet);
 router.patch('/:id/share', flashcardSetsController.shareSet);
 router.post('/:id/duplicate', flashcardSetsController.duplicateSet);

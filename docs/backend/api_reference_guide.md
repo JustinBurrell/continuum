@@ -66,6 +66,7 @@ Summary is stored as an embedded field on the Note document for the owner. When 
 - `POST /api/flashcard-sets` - Create flashcard set manually
 - `GET /api/flashcard-sets` - List user's flashcard sets
 - `GET /api/flashcard-sets/:setId` - Get set with all flashcards. Accessible by owner, users in `sharedWith`, or friends when `visibility: 'friends'`. Response includes populated `userId` (username, firstName, lastName, avatarUrl) for creator attribution.
+- `PATCH /api/flashcard-sets/:setId` - Update set title and/or description. Owner-only. Body: `{ title?, description? }` — at least one required; title cannot be empty.
 - `POST /api/flashcard-sets/:setId/cards` - Add card to set
 - `PUT /api/flashcard-sets/:setId/cards/:cardId` - Edit flashcard front and back content
 - `PUT /api/flashcard-sets/:setId/cards/:cardId/progress` - Update study progress (correct/incorrect)
@@ -236,7 +237,7 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 | Google Drive | 2 | Yes |
 | Notes | 9 | Yes |
 | AI Summary | 1 | Yes |
-| Flashcards | 8 | Yes |
+| Flashcards | 9 | Yes |
 | Tasks | 5 | Yes |
 | Calendar | 1 | Yes |
 | Social (Friends) | 6 | Yes |
@@ -250,4 +251,4 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 | Activity Feed | 1 | Stretch |
 | Offline Sync | 1 | Stretch |
 | Health | 1 | Yes |
-| **Total** | **78** | **73** |
+| **Total** | **79** | **74** |

@@ -23,6 +23,9 @@ export default function FlashcardSetDetail() {
   // Edit card state
   const [editingCard, setEditingCard] = useState(null); // { _id, front, back }
   const [editCard, setEditCard] = useState({ front: '', back: '' });
+  // Inline title edit state
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState('');
   // Comment state
   const [comment, setComment] = useState('');
   // Duplicate state
@@ -94,6 +97,20 @@ export default function FlashcardSetDetail() {
     mutationFn: (commentId) => api.post(`/comments/${commentId}/like`),
     onSuccess: () => refetchComments(),
   });
+
+  const updateSetMutation = useMutation({
+    mutationFn: (updates) => api.patch(`/flashcard-sets/${id}`, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flashcard-set', id] });
+      setEditingTitle(false);
+    },
+  });
+
+  const submitTitleEdit = () => {
+    const trimmed = titleDraft.trim();
+    if (!trimmed || trimmed === set?.title) { setEditingTitle(false); return; }
+    updateSetMutation.mutate({ title: trimmed });
+  };
 
   const duplicateMutation = useMutation({
     mutationFn: () => api.post(`/flashcard-sets/${id}/duplicate`),
@@ -168,9 +185,47 @@ export default function FlashcardSetDetail() {
           </button>
         </Link>
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>
-            {set.title}
-          </h1>
+          {isOwner && editingTitle ? (
+            <input
+              autoFocus
+              value={titleDraft}
+              onChange={e => setTitleDraft(e.target.value)}
+              onBlur={submitTitleEdit}
+              onKeyDown={e => {
+                if (e.key === 'Enter') { e.preventDefault(); submitTitleEdit(); }
+                if (e.key === 'Escape') setEditingTitle(false);
+              }}
+              style={{
+                fontFamily: 'Georgia, serif',
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                color: '#111827',
+                lineHeight: 1.2,
+                border: 'none',
+                borderBottom: '2px solid #6b21a8',
+                outline: 'none',
+                background: 'transparent',
+                width: '100%',
+                padding: 0,
+              }}
+            />
+          ) : (
+            <h1
+              style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', lineHeight: 1.2, display: 'flex', alignItems: 'center', gap: 8 }}
+            >
+              {set.title}
+              {isOwner && (
+                <button
+                  onClick={() => { setTitleDraft(set.title); setEditingTitle(true); }}
+                  style={{ padding: 4, borderRadius: 6, border: 'none', background: 'transparent', color: '#a087b0', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+                >
+                  <Pencil size={14} />
+                </button>
+              )}
+            </h1>
+          )}
           {set.subject && (
             <p style={{ fontSize: '0.875rem', color: '#a087b0', marginTop: 2 }}>{set.subject}</p>
           )}
@@ -346,7 +401,7 @@ export default function FlashcardSetDetail() {
             >
               {/* Actions — owner only */}
               {isOwner && (
-                <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 4, opacity: 0 }} className="group-hover:opacity-100">
+                <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 4, opacity: 0.4 }} className="group-hover:opacity-100">
                   <button
                     onClick={() => openEditCard(card)}
                     style={{
