@@ -103,19 +103,19 @@ exports.getSetById = async (req, res) => {
     const set = await FlashcardSet.findOne({
         _id: req.params.id,
         deletedAt: null,
-    }).populate({
-        path: 'flashcards',
-        match: { deletedAt: null },
-        options: { sort: { order: 1 } },
-    });
+    })
+        .populate({ path: 'flashcards', match: { deletedAt: null }, options: { sort: { order: 1 } } })
+        .populate('userId', 'username firstName lastName avatarUrl');
 
     if (!set) {
         return res.status(404).json({ success: false, error: 'Flashcard set not found' });
     }
 
     // Access check: owner, specific share, or friends visibility
+    // set.userId is a populated object after populate() — use ._id for comparisons
     const userId = req.user._id.toString();
-    const isOwner = set.userId.toString() === userId;
+    const ownerId = set.userId._id ?? set.userId;
+    const isOwner = ownerId.toString() === userId;
     const isSharedWith = set.sharedWith?.some(id => id.toString() === userId);
     const isFriendsVisible = set.visibility === 'friends';
 
@@ -125,8 +125,8 @@ exports.getSetById = async (req, res) => {
         }
         const friendship = await Friendship.findOne({
             $or: [
-                { user1: req.user._id, user2: set.userId },
-                { user1: set.userId, user2: req.user._id },
+                { user1: req.user._id, user2: ownerId },
+                { user1: ownerId, user2: req.user._id },
             ],
             status: 'accepted',
             deletedAt: null,
@@ -155,6 +155,76 @@ exports.deleteSet = async (req, res) => {
     }
 
     res.status(200).json({ success: true, message: 'Flashcard set deleted' });
+};
+
+// ----------------------------------------
+// POST /api/flashcard-sets/:id/duplicate
+// Purpose: Create a personal copy of a shared set owned by the requesting user
+// Access: owner or any user with read access (sharedWith or friends visibility)
+// Does not copy per-card userProgress — the copy starts fresh
+// ----------------------------------------
+exports.duplicateSet = async (req, res) => {
+    const original = await FlashcardSet.findOne({
+        _id: req.params.id,
+        deletedAt: null,
+    }).populate({
+        path: 'flashcards',
+        match: { deletedAt: null },
+        options: { sort: { order: 1 } },
+    });
+
+    if (!original) {
+        return res.status(404).json({ success: false, error: 'Flashcard set not found' });
+    }
+
+    // Three-tier access check mirroring getSetById
+    const userId = req.user._id.toString();
+    const isOwner = original.userId.toString() === userId;
+    const isSharedWith = original.sharedWith?.some(id => id.toString() === userId);
+
+    if (!isOwner && !isSharedWith) {
+        if (original.visibility !== 'friends') {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+        const friendship = await Friendship.findOne({
+            $or: [
+                { user1: req.user._id, user2: original.userId },
+                { user1: original.userId, user2: req.user._id },
+            ],
+            status: 'accepted',
+            deletedAt: null,
+        });
+        if (!friendship) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+    }
+
+    const copy = await FlashcardSet.create({
+        userId: req.user._id,
+        noteId: null,
+        title: `${original.title} (copy)`,
+        description: original.description,
+        isAIGenerated: original.isAIGenerated,
+        totalCards: original.flashcards?.length || 0,
+    });
+
+    if (original.flashcards?.length > 0) {
+        const cardDocs = original.flashcards.map((card, index) => ({
+            setId: copy._id,
+            front: card.front,
+            back: card.back,
+            order: index,
+        }));
+        await Flashcard.insertMany(cardDocs);
+    }
+
+    const populatedCopy = await FlashcardSet.findById(copy._id).populate({
+        path: 'flashcards',
+        match: { deletedAt: null },
+        options: { sort: { order: 1 } },
+    });
+
+    res.status(201).json({ success: true, set: populatedCopy });
 };
 
 // ----------------------------------------

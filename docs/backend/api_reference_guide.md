@@ -65,11 +65,12 @@ Summary is stored as an embedded field on the Note document. When you `GET /api/
 - `POST /api/notes/:noteId/flashcards/generate` - Auto-generate flashcards from note content via Groq
 - `POST /api/flashcard-sets` - Create flashcard set manually
 - `GET /api/flashcard-sets` - List user's flashcard sets
-- `GET /api/flashcard-sets/:setId` - Get set with all flashcards. Accessible by owner, users in `sharedWith`, or friends when `visibility: 'friends'`
+- `GET /api/flashcard-sets/:setId` - Get set with all flashcards. Accessible by owner, users in `sharedWith`, or friends when `visibility: 'friends'`. Response includes populated `userId` (username, firstName, lastName, avatarUrl) for creator attribution.
 - `POST /api/flashcard-sets/:setId/cards` - Add card to set
 - `PUT /api/flashcard-sets/:setId/cards/:cardId` - Edit flashcard front and back content
 - `PUT /api/flashcard-sets/:setId/cards/:cardId/progress` - Update study progress (correct/incorrect)
 - `DELETE /api/flashcard-sets/:setId` - Soft delete flashcard set
+- `POST /api/flashcard-sets/:setId/duplicate` - Create a personal copy of an accessible set owned by the requesting user. Copies all cards; does not copy per-card `userProgress`. Access: owner or any user with read access (sharedWith or friends visibility).
 
 ---
 
@@ -242,11 +243,11 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp). Data can 
 | Social (Note Sharing) | 2 | Yes |
 | Social (Comments) | 4 | Yes |
 | Shared Tasks | 3 | Yes |
-| Flashcard Set Sharing | 2 | Stretch |
+| Flashcard Set Sharing | 3 | Stretch |
 | Resume | 6 | Yes |
 | Applications | 7 | Yes |
 | Messaging | 5 | Yes |
 | Activity Feed | 1 | Stretch |
 | Offline Sync | 1 | Stretch |
 | Health | 1 | Yes |
-| **Total** | **77** | **73** |
+| **Total** | **78** | **73** |

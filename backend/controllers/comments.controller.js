@@ -2,6 +2,7 @@ const Comment = require('../models/Comment');
 const Note = require('../models/Note');
 const FlashcardSet = require('../models/FlashcardSet');
 const Task = require('../models/Task');
+const Friendship = require('../models/Friendship');
 const { createActivity } = require('../services/activity.service');
 
 // ============================================================
@@ -34,6 +35,56 @@ exports.addComment = async (req, res) => {
 
     if (!content || content.trim().length === 0) {
         return res.status(400).json({ success: false, error: 'content is required' });
+    }
+
+    // Verify requester has access to the target before allowing a comment
+    const userId = req.user._id;
+    if (targetType === 'note') {
+        const note = await Note.findOne({ _id: targetId, deletedAt: null });
+        if (!note) return res.status(404).json({ success: false, error: 'Target not found' });
+        const isOwner = note.userId.toString() === userId.toString();
+        const isShared = note.sharedWith.some(id => id.toString() === userId.toString());
+        if (!isOwner && !isShared) {
+            if (note.visibility !== 'friends') {
+                return res.status(403).json({ success: false, error: 'Access denied' });
+            }
+            const friendship = await Friendship.findOne({
+                $or: [
+                    { user1: userId, user2: note.userId },
+                    { user1: note.userId, user2: userId },
+                ],
+                status: 'accepted',
+                deletedAt: null,
+            });
+            if (!friendship) return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+    } else if (targetType === 'flashcardSet') {
+        const set = await FlashcardSet.findOne({ _id: targetId, deletedAt: null });
+        if (!set) return res.status(404).json({ success: false, error: 'Target not found' });
+        const isOwner = set.userId.toString() === userId.toString();
+        const isShared = set.sharedWith.some(id => id.toString() === userId.toString());
+        if (!isOwner && !isShared) {
+            if (set.visibility !== 'friends') {
+                return res.status(403).json({ success: false, error: 'Access denied' });
+            }
+            const friendship = await Friendship.findOne({
+                $or: [
+                    { user1: userId, user2: set.userId },
+                    { user1: set.userId, user2: userId },
+                ],
+                status: 'accepted',
+                deletedAt: null,
+            });
+            if (!friendship) return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+    } else if (targetType === 'task') {
+        const task = await Task.findOne({ _id: targetId, deletedAt: null });
+        if (!task) return res.status(404).json({ success: false, error: 'Target not found' });
+        const isOwner = task.userId.toString() === userId.toString();
+        const isParticipant = task.participants.some(p => p.userId.toString() === userId.toString());
+        if (!isOwner && !isParticipant) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
     }
 
     // If parentId is provided, verify the parent comment exists and is on the same target
@@ -100,9 +151,21 @@ exports.getComments = async (req, res) => {
         if (!set) return res.status(404).json({ success: false, error: 'Target not found' });
         const isOwner = set.userId.toString() === userId.toString();
         const isShared = set.sharedWith.some(id => id.toString() === userId.toString());
-        const isPublic = set.visibility === 'public';
-        if (!isOwner && !isShared && !isPublic) {
-            return res.status(403).json({ success: false, error: 'Access denied' });
+        if (!isOwner && !isShared) {
+            if (set.visibility !== 'friends') {
+                return res.status(403).json({ success: false, error: 'Access denied' });
+            }
+            const friendship = await Friendship.findOne({
+                $or: [
+                    { user1: userId, user2: set.userId },
+                    { user1: set.userId, user2: userId },
+                ],
+                status: 'accepted',
+                deletedAt: null,
+            });
+            if (!friendship) {
+                return res.status(403).json({ success: false, error: 'Access denied' });
+            }
         }
     } else if (targetType === 'task') {
         const task = await Task.findOne({ _id: targetId, deletedAt: null });

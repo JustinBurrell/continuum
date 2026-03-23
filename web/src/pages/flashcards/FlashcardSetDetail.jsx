@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { ArrowLeft, Plus, Sparkles, Play, Trash2, Pencil, Share2 } from 'lucide-react';
+import { ArrowLeft, Plus, Sparkles, Play, Trash2, Pencil, Share2, Copy, MessageCircle, Send, Heart, Trash } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { Card } from '@/components/ui/Card';
@@ -9,8 +9,10 @@ import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import Modal from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
+import Avatar from '@/components/ui/Avatar';
 import ShareModal from '@/components/ui/ShareModal';
 import { useAuth } from '@/context/AuthContext';
+import { formatRelative } from '@/lib/utils';
 
 export default function FlashcardSetDetail() {
   const { state } = useLocation();
@@ -21,6 +23,11 @@ export default function FlashcardSetDetail() {
   // Edit card state
   const [editingCard, setEditingCard] = useState(null); // { _id, front, back }
   const [editCard, setEditCard] = useState({ front: '', back: '' });
+  // Comment state
+  const [comment, setComment] = useState('');
+  // Duplicate state
+  const [duplicateMsg, setDuplicateMsg] = useState('');
+  const [duplicatedId, setDuplicatedId] = useState(null);
 
   // Share state
   const [showShareModal, setShowShareModal] = useState(false);
@@ -64,12 +71,51 @@ export default function FlashcardSetDetail() {
     },
   });
 
+  const { data: commentsData, refetch: refetchComments } = useQuery({
+    queryKey: ['flashcard-set-comments', id],
+    queryFn: () => api.get(`/comments/flashcardSet/${id}`).then(r => r.data),
+    enabled: !!id,
+  });
+
+  const commentMutation = useMutation({
+    mutationFn: (content) => api.post('/comments', { targetType: 'flashcardSet', targetId: id, content }),
+    onSuccess: () => {
+      setComment('');
+      refetchComments();
+    },
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId) => api.delete(`/comments/${commentId}`),
+    onSuccess: () => refetchComments(),
+  });
+
+  const likeCommentMutation = useMutation({
+    mutationFn: (commentId) => api.post(`/comments/${commentId}/like`),
+    onSuccess: () => refetchComments(),
+  });
+
+  const duplicateMutation = useMutation({
+    mutationFn: () => api.post(`/flashcard-sets/${id}/duplicate`),
+    onSuccess: (res) => {
+      const newId = res.data?.set?._id;
+      setDuplicatedId(newId);
+      setDuplicateMsg('Saved a copy to your sets!');
+      queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
+    },
+    onError: () => setDuplicateMsg('Failed to save a copy.'),
+  });
+
   const openEditCard = (card) => {
     setEditingCard(card);
     setEditCard({ front: card.front, back: card.back });
   };
 
+  const getCommentAuthor = (c) => c.userSnapshot || {};
+  const fullName = (u) => [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'Unknown';
+
   const set = data?.set || data?.data;
+  const comments = commentsData?.comments || commentsData?.data || [];
 
   if (isLoading) {
     return (
@@ -94,7 +140,9 @@ export default function FlashcardSetDetail() {
   }
 
   const cardCount = set.flashcards?.length || 0;
-  const isOwner = String(set.userId) === String(user?._id);
+  const creatorId = set.userId?._id ?? set.userId;
+  const isOwner = String(creatorId) === String(user?._id);
+  const creator = set.userId?._id ? set.userId : null; // populated object when not owner
 
   return (
     <div>
@@ -129,6 +177,29 @@ export default function FlashcardSetDetail() {
         </div>
 
         {/* Action buttons */}
+        {!isOwner && (
+          <button
+            onClick={() => duplicateMutation.mutate()}
+            disabled={duplicateMutation.isPending || !!duplicatedId}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '7px 14px',
+              borderRadius: 12,
+              border: '1px solid #ede9fe',
+              background: 'white',
+              color: '#374151',
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              cursor: duplicateMutation.isPending || duplicatedId ? 'not-allowed' : 'pointer',
+              opacity: duplicateMutation.isPending ? 0.6 : 1,
+            }}
+          >
+            <Copy size={14} />
+            {duplicateMutation.isPending ? 'Saving...' : duplicatedId ? 'Saved' : 'Save a copy'}
+          </button>
+        )}
         {isOwner && (
           <button
             onClick={() => setShowShareModal(true)}
@@ -200,9 +271,35 @@ export default function FlashcardSetDetail() {
         </Link>
       </div>
 
-      <p style={{ fontSize: '0.8125rem', color: '#a087b0', marginBottom: 24, marginLeft: 42 }}>
-        {cardCount} {cardCount === 1 ? 'card' : 'cards'}
-      </p>
+      <div style={{ marginLeft: 42, marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <p style={{ fontSize: '0.8125rem', color: '#a087b0' }}>
+          {cardCount} {cardCount === 1 ? 'card' : 'cards'}
+        </p>
+        {!isOwner && creator && (
+          <p style={{ fontSize: '0.8125rem', color: '#a087b0' }}>
+            Created by{' '}
+            <Link
+              to="/users/view"
+              state={{ id: creator._id }}
+              style={{ color: '#6b21a8', fontWeight: 500, textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+              onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+            >
+              {fullName(creator)}
+            </Link>
+          </p>
+        )}
+        {duplicateMsg && (
+          <p style={{ fontSize: '0.75rem', color: duplicateMsg.includes('Failed') ? '#ef4444' : '#16a34a' }}>
+            {duplicateMsg}
+            {duplicatedId && (
+              <Link to="/flashcards" style={{ marginLeft: 8, color: '#6b21a8', fontWeight: 500, textDecoration: 'none' }}>
+                View sets
+              </Link>
+            )}
+          </p>
+        )}
+      </div>
 
       {/* Cards grid */}
       {cardCount === 0 ? (
@@ -306,6 +403,140 @@ export default function FlashcardSetDetail() {
           ))}
         </div>
       )}
+
+      {/* Comments section */}
+      <div style={{
+        background: 'white',
+        border: '1px solid #ede9fe',
+        borderRadius: 16,
+        boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+        padding: '24px 28px',
+        marginTop: 24,
+      }}>
+        <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '0.9375rem', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+          <MessageCircle size={16} style={{ color: '#6b21a8' }} /> Comments ({comments.length})
+        </h3>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>
+          {comments.length === 0 ? (
+            <p style={{ fontSize: '0.875rem', color: '#a087b0' }}>No comments yet. Be the first to comment.</p>
+          ) : (
+            comments.map(c => {
+              const author = getCommentAuthor(c);
+              const isOwn = c.userId === user?._id || c.userId?._id === user?._id;
+              const isLiked = c.likes?.includes(user?._id);
+              const likeCount = c.likes?.length || 0;
+              return (
+                <div key={c._id} className="group" style={{ display: 'flex', gap: 12 }}>
+                  <Link to="/users/view" state={{ id: c.userId?._id ?? c.userId }} style={{ flexShrink: 0 }}>
+                    <Avatar name={fullName(author)} src={author.avatarUrl} size="sm" />
+                  </Link>
+                  <div style={{
+                    flex: 1,
+                    background: '#fef7ff',
+                    borderRadius: 12,
+                    padding: '10px 14px',
+                    border: '1px solid #ede9fe',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <Link
+                        to="/users/view"
+                        state={{ id: c.userId?._id ?? c.userId }}
+                        style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827', textDecoration: 'none' }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#111827'}
+                      >
+                        {fullName(author)}
+                      </Link>
+                      <span style={{ fontSize: '0.75rem', color: '#a087b0' }}>{formatRelative(c.createdAt)}</span>
+                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <button
+                          onClick={() => likeCommentMutation.mutate(c._id)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            fontSize: '0.75rem',
+                            padding: '3px 8px',
+                            borderRadius: 8,
+                            border: 'none',
+                            cursor: 'pointer',
+                            background: isLiked ? '#fef2f2' : 'transparent',
+                            color: isLiked ? '#ef4444' : '#a087b0',
+                            transition: 'all 0.12s',
+                          }}
+                        >
+                          <Heart size={12} style={{ fill: isLiked ? '#ef4444' : 'none' }} />
+                          {likeCount > 0 && <span>{likeCount}</span>}
+                        </button>
+                        {isOwn && (
+                          <button
+                            onClick={() => deleteCommentMutation.mutate(c._id)}
+                            className="opacity-0 group-hover:opacity-100"
+                            style={{
+                              padding: '3px',
+                              borderRadius: 6,
+                              border: 'none',
+                              background: 'transparent',
+                              color: '#a087b0',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              transition: 'all 0.12s',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+                          >
+                            <Trash size={12} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <p style={{ fontSize: '0.875rem', color: '#1f2937', lineHeight: 1.5 }}>{c.content}</p>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Comment input */}
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <Avatar name={user?.name || user?.username} src={user?.avatarUrl} size="sm" />
+          <div style={{ flex: 1, display: 'flex', gap: 8 }}>
+            <input
+              type="text"
+              placeholder="Write a comment..."
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey && comment.trim()) {
+                  e.preventDefault();
+                  commentMutation.mutate(comment.trim());
+                }
+              }}
+              style={{
+                flex: 1,
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 12,
+                padding: '9px 14px',
+                fontSize: '0.875rem',
+                color: '#111827',
+                outline: 'none',
+              }}
+            />
+            <Button
+              size="sm"
+              onClick={() => comment.trim() && commentMutation.mutate(comment.trim())}
+              loading={commentMutation.isPending}
+              disabled={!comment.trim()}
+            >
+              <Send size={14} />
+            </Button>
+          </div>
+        </div>
+      </div>
 
       {/* Add card modal */}
       <Modal open={showAddCard} onClose={() => setShowAddCard(false)} title="Add flashcard">
