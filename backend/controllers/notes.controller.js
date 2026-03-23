@@ -226,15 +226,17 @@ exports.getNoteById = async (req, res) => {
     const note = await Note.findOne({
         _id: req.params.id,
         deletedAt: null,
-    });
+    }).populate('userId', 'username firstName lastName avatarUrl');
 
     if (!note) {
         return res.status(404).json({ success: false, error: 'Note not found' });
     }
 
     // Access check: owner, specific share, or friends visibility
+    // note.userId is a populated object after populate() — use ._id for comparisons
     const userId = req.user._id.toString();
-    const isOwner = note.userId.toString() === userId;
+    const ownerId = note.userId._id ?? note.userId;
+    const isOwner = ownerId.toString() === userId;
     const isSharedWith = note.sharedWith?.some(id => id.toString() === userId);
     const isFriendsVisible = note.visibility === 'friends';
 
@@ -245,8 +247,8 @@ exports.getNoteById = async (req, res) => {
         // Verify friendship for 'friends' visibility
         const friendship = await Friendship.findOne({
             $or: [
-                { user1: req.user._id, user2: note.userId },
-                { user1: note.userId, user2: req.user._id },
+                { user1: req.user._id, user2: ownerId },
+                { user1: ownerId, user2: req.user._id },
             ],
             status: 'accepted',
             deletedAt: null,
@@ -419,43 +421,71 @@ exports.refreshNote = async (req, res) => {
 //   - Returns cached summary unless ?force=true is passed
 // ----------------------------------------
 exports.generateSummary = async (req, res) => {
-    const note = await Note.findOne({
-        _id: req.params.id,
-        userId: req.user._id,
-        deletedAt: null,
-    });
+    const note = await Note.findOne({ _id: req.params.id, deletedAt: null });
 
     if (!note) {
         return res.status(404).json({ success: false, error: 'Note not found' });
+    }
+
+    // Three-tier access check
+    const userId = req.user._id.toString();
+    const ownerId = note.userId.toString();
+    const isOwner = ownerId === userId;
+    const isSharedWith = note.sharedWith?.some(id => id.toString() === userId);
+
+    if (!isOwner && !isSharedWith) {
+        if (note.visibility !== 'friends') {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+        const friendship = await Friendship.findOne({
+            $or: [
+                { user1: req.user._id, user2: note.userId },
+                { user1: note.userId, user2: req.user._id },
+            ],
+            status: 'accepted',
+            deletedAt: null,
+        });
+        if (!friendship) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
     }
 
     if (!note.content || note.content.trim().length === 0) {
         return res.status(400).json({ success: false, error: 'Note has no content to summarize' });
     }
 
-    // Return cached summary unless ?force=true is explicitly passed
+    // Return cached summary for the owner unless ?force=true; always regenerate for shared users
     const force = req.query.force === 'true';
-    if (note.summary?.quickSummary && !force) {
+    if (isOwner && note.summary?.quickSummary && !force) {
         return res.status(200).json({ success: true, note, cached: true });
     }
 
     const result = await groqService.generateSummary(note.content, req.user._id);
 
-    const updatedNote = await Note.findByIdAndUpdate(
-        note._id,
-        {
-            summary: {
-                quickSummary: result.quickSummary,
-                detailedSummary: result.detailedSummary,
-                generatedAt: new Date(),
-                model: result.model,
-                tokenCount: result.tokenCount,
+    // Only persist the summary to the note document for the owner
+    if (isOwner) {
+        const updatedNote = await Note.findByIdAndUpdate(
+            note._id,
+            {
+                summary: {
+                    quickSummary: result.quickSummary,
+                    detailedSummary: result.detailedSummary,
+                    generatedAt: new Date(),
+                    model: result.model,
+                    tokenCount: result.tokenCount,
+                },
             },
-        },
-        { new: true }
-    );
+            { new: true }
+        );
+        return res.status(200).json({ success: true, note: updatedNote, cached: false });
+    }
 
-    res.status(200).json({ success: true, note: updatedNote, cached: false });
+    // For shared users: return the generated summary without persisting it
+    return res.status(200).json({
+        success: true,
+        note: { ...note.toObject(), summary: { quickSummary: result.quickSummary, detailedSummary: result.detailedSummary } },
+        cached: false,
+    });
 };
 
 // ----------------------------------------
@@ -468,14 +498,33 @@ exports.generateSummary = async (req, res) => {
 // Generated once — no regeneration (call the endpoint again to create a new set)
 // ----------------------------------------
 exports.generateFlashcardsFromNote = async (req, res) => {
-    const note = await Note.findOne({
-        _id: req.params.id,
-        userId: req.user._id,
-        deletedAt: null,
-    });
+    const note = await Note.findOne({ _id: req.params.id, deletedAt: null });
 
     if (!note) {
         return res.status(404).json({ success: false, error: 'Note not found' });
+    }
+
+    // Three-tier access check
+    const userId = req.user._id.toString();
+    const ownerId = note.userId.toString();
+    const isOwner = ownerId === userId;
+    const isSharedWith = note.sharedWith?.some(id => id.toString() === userId);
+
+    if (!isOwner && !isSharedWith) {
+        if (note.visibility !== 'friends') {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+        const friendship = await Friendship.findOne({
+            $or: [
+                { user1: req.user._id, user2: note.userId },
+                { user1: note.userId, user2: req.user._id },
+            ],
+            status: 'accepted',
+            deletedAt: null,
+        });
+        if (!friendship) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
     }
 
     if (!note.content || note.content.trim().length === 0) {
@@ -484,7 +533,7 @@ exports.generateFlashcardsFromNote = async (req, res) => {
 
     const result = await groqService.generateFlashcards(note.content, req.user._id);
 
-    // Create the FlashcardSet linked to this note
+    // FlashcardSet is always owned by the requesting user
     const set = await FlashcardSet.create({
         userId: req.user._id,
         noteId: note._id,
@@ -494,7 +543,6 @@ exports.generateFlashcardsFromNote = async (req, res) => {
         totalCards: result.cards.length,
     });
 
-    // Bulk insert all flashcard docs
     const flashcardDocs = result.cards.map((card, index) => ({
         setId: set._id,
         front: card.front,
@@ -503,8 +551,10 @@ exports.generateFlashcardsFromNote = async (req, res) => {
     }));
     await Flashcard.insertMany(flashcardDocs);
 
-    // Mark note as having flashcards
-    await Note.findByIdAndUpdate(note._id, { hasFlashcards: true });
+    // Only flag the note as having flashcards when the owner generates them
+    if (isOwner) {
+        await Note.findByIdAndUpdate(note._id, { hasFlashcards: true });
+    }
 
     const populatedSet = await FlashcardSet.findById(set._id).populate('flashcards');
 

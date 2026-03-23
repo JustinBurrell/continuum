@@ -142,7 +142,10 @@ export default function NoteDetail() {
 
   const note = data?.note || data?.data;
   const comments = commentsData?.comments || commentsData?.data || [];
-  const isOwner = note && String(note.userId) === String(user?._id);
+  // note.userId is a populated object after getNoteById populate — use ._id for comparison
+  const creatorId = note?.userId?._id ?? note?.userId;
+  const isOwner = note && String(creatorId) === String(user?._id);
+  const creator = note?.userId?._id ? note.userId : null; // populated object when not owner
 
   if (isLoading) {
     return (
@@ -261,6 +264,22 @@ export default function NoteDetail() {
             </span>
           </div>
         </div>
+
+        {/* Creator attribution — shown only for shared users */}
+        {!isOwner && creator && (
+          <p style={{ fontSize: '0.8125rem', color: '#a087b0', marginTop: 8, marginBottom: 4 }}>
+            Created by{' '}
+            <Link
+              to="/users/view"
+              state={{ id: creator._id }}
+              style={{ color: '#6b21a8', fontWeight: 500, textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+              onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+            >
+              {[creator.firstName, creator.lastName].filter(Boolean).join(' ') || creator.username}
+            </Link>
+          </p>
+        )}
 
         {/* Tags */}
         {note.tags?.length > 0 && (

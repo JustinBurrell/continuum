@@ -49,21 +49,19 @@ The summary is stored on the note document itself (`note.summary`). Allowing sha
 
 #### `backend/controllers/comments.controller.js`
 
-- `getComments`: Replace the broken `isPublic` check with a full three-tier access guard (owner → sharedWith → friends visibility + friendship query). Apply to all three `targetType` branches (`note`, `flashcardSet`, `task`).
-- `addComment`: Add the same access guard before allowing comment creation. Currently there is no access check on the target before inserting the comment.
+- `getComments` note branch: replaced broken `isPublic` check with three-tier guard (owner → sharedWith → friends visibility + friendship query) — **implemented**
+- `addComment` note branch: access guard added — **already implemented as part of shared-flashcard-sets-bug fix**
+- `getComments` flashcardSet + task branches: fixed in prior tickets — **already implemented**
 
 #### `backend/controllers/notes.controller.js`
 
-- `generateFlashcardsFromNote`:
-  - Add three-tier access check.
-  - If requester is not the owner: create FlashcardSet with `userId = req.user._id`, skip updating `note.hasFlashcards`.
-- `generateSummary`:
-  - Add three-tier access check.
-  - If requester is not the owner: generate and return the summary but do not write it to the note document.
+- `getNoteById`: added `.populate('userId', 'username firstName lastName avatarUrl')`; updated access check to use `note.userId._id ?? note.userId` — **implemented**
+- `generateFlashcardsFromNote`: replaced owner-only query with three-tier access check; FlashcardSet always owned by requester; `hasFlashcards` flag only updated for owner — **implemented**
+- `generateSummary`: replaced owner-only query with three-tier access check; non-owners receive generated summary in response without persisting it to the note document — **implemented**
 
 #### `backend/controllers/flashcardSets.controller.js`
 
-- Review `getSetById` for the same `isPublic` visibility bug and apply the same fix if present.
+- `isPublic` bug in `getSetById` — fixed in shared-flashcard-sets-bug ticket — **already implemented**
 
 ---
 
@@ -71,11 +69,10 @@ The summary is stored on the note document itself (`note.summary`). Allowing sha
 
 #### `web/src/pages/notes/NoteDetail.jsx`
 
-- **Creator attribution:** When the viewing user is not the owner, display the note creator's name (from `note.userId` — ensure the `getNoteById` response populates `firstName`, `lastName`, `username`) above the note title or in the metadata row. The name should link to `/profile/:userId`.
-- **Comments section:** Remove any owner-only gate on rendering the comments section. Any user who can view the note should see comments and be able to post, reply, and like.
-- **Generate Flashcards button:** Currently gated behind ownership check. Show to all users who have access to the note. The endpoint will handle creating a flashcard set owned by the viewer.
-- **Generate AI Summary button:** Show to all users who have access. The response will include the summary text but the owner's stored summary will not be overwritten.
-- **Preserve owner-only actions:** Edit, Delete, and Share buttons remain owner-only.
+- `isOwner` fixed to handle populated `userId` object (`note.userId._id ?? note.userId`) — **implemented**
+- Creator attribution row shown below note metadata for non-owners, with profile link — **implemented**
+- Comments section, Generate Flashcards, and Generate AI Summary were already rendered for all users — no gating removed; backend fixes unblock them — **no frontend change needed**
+- Edit, Delete, and Share buttons remain owner-only — **unchanged**
 
 ---
 
