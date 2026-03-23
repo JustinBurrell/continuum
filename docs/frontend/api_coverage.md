@@ -64,7 +64,7 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/flashcard-sets` | `pages/flashcards/FlashcardSets.jsx` | List all sets |
+| GET | `/api/flashcard-sets` | `pages/flashcards/FlashcardSets.jsx` | List all sets; supports `?search=` for title filter |
 | POST | `/api/flashcard-sets` | `pages/flashcards/FlashcardSets.jsx` → create modal | |
 | GET | `/api/flashcard-sets/:id` | `pages/flashcards/FlashcardSetDetail.jsx` | Cards array included |
 | PATCH | `/api/flashcard-sets/:id` | `pages/flashcards/FlashcardSetDetail.jsx` → inline title edit (owner-only) | Body: `{ title?, description? }` |
@@ -84,7 +84,7 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/tasks` | `pages/tasks/Tasks.jsx` | Kanban grouped by status |
+| GET | `/api/tasks` | `pages/tasks/Tasks.jsx` | Kanban grouped by status; supports `?search=` for title filter |
 | POST | `/api/tasks` | `pages/tasks/Tasks.jsx` → New task modal | |
 | GET | `/api/tasks/:id` | Not needed (list used) | |
 | PUT | `/api/tasks/:id` | `pages/tasks/Tasks.jsx` → status dropdown | Full update including status change |

@@ -64,7 +64,7 @@ Summary is stored as an embedded field on the Note document for the owner. When 
 ### **Flashcard System**
 - `POST /api/notes/:noteId/flashcards/generate` - Auto-generate flashcards from note content via Groq. Accessible by owner and shared users. The resulting FlashcardSet is always owned by the requesting user. `note.hasFlashcards` is only updated when the owner generates.
 - `POST /api/flashcard-sets` - Create flashcard set manually
-- `GET /api/flashcard-sets` - List user's flashcard sets
+- `GET /api/flashcard-sets` - List user's flashcard sets. Supports `?search=` for title regex match.
 - `GET /api/flashcard-sets/:setId` - Get set with all flashcards. Accessible by owner, users in `sharedWith`, or friends when `visibility: 'friends'`. Response includes populated `userId` (username, firstName, lastName, avatarUrl) for creator attribution.
 - `PATCH /api/flashcard-sets/:setId` - Update set title and/or description. Owner-only. Body: `{ title?, description? }` — at least one required; title cannot be empty.
 - `POST /api/flashcard-sets/:setId/cards` - Add card to set
@@ -79,7 +79,7 @@ Summary is stored as an embedded field on the Note document for the owner. When 
 
 ### **Task Operations**
 - `POST /api/tasks` - Create task with due date, priority, type (`homework|study|project|exam|club|professional|personal|other`), duration, and optional note link
-- `GET /api/tasks` - List tasks with time range and status filters
+- `GET /api/tasks` - List tasks with time range, status, and search filters. Supports `?search=` for title regex match.
 - `PUT /api/tasks/:taskId` - Update task properties (title, status, priority, type, due date)
 - `PATCH /api/tasks/:taskId/status` - Quick status update
 - `DELETE /api/tasks/:taskId` - Soft delete task (owner only)
