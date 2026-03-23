@@ -195,6 +195,30 @@ Can generate multiple sets from same note (creates new set each time)
 User can edit any AI-generated card afterward
 ```
 
+### Edit a Flashcard Set (Title / Description)
+```
+Owner opens a flashcard set → clicks the pencil icon next to the title
+  → Frontend shows inline input pre-filled with current title
+  → User types new title → presses Enter or clicks away
+  → PATCH /api/flashcard-sets/:setId { title }
+  → Server validates: owner-only (userId match), title not empty
+  → FlashcardSet.findOneAndUpdate() → returns updated set
+  → React Query invalidates ['flashcard-set', id] → title updates in UI
+  → Pressing Escape cancels without saving
+```
+
+### Edit an Individual Flashcard
+```
+Owner opens a flashcard set → hovers over a card → clicks pencil icon
+  (on mobile: icons are always visible at reduced opacity — no hover required)
+  → Edit modal opens pre-filled with current front/back text
+  → User edits → clicks Save
+  → PUT /api/flashcard-sets/:setId/cards/:cardId { front, back }
+  → Server validates: set owner-only, front and back both present
+  → Flashcard.findOneAndUpdate() → returns updated card
+  → refetch() reloads card grid with updated content
+```
+
 ### Study Flashcards
 ```
 User opens a flashcard set → clicks "Study"
