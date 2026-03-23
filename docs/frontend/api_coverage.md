@@ -53,10 +53,10 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| POST | `/api/comments` | `pages/notes/NoteDetail.jsx` → comment input | Body: `{ targetType: 'note', targetId, content }` |
-| GET | `/api/comments/:targetType/:targetId` | `pages/notes/NoteDetail.jsx` | Fetched as `/comments/note/:noteId` |
-| DELETE | `/api/comments/:id` | Not yet exposed in UI | Delete own comment |
-| POST | `/api/comments/:id/like` | Not yet exposed in UI | Like a comment |
+| POST | `/api/comments` | `pages/notes/NoteDetail.jsx` → comment input; `pages/flashcards/FlashcardSetDetail.jsx` → comment input | Body: `{ targetType, targetId, content }` |
+| GET | `/api/comments/:targetType/:targetId` | `pages/notes/NoteDetail.jsx`; `pages/flashcards/FlashcardSetDetail.jsx` | Fetched as `/comments/note/:id` or `/comments/flashcardSet/:id` |
+| DELETE | `/api/comments/:id` | `pages/notes/NoteDetail.jsx`; `pages/flashcards/FlashcardSetDetail.jsx` | Owner-only soft delete |
+| POST | `/api/comments/:id/like` | `pages/notes/NoteDetail.jsx`; `pages/flashcards/FlashcardSetDetail.jsx` | Toggle like |
 
 ---
 
@@ -71,10 +71,11 @@ Frontend base URL: `http://localhost:5173`
 | POST | `/api/flashcard-sets/generate` | No frontend trigger (backend-only endpoint) | Body: `{ content, title }` |
 | POST | `/api/flashcard-sets/:id/cards` | `pages/flashcards/FlashcardSetDetail.jsx` → Add card modal | Body: `{ front, back }` |
 | DELETE | `/api/flashcard-sets/:setId/cards/:cardId` | `pages/flashcards/FlashcardSetDetail.jsx` → card delete | |
-| PUT | `/api/flashcard-sets/:setId/cards/:cardId` | Not yet exposed in UI | Edit card text |
+| PUT | `/api/flashcard-sets/:setId/cards/:cardId` | `pages/flashcards/FlashcardSetDetail.jsx` → edit card modal | Edit card text |
 | PUT | `/api/flashcard-sets/:setId/cards/:cardId/progress` | `pages/flashcards/StudyMode.jsx` | Track study progress |
 | PATCH | `/api/flashcard-sets/:id/share` | Not yet exposed in UI | Share a set |
 | GET | `/api/flashcard-sets/shared` | Not yet exposed in UI | View shared sets |
+| POST | `/api/flashcard-sets/:id/duplicate` | `pages/flashcards/FlashcardSetDetail.jsx` → "Save a copy" button (shown for non-owners) | Creates a copy owned by the requesting user |
 
 ---
 
@@ -207,9 +208,6 @@ These backend endpoints exist but have no frontend UI yet:
 | `PUT /api/notes/:id/refresh` | Refresh button on NoteDetail (Google Doc notes only) |
 | `PUT /api/notes/:id/share` | Share note with friend button on NoteDetail |
 | `POST /api/notes/:id/flashcards/generate` | "Generate flashcards" button on NoteDetail |
-| `DELETE /api/comments/:id` | Delete comment button on NoteDetail |
-| `POST /api/comments/:id/like` | Like comment button on NoteDetail |
-| `PUT /api/flashcard-sets/:setId/cards/:cardId` | Edit card content inline on FlashcardSetDetail |
 | `PATCH /api/flashcard-sets/:id/share` | Share set button on FlashcardSetDetail |
 | `GET /api/flashcard-sets/shared` | "Shared sets" tab on FlashcardSets |
 | `PATCH /api/tasks/:id/participant-status` | Participant status toggle on task card |
