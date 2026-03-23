@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, Clock, AlertCircle, Trash2, Users } from 'lucide-react';
+import { Plus, Clock, AlertCircle, Trash2, Users, Search } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
@@ -51,13 +51,14 @@ export default function Tasks() {
   const [sharedTab, setSharedTab] = useState(false);
   const [viewingTaskId, setViewingTaskId] = useState(location.state?.openTaskId ?? null);
   const [showSharePicker, setShowSharePicker] = useState(false);
+  const [search, setSearch] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: sharedTab ? ['tasks', 'shared'] : ['tasks', 'mine'],
+    queryKey: sharedTab ? ['tasks', 'shared'] : ['tasks', 'mine', search],
     queryFn: () =>
       sharedTab
         ? api.get('/tasks/shared').then(r => r.data)
-        : api.get('/tasks').then(r => r.data),
+        : api.get('/tasks', { params: search ? { search } : {} }).then(r => r.data),
   });
 
   const invalidateTasks = () => {
@@ -115,6 +116,32 @@ export default function Tasks() {
           <Plus size={16} /> New task
         </Button>
       </div>
+
+      {/* Search */}
+      {!sharedTab && (
+        <div style={{ position: 'relative', marginBottom: 16 }}>
+          <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+          <input
+            style={{
+              width: '100%',
+              paddingLeft: 36,
+              paddingRight: 14,
+              paddingTop: 9,
+              paddingBottom: 9,
+              background: 'white',
+              border: '1px solid #ede9fe',
+              borderRadius: 12,
+              fontSize: '0.875rem',
+              color: '#111827',
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+            placeholder="Search tasks..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+      )}
 
       {/* Tab toggle */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>

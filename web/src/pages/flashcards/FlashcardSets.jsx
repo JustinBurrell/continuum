@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, BookOpen, Trash2, Play, Edit3 } from 'lucide-react';
+import { Plus, BookOpen, Trash2, Play, Edit3, Search } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { Card } from '@/components/ui/Card';
@@ -15,13 +15,14 @@ export default function FlashcardSets() {
   const [showCreate, setShowCreate] = useState(false);
   const [newSet, setNewSet] = useState({ title: '', description: '', subject: '' });
   const [sharedTab, setSharedTab] = useState(false);
+  const [search, setSearch] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: sharedTab ? ['flashcard-sets-shared'] : ['flashcard-sets'],
+    queryKey: sharedTab ? ['flashcard-sets-shared'] : ['flashcard-sets', search],
     queryFn: () =>
       sharedTab
         ? api.get('/flashcard-sets/shared').then(r => r.data)
-        : api.get('/flashcard-sets').then(r => r.data),
+        : api.get('/flashcard-sets', { params: search ? { search } : {} }).then(r => r.data),
   });
 
   const createMutation = useMutation({
@@ -38,7 +39,10 @@ export default function FlashcardSets() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] }),
   });
 
-  const sets = data?.sets || data?.data || [];
+  const rawSets = data?.sets || data?.data || [];
+  const sets = sharedTab && search
+    ? rawSets.filter(s => s.title?.toLowerCase().includes(search.toLowerCase()))
+    : rawSets;
 
   return (
     <div>
@@ -70,6 +74,30 @@ export default function FlashcardSets() {
         >
           <Plus size={15} /> New set
         </button>
+      </div>
+
+      {/* Search */}
+      <div style={{ position: 'relative', marginBottom: 16 }}>
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+        <input
+          style={{
+            width: '100%',
+            paddingLeft: 36,
+            paddingRight: 14,
+            paddingTop: 9,
+            paddingBottom: 9,
+            background: 'white',
+            border: '1px solid #ede9fe',
+            borderRadius: 12,
+            fontSize: '0.875rem',
+            color: '#111827',
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+          placeholder="Search flashcard sets..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
       </div>
 
       {/* Tab toggle */}

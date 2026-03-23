@@ -12,6 +12,7 @@ import Skeleton from '@/components/ui/Skeleton';
 export default function Friends() {
   const [tab, setTab] = useState('friends');
   const [searchQ, setSearchQ] = useState('');
+  const [friendsSearch, setFriendsSearch] = useState('');
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -151,6 +152,29 @@ export default function Friends() {
       {/* Friends list */}
       {tab === 'friends' && (
         <div>
+          {/* Search */}
+          <div style={{ position: 'relative', marginBottom: 16 }}>
+            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+            <input
+              style={{
+                width: '100%',
+                paddingLeft: 36,
+                paddingRight: 14,
+                paddingTop: 9,
+                paddingBottom: 9,
+                background: 'white',
+                border: '1px solid #ede9fe',
+                borderRadius: 12,
+                fontSize: '0.875rem',
+                color: '#111827',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+              placeholder="Search friends..."
+              value={friendsSearch}
+              onChange={e => setFriendsSearch(e.target.value)}
+            />
+          </div>
           {friendsLoading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
@@ -175,7 +199,14 @@ export default function Friends() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {friendships.map(f => {
+              {friendships
+                .filter(f => {
+                  if (!friendsSearch) return true;
+                  const fu = getOtherUser(f);
+                  const q = friendsSearch.toLowerCase();
+                  return fullName(fu).toLowerCase().includes(q) || fu?.username?.toLowerCase().includes(q);
+                })
+                .map(f => {
                 const friendUser = getOtherUser(f);
                 if (!friendUser) return null;
                 return (

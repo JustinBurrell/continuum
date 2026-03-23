@@ -86,10 +86,12 @@ exports.createSet = async (req, res) => {
 // Excludes soft-deleted sets
 // ----------------------------------------
 exports.getSets = async (req, res) => {
-    const sets = await FlashcardSet.find({
-        userId: req.user._id,
-        deletedAt: null,
-    }).sort({ createdAt: -1 });
+    const { search } = req.query;
+
+    const filter = { userId: req.user._id, deletedAt: null };
+    if (search) filter.title = { $regex: search, $options: 'i' };
+
+    const sets = await FlashcardSet.find(filter).sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, sets });
 };

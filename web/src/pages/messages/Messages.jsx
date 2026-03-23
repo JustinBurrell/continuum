@@ -15,6 +15,7 @@ export default function Messages() {
   const { user } = useAuth();
   const [showNew, setShowNew] = useState(false);
   const [friendSearch, setFriendSearch] = useState('');
+  const [convSearch, setConvSearch] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['conversations'],
@@ -34,7 +35,14 @@ export default function Messages() {
     },
   });
 
-  const conversations = data?.conversations || data?.data || [];
+  const allConversations = data?.conversations || data?.data || [];
+  const conversations = convSearch
+    ? allConversations.filter(conv => {
+        const other = conv.participants?.find(p => String(p._id) !== String(user?._id));
+        const name = [other?.firstName, other?.lastName].filter(Boolean).join(' ') || other?.username || '';
+        return name.toLowerCase().includes(convSearch.toLowerCase());
+      })
+    : allConversations;
   const friends = friendsData?.friends || friendsData?.data || [];
 
   return (
@@ -50,6 +58,30 @@ export default function Messages() {
         <Button onClick={() => setShowNew(true)}>
           <Plus size={16} /> New message
         </Button>
+      </div>
+
+      {/* Search */}
+      <div style={{ position: 'relative', marginBottom: 16 }}>
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+        <input
+          style={{
+            width: '100%',
+            paddingLeft: 36,
+            paddingRight: 14,
+            paddingTop: 9,
+            paddingBottom: 9,
+            background: 'white',
+            border: '1px solid #ede9fe',
+            borderRadius: 12,
+            fontSize: '0.875rem',
+            color: '#111827',
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+          placeholder="Search conversations..."
+          value={convSearch}
+          onChange={e => setConvSearch(e.target.value)}
+        />
       </div>
 
       {isLoading ? (

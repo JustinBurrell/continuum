@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, AlertCircle, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertCircle, Clock, Search } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { Card } from '@/components/ui/Card';
@@ -67,6 +67,7 @@ export default function Calendar() {
   const [selected, setSelected] = useState(null);
   const [weekAnchor, setWeekAnchor] = useState(now);
   const [viewingTaskId, setViewingTaskId] = useState(null);
+  const [calSearch, setCalSearch] = useState('');
 
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
@@ -95,8 +96,16 @@ export default function Calendar() {
   const prevWeek = () => setWeekAnchor(d => { const n = new Date(d); n.setDate(n.getDate() - 7); return n; });
   const nextWeek = () => setWeekAnchor(d => { const n = new Date(d); n.setDate(n.getDate() + 7); return n; });
 
-  const days = data?.days || {};
-  const overdue = data?.overdue || [];
+  const rawDays = data?.days || {};
+  const rawOverdue = data?.overdue || [];
+
+  const filterTasks = (tasks) =>
+    calSearch ? tasks.filter(t => t.title?.toLowerCase().includes(calSearch.toLowerCase())) : tasks;
+
+  const days = calSearch
+    ? Object.fromEntries(Object.entries(rawDays).map(([k, v]) => [k, filterTasks(v)]))
+    : rawDays;
+  const overdue = filterTasks(rawOverdue);
   const dates = getMonthDates(year, month);
 
   const selectedTasks = selected ? (days[selected] || []) : [];
@@ -104,7 +113,7 @@ export default function Calendar() {
   return (
     <div>
       {/* Page header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
           Calendar
         </h1>
@@ -130,6 +139,30 @@ export default function Calendar() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Search */}
+      <div style={{ position: 'relative', marginBottom: 24 }}>
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+        <input
+          style={{
+            width: '100%',
+            paddingLeft: 36,
+            paddingRight: 14,
+            paddingTop: 9,
+            paddingBottom: 9,
+            background: 'white',
+            border: '1px solid #ede9fe',
+            borderRadius: 12,
+            fontSize: '0.875rem',
+            color: '#111827',
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+          placeholder="Filter tasks by name..."
+          value={calSearch}
+          onChange={e => setCalSearch(e.target.value)}
+        />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24 }}>

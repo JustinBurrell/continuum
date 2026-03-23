@@ -95,7 +95,7 @@ exports.createTask = async (req, res) => {
 // Sorted by dueDate ascending (soonest first)
 // ----------------------------------------
 exports.getTasks = async (req, res) => {
-    const { status, type, priority, startDate, endDate } = req.query;
+    const { status, type, priority, startDate, endDate, search } = req.query;
 
     const filter = {
         userId: req.user._id,
@@ -105,6 +105,7 @@ exports.getTasks = async (req, res) => {
     if (status) filter.status = status;
     if (type) filter.type = type;
     if (priority) filter.priority = priority;
+    if (search) filter.title = { $regex: search, $options: 'i' };
 
     // Date range filter on dueDate
     if (startDate || endDate) {
