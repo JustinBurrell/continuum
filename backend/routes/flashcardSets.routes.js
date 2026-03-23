@@ -23,6 +23,7 @@ router.get('/', flashcardSetsController.getSets);
 router.get('/:id', flashcardSetsController.getSetById);
 router.delete('/:id', flashcardSetsController.deleteSet);
 router.patch('/:id/share', flashcardSetsController.shareSet);
+router.post('/:id/duplicate', flashcardSetsController.duplicateSet);
 
 // Card CRUD (nested under set)
 router.post('/:id/cards', flashcardSetsController.addCard);
