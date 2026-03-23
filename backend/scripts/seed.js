@@ -830,12 +830,14 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
   const friendNameObj = (f) => ({ _id: f._id, firstName: f.firstName, lastName: f.lastName });
   const allFriendNames = friends.map(friendNameObj);
 
-  // Activity dates spread across Feb-Apr
-  let actDate = new Date('2026-02-05');
+  // Activity dates: spread across the last 60 days, anchored to now so they never go into the future
+  const activityWindowMs = 60 * 24 * 60 * 60 * 1000; // 60 days in ms
+  let actDate = new Date(Date.now() - activityWindowMs);
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  const capDate = new Date(Date.now() - 30 * 60 * 1000); // cap at 30 min ago
   const bumpDate = () => {
-    actDate = new Date(actDate);
-    actDate.setDate(actDate.getDate() + Math.floor(Math.random() * 3) + 1);
-    return new Date(actDate);
+    actDate = new Date(actDate.getTime() + (Math.floor(Math.random() * 2) + 1) * oneDayMs);
+    return actDate < capDate ? new Date(actDate) : new Date(capDate);
   };
 
   // Justin's shared notes activities

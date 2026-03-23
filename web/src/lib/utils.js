@@ -19,6 +19,7 @@ export function formatRelative(date) {
   const now = new Date();
   const d = new Date(date);
   const diff = now - d;
+  if (diff < 0) return formatDate(date); // future date — show absolute instead of "just now"
   const mins = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
