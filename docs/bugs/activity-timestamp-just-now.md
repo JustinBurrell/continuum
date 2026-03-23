@@ -25,3 +25,6 @@ Changed `bumpDate` to anchor activity dates relative to `Date.now()`:
 ### `web/src/lib/utils.js`
 Added `if (diff < 0) return formatDate(date)` guard before the `mins < 1` check.
 Future dates now show an absolute date string (e.g. "Apr 5, 2026") instead of "just now".
+
+### `backend/controllers/activity.controller.js`
+Added `createdAt: { $lte: new Date() }` to the feed query filter. Future-dated activities (e.g. from a seed run with hardcoded past dates that have since become future-dated) no longer appear in the feed, so genuine recent activity correctly sorts to the top.

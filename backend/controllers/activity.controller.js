@@ -22,6 +22,7 @@ exports.getActivityFeed = async (req, res) => {
             { visibleTo: req.user._id },
             { isPublic: true },
         ],
+        createdAt: { $lte: new Date() },
     };
 
     const [feed, total] = await Promise.all([
