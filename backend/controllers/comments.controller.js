@@ -142,9 +142,21 @@ exports.getComments = async (req, res) => {
         if (!note) return res.status(404).json({ success: false, error: 'Target not found' });
         const isOwner = note.userId.toString() === userId.toString();
         const isShared = note.sharedWith.some(id => id.toString() === userId.toString());
-        const isPublic = note.visibility === 'public';
-        if (!isOwner && !isShared && !isPublic) {
-            return res.status(403).json({ success: false, error: 'Access denied' });
+        if (!isOwner && !isShared) {
+            if (note.visibility !== 'friends') {
+                return res.status(403).json({ success: false, error: 'Access denied' });
+            }
+            const friendship = await Friendship.findOne({
+                $or: [
+                    { user1: userId, user2: note.userId },
+                    { user1: note.userId, user2: userId },
+                ],
+                status: 'accepted',
+                deletedAt: null,
+            });
+            if (!friendship) {
+                return res.status(403).json({ success: false, error: 'Access denied' });
+            }
         }
     } else if (targetType === 'flashcardSet') {
         const set = await FlashcardSet.findOne({ _id: targetId, deletedAt: null });

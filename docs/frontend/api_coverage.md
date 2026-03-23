@@ -45,7 +45,7 @@ Frontend base URL: `http://localhost:5173`
 | GET | `/api/notes/:id/pdf` | `pages/notes/NoteDetail.jsx` → PDF button (visible when `note.pdfUrl` exists) | Returns 10-min signed Cloudinary URL |
 | PUT | `/api/notes/:id/refresh` | Not yet exposed in UI | |
 | PUT | `/api/notes/:id/share` | Not yet exposed in UI | Share a note with another user |
-| POST | `/api/notes/:id/flashcards/generate` | Not yet exposed in UI | Generate flashcards from note content |
+| POST | `/api/notes/:id/flashcards/generate` | `pages/notes/NoteDetail.jsx` → Generate Flashcards button | Accessible to owner and shared users; set owned by requester |
 
 ---
 
