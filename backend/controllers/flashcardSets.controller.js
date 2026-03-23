@@ -112,8 +112,10 @@ exports.getSetById = async (req, res) => {
     }
 
     // Access check: owner, specific share, or friends visibility
+    // set.userId is a populated object after populate() — use ._id for comparisons
     const userId = req.user._id.toString();
-    const isOwner = set.userId.toString() === userId;
+    const ownerId = set.userId._id ?? set.userId;
+    const isOwner = ownerId.toString() === userId;
     const isSharedWith = set.sharedWith?.some(id => id.toString() === userId);
     const isFriendsVisible = set.visibility === 'friends';
 
@@ -123,8 +125,8 @@ exports.getSetById = async (req, res) => {
         }
         const friendship = await Friendship.findOne({
             $or: [
-                { user1: req.user._id, user2: set.userId },
-                { user1: set.userId, user2: req.user._id },
+                { user1: req.user._id, user2: ownerId },
+                { user1: ownerId, user2: req.user._id },
             ],
             status: 'accepted',
             deletedAt: null,
