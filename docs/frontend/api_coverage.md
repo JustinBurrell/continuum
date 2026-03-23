@@ -53,10 +53,10 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| POST | `/api/comments` | `pages/notes/NoteDetail.jsx` → comment input; `pages/flashcards/FlashcardSetDetail.jsx` → comment input | Body: `{ targetType, targetId, content }` |
-| GET | `/api/comments/:targetType/:targetId` | `pages/notes/NoteDetail.jsx`; `pages/flashcards/FlashcardSetDetail.jsx` | Fetched as `/comments/note/:id` or `/comments/flashcardSet/:id` |
-| DELETE | `/api/comments/:id` | `pages/notes/NoteDetail.jsx`; `pages/flashcards/FlashcardSetDetail.jsx` | Owner-only soft delete |
-| POST | `/api/comments/:id/like` | `pages/notes/NoteDetail.jsx`; `pages/flashcards/FlashcardSetDetail.jsx` | Toggle like |
+| POST | `/api/comments` | `pages/notes/NoteDetail.jsx`; `pages/flashcards/FlashcardSetDetail.jsx`; `components/tasks/TaskDetailModal.jsx` | Body: `{ targetType, targetId, content }` |
+| GET | `/api/comments/:targetType/:targetId` | `pages/notes/NoteDetail.jsx`; `pages/flashcards/FlashcardSetDetail.jsx`; `components/tasks/TaskDetailModal.jsx` | Fetched as `/comments/note/:id`, `/comments/flashcardSet/:id`, or `/comments/task/:id` |
+| DELETE | `/api/comments/:id` | `pages/notes/NoteDetail.jsx`; `pages/flashcards/FlashcardSetDetail.jsx`; `components/tasks/TaskDetailModal.jsx` | Owner-only soft delete |
+| POST | `/api/comments/:id/like` | `pages/notes/NoteDetail.jsx`; `pages/flashcards/FlashcardSetDetail.jsx`; `components/tasks/TaskDetailModal.jsx` | Toggle like |
 
 ---
 

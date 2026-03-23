@@ -40,18 +40,16 @@ If neither, return 403.
 
 #### `backend/controllers/comments.controller.js`
 
-- `getComments` (`targetType === 'task'` branch):
-  - Fetch the task by `targetId`
-  - Check `task.userId.toString() === userId` (owner) OR `task.participants.some(p => p.userId.toString() === userId)` (participant)
-  - Return 403 if neither
-- `addComment` — add the same two-condition access check before inserting a comment when `targetType === 'task'`
+- `getComments` (`targetType === 'task'` branch): checks owner OR participant — **already correct; implemented as part of shared-flashcard-sets-bug fix**
+- `addComment` task branch: checks owner OR participant before inserting — **already correct; implemented as part of shared-flashcard-sets-bug fix**
 
 ### Frontend
 
-#### `web/src/pages/tasks/` (Task detail page, if it exists)
+#### `web/src/components/tasks/TaskDetailModal.jsx`
 
-- Ensure the comments section is rendered for participants, not just the task owner
-- Task creator attribution is already visible via the task's `userId` — no change needed there
+- Task detail is a modal (not a separate page) — `TaskDetailModal.jsx`
+- Added comments section (post, like, delete) visible to all users with access (owner + participants) — **implemented**
+- Task creator attribution (`task.userId`) was already visible — no change needed
 
 ---
 

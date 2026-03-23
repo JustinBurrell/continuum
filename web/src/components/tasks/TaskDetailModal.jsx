@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Clock, AlertCircle, Pencil, ArrowLeft, Users } from 'lucide-react';
+import { Clock, AlertCircle, Pencil, ArrowLeft, Users, MessageCircle, Send, Heart, Trash } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Modal from '@/components/ui/Modal';
@@ -10,7 +10,7 @@ import Skeleton from '@/components/ui/Skeleton';
 import Avatar from '@/components/ui/Avatar';
 import ShareModal from '@/components/ui/ShareModal';
 import { useAuth } from '@/context/AuthContext';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatRelative } from '@/lib/utils';
 
 const STATUSES = ['todo', 'in_progress', 'completed'];
 const STATUS_LABELS = { todo: 'To Do', in_progress: 'In Progress', completed: 'Completed' };
@@ -42,6 +42,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
   const [editForm, setEditForm] = useState({});
   const [showParticipants, setShowParticipants] = useState(false);
   const [showSharePicker, setShowSharePicker] = useState(false);
+  const [comment, setComment] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['tasks', 'detail', taskId],
@@ -49,7 +50,32 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
     enabled: !!taskId && open,
   });
 
+  const { data: commentsData, refetch: refetchComments } = useQuery({
+    queryKey: ['task-comments', taskId],
+    queryFn: () => api.get(`/comments/task/${taskId}`).then(r => r.data),
+    enabled: !!taskId && open,
+  });
+
+  const commentMutation = useMutation({
+    mutationFn: (content) => api.post('/comments', { targetType: 'task', targetId: taskId, content }),
+    onSuccess: () => { setComment(''); refetchComments(); },
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId) => api.delete(`/comments/${commentId}`),
+    onSuccess: () => refetchComments(),
+  });
+
+  const likeCommentMutation = useMutation({
+    mutationFn: (commentId) => api.post(`/comments/${commentId}/like`),
+    onSuccess: () => refetchComments(),
+  });
+
+  const getCommentAuthor = (c) => c.userSnapshot || {};
+  const fullName = (u) => [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'Unknown';
+
   const task = data?.task;
+  const comments = commentsData?.comments || commentsData?.data || [];
 
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -422,6 +448,111 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
               )}
             </div>
           )}
+
+          {/* Comments */}
+          <div style={{ borderTop: '1px solid #ede9fe', paddingTop: 16, marginTop: 4 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+              <MessageCircle size={14} style={{ color: '#6b21a8' }} /> Comments ({comments.length})
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
+              {comments.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#a087b0' }}>No comments yet.</p>
+              ) : (
+                comments.map(c => {
+                  const author = getCommentAuthor(c);
+                  const isOwn = c.userId === user?._id || c.userId?._id === user?._id;
+                  const isLiked = c.likes?.includes(user?._id);
+                  const likeCount = c.likes?.length || 0;
+                  return (
+                    <div key={c._id} className="group" style={{ display: 'flex', gap: 8 }}>
+                      <Link to="/users/view" state={{ id: c.userId?._id ?? c.userId }} style={{ flexShrink: 0 }}>
+                        <Avatar name={fullName(author)} src={author.avatarUrl} size="sm" />
+                      </Link>
+                      <div style={{ flex: 1, background: '#fef7ff', borderRadius: 10, padding: '8px 12px', border: '1px solid #ede9fe' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                          <Link
+                            to="/users/view"
+                            state={{ id: c.userId?._id ?? c.userId }}
+                            style={{ fontSize: 12, fontWeight: 600, color: '#111827', textDecoration: 'none' }}
+                            onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
+                            onMouseLeave={e => e.currentTarget.style.color = '#111827'}
+                          >
+                            {fullName(author)}
+                          </Link>
+                          <span style={{ fontSize: 11, color: '#a087b0' }}>{formatRelative(c.createdAt)}</span>
+                          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <button
+                              onClick={() => likeCommentMutation.mutate(c._id)}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: 3,
+                                fontSize: 11, padding: '2px 6px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                                background: isLiked ? '#fef2f2' : 'transparent',
+                                color: isLiked ? '#ef4444' : '#a087b0',
+                              }}
+                            >
+                              <Heart size={10} style={{ fill: isLiked ? '#ef4444' : 'none' }} />
+                              {likeCount > 0 && <span>{likeCount}</span>}
+                            </button>
+                            {isOwn && (
+                              <button
+                                onClick={() => deleteCommentMutation.mutate(c._id)}
+                                className="opacity-0 group-hover:opacity-100"
+                                style={{
+                                  padding: 2, borderRadius: 4, border: 'none', background: 'transparent',
+                                  color: '#a087b0', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+                              >
+                                <Trash size={10} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <p style={{ fontSize: 13, color: '#1f2937', lineHeight: 1.5, margin: 0 }}>{c.content}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Comment input */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <Avatar name={user?.name || user?.username} src={user?.avatarUrl} size="sm" />
+              <input
+                type="text"
+                placeholder="Write a comment..."
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey && comment.trim()) {
+                    e.preventDefault();
+                    commentMutation.mutate(comment.trim());
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  background: 'white',
+                  border: '1px solid #ede9fe',
+                  borderRadius: 10,
+                  padding: '7px 12px',
+                  fontSize: 13,
+                  color: '#111827',
+                  outline: 'none',
+                }}
+              />
+              <Button
+                size="sm"
+                onClick={() => comment.trim() && commentMutation.mutate(comment.trim())}
+                loading={commentMutation.isPending}
+                disabled={!comment.trim()}
+              >
+                <Send size={13} />
+              </Button>
+            </div>
+          </div>
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: 12, paddingTop: 8, borderTop: '1px solid #ede9fe', marginTop: 4 }}>
