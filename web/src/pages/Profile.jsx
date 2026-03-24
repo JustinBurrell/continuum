@@ -258,6 +258,7 @@ export default function Profile() {
   const avatarInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [logoutAllLoading, setLogoutAllLoading] = useState(false);
+  const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
   const [notifSaved, setNotifSaved] = useState(false);
   const [verifySent, setVerifySent] = useState(false);
   const [newPasswordValue, setNewPasswordValue] = useState('');
@@ -443,6 +444,20 @@ export default function Profile() {
     setLogoutAllLoading(true);
     try { await api.post('/auth/logout-all'); } catch (_) {}
     finally { localStorage.clear(); navigate('/login'); }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Permanently delete your account and all data? This cannot be undone.')) return;
+    if (!window.confirm('Last chance — this will delete all your notes, tasks, flashcards, and messages forever.')) return;
+    setDeleteAccountLoading(true);
+    try {
+      await api.delete('/auth/me');
+      localStorage.clear();
+      navigate('/login');
+    } catch (_) {
+      toast.error('Failed to delete account. Please try again.');
+      setDeleteAccountLoading(false);
+    }
   };
 
   const onProfileSave = (vals) => {
@@ -916,14 +931,25 @@ export default function Profile() {
           {/* Danger zone */}
           <div style={{ ...card, borderColor: '#fecaca', background: '#fff' }}>
             <p style={{ ...sectionLabel, color: '#dc2626' }}>Danger zone</p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-              <div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Sign out of all devices</p>
-                <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>Revokes all active sessions. You will need to log in again.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Sign out of all devices</p>
+                  <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>Revokes all active sessions. You will need to log in again.</p>
+                </div>
+                <Button size="sm" variant="danger" loading={logoutAllLoading} onClick={handleLogoutAll}>
+                  <LogOut size={13} /> Sign out all
+                </Button>
               </div>
-              <Button size="sm" variant="danger" loading={logoutAllLoading} onClick={handleLogoutAll}>
-                <LogOut size={13} /> Sign out all
-              </Button>
+              <div style={{ borderTop: '1px solid #fecaca', paddingTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#dc2626', margin: 0 }}>Delete account</p>
+                  <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>Permanently deletes your account and all data. This cannot be undone.</p>
+                </div>
+                <Button size="sm" variant="danger" loading={deleteAccountLoading} onClick={handleDeleteAccount}>
+                  Delete account
+                </Button>
+              </div>
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 const { google } = require('googleapis');
 const User = require('../models/User');
+const { encrypt, decrypt } = require('../lib/tokenCrypto');
 
 // ============================================================
 // GOOGLE DRIVE CLIENT
@@ -25,10 +26,10 @@ const getGoogleDriveClient = async (user) => {
     // googleAccessToken and googleRefreshToken have select: false — re-fetch with those fields explicitly
     const userWithTokens = await User.findById(user._id).select('+googleAccessToken +googleRefreshToken');
 
-    // Load the user's stored tokens into the client
+    // Decrypt tokens before use — they are stored AES-256-GCM encrypted at rest
     oauth2Client.setCredentials({
-        access_token: userWithTokens.googleAccessToken,
-        refresh_token: userWithTokens.googleRefreshToken,
+        access_token: decrypt(userWithTokens.googleAccessToken),
+        refresh_token: decrypt(userWithTokens.googleRefreshToken),
     });
 
     // If the access token is expired (or within 5 min of expiry), refresh it
@@ -38,9 +39,9 @@ const getGoogleDriveClient = async (user) => {
         // Ask Google for a new access token using the refresh token
         const { credentials } = await oauth2Client.refreshAccessToken();
 
-        // Save the new token back to the user so the next request doesn't refresh again
+        // Save the refreshed token encrypted — same at-rest protection as initial storage
         await User.findByIdAndUpdate(user._id, {
-            googleAccessToken: credentials.access_token,
+            googleAccessToken: encrypt(credentials.access_token),
             googleTokenExpiry: new Date(credentials.expiry_date),
         });
 

@@ -1,4 +1,5 @@
 const groq = require('../config/groq');
+const { checkAiLimit } = require('../lib/cache');
 
 // ============================================================
 // GROQ SERVICE
@@ -25,6 +26,11 @@ const MAX_INPUT_CHARS = 50000;
 //   - Things to Keep in Mind: caveats, common mistakes, or nuances
 // ----------------------------------------
 const generateSummary = async (content, userId) => {
+    if (await checkAiLimit(userId)) {
+        const err = new Error('Daily AI generation limit reached. Try again tomorrow.');
+        err.status = 429;
+        throw err;
+    }
     content = content.slice(0, MAX_INPUT_CHARS);
     console.info(JSON.stringify({ event: 'ai_call', fn: 'generateSummary', userId, contentLength: content.length, ts: new Date().toISOString() }));
     const systemPrompt = `You are a study assistant helping college students understand and review their academic notes.
@@ -92,6 +98,11 @@ ${content}`;
 // back  — the answer, definition, or explanation
 // ----------------------------------------
 const generateFlashcards = async (content, userId) => {
+    if (await checkAiLimit(userId)) {
+        const err = new Error('Daily AI generation limit reached. Try again tomorrow.');
+        err.status = 429;
+        throw err;
+    }
     content = content.slice(0, MAX_INPUT_CHARS);
     console.info(JSON.stringify({ event: 'ai_call', fn: 'generateFlashcards', userId, contentLength: content.length, ts: new Date().toISOString() }));
     const systemPrompt = `You are a study assistant helping college students create flashcards from their academic notes and documents.
@@ -152,6 +163,11 @@ ${content}`;
 // keywordOptimization — { presentKeywords, missingKeywords }
 // ----------------------------------------
 const generateResumeFeedback = async (resumeText, userId) => {
+    if (await checkAiLimit(userId)) {
+        const err = new Error('Daily AI generation limit reached. Try again tomorrow.');
+        err.status = 429;
+        throw err;
+    }
     resumeText = resumeText.slice(0, MAX_INPUT_CHARS);
     console.info(JSON.stringify({ event: 'ai_call', fn: 'generateResumeFeedback', userId, contentLength: resumeText.length, ts: new Date().toISOString() }));
     const systemPrompt = `You are a senior technical recruiter and career coach who has reviewed thousands of resumes for top tech companies.

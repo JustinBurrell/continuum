@@ -70,4 +70,26 @@ async function invalidate(...keys) {
     } catch (_) {}
 }
 
-module.exports = { getOrSet, invalidate };
+/**
+ * Increment and check a per-user daily AI call counter.
+ * Returns true if the user has exceeded the daily limit (caller should block).
+ * Returns false if under limit OR if Redis is unavailable (fail open).
+ *
+ * @param {string} userId
+ * @param {number} limit — max calls per day (default 10)
+ */
+async function checkAiLimit(userId, limit = 10) {
+    const c = await getClient();
+    if (!c) return false; // no Redis — fail open, don't block
+    const today = new Date().toISOString().split('T')[0];
+    const key = `ai:${userId}:${today}`;
+    try {
+        const count = await c.incr(key);
+        if (count === 1) await c.expire(key, 86400); // expire at end of day
+        return count > limit;
+    } catch (_) {
+        return false;
+    }
+}
+
+module.exports = { getOrSet, invalidate, checkAiLimit };

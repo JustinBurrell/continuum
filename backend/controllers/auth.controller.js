@@ -4,6 +4,16 @@ const User = require('../models/User');
 const Note = require('../models/Note');
 const RefreshToken = require('../models/RefreshToken');
 const OAuthCode = require('../models/OAuthCode');
+const FlashcardSet = require('../models/FlashcardSet');
+const Task = require('../models/Task');
+const Application = require('../models/Application');
+const Resume = require('../models/Resume');
+const Activity = require('../models/Activity');
+const Comment = require('../models/Comment');
+const Message = require('../models/Message');
+const Conversation = require('../models/Conversation');
+const Friendship = require('../models/Friendship');
+const SyncQueue = require('../models/SyncQueue');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const jwt = require('jsonwebtoken');
@@ -139,6 +149,11 @@ exports.forgotPassword = async (req, res) => {
 
     // Always return 200 — never reveal whether an email exists in the system
     if (!user) {
+        return res.status(200).json({ success: true, message: 'If that email exists, a reset link was sent' });
+    }
+
+    // Block reset for unverified accounts — we cannot confirm the registrant owns the email
+    if (!user.emailVerified) {
         return res.status(200).json({ success: true, message: 'If that email exists, a reset link was sent' });
     }
 
@@ -578,4 +593,53 @@ exports.changeUsername = async (req, res) => {
 
     invalidate(`user:${req.user._id}`).catch(() => {});
     res.status(200).json({ success: true, user: updated });
+};
+
+// ----------------------------------------
+// DELETE /api/auth/me
+// Purpose: Permanently delete the authenticated user's account and all associated data
+// GDPR right to erasure — hard deletes every document owned by or referencing the user
+// ----------------------------------------
+exports.deleteAccount = async (req, res) => {
+    const userId = req.user._id;
+
+    // Delete Cloudinary avatar if present
+    if (req.user.avatarPublicId) {
+        await cloudinary.uploader.destroy(req.user.avatarPublicId).catch(() => {});
+    }
+
+    // Delete Cloudinary resume files
+    const resumes = await Resume.find({ owner: userId }).select('cloudinaryPublicId');
+    await Promise.all(
+        resumes.map(r => r.cloudinaryPublicId
+            ? cloudinary.uploader.destroy(r.cloudinaryPublicId, { resource_type: 'raw' }).catch(() => {})
+            : Promise.resolve()
+        )
+    );
+
+    // Hard delete all user-owned and user-referenced data
+    await Promise.all([
+        Note.deleteMany({ userId }),
+        FlashcardSet.deleteMany({ owner: userId }),
+        Task.deleteMany({ userId }),
+        Application.deleteMany({ owner: userId }),
+        Resume.deleteMany({ owner: userId }),
+        Activity.deleteMany({ userId }),
+        Comment.deleteMany({ userId }),
+        Message.deleteMany({ sender: userId }),
+        Friendship.deleteMany({ $or: [{ user1: userId }, { user2: userId }] }),
+        RefreshToken.deleteMany({ userId }),
+        OAuthCode.deleteMany({ userId }),
+        SyncQueue.deleteMany({ userId }),
+    ]);
+
+    // Remove user from conversations and delete any that are now empty
+    await Conversation.updateMany({ participants: userId }, { $pull: { participants: userId } });
+    await Conversation.deleteMany({ participants: { $size: 0 } });
+
+    // Invalidate cache then hard delete the user
+    await invalidate(`user:${userId}`).catch(() => {});
+    await User.deleteOne({ _id: userId });
+
+    res.status(200).json({ success: true, message: 'Account permanently deleted' });
 };
