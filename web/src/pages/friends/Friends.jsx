@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
 import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import FriendsSkeleton from '@/components/skeletons/FriendsSkeleton';
 
 export default function Friends() {
   const [tab, setTab] = useState('friends');
@@ -21,6 +22,7 @@ export default function Friends() {
   const { data: friendsData, isLoading: friendsLoading } = useQuery({
     queryKey: ['friends', friendsSearch],
     queryFn: () => api.get('/friends', { params: friendsSearch ? { search: friendsSearch } : {} }).then(r => r.data),
+    staleTime: 120_000,
   });
 
   const { data: requestsData, isLoading: requestsLoading } = useQuery({
@@ -178,9 +180,7 @@ export default function Friends() {
             />
           </div>
           {friendsLoading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
-            </div>
+            <FriendsSkeleton />
           ) : friendships.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '64px 0' }}>
               <div style={{

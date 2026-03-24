@@ -10,6 +10,7 @@ import Badge from '@/components/ui/Badge';
 import Skeleton from '@/components/ui/Skeleton';
 import Modal from '@/components/ui/Modal';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import NotesListSkeleton from '@/components/skeletons/NotesListSkeleton';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelative, truncate, stripHtml } from '@/lib/utils';
 
@@ -53,12 +54,25 @@ export default function NotesList() {
         })
         .then(r => r.data);
     },
+    staleTime: 60_000,
     keepPreviousData: true,
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => api.delete(`/notes/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notes'] }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['notes'] });
+      const prev = queryClient.getQueryData(['notes', { search, type }]);
+      queryClient.setQueryData(['notes', { search, type }], (old) => {
+        if (!old) return old;
+        return { ...old, notes: (old.notes || []).filter(n => n._id !== id) };
+      });
+      return { prev };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['notes', { search, type }], ctx.prev);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['notes'] }),
   });
 
   const { data: driveData, isLoading: driveLoading } = useQuery({
@@ -231,11 +245,7 @@ export default function NotesList() {
 
       {/* Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-44" />
-          ))}
-        </div>
+        <NotesListSkeleton />
       ) : notes.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '64px 0' }}>
           <div style={{

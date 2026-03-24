@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
+import ActivitySkeleton from '@/components/skeletons/ActivitySkeleton';
 import { formatRelative } from '@/lib/utils';
 
 function fullName(u) {
@@ -183,15 +184,7 @@ export default function Activity() {
       }}>
         <div style={{ padding: '0 20px' }}>
           {isLoading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} style={{ display: 'flex', gap: 14, padding: '14px 0', borderBottom: '1px solid #ede9fe' }}>
-                <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-3 w-20" />
-                </div>
-              </div>
-            ))
+            <ActivitySkeleton />
           ) : activities.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '48px 0' }}>
               <div style={{

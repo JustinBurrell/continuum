@@ -7,6 +7,7 @@ import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
+import ApplicationsSkeleton from '@/components/skeletons/ApplicationsSkeleton';
 import { formatDate } from '@/lib/utils';
 
 const STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
@@ -169,9 +170,7 @@ export default function ApplicationsList() {
       </div>
 
       {isLoading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
-          {STAGES.map(s => <Skeleton key={s} className="h-48" />)}
-        </div>
+        <ApplicationsSkeleton />
       ) : view === 'pipeline' ? (
         /* Pipeline kanban */
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${stageFilter === 'all' ? STAGES.length : 1}, 1fr)`, gap: 16, overflowX: 'auto' }}>

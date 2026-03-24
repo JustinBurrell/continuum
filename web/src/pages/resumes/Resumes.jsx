@@ -6,6 +6,7 @@ import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import ResumesSkeleton from '@/components/skeletons/ResumesSkeleton';
 import { formatDate } from '@/lib/utils';
 
 export default function Resumes() {
@@ -19,6 +20,7 @@ export default function Resumes() {
   const { data, isLoading } = useQuery({
     queryKey: ['resumes', resumeSearch],
     queryFn: () => api.get('/resumes', { params: resumeSearch ? { search: resumeSearch } : {} }).then(r => r.data),
+    staleTime: 300_000,
   });
 
   const handleUpload = async (file) => {
@@ -151,9 +153,7 @@ export default function Resumes() {
       </div>
 
       {isLoading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-32" />)}
-        </div>
+        <ResumesSkeleton />
       ) : resumes.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '32px 0', color: '#a087b0', fontSize: 14 }}>
           {resumeSearch ? `No resumes match "${resumeSearch}".` : 'No resumes uploaded yet. Upload your first resume to get AI-powered feedback.'}
