@@ -1,4 +1,6 @@
 const { Server } = require('socket.io');
+const { createAdapter } = require('@socket.io/redis-adapter');
+const { createClient } = require('redis');
 const jwt = require('jsonwebtoken');
 
 let io = null;
@@ -7,13 +9,22 @@ let io = null;
  * Initialise Socket.io on the given HTTP server.
  * Call once from server.js before listen().
  */
-function initSocket(httpServer) {
+async function initSocket(httpServer) {
   io = new Server(httpServer, {
     cors: {
       origin: process.env.FRONTEND_URL || 'http://localhost:5173',
       credentials: true,
     },
   });
+
+  // Redis pub/sub adapter — enables event delivery across multiple backend instances.
+  // No-op in single-instance deployments; required when running replicas or PM2 cluster.
+  if (process.env.REDIS_URL) {
+    const pubClient = createClient({ url: process.env.REDIS_URL });
+    const subClient = pubClient.duplicate();
+    await Promise.all([pubClient.connect(), subClient.connect()]);
+    io.adapter(createAdapter(pubClient, subClient));
+  }
 
   // Verify JWT on every socket handshake
   io.use((socket, next) => {

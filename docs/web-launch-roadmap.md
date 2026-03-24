@@ -82,15 +82,11 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 6. Redis Adapter for Socket.io → `chore/redis-socket-adapter`
+## 6. ~~Redis Adapter for Socket.io~~ → `chore/redis-socket-adapter` — DONE
 
-[future-ideas/redis-socket-adapter.md](future-ideas/redis-socket-adapter.md)
-
-- Install `@socket.io/redis-adapter`
-- Wire into `backend/lib/socket.js` using existing Redis connection
-- App becomes multi-instance ready from day one — no re-architecture needed later
-
-**When done:** delete `docs/future-ideas/redis-socket-adapter.md`
+- ~~Install `@socket.io/redis-adapter`~~
+- ~~Wire into `backend/lib/socket.js` using existing Redis connection~~
+- ~~App becomes multi-instance ready from day one — no re-architecture needed later~~
 
 ---
 
