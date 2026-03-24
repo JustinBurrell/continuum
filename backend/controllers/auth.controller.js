@@ -4,22 +4,13 @@ const User = require('../models/User');
 const Note = require('../models/Note');
 const RefreshToken = require('../models/RefreshToken');
 const OAuthCode = require('../models/OAuthCode');
-const FlashcardSet = require('../models/FlashcardSet');
-const Task = require('../models/Task');
-const Application = require('../models/Application');
-const Resume = require('../models/Resume');
-const Activity = require('../models/Activity');
-const Comment = require('../models/Comment');
-const Message = require('../models/Message');
-const Conversation = require('../models/Conversation');
-const Friendship = require('../models/Friendship');
-const SyncQueue = require('../models/SyncQueue');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 const cloudinary = require('../config/cloudinary');
 const { invalidate } = require('../lib/cache');
+const { hardDeleteUser } = require('../services/account.service');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -117,8 +108,21 @@ exports.login = async (req, res) => {
         return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
+    // Hard delete if grace period has expired — treat as non-existent
+    if (user.pendingDeletion && user.scheduledDeletionAt && user.scheduledDeletionAt <= new Date()) {
+        await hardDeleteUser(user._id);
+        return res.status(401).json({ success: false, error: 'Invalid credentials' });
+    }
+
     // Track last login time
     user.lastLoginAt = new Date();
+
+    // Logging in during grace period automatically restores the account
+    if (user.pendingDeletion) {
+        user.pendingDeletion = false;
+        user.scheduledDeletionAt = null;
+    }
+
     await user.save();
 
     const token = signToken(user._id);
@@ -154,7 +158,7 @@ exports.forgotPassword = async (req, res) => {
 
     // Block reset for unverified accounts — we cannot confirm the registrant owns the email
     if (!user.emailVerified) {
-        return res.status(200).json({ success: true, message: 'If that email exists, a reset link was sent' });
+        return res.status(400).json({ success: false, error: 'Please verify your email before resetting your password. Check your inbox for the verification email.' });
     }
 
     // createPasswordResetToken() generates a random token, stores the hashed version
@@ -597,49 +601,67 @@ exports.changeUsername = async (req, res) => {
 
 // ----------------------------------------
 // DELETE /api/auth/me
-// Purpose: Permanently delete the authenticated user's account and all associated data
-// GDPR right to erasure — hard deletes every document owned by or referencing the user
+// Purpose: Soft-mark the account for deletion with a 30-day grace period.
+//          User can restore by logging in within 30 days.
+//          Hard delete cascades lazily when scheduledDeletionAt passes.
+// Body: { password } — required for email/password users; optional for Google-only
 // ----------------------------------------
 exports.deleteAccount = async (req, res) => {
+    const { password } = req.body;
     const userId = req.user._id;
 
-    // Delete Cloudinary avatar if present
-    if (req.user.avatarPublicId) {
-        await cloudinary.uploader.destroy(req.user.avatarPublicId).catch(() => {});
+    // Re-fetch with password to verify identity
+    const user = await User.findById(userId).select('+password');
+
+    if (user.password) {
+        // Email/password user — must verify current password
+        if (!password) {
+            return res.status(400).json({ success: false, error: 'Password is required to delete your account' });
+        }
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, error: 'Incorrect password' });
+        }
     }
+    // Google-only users (no password) — JWT is sufficient proof of identity
 
-    // Delete Cloudinary resume files
-    const resumes = await Resume.find({ owner: userId }).select('cloudinaryPublicId');
-    await Promise.all(
-        resumes.map(r => r.cloudinaryPublicId
-            ? cloudinary.uploader.destroy(r.cloudinaryPublicId, { resource_type: 'raw' }).catch(() => {})
-            : Promise.resolve()
-        )
-    );
+    // Soft-mark for deletion — hard delete cascades lazily when scheduledDeletionAt passes
+    const scheduledDeletionAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    await User.findByIdAndUpdate(userId, { pendingDeletion: true, scheduledDeletionAt });
 
-    // Hard delete all user-owned and user-referenced data
-    await Promise.all([
-        Note.deleteMany({ userId }),
-        FlashcardSet.deleteMany({ owner: userId }),
-        Task.deleteMany({ userId }),
-        Application.deleteMany({ owner: userId }),
-        Resume.deleteMany({ owner: userId }),
-        Activity.deleteMany({ userId }),
-        Comment.deleteMany({ userId }),
-        Message.deleteMany({ sender: userId }),
-        Friendship.deleteMany({ $or: [{ user1: userId }, { user2: userId }] }),
-        RefreshToken.deleteMany({ userId }),
-        OAuthCode.deleteMany({ userId }),
-        SyncQueue.deleteMany({ userId }),
-    ]);
+    // Revoke all active sessions
+    await RefreshToken.updateMany({ userId, revokedAt: null }, { revokedAt: new Date() });
 
-    // Remove user from conversations and delete any that are now empty
-    await Conversation.updateMany({ participants: userId }, { $pull: { participants: userId } });
-    await Conversation.deleteMany({ participants: { $size: 0 } });
+    // Send deletion notice email — non-blocking
+    try {
+        const restoreDeadline = scheduledDeletionAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        await resend.emails.send({
+            from: 'Continuum <onboarding@resend.dev>',
+            to: user.email,
+            subject: 'Your Continuum account has been scheduled for deletion',
+            html: `<p>Hi ${user.firstName},</p>
+                   <p>Your account has been scheduled for deletion. <strong>All your data — notes, tasks, flashcards, messages, and more — will be permanently deleted on ${restoreDeadline}.</strong></p>
+                   <p>Changed your mind? Simply log in before ${restoreDeadline} and your account will be fully restored.</p>
+                   <p>If you did not request this, log in immediately to restore your account.</p>
+                   <p>— The Continuum Team</p>`,
+        });
+    } catch (_) { /* non-blocking */ }
 
-    // Invalidate cache then hard delete the user
-    await invalidate(`user:${userId}`).catch(() => {});
-    await User.deleteOne({ _id: userId });
+    res.status(200).json({ success: true, message: 'Account scheduled for deletion. Log in within 30 days to restore it.' });
+};
 
-    res.status(200).json({ success: true, message: 'Account permanently deleted' });
+// ----------------------------------------
+// POST /api/auth/me/restore
+// Purpose: Cancel a pending deletion and restore the account
+// Called when a pendingDeletion user explicitly requests restore (vs. implicit restore via login)
+// ----------------------------------------
+exports.restoreAccount = async (req, res) => {
+    await User.findByIdAndUpdate(req.user._id, {
+        pendingDeletion: false,
+        scheduledDeletionAt: null,
+    });
+
+    // Re-fetch the clean user object to return
+    const restored = await User.findById(req.user._id);
+    res.status(200).json({ success: true, user: restored });
 };

@@ -26,7 +26,7 @@ const MAX_INPUT_CHARS = 50000;
 //   - Things to Keep in Mind: caveats, common mistakes, or nuances
 // ----------------------------------------
 const generateSummary = async (content, userId) => {
-    if (await checkAiLimit(userId)) {
+    if (await checkAiLimit(userId, 25, 'summary')) {
         const err = new Error('Daily AI generation limit reached. Try again tomorrow.');
         err.status = 429;
         throw err;
@@ -98,7 +98,7 @@ ${content}`;
 // back  — the answer, definition, or explanation
 // ----------------------------------------
 const generateFlashcards = async (content, userId) => {
-    if (await checkAiLimit(userId)) {
+    if (await checkAiLimit(userId, 25, 'flashcards')) {
         const err = new Error('Daily AI generation limit reached. Try again tomorrow.');
         err.status = 429;
         throw err;
@@ -163,7 +163,7 @@ ${content}`;
 // keywordOptimization — { presentKeywords, missingKeywords }
 // ----------------------------------------
 const generateResumeFeedback = async (resumeText, userId) => {
-    if (await checkAiLimit(userId)) {
+    if (await checkAiLimit(userId, 5, 'resume')) {
         const err = new Error('Daily AI generation limit reached. Try again tomorrow.');
         err.status = 429;
         throw err;

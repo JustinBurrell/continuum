@@ -57,6 +57,7 @@ router.get('/verify-email', authController.verifyEmail);
 router.patch('/me/password', authMiddleware, authController.changePassword);
 router.patch('/me/username', authMiddleware, authController.changeUsername);
 router.delete('/me', authMiddleware, authController.deleteAccount);
+router.post('/me/restore', authMiddleware, authController.restoreAccount);
 
 router.post('/me/google/link', authMiddleware, authController.googleLink);
 router.delete('/me/google/link', authMiddleware, authController.googleUnlink);

@@ -149,6 +149,21 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
+
+    /**
+     * Pending Deletion (30-day grace period)
+     * Purpose: Soft-mark an account for deletion. User can restore by logging in
+     *          within 30 days. Hard delete cascades when scheduledDeletionAt passes.
+     * Fields: pendingDeletion, scheduledDeletionAt
+     */
+    pendingDeletion: {
+        type: Boolean,
+        default: false,
+    },
+    scheduledDeletionAt: {
+        type: Date,
+        default: null,
+    },
 }, {
     timestamps: true, // auto-creates createdAt and updatedAt on every document
 });

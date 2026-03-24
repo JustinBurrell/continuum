@@ -76,13 +76,14 @@ async function invalidate(...keys) {
  * Returns false if under limit OR if Redis is unavailable (fail open).
  *
  * @param {string} userId
- * @param {number} limit — max calls per day (default 10)
+ * @param {number} limit  — max calls per day
+ * @param {string} type   — endpoint type key ('summary' | 'flashcards' | 'resume')
  */
-async function checkAiLimit(userId, limit = 10) {
+async function checkAiLimit(userId, limit, type) {
     const c = await getClient();
     if (!c) return false; // no Redis — fail open, don't block
     const today = new Date().toISOString().split('T')[0];
-    const key = `ai:${userId}:${today}`;
+    const key = `ai:${type}:${userId}:${today}`;
     try {
         const count = await c.incr(key);
         if (count === 1) await c.expire(key, 86400); // expire at end of day
