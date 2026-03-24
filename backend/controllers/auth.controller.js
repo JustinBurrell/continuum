@@ -9,6 +9,7 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 const cloudinary = require('../config/cloudinary');
+const { invalidate } = require('../lib/cache');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -403,6 +404,7 @@ exports.updateProfile = async (req, res) => {
         { new: true, runValidators: true }
     );
 
+    invalidate(`user:${req.user._id}`).catch(() => {});
     res.status(200).json({ success: true, user: updatedUser });
 };
 
@@ -574,5 +576,6 @@ exports.changeUsername = async (req, res) => {
         { new: true }
     );
 
+    invalidate(`user:${req.user._id}`).catch(() => {});
     res.status(200).json({ success: true, user: updated });
 };

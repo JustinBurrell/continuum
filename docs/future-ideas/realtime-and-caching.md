@@ -96,7 +96,7 @@ The activity service (`backend/services/activity.service.js`) already resolves t
 
 ---
 
-## Phase 3 — Server-Side Caching with Redis
+## ✅ Phase 3 — Server-Side Caching with Redis (COMPLETE)
 
 At scale, repeated reads of the same data (dashboard summaries, shared note lists, activity feeds) will hammer MongoDB. Redis solves this with sub-millisecond in-memory reads.
 
@@ -185,8 +185,8 @@ With the Redis adapter, `io.to('user:xyz').emit(...)` works correctly regardless
 7. ✅ **Real-time activity feed** — complete
 8. ✅ **Real-time flashcard sharing** — complete
 9. **Notification badge** — `new_notification` event updates a badge count on the sidebar
-7. **Redis caching** — introduce once traffic warrants it, not before
-8. **Redis adapter for Socket.io** — only needed when running more than one backend instance
+10. ✅ **Redis caching** — `backend/lib/cache.js` applied to user lookup, activity feed, shared notes, shared sets, shared tasks
+11. **Redis adapter for Socket.io** — only needed when running more than one backend instance
 
 ---
 

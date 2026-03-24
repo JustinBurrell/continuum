@@ -458,7 +458,7 @@ export default function Profile() {
     passwordMutation.mutate({ currentPassword: vals.currentPassword, newPassword: vals.newPassword });
   };
 
-  const me = data?.user || data?.data || user;
+  const me = user || data?.user || data?.data;
   const fullName = [me?.firstName, me?.lastName].filter(Boolean).join(' ') || me?.username;
   const friendships = friendsData?.friendships || friendsData?.data || [];
   const notes = notesData?.notes || notesData?.data || [];

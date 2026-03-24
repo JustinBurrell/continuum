@@ -2,8 +2,10 @@ const Activity = require('../models/Activity');
 const Friendship = require('../models/Friendship');
 const User = require('../models/User');
 const { getIO } = require('../lib/socket');
+const { invalidate } = require('../lib/cache');
 
 // Emit activity_updated to all users who can see the activity except the actor
+// Also invalidate their cached activity feeds
 function notifyActivityAudience(visibleTo, actorId) {
     try {
         const io = getIO();
@@ -13,6 +15,9 @@ function notifyActivityAudience(visibleTo, actorId) {
             }
         });
     } catch (_) {}
+    // Bust the server-side activity cache for all visible users (including actor)
+    const keys = visibleTo.map(uid => `activity:${uid}`);
+    invalidate(...keys).catch(() => {});
 }
 
 // ============================================================

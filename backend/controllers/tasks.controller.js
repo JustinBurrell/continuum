@@ -3,6 +3,7 @@ const Friendship = require('../models/Friendship');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { sendShareMessage } = require('../services/share.service');
 const { getIO } = require('../lib/socket');
+const { getOrSet, invalidate } = require('../lib/cache');
 
 // Emit an event to all task participants/owner except the actor
 function emitToTaskAudience(event, task, actorId, payload = {}) {
@@ -23,6 +24,16 @@ function emitToTaskAudience(event, task, actorId, payload = {}) {
 
 function emitTaskUpdate(task, actorId) {
     emitToTaskAudience('task_updated', task, actorId);
+}
+
+// Bust the shared-tasks cache for every participant on a task
+function invalidateSharedTasksCache(task) {
+    if (!task.participants?.length) return;
+    const keys = task.participants.map(p => {
+        const uid = p.userId ? p.userId.toString() : p.toString();
+        return `shared-tasks:${uid}`;
+    });
+    invalidate(...keys).catch(() => {});
 }
 
 // ============================================================
@@ -108,6 +119,7 @@ exports.createTask = async (req, res) => {
 
         // Notify participants in real-time — task just appeared in their shared list
         emitToTaskAudience('task_created', task, req.user._id);
+        invalidateSharedTasksCache(task);
     }
 
     res.status(201).json({ success: true, task });
@@ -200,6 +212,7 @@ exports.updateTask = async (req, res) => {
     }
 
     emitTaskUpdate(task, req.user._id);
+    invalidateSharedTasksCache(task);
     res.status(200).json({ success: true, task });
 };
 
@@ -238,6 +251,7 @@ exports.updateStatus = async (req, res) => {
     await task.save();
 
     emitTaskUpdate(task, req.user._id);
+    invalidateSharedTasksCache(task);
     res.status(200).json({ success: true, task });
 };
 
@@ -256,6 +270,7 @@ exports.deleteTask = async (req, res) => {
 
     // Notify participants — task disappeared from their shared list
     emitToTaskAudience('task_deleted', existing, req.user._id);
+    invalidateSharedTasksCache(existing);
 
     res.status(200).json({ success: true, message: 'Task deleted' });
 };
@@ -267,19 +282,25 @@ exports.deleteTask = async (req, res) => {
 // ----------------------------------------
 exports.getSharedTasks = async (req, res) => {
     const { search } = req.query;
+    const userId = req.user._id;
 
-    const filter = {
-        isShared: true,
-        'participants.userId': req.user._id,
-        userId: { $ne: req.user._id },
-        deletedAt: null,
+    const fetchTasks = async () => {
+        const filter = {
+            isShared: true,
+            'participants.userId': userId,
+            userId: { $ne: userId },
+            deletedAt: null,
+        };
+        if (search) filter.title = { $regex: search, $options: 'i' };
+        const tasks = await Task.find(filter).sort({ dueDate: 1 });
+        return { tasks };
     };
 
-    if (search) filter.title = { $regex: search, $options: 'i' };
+    const result = !search
+        ? await getOrSet(`shared-tasks:${userId}`, 60, fetchTasks)
+        : await fetchTasks();
 
-    const tasks = await Task.find(filter).sort({ dueDate: 1 });
-
-    res.status(200).json({ success: true, tasks });
+    res.status(200).json({ success: true, ...result });
 };
 
 // ----------------------------------------
@@ -347,6 +368,7 @@ exports.updateParticipants = async (req, res) => {
     }
 
     emitTaskUpdate(task, req.user._id);
+    invalidateSharedTasksCache(task);
     res.status(200).json({ success: true, task });
 };
 
