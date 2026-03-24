@@ -10,17 +10,20 @@ const { getOrSet } = require('../lib/cache');
 
 // ----------------------------------------
 // GET /api/activity
-// Purpose: Return the authenticated user's activity feed
-// Shows activities from friends (or public) based on each actor's activityVisibility setting
-// Query params: limit (default 20, max 50), offset (default 0)
+// Purpose: Return the authenticated user's activity feed using cursor pagination.
+// Cursor is the createdAt timestamp of the last item on the previous page.
+// Each cursor page is cached independently — pages are stable and never change.
+// Query params: limit (default 20, max 50), cursor (ISO date string), search
+// Response: { feed, nextCursor } — nextCursor is null when no more results
 // ----------------------------------------
 exports.getActivityFeed = async (req, res) => {
     const limit = Math.min(Number(req.query.limit) || 20, 50);
-    const offset = Number(req.query.offset) || 0;
+    const cursor = req.query.cursor || null;
     const { search } = req.query;
 
     const userId = req.user._id;
-    const useCache = !search && offset === 0 && limit === 20;
+    const useCache = !search;
+    const cacheKey = `activity:${userId}:${cursor || 'first'}`;
 
     const fetchFeed = async () => {
         const filter = {
@@ -28,7 +31,9 @@ exports.getActivityFeed = async (req, res) => {
                 { visibleTo: userId },
                 { isPublic: true },
             ],
-            createdAt: { $lte: new Date() },
+            createdAt: cursor
+                ? { $lt: new Date(cursor) }
+                : { $lte: new Date() },
         };
 
         if (search) {
@@ -50,20 +55,21 @@ exports.getActivityFeed = async (req, res) => {
             }];
         }
 
-        const [feed, total] = await Promise.all([
-            Activity.find(filter)
-                .sort({ createdAt: -1 })
-                .skip(offset)
-                .limit(limit)
-                .populate('userId', 'firstName lastName username avatarUrl'),
-            Activity.countDocuments(filter),
-        ]);
+        const feed = await Activity.find(filter)
+            .sort({ createdAt: -1 })
+            .limit(limit + 1) // fetch one extra to determine if there is a next page
+            .populate('userId', 'firstName lastName username avatarUrl');
 
-        return { feed, total };
+        const hasMore = feed.length > limit;
+        const items = hasMore ? feed.slice(0, limit) : feed;
+        const nextCursor = hasMore ? items[items.length - 1].createdAt.toISOString() : null;
+
+        return { feed: items, nextCursor };
     };
 
+    // Cache each cursor page for 5 minutes — pages are stable (new items always land above the cursor)
     const result = useCache
-        ? await getOrSet(`activity:${userId}`, 30, fetchFeed)
+        ? await getOrSet(cacheKey, 300, fetchFeed)
         : await fetchFeed();
 
     res.status(200).json({ success: true, ...result });

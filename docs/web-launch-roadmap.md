@@ -90,13 +90,11 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 7. Activity Feed Cursor Pagination → `feat/cursor-pagination`
+## 7. ~~Activity Feed Cursor Pagination~~ → `feat/cursor-pagination` — DONE
 
-[future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 5
-
-- Replace offset pagination with `createdAt` cursor on `GET /api/activity`
-- Cache every page by cursor key in Redis, not just the first page
-- Frontend updated to use cursor-based infinite scroll
+- ~~Replace offset pagination with `createdAt` cursor on `GET /api/activity`~~
+- ~~Cache every page by cursor key in Redis, not just the first page~~
+- ~~Frontend updated to use cursor-based infinite scroll (useInfiniteQuery + Load More button)~~
 
 ---
 

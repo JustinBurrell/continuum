@@ -173,7 +173,7 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/activity` | `pages/Activity.jsx` (supports `?search=` on actor name + metadata fields) | Own activity feed |
+| GET | `/api/activity` | `pages/Activity.jsx` (supports `?search=` on actor name + metadata fields; cursor pagination via `?cursor=` ISO timestamp) | Cursor-based infinite scroll — `useInfiniteQuery` + Load More button; each cursor page cached independently in Redis |
 
 ---
 
