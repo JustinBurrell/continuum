@@ -1,0 +1,157 @@
+# Web Launch Roadmap
+
+Complete this in order before beginning mobile development. Every item is implemented and verified — nothing is deferred to post-launch.
+
+As each step is completed, delete the referenced `future-ideas/` docs — they exist only to guide implementation. By step 10, the `future-ideas/` folder contains only `forum.md` and `notifications-spec.md`.
+
+---
+
+## 1. Database Performance → `chore/db-performance`
+
+[future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — items 1 and 2
+
+- Add compound indexes to all hot query paths (Activity, Note, Task, Friendship)
+- Tune Mongoose connection pool from default 5 → 20
+
+Foundation for everything else. Queries must be fast before adding more load on top.
+
+---
+
+## 2. Backend Security Hardening → `fix/backend-security`
+
+[future-ideas/security-hardening.md](future-ideas/security-hardening.md)
+[security/backend_security_audit.md](security/backend_security_audit.md)
+
+Work through the remediation roadmap in the audit top to bottom. Key items:
+
+- **H1** — Per-user daily AI call limit (uses existing Redis)
+- **M8** — Encrypt Google OAuth tokens at rest (AES-256-GCM)
+- **L1** — Block password reset for unverified emails
+- **OP3** — GDPR hard delete endpoint (`DELETE /api/users/me`)
+- All remaining findings from the backend audit not yet resolved
+
+**When done:** delete `docs/future-ideas/security-hardening.md`
+
+---
+
+## 3. Frontend Security Fixes → `fix/frontend-security`
+
+[security/frontend_security_audit.md](security/frontend_security_audit.md)
+
+Work through the remediation roadmap in the audit top to bottom. Key items:
+
+- **F-H1** — Clear React Query cache on logout (`queryClient.clear()`) — 5 min
+- **F-C2** — Remove "HTML is supported" hint from NoteEditor + add DOMPurify — 30 min
+- **F-M2** — Fix Register.jsx sending `name` instead of `firstName`/`lastName` — 15 min
+- **F-L4** — Add `<meta name="referrer">` to index.html — 2 min
+- **F-L2** — Add `rel="noopener noreferrer"` to all `target="_blank"` links — 15 min
+- **F-H2** — Add Content Security Policy meta tag to index.html — 1 hr
+- **F-L1** — Add `autocomplete` attributes to all password fields — 5 min
+- **F-H4** — Add `VITE_API_URL` missing build guard in vite.config.js — 20 min
+- **F-M4** — Add explicit React Query staleTime and gcTime config — 15 min
+- **F-M1** — Fix concurrent 401s each attempting token refresh (refresh lock) — 45 min
+- **F-M5** — Replace all `window.confirm()` with the existing Modal component — 30 min
+- **F-M3** — Replace raw server error strings with a friendlyError map — 1 hr
+- **F-H3** — Self-host Google Fonts or add SRI hashes — 1–2 hrs
+- **F-C1** — Migrate refresh token from localStorage to httpOnly cookie (coordinates with backend) — 3–5 hrs
+- **F-C3** — AuthCallback one-time code exchange instead of JWT in URL (coordinates with backend C3 fix) — 2–4 hrs
+
+---
+
+## 4. Rate Limiting → `chore/rate-limiting`
+
+[future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 3
+[future-ideas/pre-deployment-checklist.md](future-ideas/pre-deployment-checklist.md) — section 4
+
+- Tighter limits on auth endpoints (login, register, forgot-password)
+- Per-user limits on write endpoints (messages, comments, share, participants)
+- AI endpoint daily cap (tied to step 2 above)
+
+---
+
+## 5. Redis Adapter for Socket.io → `chore/redis-socket-adapter`
+
+[future-ideas/redis-socket-adapter.md](future-ideas/redis-socket-adapter.md)
+
+- Install `@socket.io/redis-adapter`
+- Wire into `backend/lib/socket.js` using existing Redis connection
+- App becomes multi-instance ready from day one — no re-architecture needed later
+
+**When done:** delete `docs/future-ideas/redis-socket-adapter.md`
+
+---
+
+## 6. Activity Feed Cursor Pagination → `feat/cursor-pagination`
+
+[future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 5
+
+- Replace offset pagination with `createdAt` cursor on `GET /api/activity`
+- Cache every page by cursor key in Redis, not just the first page
+- Frontend updated to use cursor-based infinite scroll
+
+---
+
+## 7. Background Job Queue for AI → `feat/ai-job-queue`
+
+[future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 6
+
+- Install BullMQ (reuses existing Redis)
+- Move note summary, flashcard generation, and resume feedback off the request thread
+- Endpoints return `{ jobId }` immediately
+- Socket event fires to client when job completes (`note_summary_ready`, etc.)
+
+---
+
+## 8. Pre-Deployment Checklist → `chore/pre-deploy`
+
+[future-ideas/pre-deployment-checklist.md](future-ideas/pre-deployment-checklist.md)
+
+Work through every section top to bottom:
+- ObjectId param validation on all routes
+- Global async error handler
+- CORS locked to production frontend URL only
+- All indexes verified with `db.collection.getIndexes()`
+- `npm audit` — no high or critical findings
+- All env vars documented in `.env.example`
+- Logging structured and persistent
+- Rollback strategy documented
+
+---
+
+## 9. Hosting + Deployment Config → `chore/deploy-config`
+
+[future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 7
+[future-ideas/pre-deployment-checklist.md](future-ideas/pre-deployment-checklist.md) — sections 11–13
+[future-ideas/websocket-deployment-notes.md](future-ideas/websocket-deployment-notes.md)
+
+- **Frontend** — deploy `web/dist/` to Vercel, Netlify, or Cloudflare Pages (CDN edge caching included)
+- **Backend** — deploy to Railway, Render, or Fly.io
+- Verify HTTPS end to end
+- Lock MongoDB Atlas Network Access to server static IP
+- Set `NODE_ENV=production`
+- Set spend alerts on Groq, Atlas, Cloudinary, and Resend
+- Confirm WebSocket support and sticky sessions on chosen host
+
+**When done:** delete `docs/future-ideas/scale-readiness.md`, `docs/future-ideas/websocket-deployment-notes.md`, `docs/future-ideas/pre-deployment-checklist.md`
+
+---
+
+## 10. MVP Verification → no branch
+
+[future-ideas/web-mvp-verification.md](future-ideas/web-mvp-verification.md)
+
+Full manual walkthrough of every page and feature against the production deployment. Two browser windows open for all real-time flows. Nothing moves forward until every checkbox is ticked.
+
+**When done:** delete `docs/future-ideas/web-mvp-verification.md`
+
+---
+
+## 11. Launch → begin mobile development
+
+Once step 10 is signed off, the web MVP is complete and stable. Mobile development starts on a clean foundation with a fully deployed, production-hardened backend.
+
+The only files remaining in `docs/future-ideas/` will be `forum.md` and `notifications-spec.md` — post-launch features, not pre-launch requirements.
+
+---
+
+*Last Updated: March 2026*
