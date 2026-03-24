@@ -65,6 +65,7 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 - Optimistic mutations for writes (create/delete note, task status drag, send message, friend request)
 - Sidebar prefetch on hover — data cached before user clicks
 - Per-query `staleTime` overrides for stable data (profile, flashcard sets, resumes)
+- Landing page auth hydration fix — `isLoading` guard prevents flash of Sign In/Get Started before auth resolves
 
 App must feel instant before launch. Zero visible layout shift.
 
