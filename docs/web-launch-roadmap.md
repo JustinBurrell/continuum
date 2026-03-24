@@ -6,12 +6,12 @@ As each step is completed, delete the referenced `future-ideas/` docs — they e
 
 ---
 
-## 1. Database Performance → `chore/db-performance`
+## 1. ~~Database Performance~~ → `chore/db-performance` — DONE
 
 [future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — items 1 and 2
 
-- Add compound indexes to all hot query paths (Activity, Note, Task, Friendship)
-- Tune Mongoose connection pool from default 5 → 20
+- ~~Add compound indexes to all hot query paths (Activity, Note, Task, Friendship)~~
+- ~~Tune Mongoose connection pool from default 5 → 20~~
 
 Foundation for everything else. Queries must be fast before adding more load on top.
 

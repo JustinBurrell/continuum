@@ -6,37 +6,19 @@ The current stack (WebSockets + Redis caching) handles moderate concurrent load 
 
 ---
 
-## 1. MongoDB Indexes (Highest Priority)
+## ~~1. MongoDB Indexes~~ — DONE (`chore/db-performance`)
 
-Several hot query paths do full collection scans today. At 10K+ documents per collection this degrades linearly.
+~~Several hot query paths do full collection scans today. At 10K+ documents per collection this degrades linearly.~~
 
-| Query | Collection | Missing index |
-|---|---|---|
-| `Activity.find({ visibleTo: userId })` | Activity | `{ visibleTo: 1, createdAt: -1 }` |
-| `Note.find({ sharedWith: userId })` | Note | `{ sharedWith: 1, deletedAt: 1 }` |
-| `Note.find({ userId, deletedAt: null })` | Note | `{ userId: 1, deletedAt: 1 }` |
-| `Task.find({ participants.userId: userId })` | Task | `{ "participants.userId": 1, deletedAt: 1 }` |
-| `Friendship.find({ user1/user2: userId, status })` | Friendship | `{ user1: 1, user2: 1, status: 1 }` |
-| `Activity.find({ isPublic: true })` | Activity | `{ isPublic: 1, createdAt: -1 }` |
-
-**Fix:** Add indexes directly to Mongoose schemas via `index: true` on the field or a `schema.index({...})` call at the bottom of each model file.
+All compound indexes added to Activity, Note, Task, and Friendship schemas.
 
 ---
 
-## 2. MongoDB Connection Pool Tuning
+## ~~2. MongoDB Connection Pool Tuning~~ — DONE (`chore/db-performance`)
 
-Mongoose defaults to a pool size of 5. Under concurrent load, requests queue waiting for a free connection.
+~~Mongoose defaults to a pool size of 5. Under concurrent load, requests queue waiting for a free connection.~~
 
-**Fix:** Set pool size in the MongoDB connection config:
-
-```js
-// backend/config/db.js
-mongoose.connect(process.env.MONGO_URI, {
-  maxPoolSize: 20,  // tune based on instance size and DB tier
-});
-```
-
-Start at 20 and increase if you see connection wait times in monitoring.
+`maxPoolSize: 20` set in `backend/config/database.js`.
 
 ---
 
