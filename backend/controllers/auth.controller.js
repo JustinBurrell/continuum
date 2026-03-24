@@ -504,3 +504,75 @@ exports.verifyEmail = async (req, res) => {
 
     res.status(200).json({ success: true, message: 'Email verified successfully' });
 };
+
+// ----------------------------------------
+// PATCH /api/auth/me/password
+// Purpose: Change the authenticated user's password
+// Requires current password for verification — prevents account takeover if JWT leaks
+// Not available to Google-only users (no password set)
+// ----------------------------------------
+exports.changePassword = async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ success: false, error: 'currentPassword and newPassword are required' });
+    }
+
+    // Re-fetch with password — select:false means req.user never has it
+    const user = await User.findById(req.user._id).select('+password');
+
+    if (!user.password) {
+        return res.status(400).json({ success: false, error: 'No password set — use Forgot Password to create one first' });
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+        return res.status(401).json({ success: false, error: 'Current password is incorrect' });
+    }
+
+    // Validate new password against same rules as the schema
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/;
+    if (newPassword.length < 8 || !passwordRegex.test(newPassword)) {
+        return res.status(400).json({ success: false, error: 'Password must be at least 8 characters and contain a letter, number, and special character' });
+    }
+
+    // Assign — pre-save hook in User.js rehashes automatically
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Password updated successfully' });
+};
+
+// ----------------------------------------
+// PATCH /api/auth/me/username
+// Purpose: Change the authenticated user's username
+// Validates format and checks uniqueness before saving
+// ----------------------------------------
+exports.changeUsername = async (req, res) => {
+    const { username } = req.body;
+
+    if (!username) {
+        return res.status(400).json({ success: false, error: 'username is required' });
+    }
+
+    const trimmed = username.trim().toLowerCase();
+
+    // 3–30 chars, alphanumeric + underscores + hyphens only
+    if (!/^[a-z0-9_-]{3,30}$/.test(trimmed)) {
+        return res.status(400).json({ success: false, error: 'Username must be 3–30 characters and contain only letters, numbers, underscores, or hyphens' });
+    }
+
+    // Check uniqueness — exclude the current user so they can "save" without changing
+    const existing = await User.findOne({ username: trimmed, _id: { $ne: req.user._id } });
+    if (existing) {
+        return res.status(409).json({ success: false, error: 'Username is already taken' });
+    }
+
+    const updated = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: { username: trimmed } },
+        { new: true }
+    );
+
+    res.status(200).json({ success: true, user: updated });
+};

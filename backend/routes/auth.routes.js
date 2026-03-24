@@ -54,6 +54,9 @@ router.get('/verify-email', authController.verifyEmail);
 // Google account link/unlink — JWT required
 // Purpose: Let existing email/password users connect or disconnect their Google account
 // ----------------------------------------
+router.patch('/me/password', authMiddleware, authController.changePassword);
+router.patch('/me/username', authMiddleware, authController.changeUsername);
+
 router.post('/me/google/link', authMiddleware, authController.googleLink);
 router.delete('/me/google/link', authMiddleware, authController.googleUnlink);
 
