@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, FileCheck, Sparkles, Download, ChevronDown, ChevronUp, History, Trash2 } from 'lucide-react';
+import { Plus, FileCheck, Sparkles, Download, ChevronDown, ChevronUp, History, Trash2, Search } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
@@ -12,10 +12,11 @@ export default function Resumes() {
   const [uploading, setUploading] = useState(false);
   const [expandedFeedback, setExpandedFeedback] = useState({});
   const [feedbackLoading, setFeedbackLoading] = useState({});
+  const [resumeSearch, setResumeSearch] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['resumes'],
-    queryFn: () => api.get('/resumes').then(r => r.data),
+    queryKey: ['resumes', resumeSearch],
+    queryFn: () => api.get('/resumes', { params: resumeSearch ? { search: resumeSearch } : {} }).then(r => r.data),
   });
 
   const handleUpload = async (file) => {
@@ -65,7 +66,9 @@ export default function Resumes() {
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
             Resumes
           </h1>
-          <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>{resumes.length} uploaded</p>
+          <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>
+            {resumeSearch ? `${resumes.length} result${resumes.length !== 1 ? 's' : ''}` : `${resumes.length} uploaded`}
+          </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <input
@@ -119,13 +122,39 @@ export default function Resumes() {
         <p style={{ fontSize: 12, color: '#a087b0', margin: 0 }}>Drag and drop a PDF here, or click to browse</p>
       </div>
 
+      {/* Search */}
+      <div style={{ position: 'relative', marginBottom: 20 }}>
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+        <input
+          style={{
+            width: '100%',
+            paddingLeft: 36,
+            paddingRight: 14,
+            paddingTop: 9,
+            paddingBottom: 9,
+            background: 'white',
+            border: '1px solid #ede9fe',
+            borderRadius: 12,
+            fontSize: '0.875rem',
+            color: '#111827',
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+          placeholder="Search by file name, version, or target role..."
+          value={resumeSearch}
+          onChange={e => setResumeSearch(e.target.value)}
+          onFocus={e => e.target.style.borderColor = '#6b21a8'}
+          onBlur={e => e.target.style.borderColor = '#ede9fe'}
+        />
+      </div>
+
       {isLoading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-32" />)}
         </div>
       ) : resumes.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '32px 0', color: '#a087b0', fontSize: 14 }}>
-          No resumes uploaded yet. Upload your first resume to get AI-powered feedback.
+          {resumeSearch ? `No resumes match "${resumeSearch}".` : 'No resumes uploaded yet. Upload your first resume to get AI-powered feedback.'}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

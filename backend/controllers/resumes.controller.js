@@ -107,11 +107,19 @@ exports.downloadResume = async (req, res) => {
 // Note: extractedText has select: false — not returned here (large field, only needed for AI)
 // ----------------------------------------
 exports.getResumes = async (req, res) => {
-    const resumes = await Resume.find({
-        userId: req.user._id,
-        deletedAt: null,
-    }).sort({ createdAt: -1 });
+    const { search } = req.query;
+    const filter = { userId: req.user._id, deletedAt: null };
 
+    if (search) {
+        const regex = { $regex: search, $options: 'i' };
+        filter.$or = [
+            { fileName: regex },
+            { version: regex },
+            { targetRole: regex },
+        ];
+    }
+
+    const resumes = await Resume.find(filter).sort({ createdAt: -1 });
     res.status(200).json({ success: true, resumes });
 };
 
