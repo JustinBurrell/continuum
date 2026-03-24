@@ -16,120 +16,64 @@ This document covers the recommended path from the current MVP to a production-g
 | Layer | What's in place |
 |-------|-----------------|
 | Frontend | React Query v5, `staleTime: 30s`, explicit `invalidateQueries` on all mutations |
-| Backend | Express + MongoDB, no caching layer, no push transport |
-| Real-time | None — all data is pull-only |
-
-**Implication:** Changes made by User A are invisible to User B until User B's staleTime window expires and they trigger a refetch by navigating. For a multi-user social app, this is a noticeable gap.
+| Backend | Express + MongoDB, Socket.io connected, no Redis caching yet |
+| Real-time | **Phase 1 complete** — messages, friend requests, shared tasks, notes, comments |
 
 ---
 
-## Phase 1 — WebSockets for Messages and Notifications
+## ✅ Phase 1 — WebSockets for Messages and Notifications (COMPLETE)
 
-The highest-impact, lowest-risk place to introduce real-time is the two features that require it most:
+Implemented in `feat/realtime-websockets`.
 
-- **Direct messages** — a chat feature that requires polling is not a chat feature.
-- **In-app notifications** — friend requests, task shares, comments on your notes.
+### Infrastructure
 
-### Technology: Socket.io
+**`backend/lib/socket.js`** — Socket.io server module:
+- JWT verification on every handshake (same secret as HTTP auth)
+- Each user automatically joins their private room `user:<userId>` on connect
+- `initSocket(httpServer)` called once at startup; `getIO()` used by controllers
 
-Socket.io runs on top of the existing Express server with a minimal addition:
+**`backend/server.js`** — switched from `app.listen` to `http.createServer(app)` + `initSocket(httpServer)`
 
+**`web/src/lib/socket.js`** — frontend socket singleton:
+- `connectSocket(token)` — connects with JWT auth, uses WebSocket transport only
+- `disconnectSocket()` — called on logout
+
+**`web/src/context/AuthContext.jsx`** — socket lifecycle tied to auth:
+- Connect + register all event handlers on login, register, and page-refresh hydration
+- Disconnect on logout
+- All events invalidate the relevant React Query keys — no manual cache merging needed
+
+### Events Implemented
+
+| Event | Emitted by | Who receives it | React Query keys invalidated |
+|-------|-----------|-----------------|------------------------------|
+| `new_message` | `sendMessage` | Message recipient | `['messages', convId]`, `['conversations']` |
+| `friend_request` | `sendRequest` | Request recipient | `['friends']` |
+| `friend_accepted` | `respondToRequest` (accept) | Request sender | `['friends']` |
+| `task_updated` | `updateTask`, `updateStatus`, `updateParticipants` | All task participants | `['tasks']`, `['calendar']` |
+| `note_updated` | `updateNote` | Users in `sharedWith` | `['notes']` |
+| `note_shared` | `shareNote` | Newly shared users | `['notes']` |
+| `comment_added` | `addComment` | Resource owner | `['note'/:id]`, `['flashcard-set'/:id]`, `['tasks']`, `['activity']` |
+| `flashcard_shared` | `shareFlashcardSet` (when implemented) | Shared users | `['flashcard-sets']` |
+
+### Pattern
+
+Backend emits after the DB write:
 ```js
-// backend/server.js
-const { Server } = require('socket.io');
-const httpServer = require('http').createServer(app);
-const io = new Server(httpServer, {
-  cors: { origin: process.env.FRONTEND_URL, credentials: true }
-});
-
-// Attach io to app so controllers can emit
-app.set('io', io);
-
-// Auth middleware — verify JWT on socket handshake
-io.use(async (socket, next) => {
-  const token = socket.handshake.auth.token;
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    socket.userId = decoded.id;
-    next();
-  } catch {
-    next(new Error('Unauthorized'));
-  }
-});
-
-io.on('connection', (socket) => {
-  // Join a personal room keyed to userId so backend can target a specific user
-  socket.join(`user:${socket.userId}`);
-});
+// controllers/conversations.controller.js
+getIO().to(`user:${recipientId}`).emit('new_message', { conversationId, message });
 ```
 
-### Emitting from Controllers
-
-After the existing DB write, emit an event to the target user's room:
-
+Frontend invalidates the cache (React Query refetches automatically):
 ```js
-// Inside messages.controller.js — sendMessage
-const io = req.app.get('io');
-io.to(`user:${recipientId}`).emit('new_message', {
-  conversationId,
-  message: savedMessage,
-});
-
-// Inside friends.controller.js — sendFriendRequest
-io.to(`user:${recipientId}`).emit('new_notification', {
-  type: 'friend_request',
-  from: req.user,
-});
-```
-
-### Frontend: Socket connects once, invalidates React Query
-
-```js
-// mock/src/lib/socket.js
-import { io } from 'socket.io-client';
-
-let socket = null;
-
-export function connectSocket(token) {
-  socket = io(import.meta.env.VITE_API_URL, {
-    auth: { token },
-    transports: ['websocket'],
-  });
-  return socket;
-}
-
-export function getSocket() { return socket; }
-export function disconnectSocket() { socket?.disconnect(); socket = null; }
-```
-
-```js
-// In AuthContext.jsx — connect on login, disconnect on logout
-import { connectSocket, disconnectSocket } from '@/lib/socket';
-
-// On login success:
-const s = connectSocket(token);
-s.on('new_message', ({ conversationId }) => {
+// AuthContext.jsx
+socket.on('new_message', ({ conversationId }) => {
   queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
   queryClient.invalidateQueries({ queryKey: ['conversations'] });
 });
-s.on('new_notification', () => {
-  queryClient.invalidateQueries({ queryKey: ['notifications'] });
-});
-
-// On logout:
-disconnectSocket();
 ```
 
-This pattern keeps React Query as the single source of truth — WebSockets just tell the client "something changed," and React Query fetches the actual data. This avoids merging socket payloads into the cache manually.
-
-### What gets real-time in Phase 1
-
-| Feature | Socket event | Query invalidated |
-|---------|-------------|-------------------|
-| New DM received | `new_message` | `['messages', convId]`, `['conversations']` |
-| Friend request received | `new_notification` | `['notifications']`, `['friend-requests']` |
-| Friend request accepted | `new_notification` | `['friends']`, `['notifications']` |
-| Comment on your note | `new_notification` | `['notifications']` |
+All `getIO()` calls are wrapped in `try/catch` so a socket failure never breaks an HTTP response.
 
 ---
 
@@ -137,24 +81,13 @@ This pattern keeps React Query as the single source of truth — WebSockets just
 
 Once the socket infrastructure is in place, extending it to shared tasks and activity feeds is straightforward.
 
-### Shared Tasks
+### Shared Tasks (partially done in Phase 1)
 
-When User A changes a shared task's status:
+`task_updated` already fires on `updateTask`, `updateStatus`, and `updateParticipants`.
 
-```js
-// backend — after statusMutation succeeds
-task.participants.forEach(participantId => {
-  io.to(`user:${participantId}`).emit('task_updated', { taskId: task._id });
-});
-```
-
-```js
-// frontend — in socket setup
-s.on('task_updated', ({ taskId }) => {
-  queryClient.invalidateQueries({ queryKey: ['tasks'] });
-  queryClient.invalidateQueries({ queryKey: ['calendar'] });
-});
-```
+Still to add:
+- Emit when a task is **deleted** (participants' kanban should update)
+- Emit when a task is **created** as shared
 
 ### Activity Feed
 
@@ -168,7 +101,8 @@ s.on('activity_updated', () => {
 
 | Feature | Trigger | Who gets the event |
 |---------|---------|-------------------|
-| Shared task status changed | `task_updated` | All task participants |
+| Shared task deleted | `task_deleted` | All task participants |
+| Shared task created | `task_created` | All participants |
 | Friend shares a note | `activity_updated` | Friends of the sharer |
 | Forum post vote/comment | `forum_updated` | Forum members (use a room per forum: `socket.join(`forum:${forumId}`)`) |
 
@@ -254,12 +188,14 @@ With the Redis adapter, `io.to('user:xyz').emit(...)` works correctly regardless
 
 ## Recommended Rollout Order
 
-1. **Add Socket.io to backend + connect in AuthContext** — infrastructure only, no visible features yet. Low risk.
-2. **Real-time DMs** — highest user-facing impact, clearly scoped.
-3. **Notification badge** — `new_notification` event updates a badge count. Simple consumer of the existing socket.
-4. **Real-time shared tasks** — extend the socket to emit `task_updated` to participants.
-5. **Redis caching** — introduce once traffic warrants it, not before. Premature caching adds complexity without payoff at low user counts.
-6. **Redis adapter for Socket.io** — only needed when running more than one backend instance.
+1. ✅ **Add Socket.io to backend + connect in AuthContext** — complete
+2. ✅ **Real-time DMs** — complete
+3. ✅ **Real-time friend requests** — complete
+4. ✅ **Real-time shared tasks** — complete
+5. ✅ **Real-time notes + comments** — complete
+6. **Notification badge** — `new_notification` event updates a badge count on the sidebar
+7. **Redis caching** — introduce once traffic warrants it, not before
+8. **Redis adapter for Socket.io** — only needed when running more than one backend instance
 
 ---
 
@@ -268,9 +204,10 @@ With the Redis adapter, `io.to('user:xyz').emit(...)` works correctly regardless
 Not everything should be real-time. These features are fine with React Query's invalidation + staleTime:
 
 - **Your own mutations** — already instant via `invalidateQueries`.
-- **Notes, flashcards, resumes** — personal data, no other user is modifying it.
+- **Flashcards, resumes** — personal data, no other user is modifying it.
 - **Applications / pipeline** — private per user.
 - **Calendar** — derived from tasks; task invalidation covers it.
+- **Profile / settings changes** — per-user, no cross-user visibility.
 
 Real-time adds complexity and infrastructure cost. Use it only where the UX gap without it is genuinely noticeable (chat, shared collaboration, notifications).
 
