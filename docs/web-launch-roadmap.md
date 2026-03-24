@@ -27,7 +27,7 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 - ~~**H1** — Per-user daily AI call limit (uses existing Redis)~~
 - ~~**M8** — Encrypt Google OAuth tokens at rest (AES-256-GCM)~~
 - ~~**L1** — Block password reset for unverified emails~~
-- ~~**OP3** — GDPR hard delete endpoint (`DELETE /api/auth/me`)~~
+- ~~**OP3** — GDPR delete endpoint with 30-day grace period (`DELETE /api/auth/me` + `POST /api/auth/me/restore`)~~
 - ~~All remaining findings from the backend audit not yet resolved~~
 
 **When done:** delete `docs/future-ideas/security-hardening.md`

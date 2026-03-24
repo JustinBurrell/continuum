@@ -242,7 +242,7 @@ This section covers attacks that do not steal data but destroy your budget. When
 to a paid Groq plan or OpenAI, these vectors allow any authenticated user to run up
 unlimited AI spend at your expense with a simple script.
 
-### H1 — No Per-User Rate Limiting on AI Endpoints (High) — Partially Resolved
+### H1 — No Per-User Rate Limiting on AI Endpoints (High) ✅ RESOLVED (March 24, 2026)
 
 **Files:** `flashcardSets.controller.js:26`, `notes.controller.js:286`, `notes.controller.js:335`, `resumes.controller.js:102`
 
@@ -916,7 +916,7 @@ confirm the app is working, then revoke the old key in the provider's dashboard.
 
 ---
 
-### OP3 — GDPR / Data Privacy (Required if Any Users Are in the EU)
+### OP3 — GDPR / Data Privacy (Required if Any Users Are in the EU) ✅ RESOLVED (March 24, 2026)
 
 If users in the European Union sign up, GDPR applies from day one — not after you scale.
 The key requirements that affect this backend:

@@ -28,7 +28,8 @@ Users can register with email/password OR Google OAuth. Both paths create the sa
 - `PATCH /api/auth/me/profile` - Update user profile information (name, bio, avatarUrl, settings)
 - `PATCH /api/auth/me/username` - Change username. Validates format (3–30 chars, letters/numbers/underscores/hyphens) and checks uniqueness. Returns 409 if taken.
 - `PATCH /api/auth/me/password` - Change password. Body: `{ currentPassword, newPassword }`. Verifies current password before updating. Applies same validation rules as registration (8+ chars, letter, number, special char). Returns 400 for Google-only accounts with no password set.
-- `DELETE /api/auth/me` - Permanently delete the authenticated user's account and all associated data (GDPR right to erasure). Hard deletes: User, Notes, FlashcardSets, Tasks, Applications, Resumes, Activity, Comments, Messages, Friendships, RefreshTokens, SyncQueue. Removes user from Conversations and deletes any now-empty threads. Cloudinary avatar and resume files are also deleted. This is irreversible.
+- `DELETE /api/auth/me` - Soft-mark account for deletion with a 30-day grace period. Body: `{ password }` — required for email/password users; optional for Google-only accounts. Revokes all active sessions and sends a deletion notice email. User can restore by logging in or calling `POST /api/auth/me/restore` before the deadline. After 30 days, a lazy cascade hard-deletes all data (User, Notes, FlashcardSets, Tasks, Applications, Resumes, Activity, Comments, Messages, Friendships, RefreshTokens, SyncQueue, Cloudinary assets). Returns 401 "Invalid credentials" if grace period has expired.
+- `POST /api/auth/me/restore` - Cancel a pending deletion and restore the account. Clears `pendingDeletion` and `scheduledDeletionAt`. Logging in during the grace period also restores automatically.
 
 ### **Google Account Linking**
 - `POST /api/auth/me/google/link` - Initiate Google OAuth to link Google account to existing user
@@ -61,7 +62,7 @@ Google linking is required for Google Drive/Docs features. `user.hasGoogleLinked
 
 ### **AI Summaries**
 
-**Rate limit:** All AI endpoints enforce a per-user daily limit of 10 calls tracked via a Redis INCR counter (`ai:<userId>:<date>`). Returns 429 on breach. Falls back to allowing calls if Redis is unavailable.
+**Rate limits (per user per day, tracked via Redis INCR):** Summary — 25 calls (`ai:summary:<userId>:<date>`), Flashcards — 25 calls (`ai:flashcards:<userId>:<date>`), Resume feedback — 5 calls (`ai:resume:<userId>:<date>`). Returns 429 on breach. Falls back to allowing calls if Redis is unavailable.
 
 - `POST /api/notes/:noteId/summary` - Generate AI summary. For the owner: persists to note document and returns updated note. For shared users: generates and returns summary without persisting (owner's stored summary is never overwritten).
 
@@ -229,7 +230,7 @@ Query parameters for list endpoints:
 All endpoints except `/api/auth/*` and `/api/health` require valid JWT in Authorization header.
 
 ### **Soft Deletes**
-All DELETE endpoints perform soft deletes (set `deletedAt` timestamp) except `DELETE /api/auth/me`, which is a permanent hard delete.
+All DELETE endpoints perform soft deletes (set `deletedAt` timestamp) except `DELETE /api/auth/me`, which triggers a 30-day grace period before a permanent hard delete cascade.
 
 ---
 

@@ -13,7 +13,7 @@ Frontend base URL: `http://localhost:5173`
 |--------|----------|---------------|-------|
 | POST | `/api/auth/register` | `pages/auth/Register.jsx` | react-hook-form, redirects to `/dashboard` |
 | POST | `/api/auth/login` | `pages/auth/Login.jsx` | JWT + refreshToken stored in localStorage |
-| POST | `/api/auth/forgot-password` | `pages/auth/ForgotPassword.jsx` | Sends reset email |
+| POST | `/api/auth/forgot-password` | `pages/auth/ForgotPassword.jsx` | Sends reset email; returns 400 with specific message if email is unverified |
 | POST | `/api/auth/reset-password` | `pages/auth/ResetPassword.jsx` | Body: `{ token, password }` — token from URL param |
 | POST | `/api/auth/refresh` | `lib/api.js` interceptor | Auto-refresh on 401; called transparently |
 | GET | `/api/auth/google` | `context/AuthContext.jsx` → `googleLogin()` | Redirects browser to Google OAuth |
@@ -24,7 +24,8 @@ Frontend base URL: `http://localhost:5173`
 | PATCH | `/api/auth/me/password` | `pages/Profile.jsx` → Security tab | Body: `{ currentPassword, newPassword }`; live requirements checklist on frontend |
 | POST | `/api/auth/logout` | `context/AuthContext.jsx` → `logout()` | Sends refreshToken in body |
 | POST | `/api/auth/logout-all` | `pages/Profile.jsx` → Security tab → danger zone | Revokes all sessions |
-| DELETE | `/api/auth/me` | `pages/Profile.jsx` → Security tab → danger zone → Delete account | Hard deletes account + all data; double-confirm required |
+| DELETE | `/api/auth/me` | `pages/Profile.jsx` → Security tab → danger zone → Delete account | Body: `{ password }`; modal requires typing username + password; 30-day grace period before hard delete; sends deletion email |
+| POST | `/api/auth/me/restore` | `pages/Profile.jsx` → Security tab → pending deletion banner | Cancels scheduled deletion; also triggered automatically on login during grace period |
 | POST | `/api/auth/me/google/link` | `pages/Profile.jsx` → integrations tab | Redirects to OAuth link flow |
 | DELETE | `/api/auth/me/google/link` | `pages/Profile.jsx` → integrations tab → Unlink button | |
 
