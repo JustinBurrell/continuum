@@ -56,18 +56,18 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 4. Loading States & Perceived Performance → `feat/loading-states`
+## 4. ~~Loading States & Perceived Performance~~ → `feat/loading-states` — DONE
 
 [frontend/loading-states-plan.md](frontend/loading-states-plan.md)
 
-- Shimmer animation replacing pulse on the `Skeleton` component
-- Skeleton layouts for every page that fetches data (NotesList, Tasks, Flashcards, Friends, Dashboard, etc.)
-- Optimistic mutations for writes (create/delete note, task status drag, send message, friend request)
-- Sidebar prefetch on hover — data cached before user clicks
-- Per-query `staleTime` overrides for stable data (profile, flashcard sets, resumes)
-- Landing page auth hydration fix — `isLoading` guard prevents flash of Sign In/Get Started before auth resolves
+- ~~Shimmer animation replacing pulse on the `Skeleton` component~~
+- ~~Skeleton layouts for every page that fetches data (NotesList, Tasks, Flashcards, Friends, Dashboard, etc.)~~
+- ~~Optimistic mutations for writes (create/delete note, task status drag, send message, friend request)~~
+- ~~Sidebar prefetch on hover — data cached before user clicks~~
+- ~~Per-query `staleTime` overrides for stable data (profile, flashcard sets, resumes)~~
+- ~~Landing page auth hydration fix — `isLoading` guard prevents flash of Sign In/Get Started before auth resolves~~
 
-App must feel instant before launch. Zero visible layout shift.
+~~App must feel instant before launch. Zero visible layout shift.~~
 
 ---
 
