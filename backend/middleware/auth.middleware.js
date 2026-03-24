@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { getOrSet } = require('../lib/cache');
+const { getOrSet, invalidate } = require('../lib/cache');
+const { hardDeleteUser } = require('../services/account.service');
 
 // ============================================================
 // AUTH MIDDLEWARE
@@ -37,6 +38,28 @@ const authMiddleware = async (req, res, next) => {
 
     if (!user) {
         return res.status(401).json({ success: false, error: 'User no longer exists' });
+    }
+
+    // Handle pending deletion grace period
+    if (user.pendingDeletion) {
+        // Grace period expired — hard delete lazily and treat as non-existent
+        if (user.scheduledDeletionAt && user.scheduledDeletionAt <= new Date()) {
+            await hardDeleteUser(user._id).catch(() => {});
+            await invalidate(`user:${decoded.userId}`).catch(() => {});
+            return res.status(401).json({ success: false, error: 'Invalid or expired token' });
+        }
+
+        // Within grace period — only allow restore/me/logout paths
+        const allowed = ['/me/restore', '/me', '/logout', '/logout-all'];
+        const isAllowed = allowed.some(p => req.path === p || req.path.endsWith(p));
+        if (!isAllowed) {
+            return res.status(403).json({
+                success: false,
+                error: 'Account is scheduled for deletion. Log in to restore it.',
+                pendingDeletion: true,
+                scheduledDeletionAt: user.scheduledDeletionAt,
+            });
+        }
     }
 
     // Attach user to request so controllers can access req.user

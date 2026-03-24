@@ -2,6 +2,7 @@ const passport = require('passport');
 const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
 const crypto = require('crypto');
 const User = require('../models/User');
+const { encrypt } = require('../lib/tokenCrypto');
 
 // ============================================================
 // PASSPORT CONFIG
@@ -46,8 +47,8 @@ passport.use(
                 let user = await User.findOne({ googleId });
                 if (user) {
                     // Refresh tokens in case they rotated
-                    user.googleAccessToken = accessToken;
-                    user.googleRefreshToken = refreshToken || user.googleRefreshToken;
+                    user.googleAccessToken = encrypt(accessToken);
+                    user.googleRefreshToken = refreshToken ? encrypt(refreshToken) : user.googleRefreshToken;
                     user.googleTokenExpiry = new Date(Date.now() + 3600 * 1000); // ~1hr estimate
                     // Google has already verified this email address
                     user.emailVerified = true;
@@ -59,8 +60,8 @@ passport.use(
                 user = await User.findOne({ email });
                 if (user) {
                     user.googleId = googleId;
-                    user.googleAccessToken = accessToken;
-                    user.googleRefreshToken = refreshToken;
+                    user.googleAccessToken = encrypt(accessToken);
+                    user.googleRefreshToken = encrypt(refreshToken);
                     user.googleTokenExpiry = new Date(Date.now() + 3600 * 1000);
                     // Google has already verified this email address
                     user.emailVerified = true;
@@ -83,8 +84,8 @@ passport.use(
                         firstName: profile.name.givenName,
                         lastName: profile.name.familyName,
                         googleId,
-                        googleAccessToken: accessToken,
-                        googleRefreshToken: refreshToken,
+                        googleAccessToken: encrypt(accessToken),
+                        googleRefreshToken: encrypt(refreshToken),
                         googleTokenExpiry: new Date(Date.now() + 3600 * 1000),
                         // Google has already verified this email address
                         emailVerified: true,
