@@ -77,34 +77,22 @@ All `getIO()` calls are wrapped in `try/catch` so a socket failure never breaks 
 
 ---
 
-## Phase 2 — Live Collaborative Features
+## ✅ Phase 2 — Live Collaborative Features (COMPLETE)
 
-Once the socket infrastructure is in place, extending it to shared tasks and activity feeds is straightforward.
+Implemented in `feat/realtime-websockets`.
 
-### Shared Tasks (partially done in Phase 1)
+### New Events
 
-`task_updated` already fires on `updateTask`, `updateStatus`, and `updateParticipants`.
+| Event | Emitted by | Who receives it | React Query keys invalidated |
+|-------|-----------|-----------------|------------------------------|
+| `task_created` | `createTask` (shared tasks only) | All task participants | `['tasks']`, `['calendar']` |
+| `task_deleted` | `deleteTask` | All task participants | `['tasks']`, `['calendar']` |
+| `activity_updated` | `createActivity`, `createShareActivities` (activity service) | All users in `visibleTo` except actor | `['activity']` |
+| `flashcard_shared` | `shareSet` (friends or specific) | Specific recipients or all friends | `['flashcard-sets']` |
 
-Still to add:
-- Emit when a task is **deleted** (participants' kanban should update)
-- Emit when a task is **created** as shared
+### How activity_updated works
 
-### Activity Feed
-
-```js
-s.on('activity_updated', () => {
-  queryClient.invalidateQueries({ queryKey: ['activity-feed'] });
-});
-```
-
-### What gets real-time in Phase 2
-
-| Feature | Trigger | Who gets the event |
-|---------|---------|-------------------|
-| Shared task deleted | `task_deleted` | All task participants |
-| Shared task created | `task_created` | All participants |
-| Friend shares a note | `activity_updated` | Friends of the sharer |
-| Forum post vote/comment | `forum_updated` | Forum members (use a room per forum: `socket.join(`forum:${forumId}`)`) |
+The activity service (`backend/services/activity.service.js`) already resolves the `visibleTo` audience (actor + friends, or just actor for private) before writing to the DB. After writing, it calls `notifyActivityAudience(visibleTo, actorId)` which emits `activity_updated` to every user in that audience except the actor. This covers all event types: `note_shared`, `task_created`, `comment_added`, `like_added`, `flashcard_shared`.
 
 ---
 
@@ -193,7 +181,10 @@ With the Redis adapter, `io.to('user:xyz').emit(...)` works correctly regardless
 3. ✅ **Real-time friend requests** — complete
 4. ✅ **Real-time shared tasks** — complete
 5. ✅ **Real-time notes + comments** — complete
-6. **Notification badge** — `new_notification` event updates a badge count on the sidebar
+6. ✅ **Real-time shared task create/delete** — complete
+7. ✅ **Real-time activity feed** — complete
+8. ✅ **Real-time flashcard sharing** — complete
+9. **Notification badge** — `new_notification` event updates a badge count on the sidebar
 7. **Redis caching** — introduce once traffic warrants it, not before
 8. **Redis adapter for Socket.io** — only needed when running more than one backend instance
 
