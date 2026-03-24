@@ -56,17 +56,18 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 4. Loading States & Perceived Performance → `feat/loading-states`
+## 4. ~~Loading States & Perceived Performance~~ → `feat/loading-states` — DONE
 
 [frontend/loading-states-plan.md](frontend/loading-states-plan.md)
 
-- Shimmer animation replacing pulse on the `Skeleton` component
-- Skeleton layouts for every page that fetches data (NotesList, Tasks, Flashcards, Friends, Dashboard, etc.)
-- Optimistic mutations for writes (create/delete note, task status drag, send message, friend request)
-- Sidebar prefetch on hover — data cached before user clicks
-- Per-query `staleTime` overrides for stable data (profile, flashcard sets, resumes)
+- ~~Shimmer animation replacing pulse on the `Skeleton` component~~
+- ~~Skeleton layouts for every page that fetches data (NotesList, Tasks, Flashcards, Friends, Dashboard, etc.)~~
+- ~~Optimistic mutations for writes (create/delete note, task status drag, send message, friend request)~~
+- ~~Sidebar prefetch on hover — data cached before user clicks~~
+- ~~Per-query `staleTime` overrides for stable data (profile, flashcard sets, resumes)~~
+- ~~Landing page auth hydration fix — `isLoading` guard prevents flash of Sign In/Get Started before auth resolves~~
 
-App must feel instant before launch. Zero visible layout shift.
+~~App must feel instant before launch. Zero visible layout shift.~~
 
 ---
 
@@ -143,6 +144,9 @@ Work through every section top to bottom:
 - Set `NODE_ENV=production`
 - Set spend alerts on Groq, Atlas, Cloudinary, and Resend
 - Confirm WebSocket support and sticky sessions on chosen host
+- **F-H3** — Self-host Google Fonts or add SRI hashes (deferred from step 3)
+- **F-C1** — Migrate refresh token from localStorage to httpOnly cookie — requires backend `Set-Cookie` coordination (deferred from step 3)
+- **F-C3** — AuthCallback one-time code exchange instead of JWT in URL — requires backend C3 fix (deferred from step 3)
 
 **When done:** delete `docs/future-ideas/scale-readiness.md`, `docs/future-ideas/websocket-deployment-notes.md`, `docs/future-ideas/pre-deployment-checklist.md`
 

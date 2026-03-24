@@ -59,7 +59,7 @@ function getGreeting() {
 }
 
 export default function Landing() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#fef7ff' }}>
@@ -79,8 +79,8 @@ export default function Landing() {
             <Link to="/product" className="text-sm font-medium px-3 py-2" style={{ color: 'rgba(17,24,39,0.6)' }}>Product</Link>
             <Link to="/about" className="text-sm font-medium px-3 py-2" style={{ color: 'rgba(17,24,39,0.6)' }}>About</Link>
           </nav>
-          <div className="flex items-center gap-3">
-            {user ? (
+          <div className="flex items-center gap-3" style={{ minWidth: 160, justifyContent: 'flex-end' }}>
+            {authLoading ? null : user ? (
               <Link to="/dashboard" className="text-sm font-semibold text-white px-4 py-2 rounded-lg" style={{ background: '#6b21a8' }}>
                 Go to Dashboard
               </Link>

@@ -4,6 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f0e8ff 25%, #e8daff 50%, #f0e8ff 75%);
+  background-size: 1200px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
 @layer base {
   :root {
     --bg: #f7f7f5;

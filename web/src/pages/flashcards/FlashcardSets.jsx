@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import FlashcardSetsSkeleton from '@/components/skeletons/FlashcardSetsSkeleton';
 import Skeleton from '@/components/ui/Skeleton';
 import Badge from '@/components/ui/Badge';
 import { formatRelative } from '@/lib/utils';
@@ -25,6 +26,7 @@ export default function FlashcardSets() {
       sharedTab
         ? api.get('/flashcard-sets/shared', { params: search ? { search } : {} }).then(r => r.data)
         : api.get('/flashcard-sets', { params: search ? { search } : {} }).then(r => r.data),
+    staleTime: 120_000,
   });
 
   const createMutation = useMutation({
@@ -126,9 +128,7 @@ export default function FlashcardSets() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40" />)}
-        </div>
+        <FlashcardSetsSkeleton />
       ) : sets.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '64px 0' }}>
           <div style={{

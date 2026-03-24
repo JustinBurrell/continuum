@@ -6,6 +6,21 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { getInitials, cn } from '@/lib/utils';
 import Avatar from '@/components/ui/Avatar';
+import queryClient from '@/lib/queryClient';
+import api from '@/lib/api';
+
+// Prefetch map — each nav item fires this on hover so data is warm before the click.
+// staleTime matches the per-query overrides used on each page.
+const prefetchMap = {
+  '/notes':        () => queryClient.prefetchQuery({ queryKey: ['notes', { search: '', type: 'all' }], queryFn: () => api.get('/notes').then(r => r.data), staleTime: 60_000 }),
+  '/flashcards':   () => queryClient.prefetchQuery({ queryKey: ['flashcard-sets'], queryFn: () => api.get('/flashcard-sets').then(r => r.data), staleTime: 120_000 }),
+  '/tasks':        () => queryClient.prefetchQuery({ queryKey: ['tasks'], queryFn: () => api.get('/tasks').then(r => r.data), staleTime: 30_000 }),
+  '/friends':      () => queryClient.prefetchQuery({ queryKey: ['friends', ''], queryFn: () => api.get('/friends').then(r => r.data), staleTime: 120_000 }),
+  '/applications': () => queryClient.prefetchQuery({ queryKey: ['applications'], queryFn: () => api.get('/applications').then(r => r.data), staleTime: 60_000 }),
+  '/resumes':      () => queryClient.prefetchQuery({ queryKey: ['resumes', ''], queryFn: () => api.get('/resumes').then(r => r.data), staleTime: 300_000 }),
+  '/activity':     () => queryClient.prefetchQuery({ queryKey: ['activity'], queryFn: () => api.get('/activity').then(r => r.data), staleTime: 30_000 }),
+  '/messages':     () => queryClient.prefetchQuery({ queryKey: ['conversations'], queryFn: () => api.get('/messages').then(r => r.data), staleTime: 15_000 }),
+};
 
 const navGroups = [
   {
@@ -106,6 +121,7 @@ export default function Sidebar() {
                       if (!e.currentTarget.getAttribute('data-active')) {
                         e.currentTarget.style.background = '#f5f0ff';
                       }
+                      prefetchMap[to]?.();
                     }}
                     onMouseLeave={e => {
                       if (!e.currentTarget.getAttribute('data-active')) {

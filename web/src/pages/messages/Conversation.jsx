@@ -65,14 +65,36 @@ export default function Conversation({ conversationId }) {
     refetchInterval: msgSearch ? false : 5000, // disable polling while searching
   });
 
+  const msgQueryKey = ['messages', conversationId, msgSearch];
+
   const sendMutation = useMutation({
     mutationFn: (content) =>
       api.post(`/conversations/${conversationId}/messages`, { content }),
+    onMutate: async (content) => {
+      await queryClient.cancelQueries({ queryKey: msgQueryKey });
+      const prev = queryClient.getQueryData(msgQueryKey);
+      const tempMsg = {
+        _id: `temp-${Date.now()}`,
+        content,
+        createdAt: new Date().toISOString(),
+        senderId: user,
+        _temp: true,
+      };
+      queryClient.setQueryData(msgQueryKey, (old) => {
+        if (!old) return old;
+        return { ...old, messages: [...(old.messages || []), tempMsg] };
+      });
+      return { prev };
+    },
+    onError: (_err, _content, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(msgQueryKey, ctx.prev);
+    },
     onSuccess: () => {
       setMessage('');
       refetch();
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: msgQueryKey }),
   });
 
   useEffect(() => {

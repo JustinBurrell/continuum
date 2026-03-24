@@ -4,6 +4,7 @@ import { FileText, CheckSquare, Briefcase, Activity, ArrowRight, Clock, BookOpen
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Skeleton from '@/components/ui/Skeleton';
+import DashboardSkeleton from '@/components/skeletons/DashboardSkeleton';
 import { formatRelative, truncate, stripHtml } from '@/lib/utils';
 
 // Verified backend response shapes:
@@ -633,6 +634,11 @@ export default function Dashboard() {
         </p>
       </div>
 
+      {/* Show skeleton on first load (all primary queries pending) */}
+      {notesLoading && tasksLoading && activityLoading && appsLoading ? (
+        <DashboardSkeleton />
+      ) : <>
+
       {/* Stats row */}
       <div
         style={{
@@ -813,6 +819,7 @@ export default function Dashboard() {
           </Section>
         </div>
       </div>
+      </>}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import TasksSkeleton from '@/components/skeletons/TasksSkeleton';
 import Skeleton from '@/components/ui/Skeleton';
 import ShareModal from '@/components/ui/ShareModal';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
@@ -85,9 +86,24 @@ export default function Tasks() {
     onSuccess: invalidateTasks,
   });
 
+  const taskQueryKey = sharedTab ? ['tasks', 'shared', search] : ['tasks', 'mine', search];
+
   const statusMutation = useMutation({
     mutationFn: ({ id, status }) => api.patch(`/tasks/${id}/status`, { status }),
-    onSuccess: invalidateTasks,
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: taskQueryKey });
+      const prev = queryClient.getQueryData(taskQueryKey);
+      queryClient.setQueryData(taskQueryKey, (old) => {
+        if (!old) return old;
+        const tasks = (old.tasks || old.data || []).map(t => t._id === id ? { ...t, status } : t);
+        return old.tasks ? { ...old, tasks } : { ...old, data: tasks };
+      });
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(taskQueryKey, ctx.prev);
+    },
+    onSettled: invalidateTasks,
   });
 
   const deleteMutation = useMutation({
@@ -170,9 +186,7 @@ export default function Tasks() {
       </div>
 
       {isLoading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-          {STATUSES.map(s => <Skeleton key={s} className="h-64" />)}
-        </div>
+        <TasksSkeleton />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
           {columns.map(col => (
