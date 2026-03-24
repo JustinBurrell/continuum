@@ -252,6 +252,104 @@ function AvatarCropModal({ file, onSave, onClose }) {
   );
 }
 
+function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading }) {
+  const [usernameInput, setUsernameInput] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const usernameMatch = usernameInput.trim().toLowerCase() === username?.toLowerCase();
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+    }}>
+      <div style={{
+        background: '#fff', borderRadius: 20, padding: 28, width: 420, maxWidth: '92vw',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+      }}>
+        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#dc2626', margin: '0 0 6px' }}>Delete account</h3>
+        <p style={{ fontSize: 13, color: '#374151', margin: '0 0 16px', lineHeight: 1.5 }}>
+          Your account will be <strong>scheduled for deletion in 30 days</strong>. All your notes, tasks,
+          flashcards, messages, and data will be permanently removed.
+          You can restore it at any time by logging in before the deadline.
+        </p>
+
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 14px', marginBottom: 20 }}>
+          <p style={{ fontSize: 12, color: '#991b1b', margin: 0, lineHeight: 1.5 }}>
+            After 30 days, this action is <strong>irreversible</strong>. This cannot be undone.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>
+              Type your username to confirm
+            </label>
+            <input
+              value={usernameInput}
+              onChange={e => setUsernameInput(e.target.value)}
+              placeholder={username}
+              style={{
+                width: '100%', padding: '9px 12px', borderRadius: 10,
+                border: `1px solid ${usernameInput && !usernameMatch ? '#fca5a5' : '#ede9fe'}`,
+                background: '#fef7ff', fontSize: 13, color: '#111827',
+                outline: 'none', boxSizing: 'border-box',
+              }}
+            />
+            {usernameInput && !usernameMatch && (
+              <p style={{ fontSize: 11, color: '#dc2626', margin: '4px 0 0' }}>Username does not match</p>
+            )}
+          </div>
+
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>
+              {googleOnly ? 'Password (leave blank if Google sign-in only)' : 'Enter your password'}
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPw ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Your password"
+                style={{
+                  width: '100%', padding: '9px 40px 9px 12px', borderRadius: 10,
+                  border: '1px solid #ede9fe', background: '#fef7ff',
+                  fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+              <button type="button" onClick={() => setShowPw(s => !s)} tabIndex={-1} style={{
+                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                background: 'none', border: 'none', cursor: 'pointer', color: '#a087b0',
+              }}>
+                {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
+          <Button variant="outline" style={{ flex: 1 }} onClick={onClose} disabled={loading}>
+            Cancel
+          </Button>
+          <button
+            onClick={() => onConfirm(password)}
+            disabled={!usernameMatch || loading}
+            style={{
+              flex: 1, padding: '10px 16px', borderRadius: 10, border: 'none',
+              background: usernameMatch ? '#dc2626' : '#f5f0ff',
+              color: usernameMatch ? '#fff' : '#a087b0',
+              fontSize: 13, fontWeight: 600, cursor: usernameMatch ? 'pointer' : 'not-allowed',
+              transition: 'all 0.15s', opacity: loading ? 0.7 : 1,
+            }}
+          >
+            {loading ? 'Deleting…' : 'Delete my account'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Profile() {
   const { user, updateUser, logout } = useAuth();
   const toast = useToast();
@@ -259,6 +357,8 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState('overview');
   const [logoutAllLoading, setLogoutAllLoading] = useState(false);
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [restoreLoading, setRestoreLoading] = useState(false);
   const [notifSaved, setNotifSaved] = useState(false);
   const [verifySent, setVerifySent] = useState(false);
   const [newPasswordValue, setNewPasswordValue] = useState('');
@@ -446,17 +546,32 @@ export default function Profile() {
     finally { localStorage.clear(); navigate('/login'); }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!window.confirm('Permanently delete your account and all data? This cannot be undone.')) return;
-    if (!window.confirm('Last chance — this will delete all your notes, tasks, flashcards, and messages forever.')) return;
+  const handleDeleteAccount = () => setShowDeleteModal(true);
+
+  const confirmDeleteAccount = async (password) => {
     setDeleteAccountLoading(true);
     try {
-      await api.delete('/auth/me');
+      await api.delete('/auth/me', { data: { password } });
       localStorage.clear();
       navigate('/login');
-    } catch (_) {
-      toast.error('Failed to delete account. Please try again.');
+    } catch (err) {
+      const msg = err?.response?.data?.error || 'Failed to delete account';
+      toast({ type: 'error', message: msg });
       setDeleteAccountLoading(false);
+    }
+  };
+
+  const handleRestoreAccount = async () => {
+    setRestoreLoading(true);
+    try {
+      const res = await api.post('/auth/me/restore');
+      const updated = res.data.user || res.data.data;
+      if (updated) updateUser(updated);
+      toast({ type: 'success', message: 'Account restored successfully' });
+    } catch (_) {
+      toast({ type: 'error', message: 'Failed to restore account. Please try again.' });
+    } finally {
+      setRestoreLoading(false);
     }
   };
 
@@ -758,6 +873,28 @@ export default function Profile() {
       {/* ─── SECURITY TAB ─── */}
       {activeTab === 'security' && (
         <div>
+          {/* Pending deletion banner */}
+          {me?.pendingDeletion && (
+            <div style={{
+              background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12,
+              padding: '14px 16px', marginBottom: 16,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
+            }}>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#991b1b', margin: '0 0 2px' }}>
+                  Account scheduled for deletion
+                </p>
+                <p style={{ fontSize: 12, color: '#b91c1c', margin: 0 }}>
+                  Your account will be permanently deleted on {new Date(me.scheduledDeletionAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. Log in before then to restore it.
+                </p>
+              </div>
+              <Button size="sm" variant="outline" loading={restoreLoading} onClick={handleRestoreAccount}
+                style={{ borderColor: '#dc2626', color: '#dc2626', background: 'transparent', flexShrink: 0 }}>
+                Restore account
+              </Button>
+            </div>
+          )}
+
           <div style={card}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
               <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -963,6 +1100,16 @@ export default function Profile() {
             avatarMutation.mutate(croppedFile);
           }}
           onClose={() => setCropFile(null)}
+        />
+      )}
+
+      {showDeleteModal && (
+        <DeleteAccountModal
+          username={me?.username}
+          googleOnly={!!me?.googleId}
+          loading={deleteAccountLoading}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={confirmDeleteAccount}
         />
       )}
     </div>
