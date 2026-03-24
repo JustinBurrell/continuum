@@ -64,7 +64,7 @@ Summary is stored as an embedded field on the Note document for the owner. When 
 ### **Flashcard System**
 - `POST /api/notes/:noteId/flashcards/generate` - Auto-generate flashcards from note content via Groq. Accessible by owner and shared users. The resulting FlashcardSet is always owned by the requesting user. `note.hasFlashcards` is only updated when the owner generates.
 - `POST /api/flashcard-sets` - Create flashcard set manually
-- `GET /api/flashcard-sets` - List user's flashcard sets
+- `GET /api/flashcard-sets` - List user's flashcard sets. Supports `?search=` for title regex match.
 - `GET /api/flashcard-sets/:setId` - Get set with all flashcards. Accessible by owner, users in `sharedWith`, or friends when `visibility: 'friends'`. Response includes populated `userId` (username, firstName, lastName, avatarUrl) for creator attribution.
 - `PATCH /api/flashcard-sets/:setId` - Update set title and/or description. Owner-only. Body: `{ title?, description? }` — at least one required; title cannot be empty.
 - `POST /api/flashcard-sets/:setId/cards` - Add card to set
@@ -79,7 +79,7 @@ Summary is stored as an embedded field on the Note document for the owner. When 
 
 ### **Task Operations**
 - `POST /api/tasks` - Create task with due date, priority, type (`homework|study|project|exam|club|professional|personal|other`), duration, and optional note link
-- `GET /api/tasks` - List tasks with time range and status filters
+- `GET /api/tasks` - List tasks with time range, status, and search filters. Supports `?search=` for title regex match.
 - `PUT /api/tasks/:taskId` - Update task properties (title, status, priority, type, due date)
 - `PATCH /api/tasks/:taskId/status` - Quick status update
 - `DELETE /api/tasks/:taskId` - Soft delete task (owner only)
@@ -103,7 +103,7 @@ Summary is stored as an embedded field on the Note document for the owner. When 
 - `GET /api/users/:id` - Get a user's public profile (returns `{ _id, username, firstName, lastName, avatarUrl, bio, createdAt }`; no email, tokens, or settings)
 - `POST /api/friends/request` - Send friend request
 - `PUT /api/friends/request/:requestId` - Accept or reject friend request
-- `GET /api/friends` - List current friends
+- `GET /api/friends` - List current friends. Supports `?search=` for accepted friends: two-step lookup — matches users by firstName/lastName/username, then filters friendships to those involving the matched users.
 - `DELETE /api/friends/:friendId` - Remove friend
 
 ### **Content Sharing**
@@ -119,14 +119,14 @@ Summary is stored as an embedded field on the Note document for the owner. When 
 ### **Shared Tasks**
 - `PUT /api/tasks/:taskId` - Update task properties including participants
 - `PATCH /api/tasks/:taskId/participants` - Add or remove participants on a shared task (validates friendship). Sends auto-message to newly added participants via the messaging system.
-- `GET /api/tasks/shared` - List tasks shared with the current user
+- `GET /api/tasks/shared` - List tasks shared with the current user. Supports `?search=` for title regex match.
 
 ### **Flashcard Set Sharing**
 - `PATCH /api/flashcard-sets/:setId/share` - Update flashcard set visibility (private, friends, or specific users). When visibility is `specific`, an auto-message is sent to each user in `sharedWith` via the messaging system.
-- `GET /api/flashcard-sets/shared` - List flashcard sets shared with the current user
+- `GET /api/flashcard-sets/shared` - List flashcard sets shared with the current user. Supports `?search=` for title regex match.
 
 ### **Activity Feed**
-- `GET /api/activity` - List activity feed for the authenticated user (limit/offset pagination). Returns `{ feed[], total }` where `total` is the full count of all visible activities.
+- `GET /api/activity` - List activity feed for the authenticated user (limit/offset pagination). Returns `{ feed[], total }` where `total` is the full count of all visible activities. Supports `?search=` — two-step lookup matches users by `firstName`/`lastName`/`username` first, then returns activities where `userId` matches OR any of `metadata.noteTitle`, `metadata.setTitle`, `metadata.taskTitle`, `metadata.commentPreview` match the regex.
 
 Activity is driven by `settings.activityVisibility` on the User (default: `friends`). The actor always sees their own activity regardless of this setting. `private` means only the actor sees their activity, `friends` also makes it visible to accepted friends, `public` makes it visible to all (backend-only, not exposed in frontend settings). Activity types: `note_shared`, `task_created` (shared tasks only), `comment_added`, `like_added`, `flashcard_shared`.
 
@@ -138,9 +138,9 @@ Sharing activities are personalized: the sharer's feed shows who they shared wit
 
 ### **Conversations**
 - `POST /api/conversations` - Create or retrieve conversation with a user (find-or-create)
-- `GET /api/conversations` - List user's conversations (inbox), sorted by latest message
+- `GET /api/conversations` - List user's conversations (inbox), sorted by latest message. Supports `?search=` for participant name (firstName/lastName/username) — two-step lookup matches users first, then filters conversations.
 - `POST /api/conversations/:conversationId/messages` - Send a message in a conversation
-- `GET /api/conversations/:conversationId/messages` - List messages (cursor pagination via `?limit=&before=`)
+- `GET /api/conversations/:conversationId/messages` - List messages (cursor pagination via `?limit=&before=`). Supports `?search=` for content regex match; polling is disabled on the frontend while search is active.
 - `PUT /api/messages/:messageId/read` - Mark message as read, reset unread count
 
 ---
@@ -149,7 +149,7 @@ Sharing activities are personalized: the sharer's feed shows who they shared wit
 
 ### **Resume Management**
 - `POST /api/resumes/upload` - Upload resume PDF with label and target role (multipart/form-data); stored as `type: authenticated` in Cloudinary
-- `GET /api/resumes` - List all resume versions for user
+- `GET /api/resumes` - List all resume versions for user. Supports `?search=` for case-insensitive regex match on `fileName`, `version`, and `targetRole`.
 - `GET /api/resumes/:resumeId/download` - Generate a 10-minute signed download URL via `private_download_url`; requires ownership
 - `POST /api/resumes/:resumeId/feedback` - Generate AI-powered feedback via Groq (appended to embedded feedback array)
 - `GET /api/resumes/:resumeId/feedback` - Retrieve all feedback entries for a resume

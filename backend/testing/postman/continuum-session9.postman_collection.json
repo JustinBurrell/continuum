@@ -1,0 +1,886 @@
+{
+  "info": {
+    "_postman_id": "g7b8c9d0-e1f2-3456-abcd-456789012006",
+    "name": "Continuum — Session 9",
+    "description": "API-29: Server-Side Search — upgrade all client-side search to server-side API search.\n\nCovers: GET /api/tasks/shared?search=, GET /api/flashcard-sets/shared?search=, GET /api/friends?search=, GET /api/conversations?search=, GET /api/conversations/:id/messages?search=, GET /api/activity?search= (matches actor name via two-step User lookup + metadata fields), GET /api/resumes?search= (matches fileName, version, targetRole).\n\nRun order: 1. Login → 2. Shared Tasks Search → 3. Shared Flashcard Sets Search → 4. Friends Search → 5. Conversations Search → 6. Messages Search → 7. Activity Search → 8. Resumes Search.\ntoken, sharedTaskId, flashcardSetId, conversationId, and activityId must be populated (from prior sessions or manually set in environment).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Login",
+      "item": [
+        {
+          "name": "Login — User A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('token', json.token);",
+                  "    pm.environment.set('userId', json.user._id);",
+                  "    pm.environment.set('refreshToken', json.refreshToken);",
+                  "    pm.test('Login successful', () => pm.expect(json.token).to.be.a('string'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Shared Tasks Search",
+      "item": [
+        {
+          "name": "Get all shared tasks (no filter)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns tasks array', () => pm.expect(json.tasks).to.be.an('array'));",
+                  "if (json.tasks.length > 0) {",
+                  "    pm.environment.set('sharedTaskId', json.tasks[0]._id);",
+                  "    pm.test('Task has _id', () => pm.expect(json.tasks[0]._id).to.be.a('string'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/shared",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "shared"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search shared tasks — matching term",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns tasks array', () => pm.expect(json.tasks).to.be.an('array'));",
+                  "pm.test('All results contain search term (case-insensitive)', () => {",
+                  "    json.tasks.forEach(t => {",
+                  "        pm.expect(t.title.toLowerCase()).to.include('a');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/shared?search=a",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "shared"],
+              "query": [{ "key": "search", "value": "a" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search shared tasks — no match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns empty array for gibberish search', () => pm.expect(json.tasks).to.be.an('array').that.is.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/shared?search=xyzzy_no_match_9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "shared"],
+              "query": [{ "key": "search", "value": "xyzzy_no_match_9999" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Shared Flashcard Sets Search",
+      "item": [
+        {
+          "name": "Get all shared flashcard sets (no filter)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "const sets = json.sets || json.data || [];",
+                  "pm.test('Returns sets array', () => pm.expect(sets).to.be.an('array'));",
+                  "if (sets.length > 0) {",
+                  "    pm.environment.set('sharedFlashcardSetId', sets[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/flashcard-sets/shared",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "flashcard-sets", "shared"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search shared flashcard sets — matching term",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "const sets = json.sets || json.data || [];",
+                  "pm.test('Returns sets array', () => pm.expect(sets).to.be.an('array'));",
+                  "pm.test('All results contain search term (case-insensitive)', () => {",
+                  "    sets.forEach(s => {",
+                  "        pm.expect(s.title.toLowerCase()).to.include('a');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/flashcard-sets/shared?search=a",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "flashcard-sets", "shared"],
+              "query": [{ "key": "search", "value": "a" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search shared flashcard sets — no match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "const sets = json.sets || json.data || [];",
+                  "pm.test('Returns empty array for gibberish search', () => pm.expect(sets).to.be.an('array').that.is.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/flashcard-sets/shared?search=xyzzy_no_match_9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "flashcard-sets", "shared"],
+              "query": [{ "key": "search", "value": "xyzzy_no_match_9999" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Friends Search",
+      "item": [
+        {
+          "name": "Get all accepted friends (no filter)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns friendships array', () => pm.expect(json.friendships).to.be.an('array'));",
+                  "if (json.friendships.length > 0) {",
+                  "    pm.environment.set('friendshipId', json.friendships[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/friends",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "friends"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search accepted friends — matching name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns friendships array', () => pm.expect(json.friendships).to.be.an('array'));",
+                  "pm.test('Each friendship has populated user1/user2', () => {",
+                  "    json.friendships.forEach(f => {",
+                  "        pm.expect(f.user1).to.be.an('object');",
+                  "        pm.expect(f.user2).to.be.an('object');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/friends?search=test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "friends"],
+              "query": [{ "key": "search", "value": "test" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search accepted friends — no match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns empty array for gibberish search', () => pm.expect(json.friendships).to.be.an('array').that.is.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/friends?search=xyzzy_no_match_9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "friends"],
+              "query": [{ "key": "search", "value": "xyzzy_no_match_9999" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search param ignored on pending tab",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns friendships array (search ignored for pending)', () => pm.expect(json.friendships).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/friends?status=pending&search=test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "friends"],
+              "query": [
+                { "key": "status", "value": "pending" },
+                { "key": "search", "value": "test" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Conversations Search",
+      "item": [
+        {
+          "name": "Get all conversations (no filter)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns conversations array', () => pm.expect(json.conversations).to.be.an('array'));",
+                  "if (json.conversations.length > 0) {",
+                  "    pm.environment.set('conversationId', json.conversations[0]._id);",
+                  "    pm.test('Conversation has participants', () => pm.expect(json.conversations[0].participants).to.be.an('array'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search conversations — matching participant name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns conversations array', () => pm.expect(json.conversations).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations?search=test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations"],
+              "query": [{ "key": "search", "value": "test" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search conversations — no match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns empty array for gibberish search', () => pm.expect(json.conversations).to.be.an('array').that.is.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations?search=xyzzy_no_match_9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations"],
+              "query": [{ "key": "search", "value": "xyzzy_no_match_9999" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Messages Search",
+      "item": [
+        {
+          "name": "Get all messages in conversation (no filter)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns messages array', () => pm.expect(json.messages).to.be.an('array'));",
+                  "if (json.messages.length > 0) {",
+                  "    pm.environment.set('messageId', json.messages[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations/{{conversationId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations", "{{conversationId}}", "messages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search messages — matching content",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns messages array', () => pm.expect(json.messages).to.be.an('array'));",
+                  "pm.test('All results contain search term (case-insensitive)', () => {",
+                  "    json.messages.forEach(m => {",
+                  "        pm.expect(m.content.toLowerCase()).to.include('a');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations/{{conversationId}}/messages?search=a",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations", "{{conversationId}}", "messages"],
+              "query": [{ "key": "search", "value": "a" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search messages — no match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns empty array for gibberish search', () => pm.expect(json.messages).to.be.an('array').that.is.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations/{{conversationId}}/messages?search=xyzzy_no_match_9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations", "{{conversationId}}", "messages"],
+              "query": [{ "key": "search", "value": "xyzzy_no_match_9999" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search messages — invalid conversation ID returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404 or 400 for invalid conversation', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations/000000000000000000000000/messages?search=hello",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations", "000000000000000000000000", "messages"],
+              "query": [{ "key": "search", "value": "hello" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Activity Search",
+      "item": [
+        {
+          "name": "Get activity feed — no filter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns feed array and total', () => {",
+                  "    pm.expect(json.feed).to.be.an('array');",
+                  "    pm.expect(json.total).to.be.a('number');",
+                  "});",
+                  "if (json.feed.length > 0) {",
+                  "    pm.environment.set('activityId', json.feed[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search activity — matching note title",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns feed array', () => pm.expect(json.feed).to.be.an('array'));",
+                  "pm.test('Total reflects filtered count', () => pm.expect(json.total).to.be.a('number'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity?search=note",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"],
+              "query": [{ "key": "search", "value": "note" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search activity — matching actor name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns feed array', () => pm.expect(json.feed).to.be.an('array'));",
+                  "pm.test('Total reflects filtered count', () => pm.expect(json.total).to.be.a('number'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity?search=test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"],
+              "query": [{ "key": "search", "value": "test" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search activity — matching comment preview",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns feed array', () => pm.expect(json.feed).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity?search=great",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"],
+              "query": [{ "key": "search", "value": "great" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search activity — pagination with search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns feed and total', () => {",
+                  "    pm.expect(json.feed).to.be.an('array');",
+                  "    pm.expect(json.total).to.be.a('number');",
+                  "});",
+                  "pm.test('Offset respected — at most limit items returned', () => {",
+                  "    pm.expect(json.feed.length).to.be.at.most(5);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity?search=a&limit=5&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"],
+              "query": [
+                { "key": "search", "value": "a" },
+                { "key": "limit", "value": "5" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search activity — no match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns empty feed for gibberish search', () => pm.expect(json.feed).to.be.an('array').that.is.empty);",
+                  "pm.test('Total is 0', () => pm.expect(json.total).to.equal(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity?search=xyzzy_no_match_9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"],
+              "query": [{ "key": "search", "value": "xyzzy_no_match_9999" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Resumes Search",
+      "item": [
+        {
+          "name": "Get all resumes (no filter)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns resumes array', () => pm.expect(json.resumes).to.be.an('array'));",
+                  "if (json.resumes.length > 0) {",
+                  "    pm.environment.set('resumeId', json.resumes[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search resumes — by file name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns resumes array', () => pm.expect(json.resumes).to.be.an('array'));",
+                  "pm.test('All results match search term in fileName/version/targetRole', () => {",
+                  "    json.resumes.forEach(r => {",
+                  "        const combined = [r.fileName, r.version, r.targetRole].filter(Boolean).join(' ').toLowerCase();",
+                  "        pm.expect(combined).to.include('resume');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes?search=resume",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"],
+              "query": [{ "key": "search", "value": "resume" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search resumes — by target role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns resumes array', () => pm.expect(json.resumes).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes?search=engineer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"],
+              "query": [{ "key": "search", "value": "engineer" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search resumes — no match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns empty array for gibberish search', () => pm.expect(json.resumes).to.be.an('array').that.is.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes?search=xyzzy_no_match_9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"],
+              "query": [{ "key": "search", "value": "xyzzy_no_match_9999" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

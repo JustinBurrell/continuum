@@ -95,7 +95,7 @@ exports.createTask = async (req, res) => {
 // Sorted by dueDate ascending (soonest first)
 // ----------------------------------------
 exports.getTasks = async (req, res) => {
-    const { status, type, priority, startDate, endDate } = req.query;
+    const { status, type, priority, startDate, endDate, search } = req.query;
 
     const filter = {
         userId: req.user._id,
@@ -105,6 +105,7 @@ exports.getTasks = async (req, res) => {
     if (status) filter.status = status;
     if (type) filter.type = type;
     if (priority) filter.priority = priority;
+    if (search) filter.title = { $regex: search, $options: 'i' };
 
     // Date range filter on dueDate
     if (startDate || endDate) {
@@ -237,12 +238,18 @@ exports.deleteTask = async (req, res) => {
 // Sorted by dueDate ascending (soonest first)
 // ----------------------------------------
 exports.getSharedTasks = async (req, res) => {
-    const tasks = await Task.find({
+    const { search } = req.query;
+
+    const filter = {
         isShared: true,
         'participants.userId': req.user._id,
-        userId: { $ne: req.user._id }, // exclude tasks the user owns
+        userId: { $ne: req.user._id },
         deletedAt: null,
-    }).sort({ dueDate: 1 });
+    };
+
+    if (search) filter.title = { $regex: search, $options: 'i' };
+
+    const tasks = await Task.find(filter).sort({ dueDate: 1 });
 
     res.status(200).json({ success: true, tasks });
 };

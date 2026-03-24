@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Activity as ActivityIcon } from 'lucide-react';
+import { Activity as ActivityIcon, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/lib/api';
 import Avatar from '@/components/ui/Avatar';
@@ -123,10 +123,14 @@ const PAGE_SIZE = 20;
 
 export default function Activity() {
   const [page, setPage] = useState(1);
+  const [actSearch, setActSearch] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['activity', { page }],
-    queryFn: () => api.get('/activity', { params: { limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE } }).then(r => r.data),
+    queryKey: ['activity', { page, actSearch }],
+    queryFn: () =>
+      api.get('/activity', {
+        params: { limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, ...(actSearch ? { search: actSearch } : {}) },
+      }).then(r => r.data),
     keepPreviousData: true,
   });
 
@@ -137,13 +141,37 @@ export default function Activity() {
   return (
     <div>
       {/* Page header */}
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 16 }}>
         <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
           Activity
         </h1>
         <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>
           {total > 0 ? `${total} activit${total === 1 ? 'y' : 'ies'}` : 'Track what\'s happening'}
         </p>
+      </div>
+
+      {/* Search */}
+      <div style={{ position: 'relative', marginBottom: 24 }}>
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+        <input
+          style={{
+            width: '100%',
+            paddingLeft: 36,
+            paddingRight: 14,
+            paddingTop: 9,
+            paddingBottom: 9,
+            background: 'white',
+            border: '1px solid #ede9fe',
+            borderRadius: 12,
+            fontSize: '0.875rem',
+            color: '#111827',
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+          placeholder="Search activity by name or content..."
+          value={actSearch}
+          onChange={e => { setActSearch(e.target.value); setPage(1); }}
+        />
       </div>
 
       <div style={{

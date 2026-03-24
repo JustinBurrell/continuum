@@ -64,7 +64,7 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/flashcard-sets` | `pages/flashcards/FlashcardSets.jsx` | List all sets |
+| GET | `/api/flashcard-sets` | `pages/flashcards/FlashcardSets.jsx` | List all sets; supports `?search=` for title filter |
 | POST | `/api/flashcard-sets` | `pages/flashcards/FlashcardSets.jsx` → create modal | |
 | GET | `/api/flashcard-sets/:id` | `pages/flashcards/FlashcardSetDetail.jsx` | Cards array included |
 | PATCH | `/api/flashcard-sets/:id` | `pages/flashcards/FlashcardSetDetail.jsx` → inline title edit (owner-only) | Body: `{ title?, description? }` |
@@ -84,14 +84,14 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/tasks` | `pages/tasks/Tasks.jsx` | Kanban grouped by status |
+| GET | `/api/tasks` | `pages/tasks/Tasks.jsx` | Kanban grouped by status; supports `?search=` for title filter |
 | POST | `/api/tasks` | `pages/tasks/Tasks.jsx` → New task modal | |
 | GET | `/api/tasks/:id` | Not needed (list used) | |
 | PUT | `/api/tasks/:id` | `pages/tasks/Tasks.jsx` → status dropdown | Full update including status change |
 | PATCH | `/api/tasks/:id/status` | Available but not used directly | Status-only update (use `PUT` instead) |
 | DELETE | `/api/tasks/:id` | `pages/tasks/Tasks.jsx` → card delete | |
 | PATCH | `/api/tasks/:id/participant-status` | Not yet exposed in UI | Update a participant's status |
-| GET | `/api/tasks/shared` | Not yet exposed in UI | Tasks shared with you |
+| GET | `/api/tasks/shared` | `pages/tasks/Tasks.jsx` → "Shared with me" tab (supports `?search=`) | Tasks shared with you |
 
 ---
 
@@ -107,7 +107,7 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/friends` | `pages/friends/Friends.jsx` → Friends tab | Returns `{ friendships }` of accepted |
+| GET | `/api/friends` | `pages/friends/Friends.jsx` → Friends tab (supports `?search=` for accepted friends by name) | Returns `{ friendships }` of accepted |
 | GET | `/api/friends?status=pending` | `pages/friends/Friends.jsx` → Requests tab | Returns `{ friendships }` of pending |
 | POST | `/api/friends/request` | `pages/friends/Friends.jsx` → Find tab → Add button | Body: `{ recipientId }` (user `_id` from search) |
 | PUT | `/api/friends/request/:id` | `pages/friends/Friends.jsx` → Requests tab | Body: `{ action: 'accept' \| 'reject' }` |
@@ -128,9 +128,9 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/conversations` | `pages/messages/Messages.jsx` | List of conversations |
+| GET | `/api/conversations` | `pages/messages/Messages.jsx` (supports `?search=` by participant name) | List of conversations |
 | POST | `/api/conversations` | `pages/friends/Friends.jsx` → Message button | Body: `{ participantId: friendId }` |
-| GET | `/api/conversations/:id/messages` | `pages/messages/Conversation.jsx` | Polled every 5s |
+| GET | `/api/conversations/:id/messages` | `pages/messages/Conversation.jsx` (supports `?search=` by content; polling disabled while searching) | Polled every 5s |
 | POST | `/api/conversations/:id/messages` | `pages/messages/Conversation.jsx` → send input | Body: `{ content }` |
 | PUT | `/api/messages/:id/read` | Not yet exposed in UI | Mark message as read |
 
@@ -157,7 +157,7 @@ Frontend base URL: `http://localhost:5173`
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
 | POST | `/api/resumes/upload` | `pages/resumes/Resumes.jsx` → drag & drop / upload button | multipart/form-data with `resume` (file) + `name` fields; stored as Cloudinary `authenticated` resource |
-| GET | `/api/resumes` | `pages/resumes/Resumes.jsx` | Lists all uploaded resumes |
+| GET | `/api/resumes` | `pages/resumes/Resumes.jsx` (supports `?search=` by fileName, version, targetRole) | Lists all uploaded resumes |
 | GET | `/api/resumes/:id/download` | `pages/resumes/Resumes.jsx` → Download button | Returns 10-min signed URL via `private_download_url`; opened in new tab |
 | POST | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → AI Feedback / Regenerate button | AI-generated feedback accordion; older entries browsable via history panel |
 | GET | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → history panel | Returns all feedback entries; browsable in-card history |
@@ -169,7 +169,7 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/activity` | `pages/Activity.jsx` | Own activity feed |
+| GET | `/api/activity` | `pages/Activity.jsx` (supports `?search=` on actor name + metadata fields) | Own activity feed |
 
 ---
 
@@ -210,9 +210,8 @@ These backend endpoints exist but have no frontend UI yet:
 | `PUT /api/notes/:id/share` | Share note with friend button on NoteDetail |
 | `POST /api/notes/:id/flashcards/generate` | "Generate flashcards" button on NoteDetail |
 | `PATCH /api/flashcard-sets/:id/share` | Share set button on FlashcardSetDetail |
-| `GET /api/flashcard-sets/shared` | "Shared sets" tab on FlashcardSets |
+| `GET /api/flashcard-sets/shared` | ~~Wired~~ — `pages/flashcards/FlashcardSets.jsx` → Shared tab (supports `?search=`) |
 | `PATCH /api/tasks/:id/participant-status` | Participant status toggle on task card |
-| `GET /api/tasks/shared` | "Shared with me" tab on Tasks |
 | `PUT /api/messages/:id/read` | Auto-mark read on Conversation mount |
 | `GET /api/applications/dashboard` | Stats widget on Dashboard or Applications header |
 | `POST /api/applications/:id/contacts` | Contacts section on ApplicationDetail |

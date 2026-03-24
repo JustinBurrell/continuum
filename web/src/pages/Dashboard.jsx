@@ -220,10 +220,9 @@ function FlashcardSetCard({ set }) {
             fontWeight: 600,
             color: '#111827',
             marginBottom: 6,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
             lineHeight: 1.45,
           }}
         >
@@ -651,12 +650,12 @@ export default function Dashboard() {
       </div>
 
       {/* 2-col grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 28 }}>
         {/* Left column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
           <Section label="Recent Notes" to="/notes">
             {notesLoading ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
                 {[0, 1, 2].map(i => <Skeleton key={i} className="h-28" />)}
               </div>
             ) : notes.length === 0 ? (
@@ -677,7 +676,7 @@ export default function Dashboard() {
                 </Link>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
                 {notes.map(note => <NoteCard key={note._id} note={note} />)}
               </div>
             )}
@@ -685,7 +684,7 @@ export default function Dashboard() {
 
           <Section label="Flashcard Sets" to="/flashcards">
             {flashcardLoading ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
                 {[0, 1, 2].map(i => <Skeleton key={i} className="h-28" />)}
               </div>
             ) : flashcardSets.length === 0 ? (
@@ -703,7 +702,7 @@ export default function Dashboard() {
                 No flashcard sets yet. Create one from a note or manually.
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
                 {flashcardSets.map(set => <FlashcardSetCard key={set._id} set={set} />)}
               </div>
             )}

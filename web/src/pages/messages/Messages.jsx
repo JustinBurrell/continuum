@@ -15,10 +15,11 @@ export default function Messages() {
   const { user } = useAuth();
   const [showNew, setShowNew] = useState(false);
   const [friendSearch, setFriendSearch] = useState('');
+  const [convSearch, setConvSearch] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['conversations'],
-    queryFn: () => api.get('/conversations').then(r => r.data),
+    queryKey: ['conversations', convSearch],
+    queryFn: () => api.get('/conversations', { params: convSearch ? { search: convSearch } : {} }).then(r => r.data),
   });
 
   const { data: friendsData } = useQuery({
@@ -50,6 +51,30 @@ export default function Messages() {
         <Button onClick={() => setShowNew(true)}>
           <Plus size={16} /> New message
         </Button>
+      </div>
+
+      {/* Search */}
+      <div style={{ position: 'relative', marginBottom: 16 }}>
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+        <input
+          style={{
+            width: '100%',
+            paddingLeft: 36,
+            paddingRight: 14,
+            paddingTop: 9,
+            paddingBottom: 9,
+            background: 'white',
+            border: '1px solid #ede9fe',
+            borderRadius: 12,
+            fontSize: '0.875rem',
+            color: '#111827',
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+          placeholder="Search conversations..."
+          value={convSearch}
+          onChange={e => setConvSearch(e.target.value)}
+        />
       </div>
 
       {isLoading ? (

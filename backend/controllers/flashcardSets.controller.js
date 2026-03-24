@@ -86,10 +86,12 @@ exports.createSet = async (req, res) => {
 // Excludes soft-deleted sets
 // ----------------------------------------
 exports.getSets = async (req, res) => {
-    const sets = await FlashcardSet.find({
-        userId: req.user._id,
-        deletedAt: null,
-    }).sort({ createdAt: -1 });
+    const { search } = req.query;
+
+    const filter = { userId: req.user._id, deletedAt: null };
+    if (search) filter.title = { $regex: search, $options: 'i' };
+
+    const sets = await FlashcardSet.find(filter).sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, sets });
 };
@@ -511,6 +513,7 @@ exports.shareSet = async (req, res) => {
 // ----------------------------------------
 exports.getSharedSets = async (req, res) => {
     const userId = req.user._id;
+    const { search } = req.query;
 
     const friendships = await Friendship.find({
         $or: [{ user1: userId }, { user2: userId }],
@@ -522,14 +525,18 @@ exports.getSharedSets = async (req, res) => {
         f.user1.toString() === userId.toString() ? f.user2 : f.user1
     );
 
-    const sets = await FlashcardSet.find({
+    const filter = {
         deletedAt: null,
         userId: { $ne: userId },
         $or: [
             { visibility: 'friends', userId: { $in: friendIds } },
             { visibility: 'specific', sharedWith: userId },
         ],
-    })
+    };
+
+    if (search) filter.title = { $regex: search, $options: 'i' };
+
+    const sets = await FlashcardSet.find(filter)
         .select('-sharedWith')
         .populate('userId', 'username firstName lastName')
         .sort({ createdAt: -1 });
