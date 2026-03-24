@@ -26,6 +26,8 @@ Users can register with email/password OR Google OAuth. Both paths create the sa
 
 ### **User Profile**
 - `PATCH /api/auth/me/profile` - Update user profile information (name, bio, avatarUrl, settings)
+- `PATCH /api/auth/me/username` - Change username. Validates format (3–30 chars, letters/numbers/underscores/hyphens) and checks uniqueness. Returns 409 if taken.
+- `PATCH /api/auth/me/password` - Change password. Body: `{ currentPassword, newPassword }`. Verifies current password before updating. Applies same validation rules as registration (8+ chars, letter, number, special char). Returns 400 for Google-only accounts with no password set.
 
 ### **Google Account Linking**
 - `POST /api/auth/me/google/link` - Initiate Google OAuth to link Google account to existing user

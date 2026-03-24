@@ -19,9 +19,11 @@ Frontend base URL: `http://localhost:5173`
 | GET | `/api/auth/google` | `context/AuthContext.jsx` → `googleLogin()` | Redirects browser to Google OAuth |
 | GET | `/api/auth/google/callback` | Backend-only | Backend redirects to `/auth/callback?token=JWT` |
 | GET | `/api/auth/me` | `context/AuthContext.jsx` (hydrate on mount) + `pages/Profile.jsx` | Returns current user |
-| PATCH | `/api/auth/me/profile` | `pages/Profile.jsx` → profile tab | multipart/form-data; handles name, username, bio, avatar, settings |
+| PATCH | `/api/auth/me/profile` | `pages/Profile.jsx` → Profile tab | multipart/form-data; handles name, bio, avatar, settings |
+| PATCH | `/api/auth/me/username` | `pages/Profile.jsx` → Profile tab → username section | Body: `{ username }`; 409 if taken |
+| PATCH | `/api/auth/me/password` | `pages/Profile.jsx` → Security tab | Body: `{ currentPassword, newPassword }`; live requirements checklist on frontend |
 | POST | `/api/auth/logout` | `context/AuthContext.jsx` → `logout()` | Sends refreshToken in body |
-| POST | `/api/auth/logout-all` | Not yet exposed in UI | Revokes all sessions |
+| POST | `/api/auth/logout-all` | `pages/Profile.jsx` → Integrations tab → danger zone | Revokes all sessions |
 | POST | `/api/auth/me/google/link` | `pages/Profile.jsx` → integrations tab | Redirects to OAuth link flow |
 | DELETE | `/api/auth/me/google/link` | `pages/Profile.jsx` → integrations tab → Unlink button | |
 
