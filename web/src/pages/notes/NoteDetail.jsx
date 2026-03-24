@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   Edit3, Trash2, ArrowLeft, Sparkles,
@@ -100,6 +102,7 @@ export default function NoteDetail() {
     onSuccess: () => refetchComments(),
   });
 
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [aiError, setAiError] = useState('');
   const [pdfDownloading, setPdfDownloading] = useState(false);
 
@@ -224,7 +227,7 @@ export default function NoteDetail() {
           <Button
             variant="danger"
             size="sm"
-            onClick={() => { if (window.confirm('Delete this note?')) deleteMutation.mutate(); }}
+            onClick={() => setDeleteConfirm(true)}
             loading={deleteMutation.isPending}
           >
             <Trash2 size={14} />
@@ -305,7 +308,7 @@ export default function NoteDetail() {
         <div
           className="prose prose-sm max-w-none"
           style={{ color: '#1f2937', lineHeight: 1.7 }}
-          dangerouslySetInnerHTML={{ __html: note.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(note.content) }}
         />
       </div>
 
@@ -506,6 +509,16 @@ export default function NoteDetail() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        open={deleteConfirm}
+        title="Delete note"
+        message="Are you sure you want to delete this note? This action cannot be undone."
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={() => { setDeleteConfirm(false); deleteMutation.mutate(); }}
+        onClose={() => setDeleteConfirm(false)}
+      />
 
       {/* Share modal */}
       <ShareModal

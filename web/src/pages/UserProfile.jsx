@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
@@ -13,6 +13,7 @@ import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import { formatDate, formatRelative } from '@/lib/utils';
 
 const fullName = (u) =>
@@ -53,6 +54,7 @@ export default function UserProfile() {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const isSelf = !!(id && currentUser?._id && id.toString() === currentUser._id.toString());
+  const [removeConfirm, setRemoveConfirm] = useState(false);
 
   // Redirect to Settings page if viewing own profile
   useEffect(() => {
@@ -282,9 +284,7 @@ export default function UserProfile() {
                     <MessageCircle size={13} /> Message
                   </Button>
                   <button
-                    onClick={() => {
-                      if (window.confirm(`Remove ${name} as a friend?`)) removeMutation.mutate();
-                    }}
+                    onClick={() => setRemoveConfirm(true)}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -470,6 +470,16 @@ export default function UserProfile() {
           </section>
         </>
       )}
+
+      <ConfirmModal
+        open={removeConfirm}
+        title="Remove friend"
+        message={`Are you sure you want to remove ${name} as a friend?`}
+        confirmLabel="Remove"
+        loading={removeMutation.isPending}
+        onConfirm={() => { removeMutation.mutate(); setRemoveConfirm(false); }}
+        onClose={() => setRemoveConfirm(false)}
+      />
     </div>
   );
 }

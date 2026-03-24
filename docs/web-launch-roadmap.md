@@ -34,27 +34,25 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 3. Frontend Security Fixes → `fix/frontend-security`
+## 3. ~~Frontend Security Fixes~~ → `fix/frontend-security` — DONE
 
 [security/frontend_security_audit.md](security/frontend_security_audit.md)
 
-Work through the remediation roadmap in the audit top to bottom. Key items:
-
-- **F-H1** — Clear React Query cache on logout (`queryClient.clear()`) — 5 min
-- **F-C2** — Remove "HTML is supported" hint from NoteEditor + add DOMPurify — 30 min
-- **F-M2** — Fix Register.jsx sending `name` instead of `firstName`/`lastName` — 15 min
-- **F-L4** — Add `<meta name="referrer">` to index.html — 2 min
-- **F-L2** — Add `rel="noopener noreferrer"` to all `target="_blank"` links — 15 min
-- **F-H2** — Add Content Security Policy meta tag to index.html — 1 hr
-- **F-L1** — Add `autocomplete` attributes to all password fields — 5 min
-- **F-H4** — Add `VITE_API_URL` missing build guard in vite.config.js — 20 min
-- **F-M4** — Add explicit React Query staleTime and gcTime config — 15 min
-- **F-M1** — Fix concurrent 401s each attempting token refresh (refresh lock) — 45 min
-- **F-M5** — Replace all `window.confirm()` with the existing Modal component — 30 min
-- **F-M3** — Replace raw server error strings with a friendlyError map — 1 hr
-- **F-H3** — Self-host Google Fonts or add SRI hashes — 1–2 hrs
-- **F-C1** — Migrate refresh token from localStorage to httpOnly cookie (coordinates with backend) — 3–5 hrs
-- **F-C3** — AuthCallback one-time code exchange instead of JWT in URL (coordinates with backend C3 fix) — 2–4 hrs
+- ~~**F-H1** — Clear React Query cache on logout (`queryClient.clear()`)~~
+- ~~**F-C2** — Remove "HTML is supported" hint from NoteEditor + add DOMPurify~~
+- ~~**F-M2** — Fix Register.jsx sending `name` instead of `firstName`/`lastName`~~
+- ~~**F-L4** — Add `<meta name="referrer">` to index.html~~
+- ~~**F-L2** — Add `rel="noopener noreferrer"` to all `target="_blank"` links~~ (already clean)
+- ~~**F-H2** — Add Content Security Policy meta tag to index.html~~
+- ~~**F-L1** — Add `autocomplete` attributes to all password fields~~
+- ~~**F-H4** — Add `VITE_API_URL` missing build guard in vite.config.js~~
+- ~~**F-M4** — Add explicit React Query staleTime and gcTime config~~
+- ~~**F-M1** — Fix concurrent 401s each attempting token refresh (refresh lock)~~
+- ~~**F-M5** — Replace all `window.confirm()` with the existing Modal component~~
+- ~~**F-M3** — Replace raw server error strings with a friendlyError map~~
+- **F-H3** — Self-host Google Fonts or add SRI hashes — deferred to step 10
+- **F-C1** — Migrate refresh token from localStorage to httpOnly cookie — deferred to step 10
+- **F-C3** — AuthCallback one-time code exchange — deferred to step 10
 
 ---
 

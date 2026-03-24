@@ -763,21 +763,21 @@ These patterns are correct and must be preserved.
 
 ## Section 8 — Remediation Roadmap
 
-| # | Finding | Effort | Must do before |
-|---|---|---|---|
-| 1 | Clear React Query cache on logout — `queryClient.clear()` (F-H1) | 5 min | Any public traffic |
-| 2 | Remove "HTML is supported" hint from NoteEditor (F-C2) | 2 min | Any public traffic |
-| 3 | Add `DOMPurify` for HTML note rendering (F-C2) | 30 min | Any public traffic |
-| 4 | Add `<meta name="referrer">` to index.html (F-L4) | 2 min | Any public traffic |
-| 5 | Add `rel="noopener noreferrer"` to all `target="_blank"` links (F-L2) | 15 min | Any public traffic |
-| 6 | Fix Register.jsx name split — send `firstName`/`lastName` (F-M2) | 15 min | Any public traffic |
-| 7 | Add CSP meta tag to index.html (F-H2) | 1 hr | Any public traffic |
-| 8 | Add `autocomplete` attributes to password fields (F-L1) | 5 min | Next deploy |
-| 9 | Fix VITE_API_URL missing build guard (F-H4) | 20 min | First production build |
-| 10 | Add explicit React Query cache config — staleTime, gcTime (F-M4) | 15 min | Next deploy |
-| 11 | Fix concurrent 401 refresh race condition (F-M1) | 45 min | Before beta |
-| 12 | Replace `window.confirm()` with Modal component (F-M5) | 30 min | Before beta |
-| 13 | Replace raw server errors with friendlyError map (F-M3) | 1 hr | Before beta |
-| 14 | Self-host Google Fonts or add SRI hashes (F-H3) | 1–2 hrs | Before launch |
-| 15 | Migrate refresh token to httpOnly cookie — coordinate with backend (F-C1) | 3–5 hrs | Before launch |
-| 16 | Implement AuthCallback one-time code exchange — coordinate with backend C3 fix (F-C3) | 2–4 hrs | Google OAuth live |
+| # | Finding | Effort | Must do before | Status |
+|---|---|---|---|---|
+| 1 | Clear React Query cache on logout — `queryClient.clear()` (F-H1) | 5 min | Any public traffic | ✅ Done |
+| 2 | Remove "HTML is supported" hint from NoteEditor (F-C2) | 2 min | Any public traffic | ✅ Done |
+| 3 | Add `DOMPurify` for HTML note rendering (F-C2) | 30 min | Any public traffic | ✅ Done |
+| 4 | Add `<meta name="referrer">` to index.html (F-L4) | 2 min | Any public traffic | ✅ Done |
+| 5 | Add `rel="noopener noreferrer"` to all `target="_blank"` links (F-L2) | 15 min | Any public traffic | ✅ Already clean |
+| 6 | Fix Register.jsx name split — send `firstName`/`lastName` (F-M2) | 15 min | Any public traffic | ✅ Done |
+| 7 | Add CSP meta tag to index.html (F-H2) | 1 hr | Any public traffic | ✅ Done |
+| 8 | Add `autocomplete` attributes to password fields (F-L1) | 5 min | Next deploy | ✅ Done |
+| 9 | Fix VITE_API_URL missing build guard (F-H4) | 20 min | First production build | ✅ Done |
+| 10 | Add explicit React Query cache config — staleTime, gcTime (F-M4) | 15 min | Next deploy | ✅ Done |
+| 11 | Fix concurrent 401 refresh race condition (F-M1) | 45 min | Before beta | ✅ Done |
+| 12 | Replace `window.confirm()` with Modal component (F-M5) | 30 min | Before beta | ✅ Done |
+| 13 | Replace raw server errors with friendlyError map (F-M3) | 1 hr | Before beta | ✅ Done |
+| 14 | Self-host Google Fonts or add SRI hashes (F-H3) | 1–2 hrs | Before launch | Deferred |
+| 15 | Migrate refresh token to httpOnly cookie — coordinate with backend (F-C1) | 3–5 hrs | Before launch | Deferred |
+| 16 | Implement AuthCallback one-time code exchange — coordinate with backend C3 fix (F-C3) | 2–4 hrs | Google OAuth live | Deferred |

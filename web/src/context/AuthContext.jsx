@@ -121,6 +121,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
+    queryClient.clear();
     setUser(null);
   }, []);
 

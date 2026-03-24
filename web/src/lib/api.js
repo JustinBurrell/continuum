@@ -16,8 +16,20 @@ api.interceptors.request.use((config) => {
 // Auth endpoints that should never trigger the refresh/redirect logic
 const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password'];
 
-// On 401: attempt token refresh once, then redirect to /login
-// Skip entirely for auth endpoints so login errors reach the component catch block
+// Single in-flight refresh promise — prevents concurrent 401s from each spawning
+// their own refresh request. All failing requests queue behind the one refresh call.
+let refreshPromise = null;
+
+const clearSession = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('user');
+  window.location.href = '/login';
+};
+
+// On 401: attempt token refresh once (shared across all concurrent requests),
+// then redirect to /login if refresh fails.
+// Skip entirely for auth endpoints so login errors reach the component catch block.
 api.interceptors.response.use(
   (res) => res,
   async (err) => {
@@ -27,23 +39,35 @@ api.interceptors.response.use(
     if (err.response?.status === 401 && !err.config._retry && !isAuthEndpoint) {
       err.config._retry = true;
       const refreshToken = localStorage.getItem('refreshToken');
+
       if (refreshToken) {
+        // Reuse an in-flight refresh if one is already running
+        if (!refreshPromise) {
+          refreshPromise = axios
+            .post(
+              (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/auth/refresh',
+              { refreshToken }
+            )
+            .then(({ data }) => {
+              localStorage.setItem('token', data.token);
+              return data.token;
+            })
+            .finally(() => {
+              refreshPromise = null;
+            });
+        }
+
         try {
-          const { data } = await axios.post(
-            (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/auth/refresh',
-            { refreshToken }
-          );
-          localStorage.setItem('token', data.token);
-          err.config.headers.Authorization = `Bearer ${data.token}`;
+          const newToken = await refreshPromise;
+          err.config.headers.Authorization = `Bearer ${newToken}`;
           return api(err.config);
         } catch {
-          // refresh failed — fall through to clear + redirect
+          clearSession();
+          return Promise.reject(err);
         }
       }
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+
+      clearSession();
     }
     return Promise.reject(err);
   }
