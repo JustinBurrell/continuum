@@ -174,11 +174,22 @@ The current schema stores one boolean for each channel. A more granular model wo
 
 ### Notification bell (new component)
 
-- Polled or WebSocket-driven (polling is simpler for the initial version)
-- Shows unread count badge
-- Dropdown lists recent notifications with actor name, event description, and timestamp
-- Clicking a notification navigates to the relevant resource and marks it read
-- "Mark all read" action
+**Delivery:** WebSocket-driven via a `new_notification` event (not polled — Socket.io is already connected). The backend emits `new_notification` to `user:<recipientId>` immediately after `Notification.create()` inside `notification.service.js`. The frontend `AuthContext.jsx` registers a handler:
+
+```js
+socket.on('new_notification', ({ count }) => {
+  setUnreadCount(count); // or: queryClient.invalidateQueries({ queryKey: ['notifications'] })
+});
+```
+
+The sidebar bell icon shows a numeric badge driven by `GET /api/notifications?unread=true`. On mount and after each `new_notification` event, refetch this count. This avoids polling while keeping the badge accurate.
+
+**Bell component behavior:**
+- Shows unread count badge (red dot for ≥1, number for ≥10)
+- Clicking opens a dropdown: actor avatar, short description, timestamp, unread indicator
+- Clicking a notification item navigates to the resource + calls `PATCH /api/notifications/:id/read`
+- "Mark all read" button at top of dropdown → `PATCH /api/notifications/read`
+- Dropdown auto-closes on outside click or navigation
 
 ### Settings page — Notifications section
 
