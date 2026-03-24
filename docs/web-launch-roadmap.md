@@ -58,7 +58,21 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 4. Rate Limiting → `chore/rate-limiting`
+## 4. Loading States & Perceived Performance → `feat/loading-states`
+
+[frontend/loading-states-plan.md](frontend/loading-states-plan.md)
+
+- Shimmer animation replacing pulse on the `Skeleton` component
+- Skeleton layouts for every page that fetches data (NotesList, Tasks, Flashcards, Friends, Dashboard, etc.)
+- Optimistic mutations for writes (create/delete note, task status drag, send message, friend request)
+- Sidebar prefetch on hover — data cached before user clicks
+- Per-query `staleTime` overrides for stable data (profile, flashcard sets, resumes)
+
+App must feel instant before launch. Zero visible layout shift.
+
+---
+
+## 5. Rate Limiting → `chore/rate-limiting`
 
 [future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 3
 [future-ideas/pre-deployment-checklist.md](future-ideas/pre-deployment-checklist.md) — section 4
@@ -69,7 +83,7 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 5. Redis Adapter for Socket.io → `chore/redis-socket-adapter`
+## 6. Redis Adapter for Socket.io → `chore/redis-socket-adapter`
 
 [future-ideas/redis-socket-adapter.md](future-ideas/redis-socket-adapter.md)
 
@@ -81,7 +95,7 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 6. Activity Feed Cursor Pagination → `feat/cursor-pagination`
+## 7. Activity Feed Cursor Pagination → `feat/cursor-pagination`
 
 [future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 5
 
@@ -91,7 +105,7 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 7. Background Job Queue for AI → `feat/ai-job-queue`
+## 8. Background Job Queue for AI → `feat/ai-job-queue`
 
 [future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 6
 
@@ -102,7 +116,7 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 8. Pre-Deployment Checklist → `chore/pre-deploy`
+## 9. Pre-Deployment Checklist → `chore/pre-deploy`
 
 [future-ideas/pre-deployment-checklist.md](future-ideas/pre-deployment-checklist.md)
 
@@ -118,7 +132,7 @@ Work through every section top to bottom:
 
 ---
 
-## 9. Hosting + Deployment Config → `chore/deploy-config`
+## 10. Hosting + Deployment Config → `chore/deploy-config`
 
 [future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 7
 [future-ideas/pre-deployment-checklist.md](future-ideas/pre-deployment-checklist.md) — sections 11–13
@@ -136,7 +150,7 @@ Work through every section top to bottom:
 
 ---
 
-## 10. MVP Verification → no branch
+## 11. MVP Verification → no branch
 
 [future-ideas/web-mvp-verification.md](future-ideas/web-mvp-verification.md)
 
@@ -146,9 +160,9 @@ Full manual walkthrough of every page and feature against the production deploym
 
 ---
 
-## 11. Launch → begin mobile development
+## 12. Launch → begin mobile development
 
-Once step 10 is signed off, the web MVP is complete and stable. Mobile development starts on a clean foundation with a fully deployed, production-hardened backend.
+Once step 11 is signed off, the web MVP is complete and stable. Mobile development starts on a clean foundation with a fully deployed, production-hardened backend.
 
 The only files remaining in `docs/future-ideas/` will be `forum.md` and `notifications-spec.md` — post-launch features, not pre-launch requirements.
 
