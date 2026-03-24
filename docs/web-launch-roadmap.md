@@ -129,16 +129,39 @@ Work through every section top to bottom:
 
 These can be resolved in any order as PRs are opened. Issue numbers TBD — update inline as PRs are created.
 
+Already completed from this list: ~~POL-1 (rate limiting — step 5)~~, ~~POL-3 (indexes — step 1)~~, ~~POL-4 (loading skeletons — step 4)~~.
+
 ### Bugs
-- [ ] **Google Unlink 500** — `googleUnlink` crashes when `req.body` is `null`/`undefined` after `mongo-sanitize`. Fix: `const { keepNotes = true } = req.body || {};` in `auth.controller.js`. Frontend should send `{ data: { keepNotes: true } }` with the DELETE, or show a confirmation modal first. See [bugs/google-unlink-500.md](bugs/google-unlink-500.md).
+- [ ] **POL-9 / Google Unlink 500** — `googleUnlink` crashes when `req.body` is `null`/`undefined` after `mongo-sanitize`. Fix: `const { keepNotes = true } = req.body || {};` in `auth.controller.js`. Frontend should send `{ data: { keepNotes: true } }` with the DELETE, or show a confirmation modal first. See [bugs/google-unlink-500.md](bugs/google-unlink-500.md).
+
+### Backend hardening
+- [ ] **POL-2** — Standardize error responses across all routes — audit every controller for inconsistent `{ message }` vs `{ error }` shapes; ensure all 4xx/5xx go through the same `{ success: false, error }` format
+
+### Frontend polish
+- [ ] **POL-5** — Add React error boundaries with fallback UI — wrap major page sections so a crash in one panel doesn't blank the whole page
+- [ ] **POL-6** — Responsive layout improvements — audit every page at 375px, 768px, and 1280px; fix any overflow, cramped padding, or broken grids
+- [ ] **POL-7** — Smooth animations and transitions — page entry fades, card hover lifts, button press feedback consistency
 
 ### Missing UI — endpoints built but not wired
-
-- [ ] **Delete resume** — `DELETE /api/resumes/:id` — add delete button to Resumes page (currently no UI to remove a resume)
+- [ ] **Delete resume** — `DELETE /api/resumes/:id` — add delete button to Resumes page
 - [ ] **Mark message as read** — `PUT /api/messages/:id/read` — call on Conversation mount to clear unread state
 - [ ] **Task participant status** — `PATCH /api/tasks/:id/participant-status` — toggle accept/decline on shared task cards
 - [ ] **Share note** — `PUT /api/notes/:id/share` — friend picker on NoteDetail to share with specific users
 - [ ] **Share flashcard set** — `PATCH /api/flashcard-sets/:id/share` — share button on FlashcardSetDetail
+
+### Testing
+- [ ] **POL-8** — Integration test suite for critical paths — auth flow, note create/share, task create/assign, resume upload + AI feedback
+
+### Documentation
+- [ ] **POL-15** — Swagger/OpenAPI docs — `swagger-jsdoc` + `swagger-ui-express`, serve at `/api-docs`
+- [ ] **POL-16** — Update backend README — setup, env vars, scripts, endpoint list
+- [ ] **POL-17** — Update web README — setup, env vars, folder structure, key deps
+- [ ] **POL-19** — Update root README — project overview, stack, architecture summary, quickstart, screenshots or demo GIF
+
+### Showcase prep
+- [ ] **POL-11** — Prepare demo script — full student workflow: import → summarize → flashcards → task → share → career
+- [ ] **POL-12** — Create sample data for demo — clean seed that tells a compelling story
+- [ ] **POL-13** — Record backup demo video — in case of live demo failure
 
 ---
 
