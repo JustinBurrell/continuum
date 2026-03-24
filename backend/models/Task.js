@@ -161,10 +161,11 @@ const taskSchema = new mongoose.Schema({
 // Purpose: Speed up common queries by telling MongoDB which fields to pre-sort
 // These compound indexes optimize queries that filter by BOTH fields at once
 // ============================================================
-taskSchema.index({ userId: 1, deletedAt: 1, dueDate: 1 });   // "get my tasks by due date"
-taskSchema.index({ userId: 1, status: 1, dueDate: 1 });       // "get my incomplete tasks by due date"
-taskSchema.index({ 'participants.userId': 1, isShared: 1 });   // "get shared tasks I'm participating in"
-taskSchema.index({ dueDate: 1, status: 1 });                   // "find overdue tasks across all users"
+taskSchema.index({ userId: 1, deletedAt: 1, dueDate: 1 });          // "get my tasks by due date"
+taskSchema.index({ userId: 1, status: 1, dueDate: 1 });             // "get my incomplete tasks by due date"
+taskSchema.index({ 'participants.userId': 1, isShared: 1 });        // "get shared tasks I'm participating in"
+taskSchema.index({ 'participants.userId': 1, deletedAt: 1 });       // "get non-deleted shared tasks by participant"
+taskSchema.index({ dueDate: 1, status: 1 });                        // "find overdue tasks across all users"
 
 // ============================================================
 // PRE-SAVE HOOK

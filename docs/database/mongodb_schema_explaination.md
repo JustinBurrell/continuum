@@ -776,7 +776,43 @@ Cache frequently-accessed data (user snapshots, last message, counts) to avoid e
 Never hard-delete user content. Use `deletedAt` for undo and audit trails.
 
 ### 6. **Indexes for Performance**
-All common queries have compound indexes. Text search enabled on searchable fields.
+
+All hot query paths have compound indexes defined at the bottom of each Mongoose schema file. Single-field indexes are declared inline via `index: true` on the field; compound indexes use `schema.index({...})`.
+
+**Activity**
+| Index | Purpose |
+|---|---|
+| `{ createdAt: 1 }` TTL (90d) | Auto-delete old activities |
+| `{ visibleTo: 1, createdAt: -1 }` | Activity feed per user, newest first |
+| `{ userId: 1, type: 1, createdAt: -1 }` | User's activities filtered by type |
+| `{ isPublic: 1, createdAt: -1 }` | Public activity feed, newest first |
+
+**Note**
+| Index | Purpose |
+|---|---|
+| `{ userId: 1, deletedAt: 1, createdAt: -1 }` | My notes, newest first, excluding deleted |
+| `{ userId: 1, tags: 1 }` | My notes filtered by tag |
+| `{ userId: 1, subject: 1 }` | My notes filtered by subject |
+| `{ visibility: 1, deletedAt: 1 }` | Public/friends notes feed |
+| `{ sharedWith: 1, deletedAt: 1 }` | Notes shared with me, excluding deleted |
+| `googleDocId` unique sparse | Prevent duplicate Google Doc imports |
+
+**Task**
+| Index | Purpose |
+|---|---|
+| `{ userId: 1, deletedAt: 1, dueDate: 1 }` | My tasks by due date |
+| `{ userId: 1, status: 1, dueDate: 1 }` | My incomplete tasks by due date |
+| `{ 'participants.userId': 1, isShared: 1 }` | Shared tasks I'm participating in |
+| `{ 'participants.userId': 1, deletedAt: 1 }` | Non-deleted shared tasks by participant |
+| `{ dueDate: 1, status: 1 }` | Overdue tasks across all users |
+
+**Friendship**
+| Index | Purpose |
+|---|---|
+| `{ user1: 1, user2: 1 }` unique | Prevent duplicate friendship documents |
+| `{ user1: 1, status: 1 }` | user1's friendships by status |
+| `{ user2: 1, status: 1 }` | user2's friendships by status |
+| `{ requestedBy: 1, status: 1 }` | Friend requests sent by a user |
 
 ### 7. **Security First**
 Always validate input, scope queries by user, exclude sensitive fields, check authorization.
