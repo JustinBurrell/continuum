@@ -106,5 +106,6 @@ const activitySchema = new mongoose.Schema({
 activitySchema.index({ createdAt: 1 }, { expireAfterSeconds: 7776000 });  // TTL: auto-delete after 90 days
 activitySchema.index({ visibleTo: 1, createdAt: -1 });                    // "get a user's activity feed, newest first"
 activitySchema.index({ userId: 1, type: 1, createdAt: -1 });              // "get a user's activities by type, newest first"
+activitySchema.index({ isPublic: 1, createdAt: -1 });                     // "get public activity feed, newest first"
 
 module.exports = mongoose.model('Activity', activitySchema);

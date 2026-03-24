@@ -174,6 +174,7 @@ noteSchema.index({ userId: 1, tags: 1 });                      // "get my notes 
 noteSchema.index({ userId: 1, subject: 1 });                   // "get my notes filtered by subject"
 // googleDocId index already created by unique: true + sparse: true in schema
 noteSchema.index({ visibility: 1, deletedAt: 1 });             // "get all public/friends notes" (social feed)
+noteSchema.index({ sharedWith: 1, deletedAt: 1 });             // "get notes shared with me, excluding deleted"
 
 // ============================================================
 // VIRTUALS
