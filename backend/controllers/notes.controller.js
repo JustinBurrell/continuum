@@ -7,6 +7,7 @@ const Friendship = require('../models/Friendship');
 const getGoogleDriveClient = require('../config/googleDrive');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
+const { getQueue } = require('../lib/queue');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { sendShareMessage } = require('../services/share.service');
 const { PDFParse } = require('pdf-parse');
@@ -471,9 +472,19 @@ exports.generateSummary = async (req, res) => {
         return res.status(200).json({ success: true, note, cached: true });
     }
 
+    const queue = getQueue();
+    if (queue) {
+        const job = await queue.add('note-summary', {
+            noteId: note._id.toString(),
+            userId: req.user._id.toString(),
+            isOwner,
+        });
+        return res.status(202).json({ success: true, jobId: job.id, queued: true });
+    }
+
+    // Sync fallback — no Redis
     const result = await groqService.generateSummary(note.content, req.user._id);
 
-    // Only persist the summary to the note document for the owner
     if (isOwner) {
         const updatedNote = await Note.findByIdAndUpdate(
             note._id,
@@ -491,7 +502,6 @@ exports.generateSummary = async (req, res) => {
         return res.status(200).json({ success: true, note: updatedNote, cached: false });
     }
 
-    // For shared users: return the generated summary without persisting it
     return res.status(200).json({
         success: true,
         note: { ...note.toObject(), summary: { quickSummary: result.quickSummary, detailedSummary: result.detailedSummary } },
@@ -542,9 +552,19 @@ exports.generateFlashcardsFromNote = async (req, res) => {
         return res.status(400).json({ success: false, error: 'Note has no content to generate flashcards from' });
     }
 
+    const queue = getQueue();
+    if (queue) {
+        const job = await queue.add('note-flashcards', {
+            noteId: note._id.toString(),
+            userId: req.user._id.toString(),
+            isOwner,
+        });
+        return res.status(202).json({ success: true, jobId: job.id, queued: true });
+    }
+
+    // Sync fallback — no Redis
     const result = await groqService.generateFlashcards(note.content, req.user._id);
 
-    // FlashcardSet is always owned by the requesting user
     const set = await FlashcardSet.create({
         userId: req.user._id,
         noteId: note._id,
@@ -562,7 +582,6 @@ exports.generateFlashcardsFromNote = async (req, res) => {
     }));
     await Flashcard.insertMany(flashcardDocs);
 
-    // Only flag the note as having flashcards when the owner generates them
     if (isOwner) {
         await Note.findByIdAndUpdate(note._id, { hasFlashcards: true });
     }

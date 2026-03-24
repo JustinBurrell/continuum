@@ -9,6 +9,7 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 const connectDB = require('./config/database');
 const passport = require('./config/passport');
 const { initSocket } = require('./lib/socket');
+const { initQueue } = require('./lib/queue');
 
 // Connect to MongoDB
 connectDB();
@@ -83,7 +84,7 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 const httpServer = http.createServer(app);
-initSocket(httpServer).then(() => {
+initSocket(httpServer).then(() => initQueue()).then(() => {
   httpServer.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Health check: http://localhost:${PORT}/health`);

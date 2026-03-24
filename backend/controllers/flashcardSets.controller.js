@@ -2,6 +2,7 @@ const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
 const Friendship = require('../models/Friendship');
 const groqService = require('../services/groq.service');
+const { getQueue } = require('../lib/queue');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { getIO } = require('../lib/socket');
 const { sendShareMessage } = require('../services/share.service');
@@ -33,9 +34,19 @@ exports.generateFromContent = async (req, res) => {
         return res.status(400).json({ success: false, error: 'Content is required to generate flashcards' });
     }
 
+    const queue = getQueue();
+    if (queue) {
+        const job = await queue.add('flashcard-generate', {
+            content,
+            title: title?.trim() || 'Generated Flashcard Set',
+            userId: req.user._id.toString(),
+        });
+        return res.status(202).json({ success: true, jobId: job.id, queued: true });
+    }
+
+    // Sync fallback — no Redis
     const result = await groqService.generateFlashcards(content, req.user._id);
 
-    // Create the FlashcardSet — not linked to any note
     const set = await FlashcardSet.create({
         userId: req.user._id,
         noteId: null,
@@ -45,7 +56,6 @@ exports.generateFromContent = async (req, res) => {
         totalCards: result.cards.length,
     });
 
-    // Bulk insert all flashcard docs
     const flashcardDocs = result.cards.map((card, index) => ({
         setId: set._id,
         front: card.front,
