@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   Camera, LinkIcon, Unlink, LogOut,
@@ -37,11 +37,12 @@ const sectionLabel = {
   marginTop: 4,
 };
 
-function FieldInput({ label, error, ...props }) {
+const FieldInput = forwardRef(function FieldInput({ label, error, ...props }, ref) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <label style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{label}</label>
       <input
+        ref={ref}
         style={{
           padding: '9px 12px',
           borderRadius: 10,
@@ -61,15 +62,16 @@ function FieldInput({ label, error, ...props }) {
       {error && <p style={{ fontSize: 11, color: '#dc2626', margin: 0 }}>{error}</p>}
     </div>
   );
-}
+});
 
-function PasswordInput({ label, error, ...props }) {
+const PasswordInput = forwardRef(function PasswordInput({ label, error, ...props }, ref) {
   const [show, setShow] = useState(false);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <label style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{label}</label>
       <div style={{ position: 'relative' }}>
         <input
+          ref={ref}
           type={show ? 'text' : 'password'}
           style={{
             padding: '9px 40px 9px 12px',
@@ -103,7 +105,7 @@ function PasswordInput({ label, error, ...props }) {
       {error && <p style={{ fontSize: 11, color: '#dc2626', margin: 0 }}>{error}</p>}
     </div>
   );
-}
+});
 
 function PasswordRequirements({ password }) {
   const checks = [
@@ -132,6 +134,124 @@ function PasswordRequirements({ password }) {
   );
 }
 
+function AvatarCropModal({ file, onSave, onClose }) {
+  const CROP_SIZE = 280;
+  const [imgSrc, setImgSrc] = useState(null);
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const dragStart = useRef(null);
+  const imgEl = useRef(new Image());
+  const containerRef = useRef(null);
+  const minScale = useRef(1);
+
+  useEffect(() => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const src = e.target.result;
+      const img = imgEl.current;
+      img.onload = () => {
+        // Scale to fill (cover) the crop area
+        const cover = Math.max(CROP_SIZE / img.naturalWidth, CROP_SIZE / img.naturalHeight);
+        minScale.current = cover;
+        setScale(cover);
+        setOffset({ x: 0, y: 0 });
+      };
+      img.src = src;
+      setImgSrc(src);
+    };
+    reader.readAsDataURL(file);
+  }, [file]);
+
+  // Non-passive wheel listener to allow preventDefault
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onWheel = (e) => {
+      e.preventDefault();
+      setScale(s => Math.max(minScale.current, Math.min(5, s - e.deltaY * 0.003)));
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [imgSrc]);
+
+  const handleMouseDown = (e) => {
+    setDragging(true);
+    dragStart.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
+  };
+  const handleMouseMove = (e) => {
+    if (!dragging) return;
+    setOffset({ x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y });
+  };
+  const handleMouseUp = () => setDragging(false);
+
+  const handleCrop = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = CROP_SIZE;
+    canvas.height = CROP_SIZE;
+    const ctx = canvas.getContext('2d');
+    const img = imgEl.current;
+    const imgW = img.naturalWidth * scale;
+    const imgH = img.naturalHeight * scale;
+    const drawX = (CROP_SIZE - imgW) / 2 + offset.x;
+    const drawY = (CROP_SIZE - imgH) / 2 + offset.y;
+    ctx.drawImage(img, drawX, drawY, imgW, imgH);
+    canvas.toBlob(blob => {
+      if (blob) onSave(new File([blob], 'avatar.png', { type: 'image/png' }));
+    }, 'image/png');
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+    }}>
+      <div style={{
+        background: '#fff', borderRadius: 20, padding: 24, width: 340,
+        boxShadow: '0 20px 60px rgba(107,33,168,0.25)',
+      }}>
+        <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 3px' }}>Adjust photo</h3>
+        <p style={{ fontSize: 12, color: '#a087b0', margin: '0 0 16px' }}>Drag to reposition · Scroll to zoom</p>
+        <div
+          ref={containerRef}
+          style={{
+            width: CROP_SIZE, height: CROP_SIZE, borderRadius: '50%',
+            overflow: 'hidden', position: 'relative',
+            cursor: dragging ? 'grabbing' : 'grab',
+            background: '#f5f0ff', margin: '0 auto 16px',
+            border: '3px solid #6b21a8', flexShrink: 0,
+          }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
+          {imgSrc && (
+            <img
+              src={imgSrc}
+              alt=""
+              draggable={false}
+              style={{
+                position: 'absolute',
+                top: '50%', left: '50%',
+                transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) scale(${scale})`,
+                transformOrigin: 'center',
+                maxWidth: 'none',
+                userSelect: 'none',
+                pointerEvents: 'none',
+              }}
+            />
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button variant="outline" style={{ flex: 1 }} onClick={onClose}>Cancel</Button>
+          <Button style={{ flex: 1 }} onClick={handleCrop}>Save photo</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Profile() {
   const { user, updateUser, logout } = useAuth();
   const toast = useToast();
@@ -141,6 +261,7 @@ export default function Profile() {
   const [notifSaved, setNotifSaved] = useState(false);
   const [verifySent, setVerifySent] = useState(false);
   const [newPasswordValue, setNewPasswordValue] = useState('');
+  const [cropFile, setCropFile] = useState(null);
   const navigate = useNavigate();
 
   const { data } = useQuery({
@@ -211,13 +332,20 @@ export default function Profile() {
 
   useEffect(() => { setNewPasswordValue(newPwdWatch); }, [newPwdWatch]);
 
-  // Sync notif form when fresh /me data loads
+  // Sync profile + notif forms when fresh /me data loads
   useEffect(() => {
     if (data) {
       const fresh = data.user || data.data;
+      if (!fresh) return;
+      resetProfile({
+        firstName: fresh.firstName || '',
+        lastName: fresh.lastName || '',
+        bio: fresh.bio || '',
+        'settings.activityVisibility': fresh.settings?.activityVisibility || 'friends',
+      });
       notifForm.reset({
-        emailNotifications: fresh?.settings?.emailNotifications ?? true,
-        pushNotifications: fresh?.settings?.pushNotifications ?? true,
+        emailNotifications: fresh.settings?.emailNotifications ?? true,
+        pushNotifications: fresh.settings?.pushNotifications ?? true,
       });
     }
   }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -358,7 +486,8 @@ export default function Profile() {
       </div>
 
       {/* Tab bar */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 24, flexWrap: 'wrap', background: '#f5f0ff', borderRadius: 14, padding: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+      <div style={{ display: 'inline-flex', gap: 4, flexWrap: 'wrap', background: '#f5f0ff', borderRadius: 14, padding: 4 }}>
         {tabs.map(t => {
           const Icon = t.icon;
           const active = activeTab === t.key;
@@ -385,6 +514,7 @@ export default function Profile() {
             </button>
           );
         })}
+      </div>
       </div>
 
       {/* ─── OVERVIEW ─── */}
@@ -438,12 +568,12 @@ export default function Profile() {
 
           {/* Content overview sections */}
           {[
-            { label: 'Notes', icon: FileText, items: notes, path: '/notes', keyFn: n => n.title || 'Untitled' },
-            { label: 'Tasks', icon: CheckSquare, items: tasks, path: '/tasks', keyFn: t => t.title },
-            { label: 'Flashcard Sets', icon: Layers, items: flashcardSets, path: '/flashcards', keyFn: s => s.title },
-            { label: 'Applications', icon: Briefcase, items: applications, path: '/applications', keyFn: a => `${a.role} at ${a.company}` },
-            { label: 'Resumes', icon: FileCheck, items: resumes, path: '/resumes', keyFn: r => r.fileName || r.name },
-          ].map(({ label, icon: Icon, items, path, keyFn }) => (
+            { label: 'Notes', icon: FileText, items: notes, path: '/notes', keyFn: n => n.title || 'Untitled', itemNav: n => ['/notes/view', { id: n._id }] },
+            { label: 'Tasks', icon: CheckSquare, items: tasks, path: '/tasks', keyFn: t => t.title, itemNav: t => ['/tasks', { openTaskId: t._id }] },
+            { label: 'Flashcard Sets', icon: Layers, items: flashcardSets, path: '/flashcards', keyFn: s => s.title, itemNav: s => ['/flashcards/view', { id: s._id }] },
+            { label: 'Applications', icon: Briefcase, items: applications, path: '/applications', keyFn: a => a.company, itemNav: a => ['/applications/view', { application: a }], stageFn: a => a.stage || a.status },
+            { label: 'Resumes', icon: FileCheck, items: resumes, path: '/resumes', keyFn: r => r.fileName || r.name, itemNav: null },
+          ].map(({ label, icon: Icon, items, path, keyFn, itemNav, stageFn }) => (
             <div key={label} style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: items.length > 0 ? 12 : 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -457,11 +587,45 @@ export default function Profile() {
                   View all <ChevronRight size={12} />
                 </Link>
               </div>
-              {items.slice(0, 3).map((item, i) => (
-                <div key={i} style={{ fontSize: 13, color: '#374151', padding: '6px 0', borderTop: '1px solid #ede9fe', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                  {keyFn(item)}
-                </div>
-              ))}
+              {items.slice(0, 3).map((item, i) => {
+                const text = keyFn(item);
+                const nav = itemNav ? itemNav(item) : null;
+                const stage = stageFn ? stageFn(item) : null;
+                const stageColors = {
+                  draft:     { bg: '#f3f4f6', color: '#6b7280' },
+                  applied:   { bg: '#eff6ff', color: '#2563eb' },
+                  interview: { bg: '#fdf4ff', color: '#7c3aed' },
+                  offer:     { bg: '#f0fdf4', color: '#16a34a' },
+                  rejected:  { bg: '#fef2f2', color: '#dc2626' },
+                  withdrawn: { bg: '#f3f4f6', color: '#6b7280' },
+                };
+                const sc = stageColors[stage] || stageColors.draft;
+                return (
+                  <div
+                    key={i}
+                    onClick={() => nav ? navigate(nav[0], { state: nav[1] }) : navigate(path)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      gap: 8, padding: '6px 0',
+                      borderTop: '1px solid #ede9fe', cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.querySelector('.item-text').style.color = '#6b21a8'; }}
+                    onMouseLeave={e => { e.currentTarget.querySelector('.item-text').style.color = '#374151'; }}
+                  >
+                    <span className="item-text" style={{ fontSize: 13, color: '#374151', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                      {text}
+                    </span>
+                    {stage && (
+                      <span style={{
+                        fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 20,
+                        background: sc.bg, color: sc.color, flexShrink: 0, textTransform: 'capitalize',
+                      }}>
+                        {stage}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
@@ -489,7 +653,7 @@ export default function Profile() {
                   <Camera size={12} style={{ color: '#fff' }} />
                 </button>
                 <input ref={avatarInputRef} type="file" accept="image/*" className="hidden"
-                  onChange={e => { const f = e.target.files[0]; if (f) avatarMutation.mutate(f); }} />
+                  onChange={e => { const f = e.target.files[0]; if (f) { setCropFile(f); e.target.value = ''; } }} />
               </div>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 2px' }}>{fullName}</p>
@@ -763,6 +927,17 @@ export default function Profile() {
             </div>
           </div>
         </div>
+      )}
+
+      {cropFile && (
+        <AvatarCropModal
+          file={cropFile}
+          onSave={(croppedFile) => {
+            setCropFile(null);
+            avatarMutation.mutate(croppedFile);
+          }}
+          onClose={() => setCropFile(null)}
+        />
       )}
     </div>
   );
