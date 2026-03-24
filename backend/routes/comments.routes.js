@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const commentsController = require('../controllers/comments.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const { perUserWriteLimit } = require('../middleware/rateLimiter');
 
 // ============================================================
 // COMMENTS ROUTES
@@ -14,7 +15,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 
 router.use(authMiddleware);
 
-router.post('/', commentsController.addComment);
+router.post('/', perUserWriteLimit, commentsController.addComment);
 router.get('/:targetType/:targetId', commentsController.getComments);
 router.post('/:id/like', commentsController.toggleLike);
 router.delete('/:id', commentsController.deleteComment);

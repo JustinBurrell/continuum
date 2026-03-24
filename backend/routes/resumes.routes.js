@@ -3,6 +3,7 @@ const router = express.Router();
 const resumesController = require('../controllers/resumes.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
+const { aiRateLimit } = require('../middleware/rateLimiter');
 
 // ============================================================
 // RESUMES ROUTES
@@ -26,7 +27,7 @@ router.post('/upload', (req, res, next) => {
 }, resumesController.uploadResume);
 router.get('/', resumesController.getResumes);
 router.get('/:id/download', resumesController.downloadResume);
-router.post('/:id/feedback', resumesController.generateFeedback);
+router.post('/:id/feedback', aiRateLimit, resumesController.generateFeedback);
 router.get('/:id/feedback', resumesController.getFeedback);
 router.delete('/:id', resumesController.deleteResume);
 

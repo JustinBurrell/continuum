@@ -3,6 +3,7 @@ const router = express.Router();
 const notesController = require('../controllers/notes.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
+const { perUserWriteLimit, aiRateLimit } = require('../middleware/rateLimiter');
 
 // ============================================================
 // NOTES ROUTES
@@ -26,12 +27,12 @@ router.get('/', notesController.getNotes);
 router.get('/:id', notesController.getNoteById);
 router.put('/:id', notesController.updateNote);
 router.put('/:id/refresh', notesController.refreshNote);
-router.put('/:id/share', notesController.shareNote);
+router.put('/:id/share', perUserWriteLimit, notesController.shareNote);
 router.delete('/:id', notesController.deleteNote);
 
 // AI routes
-router.post('/:id/summary', notesController.generateSummary);
-router.post('/:id/flashcards/generate', notesController.generateFlashcardsFromNote);
+router.post('/:id/summary', aiRateLimit, notesController.generateSummary);
+router.post('/:id/flashcards/generate', aiRateLimit, notesController.generateFlashcardsFromNote);
 
 // PDF download — signed Cloudinary URL for notes that have a pdfUrl
 router.get('/:id/pdf', notesController.downloadNotePdf);

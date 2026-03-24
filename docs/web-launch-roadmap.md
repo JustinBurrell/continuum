@@ -71,14 +71,14 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 5. Rate Limiting → `chore/rate-limiting`
+## 5. ~~Rate Limiting~~ → `chore/rate-limiting` — DONE
 
 [future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 3
 [future-ideas/pre-deployment-checklist.md](future-ideas/pre-deployment-checklist.md) — section 4
 
-- Tighter limits on auth endpoints (login, register, forgot-password)
-- Per-user limits on write endpoints (messages, comments, share, participants)
-- AI endpoint daily cap (tied to step 2 above)
+- ~~Tighter limits on auth endpoints (login, register, forgot-password)~~
+- ~~Per-user limits on write endpoints (messages, comments, share, participants)~~
+- ~~AI endpoint burst protection (5 req/min per user, on top of Redis daily cap from step 2)~~
 
 ---
 

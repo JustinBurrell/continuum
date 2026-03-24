@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const conversationsController = require('../controllers/conversations.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const { perUserWriteLimit } = require('../middleware/rateLimiter');
 
 // ============================================================
 // CONVERSATIONS ROUTES
@@ -14,7 +15,7 @@ router.use(authMiddleware);
 
 router.post('/', conversationsController.startConversation);
 router.get('/', conversationsController.getConversations);
-router.post('/:id/messages', conversationsController.sendMessage);
+router.post('/:id/messages', perUserWriteLimit, conversationsController.sendMessage);
 router.get('/:id/messages', conversationsController.getMessages);
 
 module.exports = router;

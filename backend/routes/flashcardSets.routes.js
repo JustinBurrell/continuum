@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const flashcardSetsController = require('../controllers/flashcardSets.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const { aiRateLimit } = require('../middleware/rateLimiter');
 
 // ============================================================
 // FLASHCARD SETS ROUTES
@@ -14,7 +15,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 router.use(authMiddleware);
 
 // Static routes — must be before /:id to avoid param conflict
-router.post('/generate', flashcardSetsController.generateFromContent);
+router.post('/generate', aiRateLimit, flashcardSetsController.generateFromContent);
 router.get('/shared', flashcardSetsController.getSharedSets);
 
 // Set CRUD
