@@ -15,8 +15,9 @@ function notifyActivityAudience(visibleTo, actorId) {
             }
         });
     } catch (_) {}
-    // Bust the server-side activity cache for all visible users (including actor)
-    const keys = visibleTo.map(uid => `activity:${uid}`);
+    // Bust the first-page activity cache for all visible users (including actor).
+    // Only the first page needs invalidation — cursor pages are stable and don't change.
+    const keys = visibleTo.map(uid => `activity:${uid}:first`);
     invalidate(...keys).catch(() => {});
 }
 

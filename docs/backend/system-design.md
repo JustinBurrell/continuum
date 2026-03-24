@@ -31,7 +31,7 @@ flowchart TB
         end
 
         subgraph REALTIME["lib/socket.js"]
-            IO["Socket.io Server\nJWT on handshake\nuser:id rooms\ngetIO()"]
+            IO["Socket.io Server\nJWT on handshake\nuser:id rooms\ngetIO()\n@socket.io/redis-adapter"]
         end
 
         subgraph CACHE["lib/cache.js"]
@@ -41,7 +41,7 @@ flowchart TB
 
     subgraph DATA["Data Layer"]
         MONGO[("MongoDB\nUser · Note · Task\nFlashcardSet · Flashcard\nConversation · Message\nFriendship · Activity\nComment · Application\nResume · RefreshToken\nOAuthCode · Notification")]
-        REDIS[("Redis\nuser:id — 5 min\nactivity:id — 30s\nshared-notes:id — 60s\nshared-sets:id — 60s\nshared-tasks:id — 60s")]
+        REDIS[("Redis\nuser:id — 5 min\nactivity:<userId>:<cursor> — 5 min\nshared-notes:id — 60s\nshared-sets:id — 60s\nshared-tasks:id — 60s\nai:<type>:<userId>:<date> — daily cap")]
     end
 
     subgraph EXTERNAL["External Services"]
@@ -105,7 +105,7 @@ sequenceDiagram
     BE->>DB: Friendship.findOne() — validate participants are friends
     BE->>DB: task.save() — update participants
     BE->>DB: Activity.create() — share activity entry
-    BE->>RD: invalidate activity:A, activity:B
+    BE->>RD: invalidate activity:A:first, activity:B:first
     BE->>RD: invalidate shared-tasks:B
     BE-->>UB: socket emit task_created
     BE-->>UB: socket emit activity_updated
@@ -121,10 +121,10 @@ sequenceDiagram
     BE->>RD: set shared-tasks:B TTL 60s
     BE->>UB: 200 { tasks }
     UB->>BE: GET /api/activity
-    BE->>RD: get activity:B — MISS (just invalidated)
+    BE->>RD: get activity:B:first — MISS (just invalidated)
     BE->>DB: Activity.find(visibleTo: B)
-    BE->>RD: set activity:B TTL 30s
-    BE->>UB: 200 { feed }
+    BE->>RD: set activity:B:first TTL 5min
+    BE->>UB: 200 { feed, nextCursor }
 ```
 
 ---
@@ -175,5 +175,5 @@ flowchart TB
         B2 --> M2[("MongoDB")]
     end
 
-    NOW -.->|"add replicas\nsee redis-socket-adapter.md"| NEXT
+    NOW -.->|"add replicas\n@socket.io/redis-adapter already wired"| NEXT
 ```

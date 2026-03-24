@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { Activity as ActivityIcon, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/lib/api';
@@ -123,21 +123,29 @@ function ActivityItem({ item }) {
 const PAGE_SIZE = 20;
 
 export default function Activity() {
-  const [page, setPage] = useState(1);
   const [actSearch, setActSearch] = useState('');
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['activity', { page, actSearch }],
-    queryFn: () =>
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['activity', { actSearch }],
+    queryFn: ({ pageParam }) =>
       api.get('/activity', {
-        params: { limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, ...(actSearch ? { search: actSearch } : {}) },
+        params: {
+          limit: PAGE_SIZE,
+          ...(pageParam ? { cursor: pageParam } : {}),
+          ...(actSearch ? { search: actSearch } : {}),
+        },
       }).then(r => r.data),
-    keepPreviousData: true,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: 60_000,
   });
 
-  const activities = data?.feed || [];
-  const total = data?.total || 0;
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const activities = data?.pages.flatMap(p => p.feed) ?? [];
 
   return (
     <div>
@@ -147,7 +155,7 @@ export default function Activity() {
           Activity
         </h1>
         <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>
-          {total > 0 ? `${total} activit${total === 1 ? 'y' : 'ies'}` : 'Track what\'s happening'}
+          {activities.length > 0 ? `${activities.length} item${activities.length === 1 ? '' : 's'} loaded` : 'Track what\'s happening'}
         </p>
       </div>
 
@@ -171,7 +179,7 @@ export default function Activity() {
           }}
           placeholder="Search activity by name or content..."
           value={actSearch}
-          onChange={e => { setActSearch(e.target.value); setPage(1); }}
+          onChange={e => setActSearch(e.target.value)}
         />
       </div>
 
@@ -208,81 +216,17 @@ export default function Activity() {
           )}
         </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 4,
-            padding: '16px 20px',
-            borderTop: '1px solid #ede9fe',
-          }}>
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 8,
-                border: '1px solid #ede9fe',
-                background: 'white',
-                color: page === 1 ? '#d1d5db' : '#374151',
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: page === 1 ? 'not-allowed' : 'pointer',
-                transition: 'all 0.12s',
-              }}
+        {/* Load more */}
+        {hasNextPage && (
+          <div style={{ padding: '16px 20px', borderTop: '1px solid #ede9fe', textAlign: 'center' }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchNextPage()}
+              loading={isFetchingNextPage}
             >
-              Prev
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
-              .reduce((acc, p, idx, arr) => {
-                if (idx > 0 && p - arr[idx - 1] > 1) acc.push('...');
-                acc.push(p);
-                return acc;
-              }, [])
-              .map((p, idx) =>
-                p === '...' ? (
-                  <span key={`ellipsis-${idx}`} style={{ padding: '0 4px', color: '#a087b0', fontSize: 13 }}>...</span>
-                ) : (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 8,
-                      border: page === p ? 'none' : '1px solid #ede9fe',
-                      background: page === p ? '#6b21a8' : 'white',
-                      color: page === p ? 'white' : '#374151',
-                      fontSize: 13,
-                      fontWeight: page === p ? 700 : 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.12s',
-                    }}
-                  >
-                    {p}
-                  </button>
-                )
-              )}
-            <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 8,
-                border: '1px solid #ede9fe',
-                background: 'white',
-                color: page === totalPages ? '#d1d5db' : '#374151',
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: page === totalPages ? 'not-allowed' : 'pointer',
-                transition: 'all 0.12s',
-              }}
-            >
-              Next
-            </button>
+              Load more
+            </Button>
           </div>
         )}
       </div>
