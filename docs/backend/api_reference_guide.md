@@ -62,7 +62,7 @@ Google linking is required for Google Drive/Docs features. `user.hasGoogleLinked
 
 ### **AI Summaries**
 
-**Rate limits (per user per day, tracked via Redis INCR):** Summary — 25 calls (`ai:summary:<userId>:<date>`), Flashcards — 25 calls (`ai:flashcards:<userId>:<date>`), Resume feedback — 5 calls (`ai:resume:<userId>:<date>`). Returns 429 on breach. Falls back to allowing calls if Redis is unavailable.
+**Rate limits:** Two layers — (1) per-user daily cap tracked via Redis INCR: Summary 25/day (`ai:summary:<userId>:<date>`), Flashcards 25/day (`ai:flashcards:<userId>:<date>`), Resume feedback 5/day (`ai:resume:<userId>:<date>`); (2) express-rate-limit burst guard: 5 req/min per user (keyed by `req.user._id`). Returns 429 on breach of either layer. Falls back to allowing calls if Redis is unavailable.
 
 - `POST /api/notes/:noteId/summary` - Generate AI summary. For the owner: persists to note document and returns updated note. For shared users: generates and returns summary without persisting (owner's stored summary is never overwritten).
 
@@ -133,7 +133,7 @@ Summary is stored as an embedded field on the Note document for the owner. When 
 - `GET /api/flashcard-sets/shared` - List flashcard sets shared with the current user. Supports `?search=` for title regex match.
 
 ### **Activity Feed**
-- `GET /api/activity` - List activity feed for the authenticated user (limit/offset pagination). Returns `{ feed[], total }` where `total` is the full count of all visible activities. Supports `?search=` — two-step lookup matches users by `firstName`/`lastName`/`username` first, then returns activities where `userId` matches OR any of `metadata.noteTitle`, `metadata.setTitle`, `metadata.taskTitle`, `metadata.commentPreview` match the regex.
+- `GET /api/activity` - List activity feed for the authenticated user (cursor-based pagination). Query params: `limit` (default 20, max 50), `cursor` (ISO date string — the `createdAt` of the last item on the previous page), `search`. Returns `{ feed[], nextCursor }` — `nextCursor` is an ISO date string when more results exist, or `null` when all results have been loaded. Each cursor page is cached in Redis independently (`activity:<userId>:<cursor | 'first'>`, TTL 5 min); only the first-page key is invalidated when new activity arrives. Supports `?search=` — two-step lookup matches users by `firstName`/`lastName`/`username` first, then returns activities where `userId` matches OR any of `metadata.noteTitle`, `metadata.setTitle`, `metadata.taskTitle`, `metadata.commentPreview` match the regex. Search bypasses cache.
 
 Activity is driven by `settings.activityVisibility` on the User (default: `friends`). The actor always sees their own activity regardless of this setting. `private` means only the actor sees their activity, `friends` also makes it visible to accepted friends, `public` makes it visible to all (backend-only, not exposed in frontend settings). Activity types: `note_shared`, `task_created` (shared tasks only), `comment_added`, `like_added`, `flashcard_shared`.
 
