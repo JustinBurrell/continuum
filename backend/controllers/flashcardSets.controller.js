@@ -3,6 +3,7 @@ const Flashcard = require('../models/Flashcard');
 const Friendship = require('../models/Friendship');
 const groqService = require('../services/groq.service');
 const { createActivity, createShareActivities } = require('../services/activity.service');
+const { getIO } = require('../lib/socket');
 const { sendShareMessage } = require('../services/share.service');
 
 // ============================================================
@@ -498,6 +499,28 @@ exports.shareSet = async (req, res) => {
         for (const recipientId of sharedWith) {
             sendShareMessage(req.user._id, recipientId, 'flashcardSet', set.title, set._id).catch(() => {});
         }
+        // Notify specific recipients in real-time
+        try {
+            const io = getIO();
+            sharedWith.forEach(uid => io.to(`user:${uid}`).emit('flashcard_shared', { setId: set._id.toString() }));
+        } catch (_) {}
+    }
+
+    if (visibility === 'friends') {
+        // Notify all friends in real-time — handled via activity_updated from activity service,
+        // but also invalidate flashcard-sets directly so shared tab updates immediately
+        try {
+            const io = getIO();
+            const friendships = await Friendship.find({
+                $or: [{ user1: req.user._id }, { user2: req.user._id }],
+                status: 'accepted',
+                deletedAt: null,
+            });
+            friendships.forEach(f => {
+                const friendId = f.user1.toString() === req.user._id.toString() ? f.user2 : f.user1;
+                io.to(`user:${friendId}`).emit('flashcard_shared', { setId: set._id.toString() });
+            });
+        } catch (_) {}
     }
 
     res.status(200).json({ success: true, set });

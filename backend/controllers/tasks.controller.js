@@ -4,19 +4,25 @@ const { createActivity, createShareActivities } = require('../services/activity.
 const { sendShareMessage } = require('../services/share.service');
 const { getIO } = require('../lib/socket');
 
-// Emit task_updated to all participants except the actor
-function emitTaskUpdate(task, actorId) {
+// Emit an event to all task participants/owner except the actor
+function emitToTaskAudience(event, task, actorId, payload = {}) {
     try {
         const io = getIO();
-        const participantIds = (task.participants || []).map(p => p.toString());
+        const participantIds = (task.participants || []).map(p =>
+            p.userId ? p.userId.toString() : p.toString()
+        );
         const ownerId = task.userId?.toString();
         const all = [...new Set([ownerId, ...participantIds])];
         all.forEach(uid => {
             if (uid && uid !== actorId.toString()) {
-                io.to(`user:${uid}`).emit('task_updated', { taskId: task._id.toString() });
+                io.to(`user:${uid}`).emit(event, { taskId: task._id.toString(), ...payload });
             }
         });
     } catch (_) {}
+}
+
+function emitTaskUpdate(task, actorId) {
+    emitToTaskAudience('task_updated', task, actorId);
 }
 
 // ============================================================
@@ -99,6 +105,9 @@ exports.createTask = async (req, res) => {
         for (const p of validatedParticipants) {
             sendShareMessage(req.user._id, p.userId, 'task', title, task._id).catch(() => {});
         }
+
+        // Notify participants in real-time — task just appeared in their shared list
+        emitToTaskAudience('task_created', task, req.user._id);
     }
 
     res.status(201).json({ success: true, task });
@@ -237,15 +246,16 @@ exports.updateStatus = async (req, res) => {
 // Purpose: Soft delete a task — sets deletedAt instead of removing from DB
 // ----------------------------------------
 exports.deleteTask = async (req, res) => {
-    const task = await Task.findOneAndUpdate(
-        { _id: req.params.id, userId: req.user._id, deletedAt: null },
-        { deletedAt: new Date() },
-        { new: true }
-    );
-
-    if (!task) {
+    // Fetch before delete so we can read participants for socket emit
+    const existing = await Task.findOne({ _id: req.params.id, userId: req.user._id, deletedAt: null });
+    if (!existing) {
         return res.status(404).json({ success: false, error: 'Task not found' });
     }
+
+    await Task.findByIdAndUpdate(existing._id, { deletedAt: new Date() });
+
+    // Notify participants — task disappeared from their shared list
+    emitToTaskAudience('task_deleted', existing, req.user._id);
 
     res.status(200).json({ success: true, message: 'Task deleted' });
 };
