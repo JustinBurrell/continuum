@@ -30,6 +30,10 @@ flowchart TB
             GROQ_SVC["groq.service\nAI summaries + flashcards"]
         end
 
+        subgraph QUEUE["lib/queue.js — BullMQ"]
+            AQ["ai-jobs Queue\nnote-summary · note-flashcards\nflashcard-generate · resume-feedback\nWorker processes off request thread"]
+        end
+
         subgraph REALTIME["lib/socket.js"]
             IO["Socket.io Server\nJWT on handshake\nuser:id rooms\ngetIO()\n@socket.io/redis-adapter"]
         end
@@ -62,12 +66,14 @@ flowchart TB
     %% Controllers use services + socket + cache
     CC -- "activity events" --> ACT_SVC
     CC -- "share events" --> SHARE_SVC
-    CC -- "AI generation" --> GROQ_SVC
+    CC -- "enqueue job (Redis avail)" --> AQ
+    AQ -- "AI generation" --> GROQ_SVC
+    CC -- "AI generation (fallback)" --> GROQ_SVC
     CC -- "emit events" --> IO
     CC -- "invalidate keys" --> REDIS_LIB
 
     %% Socket pushes to client
-    IO -- "new_message\nfriend_request\ntask_updated\nnote_shared\nactivity_updated\nflashcard_shared\ncomment_added" --> SC
+    IO -- "new_message\nfriend_request\ntask_updated\nnote_shared\nactivity_updated\nflashcard_shared\ncomment_added\nnote_summary_ready\nflashcards_ready\nresume_feedback_ready" --> SC
 
     %% Client reacts
     SC -- "invalidateQueries" --> RQ

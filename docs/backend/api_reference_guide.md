@@ -64,12 +64,12 @@ Google linking is required for Google Drive/Docs features. `user.hasGoogleLinked
 
 **Rate limits:** Two layers — (1) per-user daily cap tracked via Redis INCR: Summary 25/day (`ai:summary:<userId>:<date>`), Flashcards 25/day (`ai:flashcards:<userId>:<date>`), Resume feedback 5/day (`ai:resume:<userId>:<date>`); (2) express-rate-limit burst guard: 5 req/min per user (keyed by `req.user._id`). Returns 429 on breach of either layer. Falls back to allowing calls if Redis is unavailable.
 
-- `POST /api/notes/:noteId/summary` - Generate AI summary. For the owner: persists to note document and returns updated note. For shared users: generates and returns summary without persisting (owner's stored summary is never overwritten).
+- `POST /api/notes/:noteId/summary` - Generate AI summary. When Redis is available, enqueues job and returns `202 { jobId, queued: true }` immediately — result delivered via `note_summary_ready` socket event. Without Redis, runs synchronously and returns the updated note. For the owner: persists to note document. For shared users: generates without persisting.
 
 Summary is stored as an embedded field on the Note document for the owner. When you `GET /api/notes/:noteId`, the `summary` object is included automatically — no separate fetch needed.
 
 ### **Flashcard System**
-- `POST /api/notes/:noteId/flashcards/generate` - Auto-generate flashcards from note content via Groq. Accessible by owner and shared users. The resulting FlashcardSet is always owned by the requesting user. `note.hasFlashcards` is only updated when the owner generates.
+- `POST /api/notes/:noteId/flashcards/generate` - Auto-generate flashcards from note content. When Redis is available, returns `202 { jobId, queued: true }` — result via `flashcards_ready` socket event. Accessible by owner and shared users. The resulting FlashcardSet is always owned by the requesting user.
 - `POST /api/flashcard-sets` - Create flashcard set manually
 - `GET /api/flashcard-sets` - List user's flashcard sets. Supports `?search=` for title regex match.
 - `GET /api/flashcard-sets/:setId` - Get set with all flashcards. Accessible by owner, users in `sharedWith`, or friends when `visibility: 'friends'`. Response includes populated `userId` (username, firstName, lastName, avatarUrl) for creator attribution.
@@ -158,7 +158,7 @@ Sharing activities are personalized: the sharer's feed shows who they shared wit
 - `POST /api/resumes/upload` - Upload resume PDF with label and target role (multipart/form-data); stored as `type: authenticated` in Cloudinary
 - `GET /api/resumes` - List all resume versions for user. Supports `?search=` for case-insensitive regex match on `fileName`, `version`, and `targetRole`.
 - `GET /api/resumes/:resumeId/download` - Generate a 10-minute signed download URL via `private_download_url`; requires ownership
-- `POST /api/resumes/:resumeId/feedback` - Generate AI-powered feedback via Groq (appended to embedded feedback array)
+- `POST /api/resumes/:resumeId/feedback` - Generate AI-powered feedback via Groq. When Redis is available, returns `202 { jobId, queued: true }` — result delivered via `resume_feedback_ready` socket event. Feedback is appended to the embedded feedback array on completion.
 - `GET /api/resumes/:resumeId/feedback` - Retrieve all feedback entries for a resume
 - `DELETE /api/resumes/:resumeId` - Soft delete resume
 

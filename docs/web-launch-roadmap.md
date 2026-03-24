@@ -98,14 +98,15 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 8. Background Job Queue for AI → `feat/ai-job-queue`
+## 8. ~~Background Job Queue for AI~~ → `feat/ai-job-queue` — DONE
 
 [future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 6
 
-- Install BullMQ (reuses existing Redis)
-- Move note summary, flashcard generation, and resume feedback off the request thread
-- Endpoints return `{ jobId }` immediately
-- Socket event fires to client when job completes (`note_summary_ready`, etc.)
+- ~~Install BullMQ (reuses existing Redis)~~
+- ~~Move note summary, flashcard generation, and resume feedback off the request thread~~
+- ~~Endpoints return `{ jobId }` immediately~~
+- ~~Socket event fires to client when job completes (`note_summary_ready`, `flashcards_ready`, `resume_feedback_ready`)~~
+- ~~Sync fallback when `REDIS_URL` is unset — behavior unchanged in local dev without Redis~~
 
 ---
 

@@ -42,14 +42,14 @@ Frontend base URL: `http://localhost:5173`
 | GET | `/api/notes/:id` | `pages/notes/NoteDetail.jsx` | View note content |
 | PUT | `/api/notes/:id` | `pages/notes/NoteEditor.jsx` | Edit note content |
 | DELETE | `/api/notes/:id` | `pages/notes/NoteDetail.jsx` → delete button | Navigates back to list |
-| POST | `/api/notes/:id/summary` | `pages/notes/NoteDetail.jsx` → AI Summary card | Returns AI-generated summary |
+| POST | `/api/notes/:id/summary` | `pages/notes/NoteDetail.jsx` → AI Summary card | Returns `202 { jobId, queued: true }` when Redis available; result via `note_summary_ready` socket event. Sync fallback returns updated note. |
 | GET | `/api/notes/shared` | `pages/notes/NotesList.jsx` → "Shared with me" tab (supports `?search=`) | View notes shared with you |
 | POST | `/api/notes/import` | `pages/notes/NotesList.jsx` → Import modal → Google Drive tab | Requires Google account linked |
 | POST | `/api/notes/upload` | `pages/notes/NotesList.jsx` → Import modal → Upload PDF tab | multipart/form-data; field: `file`; optional: `title`, `type`, `tags` |
 | GET | `/api/notes/:id/pdf` | `pages/notes/NoteDetail.jsx` → PDF button (visible when `note.pdfUrl` exists) | Returns 10-min signed Cloudinary URL |
 | PUT | `/api/notes/:id/refresh` | Not yet exposed in UI | |
 | PUT | `/api/notes/:id/share` | Not yet exposed in UI | Share a note with another user |
-| POST | `/api/notes/:id/flashcards/generate` | `pages/notes/NoteDetail.jsx` → Generate Flashcards button | Accessible to owner and shared users; set owned by requester |
+| POST | `/api/notes/:id/flashcards/generate` | `pages/notes/NoteDetail.jsx` → Generate Flashcards button | Returns `202 { jobId, queued: true }` when Redis available; result via `flashcards_ready` socket event. Set owned by requester. |
 
 ---
 
@@ -73,7 +73,7 @@ Frontend base URL: `http://localhost:5173`
 | GET | `/api/flashcard-sets/:id` | `pages/flashcards/FlashcardSetDetail.jsx` | Cards array included |
 | PATCH | `/api/flashcard-sets/:id` | `pages/flashcards/FlashcardSetDetail.jsx` → inline title edit (owner-only) | Body: `{ title?, description? }` |
 | DELETE | `/api/flashcard-sets/:id` | `pages/flashcards/FlashcardSets.jsx` → delete button | |
-| POST | `/api/flashcard-sets/generate` | No frontend trigger (backend-only endpoint) | Body: `{ content, title }` |
+| POST | `/api/flashcard-sets/generate` | No frontend trigger (backend-only endpoint) | Body: `{ content, title }`. Returns `202 { jobId, queued: true }` when Redis available; result via `flashcards_ready` socket event. |
 | POST | `/api/flashcard-sets/:id/cards` | `pages/flashcards/FlashcardSetDetail.jsx` → Add card modal | Body: `{ front, back }` |
 | DELETE | `/api/flashcard-sets/:setId/cards/:cardId` | `pages/flashcards/FlashcardSetDetail.jsx` → card delete | |
 | PUT | `/api/flashcard-sets/:setId/cards/:cardId` | `pages/flashcards/FlashcardSetDetail.jsx` → edit card modal | Edit card text |
@@ -163,7 +163,7 @@ Frontend base URL: `http://localhost:5173`
 | POST | `/api/resumes/upload` | `pages/resumes/Resumes.jsx` → drag & drop / upload button | multipart/form-data with `resume` (file) + `name` fields; stored as Cloudinary `authenticated` resource |
 | GET | `/api/resumes` | `pages/resumes/Resumes.jsx` (supports `?search=` by fileName, version, targetRole) | Lists all uploaded resumes |
 | GET | `/api/resumes/:id/download` | `pages/resumes/Resumes.jsx` → Download button | Returns 10-min signed URL via `private_download_url`; opened in new tab |
-| POST | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → AI Feedback / Regenerate button | AI-generated feedback accordion; older entries browsable via history panel |
+| POST | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → AI Feedback / Regenerate button | Returns `202 { jobId, queued: true }` when Redis available; result via `resume_feedback_ready` socket event. Feedback appended to embedded array on completion. |
 | GET | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → history panel | Returns all feedback entries; browsable in-card history |
 | DELETE | `/api/resumes/:id` | Not yet exposed in UI | Soft delete resume |
 
