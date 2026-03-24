@@ -13,7 +13,7 @@ const { authLimiter } = require('../middleware/rateLimiter');
 // ============================================================
 
 // Public routes — no JWT required
-router.post('/register', authController.register);
+router.post('/register', authLimiter, authController.register);
 router.post('/login', authLimiter, authController.login);
 router.post('/forgot-password', authLimiter, authController.forgotPassword);
 router.post('/reset-password', authLimiter, authController.resetPassword);

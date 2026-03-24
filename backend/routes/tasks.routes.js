@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const tasksController = require('../controllers/tasks.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const { perUserWriteLimit } = require('../middleware/rateLimiter');
 
 // ============================================================
 // TASKS ROUTES
@@ -23,7 +24,7 @@ router.get('/', tasksController.getTasks);
 router.get('/:id', tasksController.getTaskById);
 router.put('/:id', tasksController.updateTask);
 router.patch('/:id/status', tasksController.updateStatus);
-router.patch('/:id/participants', tasksController.updateParticipants);
+router.patch('/:id/participants', perUserWriteLimit, tasksController.updateParticipants);
 router.patch('/:id/participant-status', tasksController.updateParticipantStatus);
 router.delete('/:id', tasksController.deleteTask);
 

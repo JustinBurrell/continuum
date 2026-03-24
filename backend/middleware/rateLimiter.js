@@ -6,7 +6,7 @@ const rateLimit = require('express-rate-limit');
 //          general API abuse across all routes
 // ============================================================
 
-// Strict limiter for sensitive auth endpoints (login, forgot-password, reset, refresh)
+// Strict limiter for sensitive auth endpoints (login, register, forgot-password, reset, refresh)
 exports.authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 10,
@@ -20,6 +20,27 @@ exports.apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 300,
     message: { success: false, error: 'Too many requests. Please slow down.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Per-user limiter for high-frequency write endpoints (messages, comments, share, participants)
+// Keyed by user ID so one heavy user cannot exhaust the shared IP window
+exports.perUserWriteLimit = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 30,
+    keyGenerator: (req) => req.user?._id?.toString() || req.ip,
+    message: { success: false, error: 'Too many requests. Please slow down.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Per-user limiter for AI generation endpoints — burst protection on top of the daily Redis cap
+exports.aiRateLimit = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 5,
+    keyGenerator: (req) => req.user?._id?.toString() || req.ip,
+    message: { success: false, error: 'Too many AI requests. Please wait a moment.' },
     standardHeaders: true,
     legacyHeaders: false,
 });
