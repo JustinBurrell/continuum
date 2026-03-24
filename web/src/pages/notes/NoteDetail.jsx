@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import ConfirmModal from '@/components/ui/ConfirmModal';
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
+import { getSocket } from '@/lib/socket';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
@@ -34,6 +35,7 @@ export default function NoteDetail() {
   // Flashcard generation state
   const [flashcardMsg, setFlashcardMsg] = useState('');
   const [flashcardSetId, setFlashcardSetId] = useState(null);
+  const [flashcardPending, setFlashcardPending] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['note', id],
@@ -47,6 +49,45 @@ export default function NoteDetail() {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
     };
   }, []);
+
+  // Listen for AI job completion events scoped to this note
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const onSummaryReady = ({ noteId: nid, summary }) => {
+      if (nid !== id) return;
+      setAiSummary(summary?.quickSummary || summary?.detailedSummary || null);
+      setAiLoading(false);
+    };
+    const onSummaryFailed = ({ noteId: nid, error }) => {
+      if (nid !== id) return;
+      setAiError(error || 'Failed to generate summary. Please try again.');
+      setAiLoading(false);
+    };
+    const onFlashcardsReady = ({ noteId: nid, setId }) => {
+      if (nid !== id) return;
+      setFlashcardSetId(setId);
+      setFlashcardMsg('Flashcard set created!');
+      setFlashcardPending(false);
+    };
+    const onFlashcardsFailed = () => {
+      setFlashcardMsg('Failed to generate flashcards.');
+      setFlashcardPending(false);
+    };
+
+    socket.on('note_summary_ready', onSummaryReady);
+    socket.on('note_summary_failed', onSummaryFailed);
+    socket.on('flashcards_ready', onFlashcardsReady);
+    socket.on('flashcards_failed', onFlashcardsFailed);
+
+    return () => {
+      socket.off('note_summary_ready', onSummaryReady);
+      socket.off('note_summary_failed', onSummaryFailed);
+      socket.off('flashcards_ready', onFlashcardsReady);
+      socket.off('flashcards_failed', onFlashcardsFailed);
+    };
+  }, [id]);
 
   const { data: commentsData, refetch: refetchComments } = useQuery({
     queryKey: ['note-comments', id],
@@ -82,6 +123,13 @@ export default function NoteDetail() {
   const generateFlashcardsMutation = useMutation({
     mutationFn: () => api.post(`/notes/${id}/flashcards/generate`),
     onSuccess: (res) => {
+      if (res.data.queued) {
+        // Job enqueued — stay pending until flashcards_ready fires
+        setFlashcardPending(true);
+        setFlashcardMsg('Generating flashcards...');
+        return;
+      }
+      // Sync fallback response
       const setId = res.data?.set?._id || res.data?.data?._id || res.data?._id;
       setFlashcardSetId(setId);
       setFlashcardMsg('Flashcard set created!');
@@ -89,6 +137,7 @@ export default function NoteDetail() {
     },
     onError: (err) => {
       setFlashcardMsg(err.response?.data?.error || 'Failed to generate flashcards.');
+      setFlashcardPending(false);
     },
   });
 
@@ -123,17 +172,19 @@ export default function NoteDetail() {
     setAiError('');
     try {
       const res = await api.post(`/notes/${id}/summary`);
-      // Backend returns { success, note: { summary: { quickSummary, detailedSummary, ... } }, cached }
+      if (res.data.queued) {
+        // Job enqueued — stay in loading state until note_summary_ready fires
+        return;
+      }
+      // Sync fallback response
       const summary = res.data.note?.summary;
       const text = summary?.quickSummary || summary?.detailedSummary || null;
       setAiSummary(text);
       queryClient.invalidateQueries({ queryKey: ['note', id] });
-      if (!text) {
-        setAiError('Summary generated but content is empty.');
-      }
+      if (!text) setAiError('Summary generated but content is empty.');
+      setAiLoading(false);
     } catch (err) {
       setAiError(err.response?.data?.error || 'Failed to generate summary. Please try again.');
-    } finally {
       setAiLoading(false);
     }
   };
@@ -330,7 +381,7 @@ export default function NoteDetail() {
               size="sm"
               variant="outline"
               onClick={() => generateFlashcardsMutation.mutate()}
-              loading={generateFlashcardsMutation.isPending}
+              loading={generateFlashcardsMutation.isPending || flashcardPending}
             >
               <BookOpen size={14} /> Generate Flashcards
             </Button>

@@ -60,6 +60,18 @@ function registerSocketEvents(socket) {
   socket.on('activity_updated', () => {
     queryClient.invalidateQueries({ queryKey: ['activity'] });
   });
+
+  // AI job completions — invalidate relevant query keys so pages can refetch
+  socket.on('note_summary_ready', ({ noteId }) => {
+    queryClient.invalidateQueries({ queryKey: ['note', noteId] });
+  });
+  socket.on('flashcards_ready', ({ noteId, setId }) => {
+    queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
+    if (noteId) queryClient.invalidateQueries({ queryKey: ['note', noteId] });
+  });
+  socket.on('resume_feedback_ready', () => {
+    queryClient.invalidateQueries({ queryKey: ['resumes'] });
+  });
 }
 
 export function AuthProvider({ children }) {
