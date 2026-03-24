@@ -7,11 +7,13 @@ import queryClient from '@/lib/queryClient';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import Skeleton from '@/components/ui/Skeleton';
 import Badge from '@/components/ui/Badge';
 import { formatRelative } from '@/lib/utils';
 
 export default function FlashcardSets() {
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // set._id to delete
   const [showCreate, setShowCreate] = useState(false);
   const [newSet, setNewSet] = useState({ title: '', description: '', subject: '' });
   const [sharedTab, setSharedTab] = useState(false);
@@ -173,9 +175,7 @@ export default function FlashcardSets() {
             <FlashcardSetCard
               key={set._id}
               set={set}
-              onDelete={sharedTab ? null : () => {
-                if (window.confirm('Delete this set?')) deleteMutation.mutate(set._id);
-              }}
+              onDelete={sharedTab ? null : () => setDeleteConfirm(set._id)}
             />
           ))}
         </div>
@@ -264,6 +264,16 @@ export default function FlashcardSets() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        open={!!deleteConfirm}
+        title="Delete flashcard set"
+        message="Are you sure you want to delete this set? All flashcards inside will be permanently removed."
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={() => { deleteMutation.mutate(deleteConfirm); setDeleteConfirm(null); }}
+        onClose={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }

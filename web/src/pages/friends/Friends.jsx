@@ -8,11 +8,13 @@ import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
 import Skeleton from '@/components/ui/Skeleton';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 export default function Friends() {
   const [tab, setTab] = useState('friends');
   const [searchQ, setSearchQ] = useState('');
   const [friendsSearch, setFriendsSearch] = useState('');
+  const [removeConfirm, setRemoveConfirm] = useState(null); // { id, name }
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -234,9 +236,7 @@ export default function Friends() {
                         <MessageCircle size={13} /> Message
                       </Button>
                       <button
-                        onClick={() => {
-                          if (window.confirm('Remove friend?')) removeMutation.mutate(f._id);
-                        }}
+                        onClick={() => setRemoveConfirm({ id: f._id, name: [f.firstName, f.lastName].filter(Boolean).join(' ') || f.username })}
                         style={{
                           padding: '6px 10px',
                           borderRadius: 8,
@@ -444,6 +444,15 @@ export default function Friends() {
           )}
         </div>
       )}
+      <ConfirmModal
+        open={!!removeConfirm}
+        title="Remove friend"
+        message={`Are you sure you want to remove ${removeConfirm?.name} as a friend?`}
+        confirmLabel="Remove"
+        loading={removeMutation.isPending}
+        onConfirm={() => { removeMutation.mutate(removeConfirm.id); setRemoveConfirm(null); }}
+        onClose={() => setRemoveConfirm(null)}
+      />
     </div>
   );
 }

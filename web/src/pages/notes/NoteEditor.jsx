@@ -260,7 +260,7 @@ export default function NoteEditor() {
             onBlur={e => e.currentTarget.style.borderColor = '#ede9fe'}
           />
           <p style={{ fontSize: '0.75rem', color: '#a087b0', marginTop: 6 }}>
-            Supports plain text and Markdown.
+            Supports plain text. HTML tags are not rendered.
           </p>
         </div>
 

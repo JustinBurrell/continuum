@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { friendlyError } from '@/lib/errors';
 
 export default function Register() {
   const { register: registerUser, googleLogin } = useAuth();
@@ -15,14 +16,15 @@ export default function Register() {
     setError('');
     try {
       await registerUser({
-        name: data.name,
+        firstName: data.firstName,
+        lastName: data.lastName,
         username: data.username,
         email: data.email,
         password: data.password,
       });
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      setError(friendlyError(err, 'Registration failed. Please try again.'));
     }
   };
 
@@ -72,26 +74,36 @@ export default function Register() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Full name"
-            placeholder="Alex Johnson"
-            error={errors.name?.message}
-            {...register('name', { required: 'Name is required' })}
+            label="First name"
+            placeholder="Alex"
+            autoComplete="given-name"
+            error={errors.firstName?.message}
+            {...register('firstName', { required: 'First name is required' })}
           />
           <Input
-            label="Username"
-            placeholder="alexj"
-            error={errors.username?.message}
-            {...register('username', {
-              required: 'Username is required',
-              minLength: { value: 3, message: 'Min 3 characters' },
-            })}
+            label="Last name"
+            placeholder="Johnson"
+            autoComplete="family-name"
+            error={errors.lastName?.message}
+            {...register('lastName', { required: 'Last name is required' })}
           />
         </div>
+        <Input
+          label="Username"
+          placeholder="alexj"
+          autoComplete="username"
+          error={errors.username?.message}
+          {...register('username', {
+            required: 'Username is required',
+            minLength: { value: 3, message: 'Min 3 characters' },
+          })}
+        />
 
         <Input
           label="Email"
           type="email"
           placeholder="you@example.com"
+          autoComplete="email"
           error={errors.email?.message}
           {...register('email', { required: 'Email is required' })}
         />
@@ -100,6 +112,7 @@ export default function Register() {
           label="Password"
           type="password"
           placeholder="Min 8 characters"
+          autoComplete="new-password"
           error={errors.password?.message}
           {...register('password', {
             required: 'Password is required',
@@ -111,6 +124,7 @@ export default function Register() {
           label="Confirm password"
           type="password"
           placeholder="••••••••"
+          autoComplete="new-password"
           error={errors.confirmPassword?.message}
           {...register('confirmPassword', {
             validate: (v) => v === watch('password') || 'Passwords do not match',

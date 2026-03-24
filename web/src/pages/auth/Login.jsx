@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { friendlyError } from '@/lib/errors';
 
 export default function Login() {
   const { login, googleLogin } = useAuth();
@@ -17,7 +18,7 @@ export default function Login() {
       await login(data.email, data.password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Invalid email or password');
+      setError(friendlyError(err, 'Invalid email or password.'));
     }
   };
 
@@ -69,6 +70,7 @@ export default function Login() {
           label="Email"
           type="email"
           placeholder="you@example.com"
+          autoComplete="email"
           {...register('email', { required: true })}
         />
         <div>
@@ -76,6 +78,7 @@ export default function Login() {
             label="Password"
             type="password"
             placeholder="••••••••"
+            autoComplete="current-password"
             {...register('password', { required: true })}
           />
           <div className="mt-2 text-right">

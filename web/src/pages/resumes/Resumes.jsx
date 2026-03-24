@@ -5,6 +5,7 @@ import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import { formatDate } from '@/lib/utils';
 
 export default function Resumes() {
@@ -13,6 +14,7 @@ export default function Resumes() {
   const [expandedFeedback, setExpandedFeedback] = useState({});
   const [feedbackLoading, setFeedbackLoading] = useState({});
   const [resumeSearch, setResumeSearch] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // resume._id to delete
 
   const { data, isLoading } = useQuery({
     queryKey: ['resumes', resumeSearch],
@@ -168,16 +170,21 @@ export default function Resumes() {
                 setExpandedFeedback(prev => ({ ...prev, [resume._id]: !prev[resume._id] }))
               }
               onAiFeedback={() => handleAiFeedback(resume._id)}
-              onDelete={() => {
-                if (window.confirm('Delete this resume and all its feedback history?')) {
-                  deleteMutation.mutate(resume._id);
-                }
-              }}
+              onDelete={() => setDeleteConfirm(resume._id)}
               deleteLoading={deleteMutation.isPending && deleteMutation.variables === resume._id}
             />
           ))}
         </div>
       )}
+      <ConfirmModal
+        open={!!deleteConfirm}
+        title="Delete resume"
+        message="Are you sure you want to delete this resume and all its feedback history? This action cannot be undone."
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={() => { deleteMutation.mutate(deleteConfirm); setDeleteConfirm(null); }}
+        onClose={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }

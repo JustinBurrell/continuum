@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import Skeleton from '@/components/ui/Skeleton';
 import ShareModal from '@/components/ui/ShareModal';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
@@ -46,6 +47,7 @@ const emptyForm = {
 
 export default function Tasks() {
   const location = useLocation();
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // task id to delete
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [sharedTab, setSharedTab] = useState(false);
@@ -179,7 +181,7 @@ export default function Tasks() {
               status={col.status}
               tasks={col.tasks}
               onStatusChange={handleStatusChange}
-              onDelete={sharedTab ? null : (id) => { if (window.confirm('Delete task?')) deleteMutation.mutate(id); }}
+              onDelete={sharedTab ? null : (id) => setDeleteConfirm(id)}
               onView={setViewingTaskId}
             />
           ))}
@@ -302,6 +304,16 @@ export default function Tasks() {
         open={!!viewingTaskId}
         onClose={() => setViewingTaskId(null)}
         onUpdated={invalidateTasks}
+      />
+
+      <ConfirmModal
+        open={!!deleteConfirm}
+        title="Delete task"
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={() => { deleteMutation.mutate(deleteConfirm); setDeleteConfirm(null); }}
+        onClose={() => setDeleteConfirm(null)}
       />
     </div>
   );

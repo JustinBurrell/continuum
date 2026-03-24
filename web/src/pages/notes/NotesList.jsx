@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Skeleton from '@/components/ui/Skeleton';
 import Modal from '@/components/ui/Modal';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelative, truncate, stripHtml } from '@/lib/utils';
 
@@ -20,6 +21,8 @@ export default function NotesList() {
   const [sharedSearch, setSharedSearch] = useState('');
   const [type, setType] = useState('all');
   const [sharedTab, setSharedTab] = useState(false);
+
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // note._id to delete
 
   // Import modal state — Google Drive file picker OR local PDF upload
   const [showImport, setShowImport] = useState(false);
@@ -282,11 +285,7 @@ export default function NotesList() {
             <NoteCard
               key={note._id}
               note={note}
-              onDelete={sharedTab ? null : () => {
-                if (window.confirm('Delete this note?')) {
-                  deleteMutation.mutate(note._id);
-                }
-              }}
+              onDelete={sharedTab ? null : () => setDeleteConfirm(note._id)}
             />
           ))}
         </div>
@@ -502,6 +501,16 @@ export default function NotesList() {
           </div>
         )}
       </Modal>
+
+      <ConfirmModal
+        open={!!deleteConfirm}
+        title="Delete note"
+        message="Are you sure you want to delete this note? This action cannot be undone."
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={() => { deleteMutation.mutate(deleteConfirm); setDeleteConfirm(null); }}
+        onClose={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }

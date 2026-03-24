@@ -17,6 +17,7 @@ import Skeleton from '@/components/ui/Skeleton';
 import { useForm } from 'react-hook-form';
 import { formatDate } from '@/lib/utils';
 import { useToast } from '@/components/ui/Toast';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 const card = {
   background: '#fff',
@@ -358,6 +359,8 @@ export default function Profile() {
   const [logoutAllLoading, setLogoutAllLoading] = useState(false);
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showLogoutAllConfirm, setShowLogoutAllConfirm] = useState(false);
+  const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
   const [restoreLoading, setRestoreLoading] = useState(false);
   const [notifSaved, setNotifSaved] = useState(false);
   const [verifySent, setVerifySent] = useState(false);
@@ -539,8 +542,10 @@ export default function Profile() {
     onSuccess: () => setVerifySent(true),
   });
 
-  const handleLogoutAll = async () => {
-    if (!window.confirm('Sign out of all devices? You will need to log in again.')) return;
+  const handleLogoutAll = () => setShowLogoutAllConfirm(true);
+
+  const doLogoutAll = async () => {
+    setShowLogoutAllConfirm(false);
     setLogoutAllLoading(true);
     try { await api.post('/auth/logout-all'); } catch (_) {}
     finally { localStorage.clear(); navigate('/login'); }
@@ -1039,11 +1044,7 @@ export default function Profile() {
               {me?.googleId ? (
                 <Button size="sm" variant="outline"
                   onClick={() => {
-                    if (window.confirm('Unlink your Google account?')) {
-                      api.delete('/auth/me/google/link', { data: { keepNotes: true } })
-                        .then(r => { const u = r.data.user || r.data.data; if (u) updateUser(u); })
-                        .catch(e => toast({ type: 'error', message: e?.response?.data?.error || 'Failed to unlink' }));
-                    }
+                    setShowUnlinkConfirm(true);
                   }}
                 >
                   <Unlink size={13} /> Unlink
@@ -1102,6 +1103,31 @@ export default function Profile() {
           onClose={() => setCropFile(null)}
         />
       )}
+
+      <ConfirmModal
+        open={showLogoutAllConfirm}
+        title="Sign out of all devices"
+        message="You will be signed out of all devices and will need to log in again."
+        confirmLabel="Sign out all"
+        variant="danger"
+        onConfirm={doLogoutAll}
+        onClose={() => setShowLogoutAllConfirm(false)}
+      />
+
+      <ConfirmModal
+        open={showUnlinkConfirm}
+        title="Unlink Google account"
+        message="Are you sure you want to unlink your Google account? You can re-link it at any time."
+        confirmLabel="Unlink"
+        variant="danger"
+        onConfirm={() => {
+          setShowUnlinkConfirm(false);
+          api.delete('/auth/me/google/link', { data: { keepNotes: true } })
+            .then(r => { const u = r.data.user || r.data.data; if (u) updateUser(u); })
+            .catch(e => toast({ type: 'error', message: e?.response?.data?.error || 'Failed to unlink' }));
+        }}
+        onClose={() => setShowUnlinkConfirm(false)}
+      />
 
       {showDeleteModal && (
         <DeleteAccountModal

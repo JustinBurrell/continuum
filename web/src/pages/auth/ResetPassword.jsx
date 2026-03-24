@@ -48,6 +48,7 @@ export default function ResetPassword() {
           label="New password"
           type="password"
           placeholder="Min 8 characters"
+          autoComplete="new-password"
           error={errors.password?.message}
           {...register('password', {
             required: 'Password is required',
@@ -58,6 +59,7 @@ export default function ResetPassword() {
           label="Confirm new password"
           type="password"
           placeholder="••••••••"
+          autoComplete="new-password"
           error={errors.confirmPassword?.message}
           {...register('confirmPassword', {
             validate: (v) => v === watch('password') || 'Passwords do not match',
