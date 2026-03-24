@@ -761,3 +761,89 @@ Run folders top to bottom. Folder 0 must run first.
 - In-conversation message search disables the 5-second polling interval on the frontend while active
 - If the activity feed is empty, trigger some sharing activity first: share a note with User B, then check the feed
 - Resume search matches against `fileName`, `version`, and `targetRole` — does NOT search extracted PDF text
+
+---
+
+# Postman Testing — Session 10
+
+API-30: Change Username | API-31: Change Password — new settings endpoints added in the settings revamp.
+
+---
+
+## Setup
+
+### 1. Import the collection
+- Open Postman → **Collections** tab → **Import** → select `continuum-session10.postman_collection.json`
+- Environment: `continuum-local.postman_environment.json` (no new variables needed)
+
+### 2. Select the environment
+- Top-right corner of Postman — switch to **Continuum — Local**
+
+### 3. Start the backend server
+```bash
+cd backend && npm run dev
+```
+
+---
+
+## Prerequisites
+
+- User A (`test@example.com` / `Password123!`) must exist with email/password credentials
+- User B (`test2@example.com`) must exist so the "username taken" test has a real conflict
+- Run **Login** first to get a fresh token before the username/password tests
+
+---
+
+## Environment Variables
+
+No new variables — Session 10 reuses existing ones.
+
+| Variable   | Set by     |
+|------------|------------|
+| `token`    | Login User A |
+| `userId`   | Login User A |
+
+---
+
+## Test Order
+
+Run folders top to bottom. Folder 1 must run first.
+
+### 1. Login
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Login — User A | `{ "email", "password" }` | `200` — sets `token` + `userId` | |
+
+### 2. Change Username (API-30)
+*(User A must not already have username `testuser_new`; User B must have username `testuser2` for the conflict test)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Change Username — valid | `{ "username": "testuser_new" }` | `200` — returns updated user with new username | |
+| Change Username — restore original | `{ "username": "testuser" }` | `200` — username restored | |
+| [Error] Too short (< 3 chars) | `{ "username": "ab" }` | `400` — format validation error | |
+| [Error] Invalid characters (spaces) | `{ "username": "invalid username" }` | `400` — format validation error | |
+| [Error] Username already taken | `{ "username": "testuser2" }` | `409` — "Username is already taken" | |
+| [Error] No token | `{ "username": "newname" }` | `401` | |
+
+### 3. Change Password (API-31)
+*(Run in order — changes password then restores it so other sessions still work)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Change Password — valid | `{ currentPassword, newPassword: "NewPassword456@" }` | `200` — success | |
+| Change Password — restore original | `{ currentPassword: "NewPassword456@", newPassword: "Password123!" }` | `200` — password restored | |
+| [Error] Wrong current password | `{ currentPassword: "WrongPassword999!", newPassword }` | `401` — "Current password is incorrect" | |
+| [Error] New password no special char | `{ currentPassword, newPassword: "weakpassword1" }` | `400` — validation error | |
+| [Error] New password too short | `{ currentPassword, newPassword: "Ab1!" }` | `400` — validation error | |
+| [Error] Missing newPassword field | `{ currentPassword }` | `400` | |
+| [Error] No token | full body | `401` | |
+
+---
+
+## Tips
+
+- Run the Change Password tests in order — they mutate and then restore the password so downstream sessions aren't broken
+- The "restore original" requests are intentionally included so test data stays clean after the session runs
+- Username validation: 3–30 chars, letters/numbers/underscores/hyphens only — spaces, dots, and special chars are rejected with 400
+- Google-only users (no password set) receive a `400` with message "No password set — use Forgot Password to create one first" if they attempt the change-password endpoint
