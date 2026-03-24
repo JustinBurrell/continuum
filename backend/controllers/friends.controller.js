@@ -1,5 +1,6 @@
 const Friendship = require('../models/Friendship');
 const User = require('../models/User');
+const { getIO } = require('../lib/socket');
 
 // ============================================================
 // FRIENDS CONTROLLER
@@ -70,6 +71,9 @@ exports.sendRequest = async (req, res) => {
         requestedAt: new Date(),
     });
 
+    // Notify recipient in real-time
+    try { getIO().to(`user:${recipientId}`).emit('friend_request', { friendship }); } catch (_) {}
+
     res.status(201).json({ success: true, friendship });
 };
 
@@ -108,6 +112,11 @@ exports.respondToRequest = async (req, res) => {
     friendship.status = action === 'accept' ? 'accepted' : 'rejected';
     friendship.respondedAt = new Date();
     await friendship.save();
+
+    // Notify the original sender when their request is accepted
+    if (action === 'accept') {
+        try { getIO().to(`user:${friendship.requestedBy}`).emit('friend_accepted', { friendship }); } catch (_) {}
+    }
 
     res.status(200).json({ success: true, friendship });
 };

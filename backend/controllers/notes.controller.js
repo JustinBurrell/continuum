@@ -1,4 +1,5 @@
 const Note = require('../models/Note');
+const { getIO } = require('../lib/socket');
 const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
 const Friendship = require('../models/Friendship');
@@ -287,6 +288,15 @@ exports.updateNote = async (req, res) => {
     if (!note) {
         return res.status(404).json({ success: false, error: 'Note not found' });
     }
+
+    // Notify users who have access to this note that it changed
+    try {
+        const io = getIO();
+        const recipients = (note.sharedWith || []).map(id => id.toString());
+        recipients.forEach(uid => {
+            io.to(`user:${uid}`).emit('note_updated', { noteId: note._id.toString() });
+        });
+    } catch (_) {}
 
     res.status(200).json({ success: true, note });
 };
@@ -651,6 +661,11 @@ exports.shareNote = async (req, res) => {
         for (const recipientId of sharedWith) {
             sendShareMessage(req.user._id, recipientId, 'note', note.title, note._id).catch(() => {});
         }
+        // Notify shared users in real-time
+        try {
+            const io = getIO();
+            sharedWith.forEach(uid => io.to(`user:${uid}`).emit('note_shared', { noteId: note._id.toString() }));
+        } catch (_) {}
     }
 
     res.status(200).json({ success: true, note });

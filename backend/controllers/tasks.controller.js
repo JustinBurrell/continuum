@@ -2,6 +2,22 @@ const Task = require('../models/Task');
 const Friendship = require('../models/Friendship');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { sendShareMessage } = require('../services/share.service');
+const { getIO } = require('../lib/socket');
+
+// Emit task_updated to all participants except the actor
+function emitTaskUpdate(task, actorId) {
+    try {
+        const io = getIO();
+        const participantIds = (task.participants || []).map(p => p.toString());
+        const ownerId = task.userId?.toString();
+        const all = [...new Set([ownerId, ...participantIds])];
+        all.forEach(uid => {
+            if (uid && uid !== actorId.toString()) {
+                io.to(`user:${uid}`).emit('task_updated', { taskId: task._id.toString() });
+            }
+        });
+    } catch (_) {}
+}
 
 // ============================================================
 // TASKS CONTROLLER
@@ -174,6 +190,7 @@ exports.updateTask = async (req, res) => {
         return res.status(404).json({ success: false, error: 'Task not found' });
     }
 
+    emitTaskUpdate(task, req.user._id);
     res.status(200).json({ success: true, task });
 };
 
@@ -211,6 +228,7 @@ exports.updateStatus = async (req, res) => {
     task.status = status;
     await task.save();
 
+    emitTaskUpdate(task, req.user._id);
     res.status(200).json({ success: true, task });
 };
 
@@ -318,6 +336,7 @@ exports.updateParticipants = async (req, res) => {
         }).catch(() => {});
     }
 
+    emitTaskUpdate(task, req.user._id);
     res.status(200).json({ success: true, task });
 };
 

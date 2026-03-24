@@ -1,6 +1,7 @@
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const Friendship = require('../models/Friendship');
+const { getIO } = require('../lib/socket');
 
 // ============================================================
 // CONVERSATIONS CONTROLLER
@@ -154,6 +155,16 @@ exports.sendMessage = async (req, res) => {
     await conversation.save();
 
     await message.populate('senderId', 'username firstName lastName avatarUrl');
+
+    // Notify the recipient in real-time
+    if (otherParticipantId) {
+        try {
+            getIO().to(`user:${otherParticipantId}`).emit('new_message', {
+                conversationId: conversationId.toString(),
+                message,
+            });
+        } catch (_) {}
+    }
 
     res.status(201).json({ success: true, message });
 };
