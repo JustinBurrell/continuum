@@ -7,7 +7,6 @@ const Friendship = require('../models/Friendship');
 const getGoogleDriveClient = require('../config/googleDrive');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
-const { getQueue } = require('../lib/queue');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { sendShareMessage } = require('../services/share.service');
 const { PDFParse } = require('pdf-parse');
@@ -472,17 +471,7 @@ exports.generateSummary = async (req, res) => {
         return res.status(200).json({ success: true, note, cached: true });
     }
 
-    const queue = getQueue();
-    if (queue) {
-        const job = await queue.add('note-summary', {
-            noteId: note._id.toString(),
-            userId: req.user._id.toString(),
-            isOwner,
-        });
-        return res.status(202).json({ success: true, jobId: job.id, queued: true });
-    }
-
-    // Sync fallback — no Redis
+    // Summary is fast — always run synchronously for instant UX
     const result = await groqService.generateSummary(note.content, req.user._id);
 
     if (isOwner) {
@@ -552,17 +541,6 @@ exports.generateFlashcardsFromNote = async (req, res) => {
         return res.status(400).json({ success: false, error: 'Note has no content to generate flashcards from' });
     }
 
-    const queue = getQueue();
-    if (queue) {
-        const job = await queue.add('note-flashcards', {
-            noteId: note._id.toString(),
-            userId: req.user._id.toString(),
-            isOwner,
-        });
-        return res.status(202).json({ success: true, jobId: job.id, queued: true });
-    }
-
-    // Sync fallback — no Redis
     const result = await groqService.generateFlashcards(note.content, req.user._id);
 
     const set = await FlashcardSet.create({

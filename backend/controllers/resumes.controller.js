@@ -2,7 +2,6 @@ const { PDFParse } = require('pdf-parse');
 const Resume = require('../models/Resume');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
-const { getQueue } = require('../lib/queue');
 
 // ============================================================
 // RESUMES CONTROLLER
@@ -156,16 +155,6 @@ exports.generateFeedback = async (req, res) => {
         }
     }
 
-    const queue = getQueue();
-    if (queue) {
-        const job = await queue.add('resume-feedback', {
-            resumeId: resume._id.toString(),
-            userId: req.user._id.toString(),
-        });
-        return res.status(202).json({ success: true, jobId: job.id, queued: true });
-    }
-
-    // Sync fallback — no Redis
     const result = await groqService.generateResumeFeedback(resume.extractedText, req.user._id);
 
     const updated = await Resume.findByIdAndUpdate(

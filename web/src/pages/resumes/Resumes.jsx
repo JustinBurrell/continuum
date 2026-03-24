@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, FileCheck, Sparkles, Download, ChevronDown, ChevronUp, History, Trash2, Search } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
-import { getSocket } from '@/lib/socket';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
@@ -42,43 +41,16 @@ export default function Resumes() {
     }
   };
 
-  // Listen for async resume feedback job completion
-  useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
-
-    const onFeedbackReady = ({ resumeId }) => {
-      queryClient.invalidateQueries({ queryKey: ['resumes'] });
-      setFeedbackLoading(prev => ({ ...prev, [resumeId]: false }));
-      setExpandedFeedback(prev => ({ ...prev, [resumeId]: true }));
-    };
-    const onFeedbackFailed = ({ resumeId }) => {
-      setFeedbackLoading(prev => ({ ...prev, [resumeId]: false }));
-    };
-
-    socket.on('resume_feedback_ready', onFeedbackReady);
-    socket.on('resume_feedback_failed', onFeedbackFailed);
-
-    return () => {
-      socket.off('resume_feedback_ready', onFeedbackReady);
-      socket.off('resume_feedback_failed', onFeedbackFailed);
-    };
-  }, []);
-
   const handleAiFeedback = async (resumeId) => {
     setFeedbackLoading(prev => ({ ...prev, [resumeId]: true }));
     try {
-      const res = await api.post(`/resumes/${resumeId}/feedback`);
-      if (res.data.queued) {
-        // Stay loading until resume_feedback_ready fires
-        return;
-      }
-      // Sync fallback response
-      queryClient.invalidateQueries({ queryKey: ['resumes'] });
+      await api.post(`/resumes/${resumeId}/feedback`);
+      const updated = await api.get('/resumes').then(r => r.data);
+      queryClient.setQueryData(['resumes'], updated);
       setExpandedFeedback(prev => ({ ...prev, [resumeId]: true }));
-      setFeedbackLoading(prev => ({ ...prev, [resumeId]: false }));
     } catch (err) {
       console.error('AI feedback error:', err);
+    } finally {
       setFeedbackLoading(prev => ({ ...prev, [resumeId]: false }));
     }
   };
