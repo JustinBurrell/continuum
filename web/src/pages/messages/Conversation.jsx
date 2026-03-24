@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Send, ArrowLeft, FileText, BookOpen, CheckSquare } from 'lucide-react';
+import { Send, ArrowLeft, FileText, BookOpen, CheckSquare, Search, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
@@ -47,7 +47,10 @@ function parseShareMessage(content) {
 export default function Conversation({ conversationId }) {
   const { user } = useAuth();
   const [message, setMessage] = useState('');
+  const [msgSearch, setMsgSearch] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
   const bottomRef = useRef(null);
+  const searchInputRef = useRef(null);
   const markedReadRef = useRef(new Set());
 
   const { data: convData } = useQuery({
@@ -97,36 +100,91 @@ export default function Conversation({ conversationId }) {
   const conv = conversations.find(c => c._id === conversationId);
   const other = conv?.participants?.find(p => p._id !== user?._id);
   // Backend returns newest-first; reverse so oldest is at top, newest at bottom
-  const messages = (data?.messages || []).slice().reverse();
+  const allMessages = (data?.messages || []).slice().reverse();
+  const messages = msgSearch
+    ? allMessages.filter(m => m.content?.toLowerCase().includes(msgSearch.toLowerCase()))
+    : allMessages;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: '1px solid #ede9fe', background: '#fff', flexShrink: 0 }}>
-        <Link to="/messages" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, color: '#a087b0', textDecoration: 'none', flexShrink: 0, transition: 'background 0.15s' }}
-          onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        >
-          <ArrowLeft size={18} />
-        </Link>
-
-        {other ? (
-          <Link
-            to="/users/view"
-            state={{ id: other._id }}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flex: 1 }}
-            className="hover:opacity-80 transition-opacity"
+      <div style={{ borderBottom: '1px solid #ede9fe', background: '#fff', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px' }}>
+          <Link to="/messages" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, color: '#a087b0', textDecoration: 'none', flexShrink: 0, transition: 'background 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            <Avatar name={fullName(other)} src={other?.avatarUrl || null} size="sm" />
-            <div>
-              <p style={{ fontWeight: 700, fontSize: 14, color: '#111827', margin: 0, lineHeight: 1.2 }}>
-                {fullName(other)}
-              </p>
-              <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>@{other.username}</p>
-            </div>
+            <ArrowLeft size={18} />
           </Link>
-        ) : (
-          <div style={{ flex: 1, height: 32 }} />
+
+          {other ? (
+            <Link
+              to="/users/view"
+              state={{ id: other._id }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flex: 1 }}
+              className="hover:opacity-80 transition-opacity"
+            >
+              <Avatar name={fullName(other)} src={other?.avatarUrl || null} size="sm" />
+              <div>
+                <p style={{ fontWeight: 700, fontSize: 14, color: '#111827', margin: 0, lineHeight: 1.2 }}>
+                  {fullName(other)}
+                </p>
+                <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>@{other.username}</p>
+              </div>
+            </Link>
+          ) : (
+            <div style={{ flex: 1, height: 32 }} />
+          )}
+
+          <button
+            onClick={() => {
+              setShowSearch(s => !s);
+              setMsgSearch('');
+              setTimeout(() => searchInputRef.current?.focus(), 50);
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 32, height: 32, borderRadius: 8, border: 'none',
+              background: showSearch ? '#f5f0ff' : 'transparent',
+              color: showSearch ? '#6b21a8' : '#a087b0',
+              cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s',
+            }}
+            title="Search messages"
+          >
+            <Search size={16} />
+          </button>
+        </div>
+
+        {showSearch && (
+          <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+              <input
+                ref={searchInputRef}
+                value={msgSearch}
+                onChange={e => setMsgSearch(e.target.value)}
+                placeholder="Search messages..."
+                style={{
+                  width: '100%', paddingLeft: 30, paddingRight: 10, paddingTop: 7, paddingBottom: 7,
+                  borderRadius: 10, border: '1px solid #ede9fe', background: '#fef7ff',
+                  fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box',
+                }}
+                onFocus={e => e.target.style.borderColor = '#6b21a8'}
+                onBlur={e => e.target.style.borderColor = '#ede9fe'}
+              />
+            </div>
+            {msgSearch && (
+              <span style={{ fontSize: 11, color: '#a087b0', whiteSpace: 'nowrap' }}>
+                {messages.length} result{messages.length !== 1 ? 's' : ''}
+              </span>
+            )}
+            <button
+              onClick={() => { setShowSearch(false); setMsgSearch(''); }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 6, border: 'none', background: 'transparent', color: '#a087b0', cursor: 'pointer', flexShrink: 0 }}
+            >
+              <X size={14} />
+            </button>
+          </div>
         )}
       </div>
 

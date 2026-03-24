@@ -99,13 +99,24 @@ export default function Calendar() {
   const rawDays = data?.days || {};
   const rawOverdue = data?.overdue || [];
 
-  const filterTasks = (tasks) =>
-    calSearch ? tasks.filter(t => t.title?.toLowerCase().includes(calSearch.toLowerCase())) : tasks;
+  // Flat list of all tasks with their dates, for search results view
+  const allTasksFlat = [
+    ...Object.entries(rawDays).flatMap(([dateKey, tasks]) =>
+      tasks.map(t => ({ ...t, _dateKey: dateKey }))
+    ),
+    ...rawOverdue.map(t => ({ ...t, _dateKey: t.dueDate ? toISO(new Date(t.dueDate)) : null })),
+  ].reduce((acc, t) => {
+    // dedupe by _id
+    if (!acc.find(x => x._id === t._id)) acc.push(t);
+    return acc;
+  }, []);
 
-  const days = calSearch
-    ? Object.fromEntries(Object.entries(rawDays).map(([k, v]) => [k, filterTasks(v)]))
-    : rawDays;
-  const overdue = filterTasks(rawOverdue);
+  const searchResults = calSearch
+    ? allTasksFlat.filter(t => t.title?.toLowerCase().includes(calSearch.toLowerCase()))
+    : [];
+
+  const days = rawDays;
+  const overdue = rawOverdue;
   const dates = getMonthDates(year, month);
 
   const selectedTasks = selected ? (days[selected] || []) : [];
@@ -159,13 +170,83 @@ export default function Calendar() {
             outline: 'none',
             boxSizing: 'border-box',
           }}
-          placeholder="Filter tasks by name..."
+          placeholder="Search tasks by name..."
           value={calSearch}
           onChange={e => setCalSearch(e.target.value)}
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24 }}>
+      {/* Search results list (shown instead of calendar when searching) */}
+      {calSearch && (
+        <div style={{ marginBottom: 24 }}>
+          <p style={{ fontSize: 12, color: '#a087b0', marginBottom: 12, fontWeight: 500 }}>
+            {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{calSearch}"
+          </p>
+          {searchResults.length === 0 ? (
+            <div style={{
+              background: '#fff',
+              border: '1px solid #ede9fe',
+              borderRadius: 16,
+              padding: '32px 0',
+              textAlign: 'center',
+            }}>
+              <p style={{ fontSize: 13, color: '#a087b0' }}>No tasks found matching "{calSearch}"</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {searchResults.map(task => {
+                const dateLabel = task._dateKey
+                  ? new Date(task._dateKey + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })
+                  : 'No date';
+                const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
+                return (
+                  <div
+                    key={task._id}
+                    onClick={() => setViewingTaskId(task._id)}
+                    style={{
+                      background: '#fff',
+                      border: '1px solid #ede9fe',
+                      borderLeft: `3px solid ${task.priority === 'high' ? '#ef4444' : task.priority === 'medium' ? '#f59e0b' : '#d1d5db'}`,
+                      borderRadius: 12,
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 14,
+                      cursor: 'pointer',
+                      boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+                      transition: 'box-shadow 0.15s, transform 0.1s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.10)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                        {task.title}
+                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: isOverdue ? '#ef4444' : '#a087b0' }}>
+                          {isOverdue ? <AlertCircle size={11} /> : <Clock size={11} />}
+                          {dateLabel}
+                        </span>
+                        {task.type && (
+                          <span style={{ fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 20, background: '#f5f0ff', color: '#6b21a8', textTransform: 'capitalize' }}>
+                            {task.type}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Badge variant={task.status === 'completed' ? 'success' : task.status === 'in_progress' ? 'warning' : 'neutral'}>
+                      {STATUS_LABELS[task.status] || task.status}
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div style={{ display: calSearch ? 'none' : 'grid', gridTemplateColumns: '1fr 300px', gap: 24 }}>
         {/* Calendar grid */}
         <div>
           {view === 'week' ? (

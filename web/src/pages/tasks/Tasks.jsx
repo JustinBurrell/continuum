@@ -61,6 +61,11 @@ export default function Tasks() {
         : api.get('/tasks', { params: search ? { search } : {} }).then(r => r.data),
   });
 
+  const rawTasks = data?.tasks || data?.data || [];
+  const allTasks = sharedTab && search
+    ? rawTasks.filter(t => t.title?.toLowerCase().includes(search.toLowerCase()))
+    : rawTasks;
+
   const invalidateTasks = () => {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
     queryClient.invalidateQueries({ queryKey: ['calendar'] });
@@ -91,7 +96,7 @@ export default function Tasks() {
     onSuccess: invalidateTasks,
   });
 
-  const allTasks = data?.tasks || data?.data || [];
+  // allTasks defined above with shared tab client-side filter
 
   const columns = STATUSES.map(status => ({
     status,
@@ -118,7 +123,7 @@ export default function Tasks() {
       </div>
 
       {/* Search */}
-      {!sharedTab && (
+      {(
         <div style={{ position: 'relative', marginBottom: 16 }}>
           <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
           <input
@@ -136,7 +141,7 @@ export default function Tasks() {
               outline: 'none',
               boxSizing: 'border-box',
             }}
-            placeholder="Search tasks..."
+            placeholder={sharedTab ? "Search shared tasks..." : "Search tasks..."}
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
