@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { getOrSet } = require('../lib/cache');
 
 // ============================================================
 // AUTH MIDDLEWARE
@@ -26,10 +27,10 @@ const authMiddleware = async (req, res, next) => {
         return res.status(401).json({ success: false, error: 'Invalid or expired token' });
     }
 
-    // Confirm the user still exists in the database
+    // Confirm the user still exists in the database (cached 5 min)
     let user;
     try {
-        user = await User.findById(decoded.userId);
+        user = await getOrSet(`user:${decoded.userId}`, 300, () => User.findById(decoded.userId));
     } catch (err) {
         return next(err);
     }

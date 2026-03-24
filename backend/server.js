@@ -1,4 +1,5 @@
 require('dotenv').config();
+const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -7,6 +8,7 @@ const mongoSanitize = require('mongo-sanitize');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const connectDB = require('./config/database');
 const passport = require('./config/passport');
+const { initSocket } = require('./lib/socket');
 
 // Connect to MongoDB
 connectDB();
@@ -80,7 +82,9 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const httpServer = http.createServer(app);
+initSocket(httpServer);
+httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
 });

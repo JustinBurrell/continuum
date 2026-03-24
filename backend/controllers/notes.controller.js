@@ -1,4 +1,6 @@
 const Note = require('../models/Note');
+const { getIO } = require('../lib/socket');
+const { getOrSet, invalidate } = require('../lib/cache');
 const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
 const Friendship = require('../models/Friendship');
@@ -287,6 +289,15 @@ exports.updateNote = async (req, res) => {
     if (!note) {
         return res.status(404).json({ success: false, error: 'Note not found' });
     }
+
+    // Notify users who have access to this note that it changed
+    try {
+        const io = getIO();
+        const recipients = (note.sharedWith || []).map(id => id.toString());
+        recipients.forEach(uid => {
+            io.to(`user:${uid}`).emit('note_updated', { noteId: note._id.toString() });
+        });
+    } catch (_) {}
 
     res.status(200).json({ success: true, note });
 };
@@ -638,6 +649,18 @@ exports.shareNote = async (req, res) => {
             metadata: { noteTitle: note.title },
             shareAll: true,
         }).catch(() => {});
+        // Invalidate shared-notes cache for all friends
+        Friendship.find({
+            $or: [{ user1: req.user._id }, { user2: req.user._id }],
+            status: 'accepted',
+            deletedAt: null,
+        }).then(friendships => {
+            const keys = friendships.map(f => {
+                const fid = f.user1.toString() === req.user._id.toString() ? f.user2 : f.user1;
+                return `shared-notes:${fid}`;
+            });
+            invalidate(...keys).catch(() => {});
+        }).catch(() => {});
     } else if (visibility === 'specific' && sharedWith?.length > 0) {
         createShareActivities({
             actorId: req.user._id,
@@ -651,6 +674,13 @@ exports.shareNote = async (req, res) => {
         for (const recipientId of sharedWith) {
             sendShareMessage(req.user._id, recipientId, 'note', note.title, note._id).catch(() => {});
         }
+        // Notify shared users in real-time + bust their caches
+        const keys = sharedWith.map(uid => `shared-notes:${uid}`);
+        invalidate(...keys).catch(() => {});
+        try {
+            const io = getIO();
+            sharedWith.forEach(uid => io.to(`user:${uid}`).emit('note_shared', { noteId: note._id.toString() }));
+        } catch (_) {}
     }
 
     res.status(200).json({ success: true, note });
@@ -667,45 +697,51 @@ exports.getSharedNotes = async (req, res) => {
     const userId = req.user._id;
     const { search } = req.query;
 
-    // Step 1: Get all accepted friend IDs for the current user
-    const friendships = await Friendship.find({
-        $or: [{ user1: userId }, { user2: userId }],
-        status: 'accepted',
-        deletedAt: null,
-    });
+    const fetchNotes = async () => {
+        // Get all accepted friend IDs for the current user
+        const friendships = await Friendship.find({
+            $or: [{ user1: userId }, { user2: userId }],
+            status: 'accepted',
+            deletedAt: null,
+        });
 
-    const friendIds = friendships.map(f =>
-        f.user1.toString() === userId.toString() ? f.user2 : f.user1
-    );
+        const friendIds = friendships.map(f =>
+            f.user1.toString() === userId.toString() ? f.user2 : f.user1
+        );
 
-    // Step 2: Build filter for notes accessible to the current user (owned by others)
-    const accessFilter = [
-        { visibility: 'friends', userId: { $in: friendIds } },
-        { visibility: 'specific', sharedWith: userId },
-    ];
+        const accessFilter = [
+            { visibility: 'friends', userId: { $in: friendIds } },
+            { visibility: 'specific', sharedWith: userId },
+        ];
 
-    const filter = {
-        deletedAt: null,
-        userId: { $ne: userId },
+        const filter = {
+            deletedAt: null,
+            userId: { $ne: userId },
+        };
+
+        if (search) {
+            const safeSearch = escapeRegex(search.trim().slice(0, 200));
+            filter.$and = [
+                { $or: accessFilter },
+                { $or: [
+                    { title: { $regex: safeSearch, $options: 'i' } },
+                    { content: { $regex: safeSearch, $options: 'i' } },
+                ]},
+            ];
+        } else {
+            filter.$or = accessFilter;
+        }
+
+        const notes = await Note.find(filter)
+            .populate('userId', 'username firstName lastName')
+            .sort({ createdAt: -1 });
+
+        return { notes };
     };
 
-    // Step 3: Apply text search if provided — combine with access filter using $and
-    if (search) {
-        const safeSearch = escapeRegex(search.trim().slice(0, 200));
-        filter.$and = [
-            { $or: accessFilter },
-            { $or: [
-                { title: { $regex: safeSearch, $options: 'i' } },
-                { content: { $regex: safeSearch, $options: 'i' } },
-            ]},
-        ];
-    } else {
-        filter.$or = accessFilter;
-    }
+    const result = !search
+        ? await getOrSet(`shared-notes:${userId}`, 60, fetchNotes)
+        : await fetchNotes();
 
-    const notes = await Note.find(filter)
-        .populate('userId', 'username firstName lastName')
-        .sort({ createdAt: -1 });
-
-    res.status(200).json({ success: true, notes });
+    res.status(200).json({ success: true, ...result });
 };

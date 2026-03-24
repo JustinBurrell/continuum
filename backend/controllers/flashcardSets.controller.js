@@ -3,7 +3,9 @@ const Flashcard = require('../models/Flashcard');
 const Friendship = require('../models/Friendship');
 const groqService = require('../services/groq.service');
 const { createActivity, createShareActivities } = require('../services/activity.service');
+const { getIO } = require('../lib/socket');
 const { sendShareMessage } = require('../services/share.service');
+const { getOrSet, invalidate } = require('../lib/cache');
 
 // ============================================================
 // FLASHCARD SETS CONTROLLER
@@ -498,6 +500,33 @@ exports.shareSet = async (req, res) => {
         for (const recipientId of sharedWith) {
             sendShareMessage(req.user._id, recipientId, 'flashcardSet', set.title, set._id).catch(() => {});
         }
+        // Notify specific recipients in real-time
+        try {
+            const io = getIO();
+            sharedWith.forEach(uid => io.to(`user:${uid}`).emit('flashcard_shared', { setId: set._id.toString() }));
+        } catch (_) {}
+    }
+
+    if (visibility === 'friends') {
+        // Notify all friends in real-time and bust their caches
+        try {
+            const io = getIO();
+            const friendships = await Friendship.find({
+                $or: [{ user1: req.user._id }, { user2: req.user._id }],
+                status: 'accepted',
+                deletedAt: null,
+            });
+            const cacheKeys = [];
+            friendships.forEach(f => {
+                const friendId = f.user1.toString() === req.user._id.toString() ? f.user2 : f.user1;
+                io.to(`user:${friendId}`).emit('flashcard_shared', { setId: set._id.toString() });
+                cacheKeys.push(`shared-sets:${friendId}`);
+            });
+            invalidate(...cacheKeys).catch(() => {});
+        } catch (_) {}
+    } else if (visibility === 'specific' && sharedWith?.length > 0) {
+        // Already emitted socket above — just bust their caches
+        invalidate(...sharedWith.map(uid => `shared-sets:${uid}`)).catch(() => {});
     }
 
     res.status(200).json({ success: true, set });
@@ -515,33 +544,41 @@ exports.getSharedSets = async (req, res) => {
     const userId = req.user._id;
     const { search } = req.query;
 
-    const friendships = await Friendship.find({
-        $or: [{ user1: userId }, { user2: userId }],
-        status: 'accepted',
-        deletedAt: null,
-    });
+    const fetchSets = async () => {
+        const friendships = await Friendship.find({
+            $or: [{ user1: userId }, { user2: userId }],
+            status: 'accepted',
+            deletedAt: null,
+        });
 
-    const friendIds = friendships.map(f =>
-        f.user1.toString() === userId.toString() ? f.user2 : f.user1
-    );
+        const friendIds = friendships.map(f =>
+            f.user1.toString() === userId.toString() ? f.user2 : f.user1
+        );
 
-    const filter = {
-        deletedAt: null,
-        userId: { $ne: userId },
-        $or: [
-            { visibility: 'friends', userId: { $in: friendIds } },
-            { visibility: 'specific', sharedWith: userId },
-        ],
+        const filter = {
+            deletedAt: null,
+            userId: { $ne: userId },
+            $or: [
+                { visibility: 'friends', userId: { $in: friendIds } },
+                { visibility: 'specific', sharedWith: userId },
+            ],
+        };
+
+        if (search) filter.title = { $regex: search, $options: 'i' };
+
+        const sets = await FlashcardSet.find(filter)
+            .select('-sharedWith')
+            .populate('userId', 'username firstName lastName')
+            .sort({ createdAt: -1 });
+
+        return { sets };
     };
 
-    if (search) filter.title = { $regex: search, $options: 'i' };
+    const result = !search
+        ? await getOrSet(`shared-sets:${userId}`, 60, fetchSets)
+        : await fetchSets();
 
-    const sets = await FlashcardSet.find(filter)
-        .select('-sharedWith')
-        .populate('userId', 'username firstName lastName')
-        .sort({ createdAt: -1 });
-
-    res.status(200).json({ success: true, sets });
+    res.status(200).json({ success: true, ...result });
 };
 
 // ----------------------------------------

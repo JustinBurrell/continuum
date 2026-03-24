@@ -1,6 +1,24 @@
 const Activity = require('../models/Activity');
 const Friendship = require('../models/Friendship');
 const User = require('../models/User');
+const { getIO } = require('../lib/socket');
+const { invalidate } = require('../lib/cache');
+
+// Emit activity_updated to all users who can see the activity except the actor
+// Also invalidate their cached activity feeds
+function notifyActivityAudience(visibleTo, actorId) {
+    try {
+        const io = getIO();
+        visibleTo.forEach(uid => {
+            if (uid.toString() !== actorId.toString()) {
+                io.to(`user:${uid}`).emit('activity_updated');
+            }
+        });
+    } catch (_) {}
+    // Bust the server-side activity cache for all visible users (including actor)
+    const keys = visibleTo.map(uid => `activity:${uid}`);
+    invalidate(...keys).catch(() => {});
+}
 
 // ============================================================
 // ACTIVITY SERVICE
@@ -56,6 +74,8 @@ const createActivity = async ({ actorId, type, targetId, targetType, metadata })
         isPublic,
         metadata: metadata || {},
     });
+
+    notifyActivityAudience(visibleTo, actorId);
 };
 
 /**
@@ -88,6 +108,7 @@ const createShareActivities = async ({ actorId, type, targetId, targetType, meta
             isPublic,
             metadata: { ...metadata, sharedWithAll: true },
         });
+        notifyActivityAudience(sharerVisibleTo, actorId);
         return;
     }
 
@@ -117,6 +138,9 @@ const createShareActivities = async ({ actorId, type, targetId, targetType, meta
         isPublic,
         metadata: { ...metadata, sharedWithNames },
     });
+
+    // Notify sharer's friends (filteredVisibleTo) and recipients
+    notifyActivityAudience([...filteredVisibleTo, ...recipientIds], actorId);
 
     // 2. Per-recipient activity — "Justin shared X with you"
     for (const recipientId of recipientIds) {

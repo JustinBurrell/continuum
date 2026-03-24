@@ -1,6 +1,10 @@
 # Continuum Backend
 
-REST API for the Continuum platform. Built with Node.js, Express 5, and MongoDB.
+REST API for the Continuum platform. Built with Node.js, Express 5, MongoDB, Socket.io, and Redis.
+
+![System Architecture](../docs/system-design/system-architecture.png)
+
+Full diagram set — architecture, real-time flow, auth flow, scaling path — at [docs/backend/system-design.md](../docs/backend/system-design.md).
 
 ---
 
@@ -14,7 +18,10 @@ backend/
   routes/            Express routers, one file per resource
   models/            Mongoose schemas
   middleware/        Auth guard, rate limiter, file upload handlers
-  services/          Groq AI service, activity service
+  services/          Groq AI, activity, share, email, push services
+  lib/
+    socket.js        Socket.io server — JWT auth, user:id rooms, getIO()
+    cache.js         Redis helpers — getOrSet / invalidate, no-op fallback
   scripts/           One-off scripts (seeding, migrations)
 ```
 
@@ -102,6 +109,22 @@ Model: `llama-3.1-8b-instant`. Chosen for free-tier rate limits viable for multi
 
 ---
 
+## Real-Time & Caching
+
+Socket.io delivers cross-user events (messages, task updates, shared content, activity feed) instantly without polling. Each user joins a private `user:<id>` room on connect; controllers emit targeted events after every write.
+
+Redis caches high-read endpoints server-side and is invalidated on every relevant mutation. Falls back silently to MongoDB if `REDIS_URL` is not set — safe to omit in local dev.
+
+| Cache key | TTL | Invalidated by |
+|---|---|---|
+| `user:<id>` | 5 min | profile update, username change |
+| `activity:<id>` | 30s | any activity write |
+| `shared-notes:<id>` | 60s | shareNote |
+| `shared-sets:<id>` | 60s | shareSet |
+| `shared-tasks:<id>` | 60s | createTask, updateTask, updateParticipants, deleteTask |
+
+---
+
 ## Environment variables
 
 ```
@@ -118,6 +141,7 @@ RESEND_API_KEY
 FRONTEND_URL
 PORT
 NODE_ENV
+REDIS_URL              # optional — enables server-side caching
 ```
 
 ---

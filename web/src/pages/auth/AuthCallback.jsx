@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
+import { connectSocket } from '@/lib/socket';
 
 export default function AuthCallback() {
   const [searchParams] = useSearchParams();
@@ -25,6 +26,7 @@ export default function AuthCallback() {
         const { token, refreshToken } = res.data;
         localStorage.setItem('token', token);
         if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+        connectSocket(token);
         return api.get('/auth/me');
       })
       .then((res) => {

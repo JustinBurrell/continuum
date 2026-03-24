@@ -4,6 +4,7 @@ const FlashcardSet = require('../models/FlashcardSet');
 const Task = require('../models/Task');
 const Friendship = require('../models/Friendship');
 const { createActivity } = require('../services/activity.service');
+const { getIO } = require('../lib/socket');
 
 // ============================================================
 // COMMENTS CONTROLLER
@@ -114,6 +115,27 @@ exports.addComment = async (req, res) => {
         targetType: comment.targetType,
         metadata: { commentPreview: content.trim().slice(0, 100) },
     }).catch(() => {});
+
+    // Notify the resource owner (if different from commenter)
+    try {
+        let ownerId = null;
+        if (targetType === 'note') {
+            const n = await Note.findById(targetId).select('userId');
+            ownerId = n?.userId?.toString();
+        } else if (targetType === 'flashcardSet') {
+            const s = await FlashcardSet.findById(targetId).select('userId');
+            ownerId = s?.userId?.toString();
+        } else if (targetType === 'task') {
+            const t = await Task.findById(targetId).select('userId');
+            ownerId = t?.userId?.toString();
+        }
+        if (ownerId && ownerId !== req.user._id.toString()) {
+            getIO().to(`user:${ownerId}`).emit('comment_added', {
+                targetType,
+                targetId: targetId.toString(),
+            });
+        }
+    } catch (_) {}
 
     res.status(201).json({ success: true, comment });
 };

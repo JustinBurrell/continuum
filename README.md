@@ -18,6 +18,14 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 ---
 
+## System Design
+
+![System Architecture](docs/system-design/system-architecture.png)
+
+See [docs/backend/system-design.md](docs/backend/system-design.md) for the full diagram set including the write/real-time flow, auth flow, and scaling path.
+
+---
+
 ## Monorepo structure
 
 ```
@@ -25,9 +33,10 @@ continuum/
   backend/     Node.js + Express REST API, MongoDB
   web/         Vite + React 18 SPA
   mobile/      React Native + Expo (in progress)
+  docs/        Architecture, API reference, design specs, future roadmap
 ```
 
-- [backend/README.md](backend/README.md) -- API surface, auth, AI integration, security, data models
+- [backend/README.md](backend/README.md) -- API surface, auth, real-time, caching, AI integration, security
 - [web/README.md](web/README.md) -- component architecture, state management, routing, UI system
 
 ---
@@ -36,7 +45,7 @@ continuum/
 
 | Layer    | Stack                                                           |
 | -------- | --------------------------------------------------------------- |
-| Backend  | Node.js, Express 5, MongoDB, Mongoose, Passport.js, Groq SDK   |
+| Backend  | Node.js, Express 5, MongoDB, Mongoose, Socket.io, Redis, Groq SDK |
 | Web      | Vite, React 18, Tailwind CSS 3, React Query v5, React Router v6 |
 | Mobile   | React Native, Expo                                              |
 | AI       | Groq API (llama-3.1-8b-instant) for summaries, flashcards, resume analysis |
