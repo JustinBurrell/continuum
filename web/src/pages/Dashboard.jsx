@@ -395,7 +395,7 @@ function AppItem({ app }) {
           ...badgeStyle,
         }}
       >
-        {app.stage}
+        {app.status}
       </span>
     </Link>
   );
@@ -645,7 +645,7 @@ export default function Dashboard() {
         <StatCard icon={FileText}    label="Notes"           value={notesData?.pagination?.total} to="/notes" />
         <StatCard icon={BookOpen}    label="Flashcard Sets"  value={flashcardData?.sets?.length}  to="/flashcards" accent="#7c3aed" />
         <StatCard icon={CheckSquare} label="Open Tasks"      value={tasks.length}                  to="/tasks" accent="#2563eb" />
-        <StatCard icon={Briefcase}   label="Applications"    value={appsDashboard?.total}          to="/applications" accent="#0891b2" />
+        <StatCard icon={Briefcase}   label="Applications"    value={appsDashboard?.total || apps.length} to="/applications" accent="#0891b2" />
         <StatCard icon={Activity}    label="Activities"      value={activityTotal}                  to="/activity" accent="#16a34a" />
       </div>
 
