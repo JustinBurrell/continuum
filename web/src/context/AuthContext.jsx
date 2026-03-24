@@ -21,8 +21,16 @@ function registerSocketEvents(socket) {
     queryClient.invalidateQueries({ queryKey: ['friends'] });
   });
 
-  // Shared task mutations (status change, field update, participant change)
+  // Task mutations — existing and new Phase 2 events
   socket.on('task_updated', () => {
+    queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    queryClient.invalidateQueries({ queryKey: ['calendar'] });
+  });
+  socket.on('task_created', () => {
+    queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    queryClient.invalidateQueries({ queryKey: ['calendar'] });
+  });
+  socket.on('task_deleted', () => {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
     queryClient.invalidateQueries({ queryKey: ['calendar'] });
   });
@@ -46,6 +54,11 @@ function registerSocketEvents(socket) {
   // Flashcard set shared with you
   socket.on('flashcard_shared', () => {
     queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
+  });
+
+  // Activity feed — someone's action just appeared in your feed
+  socket.on('activity_updated', () => {
+    queryClient.invalidateQueries({ queryKey: ['activity'] });
   });
 }
 
