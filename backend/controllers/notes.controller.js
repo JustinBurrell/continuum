@@ -471,9 +471,9 @@ exports.generateSummary = async (req, res) => {
         return res.status(200).json({ success: true, note, cached: true });
     }
 
+    // Summary is fast — always run synchronously for instant UX
     const result = await groqService.generateSummary(note.content, req.user._id);
 
-    // Only persist the summary to the note document for the owner
     if (isOwner) {
         const updatedNote = await Note.findByIdAndUpdate(
             note._id,
@@ -491,7 +491,6 @@ exports.generateSummary = async (req, res) => {
         return res.status(200).json({ success: true, note: updatedNote, cached: false });
     }
 
-    // For shared users: return the generated summary without persisting it
     return res.status(200).json({
         success: true,
         note: { ...note.toObject(), summary: { quickSummary: result.quickSummary, detailedSummary: result.detailedSummary } },
@@ -544,7 +543,6 @@ exports.generateFlashcardsFromNote = async (req, res) => {
 
     const result = await groqService.generateFlashcards(note.content, req.user._id);
 
-    // FlashcardSet is always owned by the requesting user
     const set = await FlashcardSet.create({
         userId: req.user._id,
         noteId: note._id,
@@ -562,7 +560,6 @@ exports.generateFlashcardsFromNote = async (req, res) => {
     }));
     await Flashcard.insertMany(flashcardDocs);
 
-    // Only flag the note as having flashcards when the owner generates them
     if (isOwner) {
         await Note.findByIdAndUpdate(note._id, { hasFlashcards: true });
     }

@@ -60,6 +60,7 @@ function registerSocketEvents(socket) {
   socket.on('activity_updated', () => {
     queryClient.invalidateQueries({ queryKey: ['activity'] });
   });
+
 }
 
 export function AuthProvider({ children }) {

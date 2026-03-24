@@ -35,7 +35,6 @@ exports.generateFromContent = async (req, res) => {
 
     const result = await groqService.generateFlashcards(content, req.user._id);
 
-    // Create the FlashcardSet — not linked to any note
     const set = await FlashcardSet.create({
         userId: req.user._id,
         noteId: null,
@@ -45,7 +44,6 @@ exports.generateFromContent = async (req, res) => {
         totalCards: result.cards.length,
     });
 
-    // Bulk insert all flashcard docs
     const flashcardDocs = result.cards.map((card, index) => ({
         setId: set._id,
         front: card.front,

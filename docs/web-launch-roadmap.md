@@ -98,14 +98,11 @@ Work through the remediation roadmap in the audit top to bottom. Key items:
 
 ---
 
-## 8. Background Job Queue for AI → `feat/ai-job-queue`
+## 8. ~~Background Job Queue for AI~~ → SKIPPED
 
 [future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 6
 
-- Install BullMQ (reuses existing Redis)
-- Move note summary, flashcard generation, and resume feedback off the request thread
-- Endpoints return `{ jobId }` immediately
-- Socket event fires to client when job completes (`note_summary_ready`, etc.)
+Implemented and reverted. The socket-based notification round-trip (enqueue → worker → socket emit → client update) added measurable latency compared to keeping the AI call on the request thread. Groq responses are fast enough that synchronous is the better UX. BullMQ + ioredis remain installed but unused — can be revisited post-launch if Groq response times degrade at scale.
 
 ---
 

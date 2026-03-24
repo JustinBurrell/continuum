@@ -48,6 +48,7 @@ export default function NoteDetail() {
     };
   }, []);
 
+
   const { data: commentsData, refetch: refetchComments } = useQuery({
     queryKey: ['note-comments', id],
     queryFn: () => api.get(`/comments/note/${id}`).then(r => r.data),
@@ -123,14 +124,11 @@ export default function NoteDetail() {
     setAiError('');
     try {
       const res = await api.post(`/notes/${id}/summary`);
-      // Backend returns { success, note: { summary: { quickSummary, detailedSummary, ... } }, cached }
       const summary = res.data.note?.summary;
       const text = summary?.quickSummary || summary?.detailedSummary || null;
       setAiSummary(text);
       queryClient.invalidateQueries({ queryKey: ['note', id] });
-      if (!text) {
-        setAiError('Summary generated but content is empty.');
-      }
+      if (!text) setAiError('Summary generated but content is empty.');
     } catch (err) {
       setAiError(err.response?.data?.error || 'Failed to generate summary. Please try again.');
     } finally {

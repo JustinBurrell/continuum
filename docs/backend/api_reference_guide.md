@@ -64,7 +64,7 @@ Google linking is required for Google Drive/Docs features. `user.hasGoogleLinked
 
 **Rate limits:** Two layers — (1) per-user daily cap tracked via Redis INCR: Summary 25/day (`ai:summary:<userId>:<date>`), Flashcards 25/day (`ai:flashcards:<userId>:<date>`), Resume feedback 5/day (`ai:resume:<userId>:<date>`); (2) express-rate-limit burst guard: 5 req/min per user (keyed by `req.user._id`). Returns 429 on breach of either layer. Falls back to allowing calls if Redis is unavailable.
 
-- `POST /api/notes/:noteId/summary` - Generate AI summary. For the owner: persists to note document and returns updated note. For shared users: generates and returns summary without persisting (owner's stored summary is never overwritten).
+- `POST /api/notes/:noteId/summary` - Generate AI summary. For the owner: persists to note document and returns updated note. For shared users: generates and returns summary without persisting.
 
 Summary is stored as an embedded field on the Note document for the owner. When you `GET /api/notes/:noteId`, the `summary` object is included automatically — no separate fetch needed.
 

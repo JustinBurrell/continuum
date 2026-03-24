@@ -1,4 +1,4 @@
-const rateLimit = require('express-rate-limit');
+const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 
 // ============================================================
 // RATE LIMITER MIDDLEWARE
@@ -29,7 +29,7 @@ exports.apiLimiter = rateLimit({
 exports.perUserWriteLimit = rateLimit({
     windowMs: 60 * 1000, // 1 minute
     max: 30,
-    keyGenerator: (req) => req.user?._id?.toString() || req.ip,
+    keyGenerator: (req) => req.user?._id?.toString() || ipKeyGenerator(req),
     message: { success: false, error: 'Too many requests. Please slow down.' },
     standardHeaders: true,
     legacyHeaders: false,
@@ -39,7 +39,7 @@ exports.perUserWriteLimit = rateLimit({
 exports.aiRateLimit = rateLimit({
     windowMs: 60 * 1000, // 1 minute
     max: 5,
-    keyGenerator: (req) => req.user?._id?.toString() || req.ip,
+    keyGenerator: (req) => req.user?._id?.toString() || ipKeyGenerator(req),
     message: { success: false, error: 'Too many AI requests. Please wait a moment.' },
     standardHeaders: true,
     legacyHeaders: false,

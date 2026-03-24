@@ -30,6 +30,7 @@ flowchart TB
             GROQ_SVC["groq.service\nAI summaries + flashcards"]
         end
 
+
         subgraph REALTIME["lib/socket.js"]
             IO["Socket.io Server\nJWT on handshake\nuser:id rooms\ngetIO()\n@socket.io/redis-adapter"]
         end
