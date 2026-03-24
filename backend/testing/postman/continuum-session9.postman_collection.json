@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "g7b8c9d0-e1f2-3456-abcd-456789012006",
     "name": "Continuum — Session 9",
-    "description": "API-29: Server-Side Search — upgrade all client-side search to server-side API search.\n\nCovers: GET /api/tasks/shared?search=, GET /api/flashcard-sets/shared?search=, GET /api/friends?search=, GET /api/conversations?search=, GET /api/conversations/:id/messages?search=, GET /api/activity?search=.\n\nRun order: 1. Login → 2. Shared Tasks Search → 3. Shared Flashcard Sets Search → 4. Friends Search → 5. Conversations Search → 6. Messages Search → 7. Activity Search.\ntoken, sharedTaskId, flashcardSetId, conversationId, and activityId must be populated (from prior sessions or manually set in environment).",
+    "description": "API-29: Server-Side Search — upgrade all client-side search to server-side API search.\n\nCovers: GET /api/tasks/shared?search=, GET /api/flashcard-sets/shared?search=, GET /api/friends?search=, GET /api/conversations?search=, GET /api/conversations/:id/messages?search=, GET /api/activity?search= (matches actor name via two-step User lookup + metadata fields), GET /api/resumes?search= (matches fileName, version, targetRole).\n\nRun order: 1. Login → 2. Shared Tasks Search → 3. Shared Flashcard Sets Search → 4. Friends Search → 5. Conversations Search → 6. Messages Search → 7. Activity Search → 8. Resumes Search.\ntoken, sharedTaskId, flashcardSetId, conversationId, and activityId must be populated (from prior sessions or manually set in environment).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -640,6 +640,34 @@
           "response": []
         },
         {
+          "name": "Search activity — matching actor name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns feed array', () => pm.expect(json.feed).to.be.an('array'));",
+                  "pm.test('Total reflects filtered count', () => pm.expect(json.total).to.be.a('number'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity?search=test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"],
+              "query": [{ "key": "search", "value": "test" }]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Search activity — matching comment preview",
           "event": [
             {
@@ -726,6 +754,127 @@
               "raw": "{{baseUrl}}/api/activity?search=xyzzy_no_match_9999",
               "host": ["{{baseUrl}}"],
               "path": ["api", "activity"],
+              "query": [{ "key": "search", "value": "xyzzy_no_match_9999" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Resumes Search",
+      "item": [
+        {
+          "name": "Get all resumes (no filter)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns resumes array', () => pm.expect(json.resumes).to.be.an('array'));",
+                  "if (json.resumes.length > 0) {",
+                  "    pm.environment.set('resumeId', json.resumes[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search resumes — by file name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns resumes array', () => pm.expect(json.resumes).to.be.an('array'));",
+                  "pm.test('All results match search term in fileName/version/targetRole', () => {",
+                  "    json.resumes.forEach(r => {",
+                  "        const combined = [r.fileName, r.version, r.targetRole].filter(Boolean).join(' ').toLowerCase();",
+                  "        pm.expect(combined).to.include('resume');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes?search=resume",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"],
+              "query": [{ "key": "search", "value": "resume" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search resumes — by target role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns resumes array', () => pm.expect(json.resumes).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes?search=engineer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"],
+              "query": [{ "key": "search", "value": "engineer" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search resumes — no match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns empty array for gibberish search', () => pm.expect(json.resumes).to.be.an('array').that.is.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resumes?search=xyzzy_no_match_9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resumes"],
               "query": [{ "key": "search", "value": "xyzzy_no_match_9999" }]
             }
           },

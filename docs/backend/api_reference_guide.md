@@ -126,7 +126,7 @@ Summary is stored as an embedded field on the Note document for the owner. When 
 - `GET /api/flashcard-sets/shared` - List flashcard sets shared with the current user. Supports `?search=` for title regex match.
 
 ### **Activity Feed**
-- `GET /api/activity` - List activity feed for the authenticated user (limit/offset pagination). Returns `{ feed[], total }` where `total` is the full count of all visible activities. Supports `?search=` for regex match on `metadata.noteTitle`, `metadata.setTitle`, `metadata.taskTitle`, and `metadata.commentPreview`.
+- `GET /api/activity` - List activity feed for the authenticated user (limit/offset pagination). Returns `{ feed[], total }` where `total` is the full count of all visible activities. Supports `?search=` — two-step lookup matches users by `firstName`/`lastName`/`username` first, then returns activities where `userId` matches OR any of `metadata.noteTitle`, `metadata.setTitle`, `metadata.taskTitle`, `metadata.commentPreview` match the regex.
 
 Activity is driven by `settings.activityVisibility` on the User (default: `friends`). The actor always sees their own activity regardless of this setting. `private` means only the actor sees their activity, `friends` also makes it visible to accepted friends, `public` makes it visible to all (backend-only, not exposed in frontend settings). Activity types: `note_shared`, `task_created` (shared tasks only), `comment_added`, `like_added`, `flashcard_shared`.
 
@@ -149,7 +149,7 @@ Sharing activities are personalized: the sharer's feed shows who they shared wit
 
 ### **Resume Management**
 - `POST /api/resumes/upload` - Upload resume PDF with label and target role (multipart/form-data); stored as `type: authenticated` in Cloudinary
-- `GET /api/resumes` - List all resume versions for user
+- `GET /api/resumes` - List all resume versions for user. Supports `?search=` for case-insensitive regex match on `fileName`, `version`, and `targetRole`.
 - `GET /api/resumes/:resumeId/download` - Generate a 10-minute signed download URL via `private_download_url`; requires ownership
 - `POST /api/resumes/:resumeId/feedback` - Generate AI-powered feedback via Groq (appended to embedded feedback array)
 - `GET /api/resumes/:resumeId/feedback` - Retrieve all feedback entries for a resume

@@ -27,13 +27,20 @@ exports.getActivityFeed = async (req, res) => {
     };
 
     if (search) {
+        const User = require('../models/User');
         const regex = { $regex: search, $options: 'i' };
+        const matchingUsers = await User.find({
+            $or: [{ firstName: regex }, { lastName: regex }, { username: regex }],
+        }).select('_id');
+        const matchingUserIds = matchingUsers.map(u => u._id);
+
         filter.$and = [{
             $or: [
                 { 'metadata.noteTitle': regex },
                 { 'metadata.setTitle': regex },
                 { 'metadata.taskTitle': regex },
                 { 'metadata.commentPreview': regex },
+                ...(matchingUserIds.length > 0 ? [{ userId: { $in: matchingUserIds } }] : []),
             ],
         }];
     }

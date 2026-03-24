@@ -157,7 +157,7 @@ Frontend base URL: `http://localhost:5173`
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
 | POST | `/api/resumes/upload` | `pages/resumes/Resumes.jsx` → drag & drop / upload button | multipart/form-data with `resume` (file) + `name` fields; stored as Cloudinary `authenticated` resource |
-| GET | `/api/resumes` | `pages/resumes/Resumes.jsx` | Lists all uploaded resumes |
+| GET | `/api/resumes` | `pages/resumes/Resumes.jsx` (supports `?search=` by fileName, version, targetRole) | Lists all uploaded resumes |
 | GET | `/api/resumes/:id/download` | `pages/resumes/Resumes.jsx` → Download button | Returns 10-min signed URL via `private_download_url`; opened in new tab |
 | POST | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → AI Feedback / Regenerate button | AI-generated feedback accordion; older entries browsable via history panel |
 | GET | `/api/resumes/:id/feedback` | `pages/resumes/Resumes.jsx` → history panel | Returns all feedback entries; browsable in-card history |
@@ -169,7 +169,7 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/activity` | `pages/Activity.jsx` (supports `?search=` on metadata fields) | Own activity feed |
+| GET | `/api/activity` | `pages/Activity.jsx` (supports `?search=` on actor name + metadata fields) | Own activity feed |
 
 ---
 

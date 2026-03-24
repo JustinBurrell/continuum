@@ -623,7 +623,7 @@ API-29: Server-Side Search across all list endpoints — shared tasks, shared fl
 ## Setup
 
 ### 1. Import the collection
-- Open Postman → **Collections** tab → **Import** → select `continuum-session8.postman_collection.json`
+- Open Postman → **Collections** tab → **Import** → select `continuum-session9.postman_collection.json`
 - Re-import `continuum-local.postman_environment.json` to ensure all variables are up to date
 
 ### 2. Select the environment
@@ -724,18 +724,31 @@ Run folders top to bottom. Folder 0 must run first.
 | [Error] Get Messages — No Token | none | `401` | |
 | [Error] Get Messages — Not a Participant | none (use User C token if available, or a fake conversationId) | `403` or `404` | |
 
-### 6. Activity Feed — Search by Metadata
-*(Feed must contain at least some activities)*
+### 6. Activity Feed — Search by Actor Name or Metadata
+*(Feed must contain at least some activities. Two-step lookup: matches users by firstName/lastName/username first, then returns activities where `userId` is in that set OR any metadata field matches.)*
 
 | Request | Body Input | Expected | Tested |
 |---------|------------|----------|--------|
 | Get Activity Feed — No Search | none | `200` — full feed | |
+| Get Activity Feed — Search by Actor Name | query: `?search=<User B firstName or username>` | `200` — activities where User B is the actor returned | |
 | Get Activity Feed — Search by Note Title | query: `?search=<word from a shared note title>` | `200` — matching `note_shared` activities returned | |
 | Get Activity Feed — Search by Set Title | query: `?search=<word from a shared flashcard set title>` | `200` — matching `flashcard_shared` activities returned | |
 | Get Activity Feed — Search by Task Title | query: `?search=<word from a shared task title>` | `200` — matching `task_created` activities returned | |
+| Get Activity Feed — Search by Comment Preview | query: `?search=<word from a comment>` | `200` — matching `comment_added` activities returned | |
 | Get Activity Feed — Search Miss | query: `?search=zzznomatchzzz` | `200` — empty `feed` array, `total: 0` | |
 | Get Activity Feed — Search with Pagination | query: `?search=<keyword>&limit=5&offset=0` | `200` — paginated search results | |
 | [Error] Get Activity Feed — No Token | none | `401` | |
+
+### 7. Resumes — Search
+*(User A must have uploaded at least one resume)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Get Resumes — No Search | none | `200` — full list of resumes | |
+| Get Resumes — Search by File Name | query: `?search=<word from resume fileName>` | `200` — only matching resumes returned | |
+| Get Resumes — Search by Target Role | query: `?search=<targetRole keyword>` | `200` — only matching resumes returned | |
+| Get Resumes — Search Miss | query: `?search=zzznomatchzzz` | `200` — empty `resumes` array | |
+| [Error] Get Resumes — No Token | none | `401` | |
 
 ---
 
@@ -744,6 +757,7 @@ Run folders top to bottom. Folder 0 must run first.
 - Run folder **0. Setup** first — fresh tokens are required for all requests
 - Search is case-insensitive on all endpoints — `?search=test` matches `Test`, `TEST`, `testing`
 - Friends search only applies to `status=accepted` (the friends tab) — pending/sent request lists ignore the `search` param
-- Activity search matches against metadata fields (`noteTitle`, `setTitle`, `taskTitle`, `commentPreview`) — actor name search is not supported at the API level
+- Activity search uses a two-step lookup: first finds users matching the term by `firstName`/`lastName`/`username`, then returns activities where the actor is one of those users OR any metadata field (`noteTitle`, `setTitle`, `taskTitle`, `commentPreview`) matches the regex
 - In-conversation message search disables the 5-second polling interval on the frontend while active
-- If the feed is empty, trigger some sharing activity first: share a note with User B, then check the feed
+- If the activity feed is empty, trigger some sharing activity first: share a note with User B, then check the feed
+- Resume search matches against `fileName`, `version`, and `targetRole` — does NOT search extracted PDF text
