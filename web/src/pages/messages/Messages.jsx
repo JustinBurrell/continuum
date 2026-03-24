@@ -18,8 +18,8 @@ export default function Messages() {
   const [convSearch, setConvSearch] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['conversations'],
-    queryFn: () => api.get('/conversations').then(r => r.data),
+    queryKey: ['conversations', convSearch],
+    queryFn: () => api.get('/conversations', { params: convSearch ? { search: convSearch } : {} }).then(r => r.data),
   });
 
   const { data: friendsData } = useQuery({
@@ -35,14 +35,7 @@ export default function Messages() {
     },
   });
 
-  const allConversations = data?.conversations || data?.data || [];
-  const conversations = convSearch
-    ? allConversations.filter(conv => {
-        const other = conv.participants?.find(p => String(p._id) !== String(user?._id));
-        const name = [other?.firstName, other?.lastName].filter(Boolean).join(' ') || other?.username || '';
-        return name.toLowerCase().includes(convSearch.toLowerCase());
-      })
-    : allConversations;
+  const conversations = data?.conversations || data?.data || [];
   const friends = friendsData?.friends || friendsData?.data || [];
 
   return (

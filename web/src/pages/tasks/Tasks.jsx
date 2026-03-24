@@ -54,17 +54,14 @@ export default function Tasks() {
   const [search, setSearch] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: sharedTab ? ['tasks', 'shared'] : ['tasks', 'mine', search],
+    queryKey: sharedTab ? ['tasks', 'shared', search] : ['tasks', 'mine', search],
     queryFn: () =>
       sharedTab
-        ? api.get('/tasks/shared').then(r => r.data)
+        ? api.get('/tasks/shared', { params: search ? { search } : {} }).then(r => r.data)
         : api.get('/tasks', { params: search ? { search } : {} }).then(r => r.data),
   });
 
-  const rawTasks = data?.tasks || data?.data || [];
-  const allTasks = sharedTab && search
-    ? rawTasks.filter(t => t.title?.toLowerCase().includes(search.toLowerCase()))
-    : rawTasks;
+  const allTasks = data?.tasks || data?.data || [];
 
   const invalidateTasks = () => {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -96,7 +93,6 @@ export default function Tasks() {
     onSuccess: invalidateTasks,
   });
 
-  // allTasks defined above with shared tab client-side filter
 
   const columns = STATUSES.map(status => ({
     status,

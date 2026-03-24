@@ -59,9 +59,10 @@ export default function Conversation({ conversationId }) {
   });
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['messages', conversationId],
-    queryFn: () => api.get(`/conversations/${conversationId}/messages`).then(r => r.data),
-    refetchInterval: 5000,
+    queryKey: ['messages', conversationId, msgSearch],
+    queryFn: () =>
+      api.get(`/conversations/${conversationId}/messages`, { params: msgSearch ? { search: msgSearch } : {} }).then(r => r.data),
+    refetchInterval: msgSearch ? false : 5000, // disable polling while searching
   });
 
   const sendMutation = useMutation({
@@ -100,10 +101,7 @@ export default function Conversation({ conversationId }) {
   const conv = conversations.find(c => c._id === conversationId);
   const other = conv?.participants?.find(p => p._id !== user?._id);
   // Backend returns newest-first; reverse so oldest is at top, newest at bottom
-  const allMessages = (data?.messages || []).slice().reverse();
-  const messages = msgSearch
-    ? allMessages.filter(m => m.content?.toLowerCase().includes(msgSearch.toLowerCase()))
-    : allMessages;
+  const messages = (data?.messages || []).slice().reverse();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

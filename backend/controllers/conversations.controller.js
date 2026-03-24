@@ -69,11 +69,22 @@ exports.startConversation = async (req, res) => {
 // ----------------------------------------
 exports.getConversations = async (req, res) => {
     const userId = req.user._id;
+    const { search } = req.query;
 
-    const conversations = await Conversation.find({
-        participants: userId,
-        deletedAt: null,
-    })
+    const filter = { participants: userId, deletedAt: null };
+
+    if (search) {
+        const User = require('../models/User');
+        const regex = new RegExp(search, 'i');
+        const matchingUsers = await User.find({
+            _id: { $ne: userId },
+            $or: [{ firstName: regex }, { lastName: regex }, { username: regex }],
+        }).select('_id');
+        const matchingIds = matchingUsers.map(u => u._id);
+        filter.$and = [{ participants: { $in: matchingIds } }];
+    }
+
+    const conversations = await Conversation.find(filter)
         .populate('participants', 'username firstName lastName avatarUrl')
         .sort({ 'lastMessage.sentAt': -1, createdAt: -1 });
 
@@ -157,6 +168,7 @@ exports.sendMessage = async (req, res) => {
 exports.getMessages = async (req, res) => {
     const { id: conversationId } = req.params;
     const userId = req.user._id;
+    const { search } = req.query;
 
     const limit = Math.min(parseInt(req.query.limit) || 50, 100);
     const before = req.query.before ? new Date(req.query.before) : new Date();
@@ -177,14 +189,18 @@ exports.getMessages = async (req, res) => {
         return res.status(403).json({ success: false, error: 'You are not a participant in this conversation' });
     }
 
-    const messages = await Message.find({
+    const msgFilter = {
         conversationId,
         deletedAt: null,
         createdAt: { $lt: before },
-    })
+    };
+
+    if (search) msgFilter.content = { $regex: search, $options: 'i' };
+
+    const messages = await Message.find(msgFilter)
         .populate('senderId', 'username firstName lastName avatarUrl')
         .sort({ createdAt: -1 })
-        .limit(limit + 1); // fetch one extra to determine hasMore
+        .limit(limit + 1);
 
     const hasMore = messages.length > limit;
     if (hasMore) messages.pop();

@@ -17,8 +17,8 @@ export default function Friends() {
   const { user } = useAuth();
 
   const { data: friendsData, isLoading: friendsLoading } = useQuery({
-    queryKey: ['friends'],
-    queryFn: () => api.get('/friends').then(r => r.data),
+    queryKey: ['friends', friendsSearch],
+    queryFn: () => api.get('/friends', { params: friendsSearch ? { search: friendsSearch } : {} }).then(r => r.data),
   });
 
   const { data: requestsData, isLoading: requestsLoading } = useQuery({
@@ -200,12 +200,6 @@ export default function Friends() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {friendships
-                .filter(f => {
-                  if (!friendsSearch) return true;
-                  const fu = getOtherUser(f);
-                  const q = friendsSearch.toLowerCase();
-                  return fullName(fu).toLowerCase().includes(q) || fu?.username?.toLowerCase().includes(q);
-                })
                 .map(f => {
                 const friendUser = getOtherUser(f);
                 if (!friendUser) return null;

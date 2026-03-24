@@ -18,10 +18,10 @@ export default function FlashcardSets() {
   const [search, setSearch] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: sharedTab ? ['flashcard-sets-shared'] : ['flashcard-sets', search],
+    queryKey: sharedTab ? ['flashcard-sets-shared', search] : ['flashcard-sets', search],
     queryFn: () =>
       sharedTab
-        ? api.get('/flashcard-sets/shared').then(r => r.data)
+        ? api.get('/flashcard-sets/shared', { params: search ? { search } : {} }).then(r => r.data)
         : api.get('/flashcard-sets', { params: search ? { search } : {} }).then(r => r.data),
   });
 
@@ -39,10 +39,7 @@ export default function FlashcardSets() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] }),
   });
 
-  const rawSets = data?.sets || data?.data || [];
-  const sets = sharedTab && search
-    ? rawSets.filter(s => s.title?.toLowerCase().includes(search.toLowerCase()))
-    : rawSets;
+  const sets = data?.sets || data?.data || [];
 
   return (
     <div>

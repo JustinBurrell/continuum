@@ -238,12 +238,18 @@ exports.deleteTask = async (req, res) => {
 // Sorted by dueDate ascending (soonest first)
 // ----------------------------------------
 exports.getSharedTasks = async (req, res) => {
-    const tasks = await Task.find({
+    const { search } = req.query;
+
+    const filter = {
         isShared: true,
         'participants.userId': req.user._id,
-        userId: { $ne: req.user._id }, // exclude tasks the user owns
+        userId: { $ne: req.user._id },
         deletedAt: null,
-    }).sort({ dueDate: 1 });
+    };
+
+    if (search) filter.title = { $regex: search, $options: 'i' };
+
+    const tasks = await Task.find(filter).sort({ dueDate: 1 });
 
     res.status(200).json({ success: true, tasks });
 };

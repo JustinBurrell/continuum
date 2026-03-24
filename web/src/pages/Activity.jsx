@@ -121,35 +121,20 @@ function ActivityItem({ item }) {
 
 const PAGE_SIZE = 20;
 
-function activityMatchesSearch(item, q) {
-  if (!q) return true;
-  const lower = q.toLowerCase();
-  const actor = item.userId;
-  const name = [actor?.firstName, actor?.lastName].filter(Boolean).join(' ') || actor?.username || '';
-  const m = item.metadata || {};
-  return (
-    name.toLowerCase().includes(lower) ||
-    (m.noteTitle || '').toLowerCase().includes(lower) ||
-    (m.setTitle || '').toLowerCase().includes(lower) ||
-    (m.taskTitle || '').toLowerCase().includes(lower) ||
-    (m.commentPreview || '').toLowerCase().includes(lower)
-  );
-}
-
 export default function Activity() {
   const [page, setPage] = useState(1);
   const [actSearch, setActSearch] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['activity', { page }],
-    queryFn: () => api.get('/activity', { params: { limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE } }).then(r => r.data),
+    queryKey: ['activity', { page, actSearch }],
+    queryFn: () =>
+      api.get('/activity', {
+        params: { limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, ...(actSearch ? { search: actSearch } : {}) },
+      }).then(r => r.data),
     keepPreviousData: true,
   });
 
-  const rawActivities = data?.feed || [];
-  const activities = actSearch
-    ? rawActivities.filter(item => activityMatchesSearch(item, actSearch))
-    : rawActivities;
+  const activities = data?.feed || [];
   const total = data?.total || 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -185,7 +170,7 @@ export default function Activity() {
           }}
           placeholder="Search activity by name or content..."
           value={actSearch}
-          onChange={e => setActSearch(e.target.value)}
+          onChange={e => { setActSearch(e.target.value); setPage(1); }}
         />
       </div>
 

@@ -16,6 +16,7 @@ const Activity = require('../models/Activity');
 exports.getActivityFeed = async (req, res) => {
     const limit = Math.min(Number(req.query.limit) || 20, 50);
     const offset = Number(req.query.offset) || 0;
+    const { search } = req.query;
 
     const filter = {
         $or: [
@@ -24,6 +25,18 @@ exports.getActivityFeed = async (req, res) => {
         ],
         createdAt: { $lte: new Date() },
     };
+
+    if (search) {
+        const regex = { $regex: search, $options: 'i' };
+        filter.$and = [{
+            $or: [
+                { 'metadata.noteTitle': regex },
+                { 'metadata.setTitle': regex },
+                { 'metadata.taskTitle': regex },
+                { 'metadata.commentPreview': regex },
+            ],
+        }];
+    }
 
     const [feed, total] = await Promise.all([
         Activity.find(filter)

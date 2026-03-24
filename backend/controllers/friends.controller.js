@@ -119,23 +119,37 @@ exports.respondToRequest = async (req, res) => {
 // ----------------------------------------
 exports.getFriends = async (req, res) => {
     const userId = req.user._id;
-    const { status } = req.query;
+    const { status, search } = req.query;
 
-    const filter = {
-        $or: [{ user1: userId }, { user2: userId }],
-        deletedAt: null,
-    };
+    const filter = { deletedAt: null };
 
     if (status === 'pending') {
-        // Incoming requests: pending + not sent by the current user
         filter.status = 'pending';
         filter.requestedBy = { $ne: userId };
+        filter.$or = [{ user1: userId }, { user2: userId }];
     } else if (status === 'sent') {
-        // Outgoing requests: pending + sent by the current user
         filter.status = 'pending';
         filter.requestedBy = userId;
+        filter.$or = [{ user1: userId }, { user2: userId }];
     } else {
         filter.status = 'accepted';
+        // If searching, find matching user IDs first, then constrain the friendship query
+        if (search) {
+            const User = require('../models/User');
+            const regex = new RegExp(search, 'i');
+            const matchingUsers = await User.find({
+                _id: { $ne: userId },
+                $or: [{ firstName: regex }, { lastName: regex }, { username: regex }],
+            }).select('_id');
+            const matchingIds = matchingUsers.map(u => u._id);
+            // Current user must be one side, matched user must be the other
+            filter.$or = [
+                { user1: userId, user2: { $in: matchingIds } },
+                { user2: userId, user1: { $in: matchingIds } },
+            ];
+        } else {
+            filter.$or = [{ user1: userId }, { user2: userId }];
+        }
     }
 
     const friendships = await Friendship.find(filter)

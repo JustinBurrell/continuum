@@ -91,7 +91,7 @@ Frontend base URL: `http://localhost:5173`
 | PATCH | `/api/tasks/:id/status` | Available but not used directly | Status-only update (use `PUT` instead) |
 | DELETE | `/api/tasks/:id` | `pages/tasks/Tasks.jsx` → card delete | |
 | PATCH | `/api/tasks/:id/participant-status` | Not yet exposed in UI | Update a participant's status |
-| GET | `/api/tasks/shared` | Not yet exposed in UI | Tasks shared with you |
+| GET | `/api/tasks/shared` | `pages/tasks/Tasks.jsx` → "Shared with me" tab (supports `?search=`) | Tasks shared with you |
 
 ---
 
@@ -107,7 +107,7 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/friends` | `pages/friends/Friends.jsx` → Friends tab | Returns `{ friendships }` of accepted |
+| GET | `/api/friends` | `pages/friends/Friends.jsx` → Friends tab (supports `?search=` for accepted friends by name) | Returns `{ friendships }` of accepted |
 | GET | `/api/friends?status=pending` | `pages/friends/Friends.jsx` → Requests tab | Returns `{ friendships }` of pending |
 | POST | `/api/friends/request` | `pages/friends/Friends.jsx` → Find tab → Add button | Body: `{ recipientId }` (user `_id` from search) |
 | PUT | `/api/friends/request/:id` | `pages/friends/Friends.jsx` → Requests tab | Body: `{ action: 'accept' \| 'reject' }` |
@@ -128,9 +128,9 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/conversations` | `pages/messages/Messages.jsx` | List of conversations |
+| GET | `/api/conversations` | `pages/messages/Messages.jsx` (supports `?search=` by participant name) | List of conversations |
 | POST | `/api/conversations` | `pages/friends/Friends.jsx` → Message button | Body: `{ participantId: friendId }` |
-| GET | `/api/conversations/:id/messages` | `pages/messages/Conversation.jsx` | Polled every 5s |
+| GET | `/api/conversations/:id/messages` | `pages/messages/Conversation.jsx` (supports `?search=` by content; polling disabled while searching) | Polled every 5s |
 | POST | `/api/conversations/:id/messages` | `pages/messages/Conversation.jsx` → send input | Body: `{ content }` |
 | PUT | `/api/messages/:id/read` | Not yet exposed in UI | Mark message as read |
 
@@ -169,7 +169,7 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/activity` | `pages/Activity.jsx` | Own activity feed |
+| GET | `/api/activity` | `pages/Activity.jsx` (supports `?search=` on metadata fields) | Own activity feed |
 
 ---
 
@@ -210,9 +210,8 @@ These backend endpoints exist but have no frontend UI yet:
 | `PUT /api/notes/:id/share` | Share note with friend button on NoteDetail |
 | `POST /api/notes/:id/flashcards/generate` | "Generate flashcards" button on NoteDetail |
 | `PATCH /api/flashcard-sets/:id/share` | Share set button on FlashcardSetDetail |
-| `GET /api/flashcard-sets/shared` | "Shared sets" tab on FlashcardSets |
+| `GET /api/flashcard-sets/shared` | ~~Wired~~ — `pages/flashcards/FlashcardSets.jsx` → Shared tab (supports `?search=`) |
 | `PATCH /api/tasks/:id/participant-status` | Participant status toggle on task card |
-| `GET /api/tasks/shared` | "Shared with me" tab on Tasks |
 | `PUT /api/messages/:id/read` | Auto-mark read on Conversation mount |
 | `GET /api/applications/dashboard` | Stats widget on Dashboard or Applications header |
 | `POST /api/applications/:id/contacts` | Contacts section on ApplicationDetail |

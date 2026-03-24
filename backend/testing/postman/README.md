@@ -611,3 +611,139 @@ Run folders top to bottom.
 - Note sharing and task participant tests also require an active friendship — run session 5 friend flow if starting fresh
 - The sync "Update on Deleted Doc" and "Delete Already-Deleted" requests intentionally return `status: completed` — this is correct social-app behavior, not a bug
 - Auto-message tests check `GET /conversations` for `[shared:type:id]` prefix in `lastMessage.content`
+
+---
+
+# Postman Testing — Session 9
+
+API-29: Server-Side Search across all list endpoints — shared tasks, shared flashcard sets, friends, conversations inbox, in-conversation messages, and activity feed.
+
+---
+
+## Setup
+
+### 1. Import the collection
+- Open Postman → **Collections** tab → **Import** → select `continuum-session8.postman_collection.json`
+- Re-import `continuum-local.postman_environment.json` to ensure all variables are up to date
+
+### 2. Select the environment
+- Top-right corner of Postman — switch the dropdown to **Continuum — Local**
+
+### 3. Start the backend server
+```bash
+cd backend && npm run dev
+```
+
+---
+
+## Prerequisites
+
+- User A and User B must be accepted friends
+- User A must have created tasks (including at least one shared with User B) and flashcard sets
+- User A must have shared at least one note with User B (so User B has shared notes/sets to search)
+- User B must have a conversation with User A containing multiple messages
+- `flashcardSetId`, `taskId`, `noteId`, `conversationId`, `secondUserId` must all be set
+- Run **Login** folders first to get fresh tokens before running any search tests
+
+---
+
+## Environment Variables
+
+No new variables — session 9 reuses existing ones.
+
+| Variable         | Required from        |
+|------------------|----------------------|
+| `token`          | Login User A         |
+| `secondToken`    | Login User B         |
+| `conversationId` | Session 6            |
+| `flashcardSetId` | Session 3-4 or 8     |
+| `taskId`         | Session 3-4          |
+
+---
+
+## Test Order
+
+Run folders top to bottom. Folder 0 must run first.
+
+### 0. Setup
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Login — User A | `{ "email", "password" }` | `200` — sets `token` + `userId` | |
+| Login — User B | `{ "email", "password" }` | `200` — sets `secondToken` + `secondUserId` | |
+
+### 1. Shared Tasks — Search
+*(User B must be a participant on at least one of User A's tasks)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Get Shared Tasks — No Search (User B) | none | `200` — full list of shared tasks | |
+| Get Shared Tasks — Search Hit (User B) | query: `?search=<word from a shared task title>` | `200` — only matching tasks returned | |
+| Get Shared Tasks — Search Miss (User B) | query: `?search=zzznomatchzzz` | `200` — empty `tasks` array | |
+| [Error] Get Shared Tasks — No Token | none | `401` | |
+
+### 2. Shared Flashcard Sets — Search
+*(User A must have shared at least one set with User B)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Get Shared Sets — No Search (User B) | none | `200` — full list of shared sets | |
+| Get Shared Sets — Search Hit (User B) | query: `?search=<word from a shared set title>` | `200` — only matching sets returned | |
+| Get Shared Sets — Search Miss (User B) | query: `?search=zzznomatchzzz` | `200` — empty `sets` array | |
+| [Error] Get Shared Sets — No Token | none | `401` | |
+
+### 3. Friends — Search
+*(User A and User B must be accepted friends)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| List Friends — No Search | none | `200` — full friends list | |
+| List Friends — Search by First Name | query: `?search=<User B firstName>` | `200` — only matching friendship returned | |
+| List Friends — Search by Username | query: `?search=<User B username>` | `200` — matching friendship returned | |
+| List Friends — Search Miss | query: `?search=zzznomatchzzz` | `200` — empty `friendships` array | |
+| List Friends — Search does not apply to pending (status=pending) | query: `?status=pending&search=anything` | `200` — search param ignored for pending tab | |
+| [Error] List Friends — No Token | none | `401` | |
+
+### 4. Conversations — Search by Participant Name
+*(User A must have a conversation with User B)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Get Conversations — No Search | none | `200` — full inbox | |
+| Get Conversations — Search Hit | query: `?search=<User B firstName or username>` | `200` — conversation with User B returned | |
+| Get Conversations — Search Miss | query: `?search=zzznomatchzzz` | `200` — empty `conversations` array | |
+| [Error] Get Conversations — No Token | none | `401` | |
+
+### 5. In-Conversation Messages — Search by Content
+*(Conversation must have at least a few messages)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Get Messages — No Search | none | `200` — all messages in conversation | |
+| Get Messages — Search Hit | query: `?search=<word that appears in a message>` | `200` — only matching messages returned | |
+| Get Messages — Search Miss | query: `?search=zzznomatchzzz` | `200` — empty `messages` array, `hasMore: false` | |
+| [Error] Get Messages — No Token | none | `401` | |
+| [Error] Get Messages — Not a Participant | none (use User C token if available, or a fake conversationId) | `403` or `404` | |
+
+### 6. Activity Feed — Search by Metadata
+*(Feed must contain at least some activities)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Get Activity Feed — No Search | none | `200` — full feed | |
+| Get Activity Feed — Search by Note Title | query: `?search=<word from a shared note title>` | `200` — matching `note_shared` activities returned | |
+| Get Activity Feed — Search by Set Title | query: `?search=<word from a shared flashcard set title>` | `200` — matching `flashcard_shared` activities returned | |
+| Get Activity Feed — Search by Task Title | query: `?search=<word from a shared task title>` | `200` — matching `task_created` activities returned | |
+| Get Activity Feed — Search Miss | query: `?search=zzznomatchzzz` | `200` — empty `feed` array, `total: 0` | |
+| Get Activity Feed — Search with Pagination | query: `?search=<keyword>&limit=5&offset=0` | `200` — paginated search results | |
+| [Error] Get Activity Feed — No Token | none | `401` | |
+
+---
+
+## Tips
+
+- Run folder **0. Setup** first — fresh tokens are required for all requests
+- Search is case-insensitive on all endpoints — `?search=test` matches `Test`, `TEST`, `testing`
+- Friends search only applies to `status=accepted` (the friends tab) — pending/sent request lists ignore the `search` param
+- Activity search matches against metadata fields (`noteTitle`, `setTitle`, `taskTitle`, `commentPreview`) — actor name search is not supported at the API level
+- In-conversation message search disables the 5-second polling interval on the frontend while active
+- If the feed is empty, trigger some sharing activity first: share a note with User B, then check the feed
