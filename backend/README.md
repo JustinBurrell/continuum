@@ -141,7 +141,9 @@ RESEND_API_KEY
 FRONTEND_URL
 PORT
 NODE_ENV
-REDIS_URL              # optional — enables server-side caching
+REDIS_URL                       # optional — enables server-side caching and AI rate limiting
+GOOGLE_TOKEN_ENCRYPTION_KEY     # optional — AES-256-GCM key for Google OAuth tokens at rest (64 hex chars)
+                                #   generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ---

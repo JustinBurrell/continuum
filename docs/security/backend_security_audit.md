@@ -951,7 +951,7 @@ security posture.
 | 7 | ~~Add email format validation to User schema (H6)~~ ✅ March 17, 2026 | — | — |
 | 8 | ~~Add `maxlength` to note `content` field (H2)~~ ✅ March 17, 2026 | — | — |
 | 9 | Set spend alerts on Groq, Atlas, Cloudinary, Resend (MO1) | 15 min | Any public traffic |
-| 10 | Per-user AI call rate limiting — Redis counter (H1) | 2–3 hrs | Any paid AI plan |
+| 10 | ~~Per-user AI call rate limiting — Redis counter (H1)~~ ✅ March 24, 2026 | — | — |
 | 11 | ~~Content length cap before every Groq call (H1)~~ ✅ March 17, 2026 | — | — |
 | 12 | ~~Resume feedback cooldown (H1)~~ ✅ March 17, 2026 | — | — |
 | 13 | Set hard spend cap in Groq/OpenAI dashboard (H1) | 10 min | Any paid AI plan |
@@ -971,8 +971,8 @@ security posture.
 | 27 | ~~Require accepted friendship before `startConversation` (M6)~~ ✅ March 17, 2026 | — | — |
 | 28 | ~~Validate task participants are accepted friends (M7)~~ ✅ March 17, 2026 | — | — |
 | 29 | ~~Implement email verification flow (L1)~~ ✅ March 17, 2026 | — | — |
-| 30 | Encrypt Google OAuth tokens at rest (M8) | 2–3 hrs | Launch |
-| 31 | Add hard delete endpoint for GDPR compliance (OP3) | 2–3 hrs | EU users |
+| 30 | ~~Encrypt Google OAuth tokens at rest (M8)~~ ✅ March 24, 2026 | — | — |
+| 31 | ~~Add hard delete endpoint for GDPR compliance (OP3)~~ ✅ March 24, 2026 | — | — |
 | 32 | Run `npm audit` on every deploy (OP1) | Ongoing | Ongoing |
 | 33 | Rotate all API keys on schedule (OP2) | 15 min | Quarterly |
 | 34 | Keep `pdf-parse` updated (L2) | Ongoing | Ongoing |

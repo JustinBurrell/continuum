@@ -23,7 +23,8 @@ Frontend base URL: `http://localhost:5173`
 | PATCH | `/api/auth/me/username` | `pages/Profile.jsx` → Profile tab → username section | Body: `{ username }`; 409 if taken |
 | PATCH | `/api/auth/me/password` | `pages/Profile.jsx` → Security tab | Body: `{ currentPassword, newPassword }`; live requirements checklist on frontend |
 | POST | `/api/auth/logout` | `context/AuthContext.jsx` → `logout()` | Sends refreshToken in body |
-| POST | `/api/auth/logout-all` | `pages/Profile.jsx` → Integrations tab → danger zone | Revokes all sessions |
+| POST | `/api/auth/logout-all` | `pages/Profile.jsx` → Security tab → danger zone | Revokes all sessions |
+| DELETE | `/api/auth/me` | `pages/Profile.jsx` → Security tab → danger zone → Delete account | Hard deletes account + all data; double-confirm required |
 | POST | `/api/auth/me/google/link` | `pages/Profile.jsx` → integrations tab | Redirects to OAuth link flow |
 | DELETE | `/api/auth/me/google/link` | `pages/Profile.jsx` → integrations tab → Unlink button | |
 
