@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ArrowLeft, Plus, Sparkles, Play, Trash2, Pencil, Share2, Copy, MessageCircle, Send, Heart, Trash } from 'lucide-react';
 import api from '@/lib/api';
@@ -34,6 +34,10 @@ export default function FlashcardSetDetail() {
 
   // Share state
   const [showShareModal, setShowShareModal] = useState(false);
+  // Delete set state
+  const [showDeleteSet, setShowDeleteSet] = useState(false);
+
+  const navigate = useNavigate();
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['flashcard-set', id],
@@ -96,6 +100,14 @@ export default function FlashcardSetDetail() {
   const likeCommentMutation = useMutation({
     mutationFn: (commentId) => api.post(`/comments/${commentId}/like`),
     onSuccess: () => refetchComments(),
+  });
+
+  const deleteSetMutation = useMutation({
+    mutationFn: () => api.delete(`/flashcard-sets/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
+      navigate('/flashcards');
+    },
   });
 
   const updateSetMutation = useMutation({
@@ -281,6 +293,29 @@ export default function FlashcardSetDetail() {
                 </span>
               </span>
             ) : 'Share'}
+          </button>
+        )}
+
+        {isOwner && (
+          <button
+            onClick={() => setShowDeleteSet(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 34,
+              height: 34,
+              borderRadius: 10,
+              border: '1px solid #ede9fe',
+              background: 'white',
+              color: '#a087b0',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = '#fecaca'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#ede9fe'; }}
+            title="Delete set"
+          >
+            <Trash2 size={15} />
           </button>
         )}
 
@@ -651,6 +686,25 @@ export default function FlashcardSetDetail() {
               className="flex-1"
             >
               Add card
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete set confirm modal */}
+      <Modal open={showDeleteSet} onClose={() => setShowDeleteSet(false)} title="Delete flashcard set">
+        <div className="space-y-4">
+          <p style={{ fontSize: '0.875rem', color: '#374151' }}>
+            Delete <strong>{set?.title}</strong>? This will also delete all {cardCount} {cardCount === 1 ? 'card' : 'cards'} inside it. This cannot be undone.
+          </p>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setShowDeleteSet(false)} className="flex-1">Cancel</Button>
+            <Button
+              onClick={() => deleteSetMutation.mutate()}
+              loading={deleteSetMutation.isPending}
+              style={{ background: '#ef4444', flex: 1 }}
+            >
+              Delete set
             </Button>
           </div>
         </div>

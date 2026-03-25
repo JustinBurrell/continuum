@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Send, ArrowLeft, FileText, BookOpen, CheckSquare, Search, X } from 'lucide-react';
+import { Send, ArrowLeft, FileText, BookOpen, CheckSquare, Search, X, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
@@ -66,6 +66,22 @@ export default function Conversation({ conversationId }) {
   });
 
   const msgQueryKey = ['messages', conversationId, msgSearch];
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: (messageId) => api.delete(`/messages/${messageId}`),
+    onMutate: async (messageId) => {
+      await queryClient.cancelQueries({ queryKey: msgQueryKey });
+      const prev = queryClient.getQueryData(msgQueryKey);
+      queryClient.setQueryData(msgQueryKey, (old) => {
+        if (!old) return old;
+        return { ...old, messages: old.messages.filter(m => m._id !== messageId) };
+      });
+      return { prev };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(msgQueryKey, ctx.prev);
+    },
+  });
 
   const sendMutation = useMutation({
     mutationFn: (content) =>
@@ -261,7 +277,7 @@ export default function Conversation({ conversationId }) {
                   )}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: isOwn ? 'flex-end' : 'flex-start', maxWidth: '68%' }}>
+                <div className="group" style={{ display: 'flex', flexDirection: 'column', alignItems: isOwn ? 'flex-end' : 'flex-start', maxWidth: '68%' }}>
                   {!isOwn && isFirstInGroup && (
                     <Link
                       to="/users/view"
@@ -339,6 +355,24 @@ export default function Conversation({ conversationId }) {
                     <p style={{ fontSize: 10, color: '#c4b5d4', marginTop: 4, marginLeft: isOwn ? 0 : 4, marginRight: isOwn ? 4 : 0 }}>
                       {formatRelative(msg.createdAt)}
                     </p>
+                  )}
+
+                  {!msg._temp && (
+                    <button
+                      onClick={() => deleteMessageMutation.mutate(msg._id)}
+                      className="opacity-0 group-hover:opacity-100"
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: 22, height: 22, borderRadius: 6, border: 'none',
+                        background: 'transparent', color: '#c4b5d4', cursor: 'pointer',
+                        marginTop: 2, transition: 'color 0.12s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                      onMouseLeave={e => e.currentTarget.style.color = '#c4b5d4'}
+                      title="Delete for me"
+                    >
+                      <Trash2 size={11} />
+                    </button>
                   )}
                 </div>
               </div>

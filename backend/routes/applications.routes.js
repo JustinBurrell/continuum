@@ -184,4 +184,27 @@ router.post('/:id/contacts', applicationsController.addContact);
  */
 router.post('/:id/reminders', applicationsController.addReminder);
 
+/**
+ * @swagger
+ * /api/applications/{id}:
+ *   delete:
+ *     summary: Permanently delete an application (owner only)
+ *     tags: [Applications]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Application deleted
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ */
+router.delete('/:id', applicationsController.deleteApplication);
+
 module.exports = router;

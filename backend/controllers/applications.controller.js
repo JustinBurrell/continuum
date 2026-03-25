@@ -5,7 +5,7 @@ const Application = require('../models/Application');
 // Purpose: Handle business logic for job application tracking endpoints
 // Used by: routes/applications.routes.js
 // Endpoints: createApplication, getApplications, updateApplication,
-//            getDashboard, addContact, addReminder
+//            getDashboard, addContact, addReminder, deleteApplication
 // ============================================================
 
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -215,4 +215,20 @@ exports.addReminder = async (req, res) => {
 
     const newReminder = application.followUpReminders[application.followUpReminders.length - 1];
     res.status(201).json({ success: true, reminder: newReminder, application });
+};
+
+// ----------------------------------------
+// DELETE /api/applications/:id
+// Purpose: Permanently delete an application (owner only, hard delete)
+// ----------------------------------------
+exports.deleteApplication = async (req, res) => {
+    const application = await Application.findById(req.params.id);
+    if (!application) {
+        return res.status(404).json({ success: false, error: 'Application not found' });
+    }
+    if (application.userId.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+    await Application.deleteOne({ _id: req.params.id });
+    res.status(200).json({ success: true, message: 'Application deleted' });
 };

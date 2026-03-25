@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import {
   ArrowLeft, Edit3, ExternalLink,
   MapPin, DollarSign, Calendar, Save, X,
-  User, Phone, Mail, Plus, Bell,
+  User, Phone, Mail, Plus, Bell, Trash2,
 } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import { formatDate } from '@/lib/utils';
 
 const STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
@@ -56,9 +58,11 @@ function StageBadge({ stage }) {
 
 export default function ApplicationDetail() {
   const location = useLocation();
+  const navigate = useNavigate();
   const id = location.state?.id;
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Contacts state
   const [contacts, setContacts] = useState(null);
@@ -75,6 +79,15 @@ export default function ApplicationDetail() {
   const listApps = cachedList?.applications || cachedList?.data || [];
   const cachedApp = listApps.find(a => a._id === id);
   const app = form || stateApp || cachedApp;
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete(`/applications/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['applications-dashboard'] });
+      navigate('/applications');
+    },
+  });
 
   const updateMutation = useMutation({
     mutationFn: (payload) => api.put(`/applications/${id}`, payload),
@@ -149,11 +162,44 @@ export default function ApplicationDetail() {
             </Button>
           </>
         ) : (
-          <Button variant="outline" size="sm" onClick={() => { setForm({ ...app }); setEditing(true); }}>
-            <Edit3 size={14} /> Edit
-          </Button>
+          <>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 32, height: 32, borderRadius: 8, border: '1px solid #ede9fe',
+                background: 'white', color: '#a087b0', cursor: 'pointer',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = '#fecaca'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#ede9fe'; }}
+              title="Delete application"
+            >
+              <Trash2 size={15} />
+            </button>
+            <Button variant="outline" size="sm" onClick={() => { setForm({ ...app }); setEditing(true); }}>
+              <Edit3 size={14} /> Edit
+            </Button>
+          </>
         )}
       </div>
+
+      <Modal open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)} title="Delete application">
+        <div className="space-y-4">
+          <p style={{ fontSize: 13, color: '#374151' }}>
+            Delete <strong>{app?.company}</strong> — <strong>{app?.position}</strong>? This cannot be undone.
+          </p>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)} className="flex-1">Cancel</Button>
+            <Button
+              onClick={() => deleteMutation.mutate()}
+              loading={deleteMutation.isPending}
+              style={{ background: '#ef4444', flex: 1 }}
+            >
+              Delete
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Main card */}
       <div style={cardStyle}>

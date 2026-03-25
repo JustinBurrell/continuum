@@ -203,6 +203,7 @@ exports.getMessages = async (req, res) => {
     const msgFilter = {
         conversationId,
         deletedAt: null,
+        deletedFor: { $ne: userId },
         createdAt: { $lt: before },
     };
 
