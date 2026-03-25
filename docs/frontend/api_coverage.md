@@ -95,7 +95,7 @@ Frontend base URL: `http://localhost:5173`
 | PATCH | `/api/tasks/:id/status` | Available but not used directly | Status-only update (use `PUT` instead) |
 | DELETE | `/api/tasks/:id` | `pages/tasks/Tasks.jsx` → card delete | |
 | PATCH | `/api/tasks/:id/participant-status` | Not yet exposed in UI | Update a participant's status |
-| GET | `/api/tasks/shared` | `pages/tasks/Tasks.jsx` → "Shared with me" tab (supports `?search=`) | Tasks shared with you |
+| GET | `/api/tasks/shared` | `pages/tasks/Tasks.jsx` → "Shared with me" tab (supports `?search=`); `pages/UserProfile.jsx` → Shared Tasks section (friend-gated, links to `/tasks` with `state: { openTaskId }` to open task detail modal) | Tasks shared with you |
 
 ---
 

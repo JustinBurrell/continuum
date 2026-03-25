@@ -98,6 +98,7 @@ Run top to bottom within each folder. Each creation request auto-sets the ID for
 | Update Progress — Incorrect, No Confidence | `{ "correct": false }` | `200` | ✅ |
 | Delete Card | none | `200` | ✅ |
 | Delete Set | none | `200` | ✅ |
+| Get Shared Sets | none | `200` — returns sets from friends with `friends`/`specific` visibility | |
 | [Error] Generate — Missing Content | `{ "title" }` only | `400` | ✅ |
 | [Error] Add Card — Missing back | `{ "front" }` only | `400` | ✅ |
 | [Error] Update Progress — Non-Boolean correct | `{ "correct": "yes" }` | `400` | ✅ |
@@ -115,6 +116,7 @@ Run top to bottom within each folder. Each creation request auto-sets the ID for
 | Update Status — completed | `{ "status": "completed" }` | `200` — check `completedAt` is set | ✅ |
 | Update Status — back to todo | `{ "status": "todo" }` | `200` — check `completedAt` is null | ✅ |
 | Delete Task | none | `200` | ✅ |
+| Get Shared Tasks | none | `200` — returns tasks shared with the authenticated user | |
 | [Error] Create Task — Missing dueDate | `{ "title", "type" }` only | `400` | ✅ |
 | [Error] Update Status — Invalid Value | `{ "status": "done" }` | `400` | ✅ |
 
@@ -739,6 +741,7 @@ Run folders top to bottom. Folder 0 must run first.
 | Get Activity Feed — Search by Comment Preview | query: `?search=<word from a comment>` | `200` — matching `comment_added` activities returned | |
 | Get Activity Feed — Search Miss | query: `?search=zzznomatchzzz` | `200` — empty `feed` array, `total: 0` | |
 | Get Activity Feed — Search with Pagination | query: `?search=<keyword>&limit=5&offset=0` | `200` — paginated search results | |
+| Get Activity Feed — Since param (unseen count) | query: `?since=2025-01-01T00:00:00.000Z` | `200` — `total` reflects only activities after the timestamp; `feed` is unaffected | |
 | [Error] Get Activity Feed — No Token | none | `401` | |
 
 ### 7. Resumes — Search

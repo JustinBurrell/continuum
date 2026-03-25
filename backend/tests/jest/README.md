@@ -17,17 +17,17 @@ Seed scripts for dev data live in `tests/mongodb/`.
 
 ### What's tested
 
-47 tests across 7 suites covering every core feature:
+57 tests across 7 suites covering every core feature:
 
 | Suite | File | What it covers |
 |-------|------|----------------|
 | Auth | `auth.test.js` | Register, login, `GET /me`, token validation, password not leaked in response |
 | Notes | `notes.test.js` | CRUD, ownership isolation (Alice can't read Bob's notes) |
-| Tasks | `tasks.test.js` | CRUD, status update, ownership isolation |
-| Flashcard Sets | `flashcards.test.js` | Create set, add card, ownership isolation |
-| Applications | `applications.test.js` | Create, read, update status |
-| Messages | `messages.test.js` | Friend flow → create conversation → send message → read messages, non-participant blocked |
-| Activity | `activity.test.js` | Feed accessible when authenticated, blocked when not |
+| Tasks | `tasks.test.js` | CRUD, status update, ownership isolation, shared tasks (participant visibility, owner exclusion) |
+| Flashcard Sets | `flashcards.test.js` | Create set, add card, ownership isolation, shared sets (friends visibility, private exclusion) |
+| Applications | `applications.test.js` | Create, read, update status, delete (owner-only) |
+| Messages | `messages.test.js` | Friend flow → create conversation → send message → read messages, non-participant blocked, message delete (soft, per-user), conversation delete (Instagram-style) |
+| Activity | `activity.test.js` | Feed accessible when authenticated, blocked when not; `since` param returns `total` ≤ full total; `nextCursor` present in response |
 
 ### How it works
 

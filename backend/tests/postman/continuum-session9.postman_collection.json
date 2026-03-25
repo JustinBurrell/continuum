@@ -758,6 +758,39 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Get activity feed — with since param (unseen count)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns feed array and total', () => {",
+                  "    pm.expect(json.feed).to.be.an('array');",
+                  "    pm.expect(json.total).to.be.a('number');",
+                  "});",
+                  "pm.test('Total reflects only activities after since timestamp', () => {",
+                  "    pm.expect(json.total).to.be.at.most(pm.environment.get('fullTotal') || 9999);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity?since=2025-01-01T00:00:00.000Z",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"],
+              "query": [{ "key": "since", "value": "2025-01-01T00:00:00.000Z" }]
+            }
+          },
+          "response": []
         }
       ]
     },

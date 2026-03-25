@@ -45,4 +45,27 @@ async function registerAndLogin(overrides = {}) {
   };
 }
 
-module.exports = { registerAndLogin };
+/**
+ * Creates two users and establishes an accepted friendship between them.
+ * Returns { alice, bob } each with { token, userId }.
+ */
+async function makeFriends() {
+  const alice = await registerAndLogin();
+  const bob = await registerAndLogin();
+
+  const req = await request(app)
+    .post('/api/friends/request')
+    .set('Authorization', `Bearer ${alice.token}`)
+    .send({ recipientId: bob.userId });
+
+  const friendshipId = req.body.friendship._id;
+
+  await request(app)
+    .put(`/api/friends/request/${friendshipId}`)
+    .set('Authorization', `Bearer ${bob.token}`)
+    .send({ action: 'accept' });
+
+  return { alice, bob };
+}
+
+module.exports = { registerAndLogin, makeFriends };

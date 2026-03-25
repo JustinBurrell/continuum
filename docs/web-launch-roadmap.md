@@ -121,42 +121,43 @@ Implemented and reverted. The socket-based notification round-trip (enqueue → 
 
 ---
 
-## 10. Polish & Bug Fixes → `fix/polish`
+## 10. ~~Polish & Bug Fixes~~ → `fix/polish` — DONE
 
-These can be resolved in any order as PRs are opened. Issue numbers TBD — update inline as PRs are created.
+~~These can be resolved in any order as PRs are opened. Issue numbers TBD — update inline as PRs are created.~~
 
-Already completed from this list: ~~POL-1 (rate limiting — step 5)~~, ~~POL-3 (indexes — step 1)~~, ~~POL-4 (loading skeletons — step 4)~~.
+~~Already completed from this list:~~ ~~POL-1 (rate limiting — step 5)~~, ~~POL-3 (indexes — step 1)~~, ~~POL-4 (loading skeletons — step 4)~~.
 
 ### Bugs
-- [ ] **POL-9 / Google Unlink 500** — `googleUnlink` crashes when `req.body` is `null`/`undefined` after `mongo-sanitize`. Fix: `const { keepNotes = true } = req.body || {};` in `auth.controller.js`. Frontend should send `{ data: { keepNotes: true } }` with the DELETE, or show a confirmation modal first. See [bugs/google-unlink-500.md](bugs/google-unlink-500.md).
+- ~~**POL-9 / Google Unlink 500** — `googleUnlink` crashes when `req.body` is `null`/`undefined` after `mongo-sanitize`. Fix: `const { keepNotes = true } = req.body || {};` in `auth.controller.js`. Frontend sends `{ data: { keepNotes: true } }` with the DELETE. Confirmation modal added.~~
 
 ### Backend hardening
-- [ ] **POL-2** — Standardize error responses across all routes — audit every controller for inconsistent `{ message }` vs `{ error }` shapes; ensure all 4xx/5xx go through the same `{ success: false, error }` format
+- ~~**POL-2** — Standardized error responses across all 16 controllers — all 4xx/5xx go through `{ success: false, error }` format~~
 
 ### Frontend polish
-- [ ] **POL-5** — Add React error boundaries with fallback UI — wrap major page sections so a crash in one panel doesn't blank the whole page
-- [ ] **POL-6** — Responsive layout improvements — audit every page at 375px, 768px, and 1280px; fix any overflow, cramped padding, or broken grids
-- [ ] **POL-7** — Smooth animations and transitions — page entry fades, card hover lifts, button press feedback consistency
+- ~~**POL-5** — React error boundaries added around major page sections~~
+- ~~**POL-6** — Responsive layout — audited at 375px, 768px, 1280px~~
+- ~~**POL-7** — Page entry fades, card hover lifts, button press feedback~~
 
 ### Missing UI — endpoints built but not wired
-- [ ] **Delete resume** — `DELETE /api/resumes/:id` — add delete button to Resumes page
-- [ ] **Mark message as read** — `PUT /api/messages/:id/read` — call on Conversation mount to clear unread state
-- [ ] **Task participant status** — `PATCH /api/tasks/:id/participant-status` — toggle accept/decline on shared task cards
-- [ ] **Share note** — `PUT /api/notes/:id/share` — friend picker on NoteDetail to share with specific users
-- [ ] **Share flashcard set** — `PATCH /api/flashcard-sets/:id/share` — share button on FlashcardSetDetail
+- ~~**Delete resume** — delete button + confirm modal in `Resumes.jsx`~~
+- ~~**Mark message as read** — `PUT /api/messages/:id/read` called on Conversation mount~~
+- ~~**Task participant status** — `PATCH /api/tasks/:id/participant-status` wired to kanban drag + task detail modal~~
+- ~~**Share note** — `ShareModal` wired in `NoteDetail.jsx`~~
+- ~~**Share flashcard set** — `ShareModal` wired in `FlashcardSetDetail.jsx`~~
+- ~~**Delete conversation** — Instagram-style per-user soft delete (`DELETE /api/conversations/:id`); trash in Conversation header + hover trash in Messages list~~
 
 ### Testing
-- ~~**POL-8** — Integration test suite: 47 Jest + Supertest tests across auth, notes, tasks, flashcards, applications, messages, activity. GitHub Actions CI blocks PRs on failure. See [backend/testing.md](backend/testing.md).~~
+- ~~**POL-8** — Integration test suite: 57 Jest + Supertest tests across auth, notes, tasks, flashcards, applications, messages, activity, shared tasks, shared flashcard sets. GitHub Actions CI blocks PRs on failure. See [backend/tests/jest/README.md](../backend/tests/jest/README.md).~~
 
 ### Documentation
-- [ ] **POL-15** — Swagger/OpenAPI docs — `swagger-jsdoc` + `swagger-ui-express`, serve at `/api-docs`
-- [ ] **POL-16** — Update backend README — setup, env vars, scripts, endpoint list
-- [ ] **POL-17** — Update web README — setup, env vars, folder structure, key deps
-- [ ] **POL-19** — Update root README — project overview, stack, architecture summary, quickstart, screenshots or demo GIF
+- ~~**POL-15** — Swagger/OpenAPI docs — `swagger-jsdoc` + `swagger-ui-express`, served at `/api-docs`~~
+- ~~**POL-16** — Backend README — setup, env vars, scripts, endpoint list~~
+- ~~**POL-17** — Web README — setup, env vars, folder structure, key deps, page list~~
+- ~~**POL-19** — Root README — product pitch, stack badges, architecture overview, quickstart, demo placeholder~~
 
 ### Showcase prep
 - [ ] **POL-11** — Prepare demo script — full student workflow: import → summarize → flashcards → task → share → career
-- [ ] **POL-12** — Create sample data for demo — clean seed that tells a compelling story
+- ~~**POL-12** — Seed data expanded: 120 searchable non-friend accounts, shared tasks/notes/sets between Justin and all friends, comments with likes on every visible piece of content, rich activity feed~~
 - [ ] **POL-13** — Record backup demo video — in case of live demo failure
 
 ---

@@ -572,6 +572,9 @@ export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Read when user last visited /activity — used to show unseen activity count
+  const lastViewedActivityAt = localStorage.getItem('lastViewedActivityAt');
+
   const { data: notesData, isLoading: notesLoading } = useQuery({
     queryKey: ['notes', { limit: 3 }],
     queryFn: () => api.get('/notes', { params: { limit: 3 } }).then(r => r.data),
@@ -584,8 +587,10 @@ export default function Dashboard() {
   });
 
   const { data: activityData, isLoading: activityLoading } = useQuery({
-    queryKey: ['activity', { limit: 4 }],
-    queryFn: () => api.get('/activity', { params: { limit: 4 } }).then(r => r.data),
+    queryKey: ['activity', { limit: 4, since: lastViewedActivityAt }],
+    queryFn: () => api.get('/activity', {
+      params: { limit: 4, ...(lastViewedActivityAt ? { since: lastViewedActivityAt } : {}) },
+    }).then(r => r.data),
   });
 
   const { data: appsData, isLoading: appsLoading } = useQuery({
@@ -649,10 +654,10 @@ export default function Dashboard() {
         }}
       >
         <StatCard icon={FileText}    label="Notes"           value={notesData?.pagination?.total} to="/notes" />
-        <StatCard icon={BookOpen}    label="Flashcard Sets"  value={flashcardData?.sets?.length}  to="/flashcards" accent="#7c3aed" />
+        <StatCard icon={BookOpen}    label="Flashcards"      value={flashcardData?.sets?.length}  to="/flashcards" accent="#7c3aed" />
         <StatCard icon={CheckSquare} label="Open Tasks"      value={tasks.length}                  to="/tasks" accent="#2563eb" />
         <StatCard icon={Briefcase}   label="Applications"    value={appsDashboard?.total || apps.length} to="/applications" accent="#0891b2" />
-        <StatCard icon={Activity}    label="Activities"      value={activityTotal}                  to="/activity" accent="#16a34a" />
+        <StatCard icon={Activity}    label="New Activity"    value={activityTotal}                  to="/activity" accent="#16a34a" />
       </div>
 
       {/* 2-col grid */}
