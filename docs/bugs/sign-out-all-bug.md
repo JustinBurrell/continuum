@@ -119,3 +119,29 @@ However:
 - [ ] Each active session shows a recognizable device label in the UI
 - [ ] Individual sessions can be revoked from the Profile page
 - [ ] "Sign out all" works correctly and leaves no active sessions behind
+
+---
+
+## Required Updates When Fixed
+
+### Jest Tests (`backend/tests/auth.test.js`)
+
+Add or update tests in the auth suite:
+
+- **`logoutAll` immediately invalidates access tokens** — log in on two "sessions" (two JWTs), call `POST /auth/logout-all` with session A's token, then verify a protected request with session B's (still-valid) JWT returns `401`. Currently this test would pass the JWT check and incorrectly return `200`.
+- **`logoutAll` revokes all refresh tokens** — after calling `logoutAll`, verify `POST /auth/refresh` with any previously issued refresh token returns `401`.
+- **`GET /auth/sessions`** (new endpoint) — verify it returns all active, non-expired sessions for the authenticated user.
+- **`DELETE /auth/sessions/:id`** (new endpoint) — verify it revokes a specific session and that subsequent refresh attempts with that token's cookie return `401`.
+- **Device label capture** — verify that after login the created `RefreshToken` record has a non-null `deviceId` parsed from the `User-Agent` header.
+
+### Postman / Swagger (`backend/app.js`, JSDoc route comments)
+
+- **`POST /auth/logout-all`** — update the success response description to note immediate invalidation and mention the `tokenVersion` mechanism.
+- **`GET /auth/sessions`** (new) — document the endpoint: auth required, returns array of `{ id, deviceId, createdAt, lastUsedAt }` for non-revoked sessions.
+- **`DELETE /auth/sessions/:id`** (new) — document: auth required, path param `id` is the RefreshToken `_id`, returns `204` on success or `404` if not found / already revoked.
+- Update the Swagger tag for the `Auth` group to include the new session management endpoints.
+
+### Docs
+
+- **`backend/README.md`** — update the Auth section to describe the `tokenVersion` invalidation strategy and the new session management endpoints.
+- **`docs/backend/system-design.md`** — update the auth flow diagram notes to reflect that `tokenVersion` is now embedded in the JWT payload and checked on every authenticated request.
