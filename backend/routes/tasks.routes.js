@@ -3,6 +3,7 @@ const router = express.Router();
 const tasksController = require('../controllers/tasks.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const { perUserWriteLimit } = require('../middleware/rateLimiter');
+const validateObjectId = require('../middleware/validateObjectId');
 
 // ============================================================
 // TASKS ROUTES
@@ -15,6 +16,7 @@ const { perUserWriteLimit } = require('../middleware/rateLimiter');
 // ============================================================
 
 router.use(authMiddleware);
+router.param('id', validateObjectId);
 
 // Static route — must come before /:id
 router.get('/shared', tasksController.getSharedTasks);

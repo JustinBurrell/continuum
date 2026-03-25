@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const messagesController = require('../controllers/messages.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const validateObjectId = require('../middleware/validateObjectId');
 
 // ============================================================
 // MESSAGES ROUTES
@@ -11,6 +12,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 // ============================================================
 
 router.use(authMiddleware);
+router.param('id', validateObjectId);
 
 router.put('/:id/read', messagesController.markAsRead);
 

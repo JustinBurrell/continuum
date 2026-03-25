@@ -4,6 +4,7 @@ const notesController = require('../controllers/notes.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
 const { perUserWriteLimit, aiRateLimit } = require('../middleware/rateLimiter');
+const validateObjectId = require('../middleware/validateObjectId');
 
 // ============================================================
 // NOTES ROUTES
@@ -15,6 +16,7 @@ const { perUserWriteLimit, aiRateLimit } = require('../middleware/rateLimiter');
 // ============================================================
 
 router.use(authMiddleware);
+router.param('id', validateObjectId);
 
 // Static routes first — must come before /:id to avoid "import"/"shared"/"upload" being treated as IDs
 router.post('/import', notesController.importNote);

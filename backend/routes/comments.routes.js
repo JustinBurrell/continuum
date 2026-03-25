@@ -3,6 +3,7 @@ const router = express.Router();
 const commentsController = require('../controllers/comments.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const { perUserWriteLimit } = require('../middleware/rateLimiter');
+const validateObjectId = require('../middleware/validateObjectId');
 
 // ============================================================
 // COMMENTS ROUTES
@@ -14,6 +15,8 @@ const { perUserWriteLimit } = require('../middleware/rateLimiter');
 // ============================================================
 
 router.use(authMiddleware);
+router.param('id', validateObjectId);
+router.param('targetId', validateObjectId);
 
 router.post('/', perUserWriteLimit, commentsController.addComment);
 router.get('/:targetType/:targetId', commentsController.getComments);

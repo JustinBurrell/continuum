@@ -3,6 +3,7 @@ const router = express.Router();
 const flashcardSetsController = require('../controllers/flashcardSets.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const { aiRateLimit } = require('../middleware/rateLimiter');
+const validateObjectId = require('../middleware/validateObjectId');
 
 // ============================================================
 // FLASHCARD SETS ROUTES
@@ -13,6 +14,9 @@ const { aiRateLimit } = require('../middleware/rateLimiter');
 // ============================================================
 
 router.use(authMiddleware);
+router.param('id', validateObjectId);
+router.param('setId', validateObjectId);
+router.param('cardId', validateObjectId);
 
 // Static routes — must be before /:id to avoid param conflict
 router.post('/generate', aiRateLimit, flashcardSetsController.generateFromContent);

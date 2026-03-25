@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const applicationsController = require('../controllers/applications.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const validateObjectId = require('../middleware/validateObjectId');
 
 // ============================================================
 // APPLICATIONS ROUTES
@@ -14,6 +15,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 // ============================================================
 
 router.use(authMiddleware);
+router.param('id', validateObjectId);
 
 // Static route — must come before /:id
 router.get('/dashboard', applicationsController.getDashboard);

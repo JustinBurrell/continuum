@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('express-async-errors'); // patches Express to forward async errors to the global handler
 const http = require('http');
 const express = require('express');
 const cors = require('cors');
@@ -19,8 +20,12 @@ const app = express();
 // Middleware
 app.use(helmet());
 app.disable('x-powered-by');
+if (process.env.NODE_ENV === 'production' && !process.env.FRONTEND_URL) {
+  console.error('FATAL: FRONTEND_URL is not set — CORS will block all browser requests in production');
+  process.exit(1);
+}
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -88,6 +93,15 @@ initSocket(httpServer).then(() => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Health check: http://localhost:${PORT}/health`);
   });
+});
+
+// Process-level error handlers — catch anything that escapes Express
+process.on('unhandledRejection', (reason) => {
+  console.error(JSON.stringify({ event: 'unhandledRejection', error: String(reason), ts: new Date().toISOString() }));
+});
+process.on('uncaughtException', (err) => {
+  console.error(JSON.stringify({ event: 'uncaughtException', error: err.message, stack: err.stack, ts: new Date().toISOString() }));
+  process.exit(1);
 });
 
 module.exports = app;
