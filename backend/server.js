@@ -5,6 +5,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const mongoSanitize = require('mongo-sanitize');
+const pinoHttp = require('pino-http');
+const logger = require('./lib/logger');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const connectDB = require('./config/database');
 const passport = require('./config/passport');
@@ -17,10 +19,15 @@ connectDB();
 const app = express();
 
 // Middleware
+app.use(pinoHttp({ logger }));
 app.use(helmet());
 app.disable('x-powered-by');
+if (process.env.NODE_ENV === 'production' && !process.env.FRONTEND_URL) {
+  console.error('FATAL: FRONTEND_URL is not set — CORS will block all browser requests in production');
+  process.exit(1);
+}
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -77,6 +84,7 @@ app.use((err, req, res, next) => {
     return res.status(400).json({ success: false, error: messages.join(', ') });
   }
   const message = process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message;
+  logger.error({ err, url: req.url, method: req.method }, 'Unhandled error');
   res.status(err.status || 500).json({ success: false, error: message });
 });
 
@@ -85,9 +93,18 @@ const PORT = process.env.PORT || 5000;
 const httpServer = http.createServer(app);
 initSocket(httpServer).then(() => {
   httpServer.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Health check: http://localhost:${PORT}/health`);
+    logger.info(`Server running on port ${PORT}`);
+    logger.info(`Health check: http://localhost:${PORT}/health`);
   });
+});
+
+// Process-level error handlers — catch anything that escapes Express
+process.on('unhandledRejection', (reason) => {
+  logger.error({ reason: String(reason) }, 'unhandledRejection');
+});
+process.on('uncaughtException', (err) => {
+  logger.fatal({ err }, 'uncaughtException');
+  process.exit(1);
 });
 
 module.exports = app;

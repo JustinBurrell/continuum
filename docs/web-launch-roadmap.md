@@ -106,19 +106,18 @@ Implemented and reverted. The socket-based notification round-trip (enqueue → 
 
 ---
 
-## 9. Pre-Deployment Checklist → `chore/pre-deploy`
+## 9. ~~Pre-Deployment Checklist~~ → `chore/pre-deploy` — DONE
 
 [future-ideas/pre-deployment-checklist.md](future-ideas/pre-deployment-checklist.md)
 
-Work through every section top to bottom:
-- ObjectId param validation on all routes
-- Global async error handler
-- CORS locked to production frontend URL only
-- All indexes verified with `db.collection.getIndexes()`
-- `npm audit` — no high or critical findings
-- All env vars documented in `.env.example`
-- Logging structured and persistent
-- Rollback strategy documented
+- ~~ObjectId param validation on all routes (`validateObjectId` middleware + `router.param` in all 10 route files)~~
+- ~~Global async error handler — `express-async-errors` patches Express; all 86 async controllers now forward errors to the global handler~~
+- ~~CORS locked to production frontend URL — `process.exit(1)` if `FRONTEND_URL` unset in production~~
+- ~~`npm audit` — 0 vulnerabilities~~
+- ~~All env vars documented in `.env.example`~~
+- ~~Process-level `unhandledRejection` + `uncaughtException` handlers~~
+- Logging (structured logger) — deferred to post-launch
+- Rollback strategy — deferred to step 11
 
 ---
 

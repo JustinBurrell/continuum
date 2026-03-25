@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const friendsController = require('../controllers/friends.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const validateObjectId = require('../middleware/validateObjectId');
 
 // ============================================================
 // FRIENDS ROUTES
@@ -13,6 +14,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 // ============================================================
 
 router.use(authMiddleware);
+router.param('id', validateObjectId);
 
 router.post('/request', friendsController.sendRequest);
 router.put('/request/:id', friendsController.respondToRequest);

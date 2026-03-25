@@ -4,6 +4,7 @@ const resumesController = require('../controllers/resumes.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
 const { aiRateLimit } = require('../middleware/rateLimiter');
+const validateObjectId = require('../middleware/validateObjectId');
 
 // ============================================================
 // RESUMES ROUTES
@@ -14,6 +15,7 @@ const { aiRateLimit } = require('../middleware/rateLimiter');
 // ============================================================
 
 router.use(authMiddleware);
+router.param('id', validateObjectId);
 
 // upload.single('resume') — expects a single file in the "resume" form field
 // Inline error handler catches multer fileFilter/size errors and returns JSON instead of HTML

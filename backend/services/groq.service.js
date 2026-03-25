@@ -1,5 +1,6 @@
 const groq = require('../config/groq');
 const { checkAiLimit } = require('../lib/cache');
+const logger = require('../lib/logger');
 
 // ============================================================
 // GROQ SERVICE
@@ -32,7 +33,7 @@ const generateSummary = async (content, userId) => {
         throw err;
     }
     content = content.slice(0, MAX_INPUT_CHARS);
-    console.info(JSON.stringify({ event: 'ai_call', fn: 'generateSummary', userId, contentLength: content.length, ts: new Date().toISOString() }));
+    logger.info({ event: 'ai_call', fn: 'generateSummary', userId, contentLength: content.length });
     const systemPrompt = `You are a study assistant helping college students understand and review their academic notes.
 Your job is to produce clear, accurate summaries that help students study efficiently.
 Always write for someone who has already read the notes but needs a structured review.
@@ -104,7 +105,7 @@ const generateFlashcards = async (content, userId) => {
         throw err;
     }
     content = content.slice(0, MAX_INPUT_CHARS);
-    console.info(JSON.stringify({ event: 'ai_call', fn: 'generateFlashcards', userId, contentLength: content.length, ts: new Date().toISOString() }));
+    logger.info({ event: 'ai_call', fn: 'generateFlashcards', userId, contentLength: content.length });
     const systemPrompt = `You are a study assistant helping college students create flashcards from their academic notes and documents.
 Your job is to identify the most important concepts, terms, and ideas and turn them into effective flashcard Q&A pairs.
 Write questions that test understanding, not just memorization.
@@ -169,7 +170,7 @@ const generateResumeFeedback = async (resumeText, userId) => {
         throw err;
     }
     resumeText = resumeText.slice(0, MAX_INPUT_CHARS);
-    console.info(JSON.stringify({ event: 'ai_call', fn: 'generateResumeFeedback', userId, contentLength: resumeText.length, ts: new Date().toISOString() }));
+    logger.info({ event: 'ai_call', fn: 'generateResumeFeedback', userId, contentLength: resumeText.length });
     const systemPrompt = `You are a senior technical recruiter and career coach who has reviewed thousands of resumes for top tech companies.
 You give brutally honest, deeply specific feedback that directly quotes and references what is written in the resume.
 You never give generic advice. Every sentence you write is grounded in the actual content of the resume being reviewed.
