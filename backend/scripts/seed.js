@@ -82,6 +82,146 @@ const SEED_FRIENDS = [
 
 const SEED_USERNAMES = SEED_FRIENDS.map(f => f.username);
 
+// ─── Non-Friend Users (searchable, no friendship with Justin) ────────────────
+
+const SEED_STRANGERS = [
+  { username: 'aaronmitchell', firstName: 'Aaron', lastName: 'Mitchell', bio: 'CS junior into cybersecurity and CTF competitions. Trying to break into bug bounty.' },
+  { username: 'abbygrant', firstName: 'Abby', lastName: 'Grant', bio: 'English lit senior writing her thesis on postcolonial fiction. Coffee shop regular.' },
+  { username: 'adrianreyes', firstName: 'Adrian', lastName: 'Reyes', bio: 'Mechanical engineering junior. Formula SAE team lead. Loves CAD and motorsport.' },
+  { username: 'alanawhite', firstName: 'Alana', lastName: 'White', bio: 'Public health sophomore. Interested in global health policy and epidemiology.' },
+  { username: 'alexisford', firstName: 'Alexis', lastName: 'Ford', bio: 'Accounting junior with a minor in data analytics. CPA prep starts next year.' },
+  { username: 'aliciamoreno', firstName: 'Alicia', lastName: 'Moreno', bio: 'Architecture student designing sustainable housing. Studio life is real.' },
+  { username: 'allisonbell', firstName: 'Allison', lastName: 'Bell', bio: 'Music performance major and part-time piano teacher. Classical meets jazz.' },
+  { username: 'amandalee', firstName: 'Amanda', lastName: 'Lee', bio: 'Pre-law junior. Mock trial president. Interested in intellectual property law.' },
+  { username: 'amirahassan', firstName: 'Amira', lastName: 'Hassan', bio: 'Neuroscience sophomore. Lab assistant studying memory consolidation.' },
+  { username: 'andrewkim', firstName: 'Andrew', lastName: 'Kim', bio: 'Software engineering senior with a backend focus. Interning at a startup this summer.' },
+  { username: 'angelapark', firstName: 'Angela', lastName: 'Park', bio: 'Marketing major obsessed with brand strategy and social media analytics.' },
+  { username: 'anthonygreen', firstName: 'Anthony', lastName: 'Green', bio: 'Econ major with a quant focus. Interested in hedge funds and algorithmic trading.' },
+  { username: 'aryankapoor', firstName: 'Aryan', lastName: 'Kapoor', bio: 'Data engineering junior. Loves Spark, Kafka, and building data pipelines at scale.' },
+  { username: 'ashleythomas', firstName: 'Ashley', lastName: 'Thomas', bio: 'Kinesiology senior studying sports performance. Training for her first triathlon.' },
+  { username: 'austinwalker', firstName: 'Austin', lastName: 'Walker', bio: 'Game dev enthusiast. Unity and Unreal projects in progress. Indie dev dreams.' },
+  { username: 'averyharris', firstName: 'Avery', lastName: 'Harris', bio: 'Biology sophomore on the pre-vet track. Currently studying for the GRE.' },
+  { username: 'ayeshazahid', firstName: 'Ayesha', lastName: 'Zahid', bio: 'Chemical engineering junior. Research in polymer synthesis and sustainable materials.' },
+  { username: 'baileyrogers', firstName: 'Bailey', lastName: 'Rogers', bio: 'Political science senior interning on a state senator campaign.' },
+  { username: 'benswanson', firstName: 'Ben', lastName: 'Swanson', bio: 'Stats and CS double major. Applying for quant research roles. Kaggle competitor.' },
+  { username: 'brettjohnson', firstName: 'Brett', lastName: 'Johnson', bio: 'Finance junior on the investment club board. DCF and comps all day.' },
+  { username: 'brittanycox', firstName: 'Brittany', lastName: 'Cox', bio: 'Communications major and campus newspaper editor. Aspiring journalist.' },
+  { username: 'camelolivier', firstName: 'Camel', lastName: 'Olivier', bio: 'International relations junior. Studied abroad in Paris last semester. Fluent in French.' },
+  { username: 'carlosfernandez', firstName: 'Carlos', lastName: 'Fernandez', bio: 'Electrical engineering senior specializing in signal processing and embedded systems.' },
+  { username: 'carolinehall', firstName: 'Caroline', lastName: 'Hall', bio: 'Graphic design junior building her portfolio. UI/UX freelance work on the side.' },
+  { username: 'cassandralewis', firstName: 'Cassandra', lastName: 'Lewis', bio: 'Sociology senior studying urban inequality and housing policy.' },
+  { username: 'chandlerdavis', firstName: 'Chandler', lastName: 'Davis', bio: 'Supply chain management junior with internship at a logistics company.' },
+  { username: 'charlottehill', firstName: 'Charlotte', lastName: 'Hill', bio: 'Environmental science sophomore. Research on microplastics in freshwater systems.' },
+  { username: 'chrisnguyen', firstName: 'Chris', lastName: 'Nguyen', bio: 'CS and math double major. Exploring formal verification and type theory.' },
+  { username: 'christinabaker', firstName: 'Christina', lastName: 'Baker', bio: 'Nursing junior. Clinical rotations start in the fall. Future ICU nurse.' },
+  { username: 'claudiavega', firstName: 'Claudia', lastName: 'Vega', bio: 'Psychology senior running a study on social media and anxiety in college students.' },
+  { username: 'connorflynn', firstName: 'Connor', lastName: 'Flynn', bio: 'Philosophy and CS double major. Interested in AI ethics and philosophy of mind.' },
+  { username: 'coopermartin', firstName: 'Cooper', lastName: 'Martin', bio: 'Aerospace engineering junior. Rocketry club president. SpaceX internship goal.' },
+  { username: 'coreystone', firstName: 'Corey', lastName: 'Stone', bio: 'Business analytics junior. Python for finance, Tableau dashboards, Excel power user.' },
+  { username: 'daniellebrown', firstName: 'Danielle', lastName: 'Brown', bio: 'Creative writing MFA. Short stories published in two literary journals this year.' },
+  { username: 'davidwilson', firstName: 'David', lastName: 'Wilson', bio: 'Mechanical engineering senior with a robotics specialization. ROS and SLAM all day.' },
+  { username: 'demi_okonkwo', firstName: 'Demi', lastName: 'Okonkwo', bio: 'Pre-med senior. MCAT score: 518. Applying to MD/PhD programs this cycle.' },
+  { username: 'derek_santos', firstName: 'Derek', lastName: 'Santos', bio: 'Sports management junior. Working on a thesis about NIL deals in college athletics.' },
+  { username: 'dianachen', firstName: 'Diana', lastName: 'Chen', bio: 'Biochem and CS double major. Computational drug discovery research assistant.' },
+  { username: 'dominicross', firstName: 'Dominic', lastName: 'Ross', bio: 'Economics senior writing on cryptocurrency adoption in emerging markets.' },
+  { username: 'dylanmurphy', firstName: 'Dylan', lastName: 'Murphy', bio: 'Computer science sophomore. Just finished my first internship at a SaaS company.' },
+  { username: 'emilyharrison', firstName: 'Emily', lastName: 'Harrison', bio: 'Art history junior with a minor in museum studies. Interning at a local gallery.' },
+  { username: 'ericrogers', firstName: 'Eric', lastName: 'Rogers', bio: 'Physics senior doing undergraduate research in quantum optics lab.' },
+  { username: 'erikamorales', firstName: 'Erika', lastName: 'Morales', bio: 'Industrial engineering junior. Passionate about lean manufacturing and operations research.' },
+  { username: 'ethancooper', firstName: 'Ethan', lastName: 'Cooper', bio: 'CS junior specializing in NLP. Built a sentiment analysis tool for course reviews.' },
+  { username: 'evawong', firstName: 'Eva', lastName: 'Wong', bio: 'Health informatics senior. Bridging EHR data and ML for clinical decision support.' },
+  { username: 'faithturner', firstName: 'Faith', lastName: 'Turner', bio: 'Education major. Student teaching this semester. Passionate about math pedagogy.' },
+  { username: 'fionasmith', firstName: 'Fiona', lastName: 'Smith', bio: 'Environmental studies junior. Campus sustainability committee co-chair.' },
+  { username: 'gabriellalopez', firstName: 'Gabriella', lastName: 'Lopez', bio: 'Theater performance major and improv team captain. Also fluent in Spanish.' },
+  { username: 'garretthughes', firstName: 'Garrett', lastName: 'Hughes', bio: 'Finance and accounting double major. Passed CFA Level I last December.' },
+  { username: 'gemmaoverton', firstName: 'Gemma', lastName: 'Overton', bio: 'Biology junior with a focus on genetics. CRISPR research assistant.' },
+  { username: 'grantpayne', firstName: 'Grant', lastName: 'Payne', bio: 'Management information systems senior. SAP certification in progress.' },
+  { username: 'graciecallahan', firstName: 'Gracie', lastName: 'Callahan', bio: 'Social work junior. Volunteer crisis counselor. Mental health advocacy on campus.' },
+  { username: 'hannahwebb', firstName: 'Hannah', lastName: 'Webb', bio: 'Journalism and political science double major. Campus radio host.' },
+  { username: 'harperscott', firstName: 'Harper', lastName: 'Scott', bio: 'Marketing junior focusing on brand strategy. Founder of a small Etsy shop.' },
+  { username: 'henryfields', firstName: 'Henry', lastName: 'Fields', bio: 'History and economics double major. Writing a thesis on the 2008 financial crisis.' },
+  { username: 'isabellachang', firstName: 'Isabella', lastName: 'Chang', bio: 'CS sophomore interested in full-stack development. Built 3 projects this semester.' },
+  { username: 'ivannazaro', firstName: 'Ivan', lastName: 'Nazaro', bio: 'Materials science and engineering senior. Research in solid-state batteries.' },
+  { username: 'jadewashington', firstName: 'Jade', lastName: 'Washington', bio: "Criminal justice junior. Internship with a public defender's office this summer." },
+  { username: 'jakeoliver', firstName: 'Jake', lastName: 'Oliver', bio: 'Accounting senior. Big Four internship lined up. Loves golf and tax law trivia.' },
+  { username: 'jasmineyoung', firstName: 'Jasmine', lastName: 'Young', bio: 'Pre-pharmacy junior. Completing 300 hours of pharmacy observation this year.' },
+  { username: 'jasonmendez', firstName: 'Jason', lastName: 'Mendez', bio: 'Civil engineering senior. Structural analysis and bridge design competition winner.' },
+  { username: 'jaydennelson', firstName: 'Jayden', lastName: 'Nelson', bio: 'Sports science and exercise physiology major. Strength and conditioning coach.' },
+  { username: 'jessicaadams', firstName: 'Jessica', lastName: 'Adams', bio: 'Psychology and statistics double major. Running logistic regression on clinical data.' },
+  { username: 'jonathanreeves', firstName: 'Jonathan', lastName: 'Reeves', bio: 'Computer engineering junior. FPGA design and embedded Linux enthusiast.' },
+  { username: 'juliacosta', firstName: 'Julia', lastName: 'Costa', bio: 'International business junior with a semester abroad in São Paulo.' },
+  { username: 'justinstewart', firstName: 'Justin', lastName: 'Stewart', bio: 'CS sophomore. Currently grinding LeetCode and looking for internships.' },
+  { username: 'kaileyjones', firstName: 'Kailey', lastName: 'Jones', bio: 'Elementary education major. Student teaching at Lincoln Elementary this fall.' },
+  { username: 'karenshaw', firstName: 'Karen', lastName: 'Shaw', bio: 'Food science and nutrition junior. Research on gut microbiome and cognitive health.' },
+  { username: 'karlmorrison', firstName: 'Karl', lastName: 'Morrison', bio: 'Philosophy junior wrestling with ethics of autonomous systems and AI.' },
+  { username: 'katelyn_price', firstName: 'Katelyn', lastName: 'Price', bio: 'Marketing and design double major. Brand consulting side hustle.' },
+  { username: 'keirajohnston', firstName: 'Keira', lastName: 'Johnston', bio: 'Biology senior heading to medical school in the fall. Pediatrics interest.' },
+  { username: 'kevinzhang', firstName: 'Kevin', lastName: 'Zhang', bio: 'ML engineer track. PyTorch, transformers, and fine-tuning LLMs for fun.' },
+  { username: 'kiananderson', firstName: 'Kian', lastName: 'Anderson', bio: 'Human-computer interaction junior. Obsessed with accessibility and inclusive design.' },
+  { username: 'kristinawills', firstName: 'Kristina', lastName: 'Wills', bio: 'Communications and PR major. Runs the campus events Instagram page.' },
+  { username: 'kylewatson', firstName: 'Kyle', lastName: 'Watson', bio: 'Civil and environmental engineering senior. Capstone: stormwater management system.' },
+  { username: 'laurencollins', firstName: 'Lauren', lastName: 'Collins', bio: 'Human resources management junior. SHRM certification prep in progress.' },
+  { username: 'leahowens', firstName: 'Leah', lastName: 'Owens', bio: 'Chemistry sophomore doing undergraduate research in organometallics.' },
+  { username: 'lewisbishop', firstName: 'Lewis', lastName: 'Bishop', bio: 'Economics and philosophy double major. Writing about behavioral nudges in policy.' },
+  { username: 'lilymcgee', firstName: 'Lily', lastName: 'McGee', bio: 'Graphic design senior with a portfolio in editorial illustration and branding.' },
+  { username: 'linaberger', firstName: 'Lina', lastName: 'Berger', bio: 'German and international relations double major. Exchange student program coordinator.' },
+  { username: 'logancarter', firstName: 'Logan', lastName: 'Carter', bio: 'CS junior doing research on distributed systems and consensus algorithms.' },
+  { username: 'luisaguerra', firstName: 'Luisa', lastName: 'Guerra', bio: 'Public relations junior. Campus newspaper features editor. Aspiring media strategist.' },
+  { username: 'lukethompson', firstName: 'Luke', lastName: 'Thompson', bio: 'Athletic training junior. Working with the football team as a student trainer.' },
+  { username: 'madisonperkins', firstName: 'Madison', lastName: 'Perkins', bio: 'Sociology and criminology double major. Research on recidivism and prison reform.' },
+  { username: 'marcohernandez', firstName: 'Marco', lastName: 'Hernandez', bio: 'Information systems senior. Specializing in ERP implementation and IT consulting.' },
+  { username: 'marissaward', firstName: 'Marissa', lastName: 'Ward', bio: 'Nursing junior completing clinical hours at the county hospital. ICU focus.' },
+  { username: 'matthewevans', firstName: 'Matthew', lastName: 'Evans', bio: 'CS and linguistics double major. NLP research on code-switching in bilingual texts.' },
+  { username: 'meganlewis', firstName: 'Megan', lastName: 'Lewis', bio: 'Finance junior with an internship at a regional bank. CFA prep in progress.' },
+  { username: 'melissacruz', firstName: 'Melissa', lastName: 'Cruz', bio: 'Healthcare management junior. Interning at a hospital administration office.' },
+  { username: 'michaelrobbins', firstName: 'Michael', lastName: 'Robbins', bio: 'Physics and CS double major. Applying for PhD programs in quantum computing.' },
+  { username: 'migueltorres', firstName: 'Miguel', lastName: 'Torres', bio: 'Mechanical engineering junior. Renewable energy focus. Solar car team captain.' },
+  { username: 'morgandixon', firstName: 'Morgan', lastName: 'Dixon', bio: 'Psychology and data science double major. Running sentiment analysis on therapy transcripts.' },
+  { username: 'naomirichards', firstName: 'Naomi', lastName: 'Richards', bio: 'Pre-med senior with a research background in infectious disease and immunology.' },
+  { username: 'nathanielbrown', firstName: 'Nathaniel', lastName: 'Brown', bio: 'CS sophomore learning systems programming in Rust. OS project in progress.' },
+  { username: 'nicolassimon', firstName: 'Nicolas', lastName: 'Simon', bio: 'International economics junior. Thesis on trade policy post-COVID.' },
+  { username: 'nicolewagner', firstName: 'Nicole', lastName: 'Wagner', bio: 'Biology and chemistry double major on the pre-pharmacy track.' },
+  { username: 'noahcoleman', firstName: 'Noah', lastName: 'Coleman', bio: 'CS junior focused on computer vision. Working on a real-time pose estimation project.' },
+  { username: 'oliviachang', firstName: 'Olivia', lastName: 'Chang', bio: 'Biomedical engineering sophomore. Research in drug delivery systems.' },
+  { username: 'owenparker', firstName: 'Owen', lastName: 'Parker', bio: 'Political science and communications double major. Student government vice president.' },
+  { username: 'paigethornton', firstName: 'Paige', lastName: 'Thornton', bio: 'Fashion merchandising junior. Runs a sustainable fashion blog with 5k followers.' },
+  { username: 'patrickhughes', firstName: 'Patrick', lastName: 'Hughes', bio: 'Finance senior with a CFA Level I. Aiming for equity research at a bulge bracket.' },
+  { username: 'paulavargas', firstName: 'Paula', lastName: 'Vargas', bio: 'Biochemistry senior heading to a PhD in pharmacology. Enzyme kinetics researcher.' },
+  { username: 'philippedumont', firstName: 'Philippe', lastName: 'Dumont', bio: 'French and economics double major. Exchange student from Lyon on a one-year program.' },
+  { username: 'rachelmontgomery', firstName: 'Rachel', lastName: 'Montgomery', bio: 'Psychology junior doing research on trauma and cognitive behavioral therapy.' },
+  { username: 'ryanfoster', firstName: 'Ryan', lastName: 'Foster', bio: 'Computer science junior. Competitive programmer, top 5% on Codeforces.' },
+  { username: 'samaraellis', firstName: 'Samara', lastName: 'Ellis', bio: 'Digital marketing and analytics senior. Google Analytics certified.' },
+  { username: 'samuelwhite', firstName: 'Samuel', lastName: 'White', bio: 'Operations research junior using optimization models for supply chain problems.' },
+  { username: 'sarahcampbell', firstName: 'Sarah', lastName: 'Campbell', bio: 'Biostatistics senior applying for epidemiology PhD programs. R and Stata daily.' },
+  { username: 'scottmanning', firstName: 'Scott', lastName: 'Manning', bio: 'History junior specializing in Cold War and US foreign policy.' },
+  { username: 'sierrarobinson', firstName: 'Sierra', lastName: 'Robinson', bio: 'Environmental engineering junior. Capstone: air quality modeling for urban areas.' },
+  { username: 'stephaniegrant', firstName: 'Stephanie', lastName: 'Grant', bio: 'Accounting and information systems double major. ERP systems internship this summer.' },
+  { username: 'tannerwood', firstName: 'Tanner', lastName: 'Wood', bio: 'Finance junior. Investment club treasurer. Day trading on the side.' },
+  { username: 'taylormorgan', firstName: 'Taylor', lastName: 'Morgan', bio: 'CS and graphic design double major. Building a design system for a startup.' },
+  { username: 'tianarobinson', firstName: 'Tiana', lastName: 'Robinson', bio: 'Social work and psychology double major. Runs a peer support program on campus.' },
+  { username: 'timothyjackson', firstName: 'Timothy', lastName: 'Jackson', bio: 'Agricultural economics junior. Research on food deserts and market access.' },
+  { username: 'traceyholmes', firstName: 'Tracey', lastName: 'Holmes', bio: 'Statistics junior applying ML methods to healthcare outcomes research.' },
+  { username: 'trevornash', firstName: 'Trevor', lastName: 'Nash', bio: 'CS sophomore. Full-stack side projects and open source contributor.' },
+  { username: 'tylercole', firstName: 'Tyler', lastName: 'Cole', bio: 'Sports analytics junior. Python and R for basketball performance modeling.' },
+  { username: 'vanessaramirez', firstName: 'Vanessa', lastName: 'Ramirez', bio: 'International business and Spanish double major. Study abroad coordinator.' },
+  { username: 'victorchukwu', firstName: 'Victor', lastName: 'Chukwu', bio: 'Finance and economics junior. Interested in venture capital and startup ecosystems.' },
+  { username: 'victoriastone', firstName: 'Victoria', lastName: 'Stone', bio: 'Marketing and communications senior. Digital advertising campaign manager.' },
+  { username: 'wendyhamilton', firstName: 'Wendy', lastName: 'Hamilton', bio: 'Biomedical engineering senior. Capstone: wearable sensor for cardiac monitoring.' },
+  { username: 'williamford', firstName: 'William', lastName: 'Ford', bio: 'CS senior focused on distributed systems. Docker, Kubernetes, and cloud-native dev.' },
+  { username: 'xaviermeyer', firstName: 'Xavier', lastName: 'Meyer', bio: 'Data science and economics double major. Building predictive models for real estate.' },
+  { username: 'yasminenakamura', firstName: 'Yasmine', lastName: 'Nakamura', bio: 'Japanese and linguistics double major. Computational linguistics research assistant.' },
+  { username: 'zacharyevansholt', firstName: 'Zachary', lastName: 'Evans', bio: 'CS junior. Backend systems, Go, and distributed databases.' },
+  { username: 'zaraali', firstName: 'Zara', lastName: 'Ali', bio: 'Public health senior. Thesis on maternal mortality disparities in urban hospitals.' },
+  { username: 'zoeanderson', firstName: 'Zoe', lastName: 'Anderson', bio: 'Computer science junior. AI safety reading group organizer. ML + alignment research.' },
+].map(s => ({
+  ...s,
+  email: `${s.username}_demo@example.com`,
+  password: 'Demo@1234',
+  settings: { activityVisibility: 'public' },
+}));
+
+const SEED_STRANGER_USERNAMES = SEED_STRANGERS.map(s => s.username);
+
 // ─── Clean Function ─────────────────────────────────────────────────────────
 
 async function cleanSeedData(justinId) {
@@ -116,8 +256,8 @@ async function cleanSeedData(justinId) {
     ],
   });
 
-  // Delete the seed friend users (NOT Justin)
-  await User.deleteMany({ username: { $in: SEED_USERNAMES } });
+  // Delete the seed friend users and stranger users (NOT Justin)
+  await User.deleteMany({ username: { $in: [...SEED_USERNAMES, ...SEED_STRANGER_USERNAMES] } });
 
   console.log('Clean complete.');
 }
@@ -141,6 +281,23 @@ async function seedFriends() {
   }
 
   return friends;
+}
+
+// ─── SECTION 1b: Stranger Users (searchable, not friends with Justin) ────────
+
+async function seedStrangers() {
+  console.log('Seeding stranger users...');
+  let created = 0;
+
+  for (const data of SEED_STRANGERS) {
+    const existing = await User.findOne({ username: data.username });
+    if (!existing) {
+      await new User(data).save();
+      created++;
+    }
+  }
+
+  console.log(`  ${created} stranger users created (${SEED_STRANGERS.length - created} already existed).`);
 }
 
 // ─── SECTION 2: Friendships ─────────────────────────────────────────────────
@@ -562,22 +719,133 @@ async function seedTasks(justin, friends) {
     createdTasks.push(task);
   }
 
-  // Shared task
-  const alexId = friendMap.alexchen_cs._id;
-  const sharedTask = await Task.create({
-    userId: justin._id,
-    title: 'Group Project: System Design Document',
-    type: 'project',
-    status: 'in_progress',
-    priority: 'high',
-    dueDate: new Date('2026-04-04'),
-    description: 'Co-authored system design doc for distributed KV store. Covers architecture, data flow, and failure modes.',
-    isShared: true,
-    participants: [{ userId: alexId, status: 'in_progress' }],
-  });
-  createdTasks.push(sharedTask);
+  // ── Shared tasks: Justin → friends ────────────────────────────────────────
+  const alexId    = friendMap.alexchen_cs._id;
+  const mayaId    = friendMap.mayapatel_ds._id;
+  const jordanId  = friendMap.jordanwilliams._id;
+  const priyaId   = friendMap.priyasharma._id;
+  const marcusId  = friendMap.marcusjohnson._id;
+  const sofiaId   = friendMap.sofiarod._id;
 
-  console.log(`  Created ${createdTasks.length} tasks.`);
+  const sharedTaskDefs = [
+    {
+      title: 'Group Project: System Design Document',
+      type: 'project', status: 'in_progress', priority: 'high',
+      dueDate: '2026-04-04',
+      description: 'Co-authored system design doc for distributed KV store. Covers architecture, data flow, and failure modes.',
+      participants: [{ userId: alexId, status: 'in_progress' }],
+    },
+    {
+      title: 'ACM Workshop: ML Demo Prep',
+      type: 'project', status: 'todo', priority: 'medium',
+      dueDate: '2026-04-08',
+      description: 'Prepare the live ML demo for the ACM spring workshop. Justin handles backend pipeline, Maya handles model selection.',
+      participants: [{ userId: mayaId, status: 'todo' }],
+    },
+    {
+      title: 'Study Group: OS Final Exam',
+      type: 'study', status: 'todo', priority: 'high',
+      dueDate: '2026-04-18',
+      description: 'Three-way study session for CS 301 OS final. Divide topics: Justin → scheduling, Jordan → memory, Alex → file systems.',
+      participants: [{ userId: jordanId, status: 'todo' }, { userId: alexId, status: 'todo' }],
+    },
+    {
+      title: 'MCAT Study Plan Review',
+      type: 'study', status: 'in_progress', priority: 'high',
+      dueDate: '2026-04-15',
+      description: 'Help Priya map out a 10-week MCAT study schedule. Justin contributes a scheduling algorithm template.',
+      participants: [{ userId: priyaId, status: 'in_progress' }],
+    },
+    {
+      title: 'HackIllinois Project: Study Planner App',
+      type: 'project', status: 'in_progress', priority: 'high',
+      dueDate: '2026-04-13',
+      description: '24h hackathon project. Justin handles API and backend, Alex handles frontend, Jordan handles hardware integration.',
+      participants: [{ userId: alexId, status: 'in_progress' }, { userId: jordanId, status: 'todo' }],
+    },
+    {
+      title: 'Investment Research: Fintech Sector Analysis',
+      type: 'project', status: 'todo', priority: 'medium',
+      dueDate: '2026-04-21',
+      description: 'Collaborative deep dive into fintech valuations with Marcus. Justin provides data modeling, Marcus provides financial modeling.',
+      participants: [{ userId: marcusId, status: 'todo' }],
+    },
+    {
+      title: 'UX Research: Campus App Survey',
+      type: 'project', status: 'todo', priority: 'low',
+      dueDate: '2026-04-25',
+      description: 'Sofia is running a UX research project. Justin is helping with the data analysis piece for her capstone.',
+      participants: [{ userId: sofiaId, status: 'todo' }],
+    },
+  ];
+
+  for (const td of sharedTaskDefs) {
+    const task = await Task.create({
+      userId: justin._id,
+      title: td.title,
+      type: td.type,
+      status: td.status,
+      priority: td.priority,
+      dueDate: new Date(td.dueDate),
+      description: td.description,
+      isShared: true,
+      participants: td.participants,
+    });
+    createdTasks.push(task);
+  }
+
+  // ── Shared tasks: friends → Justin (so Justin sees them in /tasks/shared) ─
+  const incomingSharedTasks = [
+    {
+      ownerId: alexId,
+      title: 'LeetCode Mock Contest: Graph Problems',
+      type: 'study', status: 'todo', priority: 'medium',
+      dueDate: '2026-04-06',
+      description: 'Alex is running a mock contest prep session. Justin and Alex grind 3 medium/hard graph problems together.',
+      participants: [{ userId: justin._id, status: 'todo' }],
+    },
+    {
+      ownerId: mayaId,
+      title: 'ML Research: Feature Engineering Deep Dive',
+      type: 'study', status: 'in_progress', priority: 'high',
+      dueDate: '2026-04-10',
+      description: "Maya's research group session on feature engineering techniques. Justin joining to review sklearn pipelines.",
+      participants: [{ userId: justin._id, status: 'in_progress' }],
+    },
+    {
+      ownerId: jordanId,
+      title: 'Embedded Systems Lab Report',
+      type: 'homework', status: 'todo', priority: 'medium',
+      dueDate: '2026-04-09',
+      description: "Jordan's lab report on interrupt-driven I/O. Justin helping review the software side.",
+      participants: [{ userId: justin._id, status: 'todo' }],
+    },
+    {
+      ownerId: marcusId,
+      title: 'Finance Club: Pitch Competition Prep',
+      type: 'project', status: 'in_progress', priority: 'high',
+      dueDate: '2026-04-12',
+      description: 'Marcus is leading the pitch for finance club. Justin helping structure the data slides.',
+      participants: [{ userId: justin._id, status: 'todo' }],
+    },
+  ];
+
+  for (const td of incomingSharedTasks) {
+    const task = await Task.create({
+      userId: td.ownerId,
+      title: td.title,
+      type: td.type,
+      status: td.status,
+      priority: td.priority,
+      dueDate: new Date(td.dueDate),
+      description: td.description,
+      isShared: true,
+      participants: td.participants,
+    });
+    createdTasks.push(task);
+  }
+
+  console.log(`  Created ${createdTasks.length} tasks (${sharedTaskDefs.length + incomingSharedTasks.length} shared).`);
   return createdTasks;
 }
 
@@ -720,7 +988,7 @@ async function seedConversations(justin, friends) {
 
 // ─── SECTION 10: Comments & Likes ───────────────────────────────────────────
 
-async function seedComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap) {
+async function seedComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks) {
   console.log('Seeding comments...');
   const friendMap = {};
   for (const f of friends) friendMap[f.username] = f;
@@ -815,8 +1083,157 @@ async function seedComments(justin, friends, justinNotes, friendNoteMap, justinS
     allComments.push(comment);
   }
 
-  console.log(`  Created ${allComments.length} comments with likes.`);
+  // Comments on shared tasks (from participants + Justin)
+  const sharedTasks = tasks.filter(t => t.isShared);
+  const taskCommentPool = [
+    "Making solid progress on this — let's sync before the due date.",
+    "I added some notes to the shared doc. Check the third section.",
+    "This is due sooner than I thought. Can we meet Tuesday evening?",
+    "Just pushed my part. Needs review before we submit.",
+    "Anyone want to do a quick 30-min call to divide the remaining work?",
+    "I finished my section. Going to take another pass tonight.",
+    "Looking great so far — I think we're ahead of schedule!",
+    "Left some comments inline. Nothing major, just a few suggestions.",
+    "Can we move the deadline back by two days? I have an exam Thursday.",
+    "This is actually really interesting work — glad we teamed up.",
+    "Let's use the library room Friday at 3pm to finish this up.",
+    "I created a shared doc for the outline. Dropping the link in DM.",
+  ];
+
+  for (const task of sharedTasks.slice(0, 8)) {
+    const participantIds = (task.participants || []).map(p => p.userId?.toString ? p.userId : p.userId);
+    const allPossible = [justin._id, ...allFriendIds].filter(id =>
+      id.toString() === task.userId.toString() || participantIds.some(p => p.toString() === id.toString())
+    );
+    const commentCount = Math.min(allPossible.length, Math.floor(Math.random() * 3) + 2);
+    const shuffled = [...allPossible].sort(() => Math.random() - 0.5).slice(0, commentCount);
+
+    for (const commenterId of shuffled) {
+      const text = taskCommentPool[Math.floor(Math.random() * taskCommentPool.length)];
+      const comment = await Comment.create({
+        targetId: task._id,
+        targetType: 'task',
+        userId: commenterId,
+        content: text,
+      });
+      const likers = allPossible.filter(id => !id.equals(commenterId)).slice(0, 2);
+      if (likers.length > 0) {
+        await Comment.updateOne({ _id: comment._id }, { $push: { likes: { $each: likers } } });
+      }
+      allComments.push(comment);
+    }
+  }
+
+  console.log(`  Created ${allComments.length} comments with likes (including task comments).`);
   return allComments;
+}
+
+// ─── SECTION 10b: Extra Comments — ensures every visible piece of content ────
+// has at least some engagement (comments from Justin and/or friends)
+
+async function seedExtraComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks) {
+  console.log('Seeding extra comments on all visible content...');
+  const friendMap = {};
+  for (const f of friends) friendMap[f.username] = f;
+  const allFriendIds = friends.map(f => f._id);
+  let count = 0;
+
+  const noteCommentBank = [
+    'These notes are incredibly well-organized. Bookmarking for the final.',
+    'This is exactly what I needed before the midterm. Thanks for sharing!',
+    'The diagrams here really help visualize the concepts.',
+    'I was confused about this topic but this cleared it up.',
+    'Great breakdown. The examples make it easy to follow.',
+    'Really solid notes. The summary at the top is super helpful.',
+    'This is going to save me so much time during review week.',
+    "Can you share the slides too? I'd love to cross-reference.",
+    'Loved how you structured the problem-solving section.',
+    'This is better than the textbook honestly.',
+    'The step-by-step walkthrough here is really clear.',
+    'I added this to my study list. Really helpful overview.',
+  ];
+
+  const setCommentBank = [
+    'This set is perfect for last-minute review before the exam.',
+    'The cards are concise and actually memorable. Nice work.',
+    'I ran through this three times. Feeling much more confident now.',
+    'Would it be possible to add a few more cards on the edge cases?',
+    "Best flashcard set I've seen for this topic. Sharing with my study group.",
+    'The front/back format here is really well balanced.',
+    'Going to use this for the final exam prep sprint.',
+    'I got 100% on the quiz after studying these. Legend.',
+    'Super clean set. No filler, just the key concepts.',
+    'Could you add pronunciation guides on a few of these?',
+  ];
+
+  // All Justin's shared notes: friends comment, Justin may respond
+  const justinSharedNotes = justinNotes.filter(n => n.visibility === 'friends' || n.visibility === 'specific');
+  for (const note of justinSharedNotes) {
+    const existingCount = await Comment.countDocuments({ targetId: note._id, targetType: 'note' });
+    if (existingCount >= 2) continue; // already has comments from main seedComments
+
+    // 2-3 random friends comment
+    const commenters = [...allFriendIds].sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 2) + 2);
+    for (const cId of commenters) {
+      const text = noteCommentBank[Math.floor(Math.random() * noteCommentBank.length)];
+      const comment = await Comment.create({ targetId: note._id, targetType: 'note', userId: cId, content: text });
+      const likers = allFriendIds.filter(id => !id.equals(cId)).slice(0, 2);
+      if (likers.length) await Comment.updateOne({ _id: comment._id }, { $push: { likes: { $each: likers } } });
+      count++;
+    }
+
+    // Justin responds to at least 1
+    const justinText = noteCommentBank[Math.floor(Math.random() * noteCommentBank.length)];
+    const justinReply = await Comment.create({ targetId: note._id, targetType: 'note', userId: justin._id, content: `Thanks! ${justinText.toLowerCase()}` });
+    const replyLikers = allFriendIds.slice(0, 2);
+    if (replyLikers.length) await Comment.updateOne({ _id: justinReply._id }, { $push: { likes: { $each: replyLikers } } });
+    count++;
+  }
+
+  // All friends' notes: Justin comments on each
+  for (const [username, fNotes] of Object.entries(friendNoteMap)) {
+    const friend = Object.values(friendNoteMap).length ? friends.find(f => f.username === username) : null;
+    for (const note of fNotes) {
+      const existing = await Comment.countDocuments({ targetId: note._id, targetType: 'note', userId: justin._id });
+      if (existing > 0) continue;
+      const text = noteCommentBank[Math.floor(Math.random() * noteCommentBank.length)];
+      const c = await Comment.create({ targetId: note._id, targetType: 'note', userId: justin._id, content: text });
+      // 1-3 random friends like Justin's comment
+      const likers = [...allFriendIds].sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 3) + 1);
+      if (likers.length) await Comment.updateOne({ _id: c._id }, { $push: { likes: { $each: likers } } });
+      count++;
+    }
+  }
+
+  // All shared flashcard sets (Justin's): friends comment
+  const sharedJustinSets = justinSets.filter(s => s.visibility !== 'private');
+  for (const set of sharedJustinSets) {
+    const existing = await Comment.countDocuments({ targetId: set._id, targetType: 'flashcardSet' });
+    if (existing >= 2) continue;
+    const commenters = [...allFriendIds].sort(() => Math.random() - 0.5).slice(0, 2);
+    for (const cId of commenters) {
+      const text = setCommentBank[Math.floor(Math.random() * setCommentBank.length)];
+      const c = await Comment.create({ targetId: set._id, targetType: 'flashcardSet', userId: cId, content: text });
+      const likers = allFriendIds.filter(id => !id.equals(cId)).slice(0, 2);
+      if (likers.length) await Comment.updateOne({ _id: c._id }, { $push: { likes: { $each: likers } } });
+      count++;
+    }
+  }
+
+  // All friends' flashcard sets: Justin comments on each
+  for (const [, fSets] of Object.entries(friendSetMap)) {
+    for (const set of fSets) {
+      const existing = await Comment.countDocuments({ targetId: set._id, targetType: 'flashcardSet', userId: justin._id });
+      if (existing > 0) continue;
+      const text = setCommentBank[Math.floor(Math.random() * setCommentBank.length)];
+      const c = await Comment.create({ targetId: set._id, targetType: 'flashcardSet', userId: justin._id, content: text });
+      const likers = [...allFriendIds].sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 3) + 1);
+      if (likers.length) await Comment.updateOne({ _id: c._id }, { $push: { likes: { $each: likers } } });
+      count++;
+    }
+  }
+
+  console.log(`  Created ${count} extra comments.`);
 }
 
 // ─── SECTION 11: Activity Feed ──────────────────────────────────────────────
@@ -952,38 +1369,145 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
     count++;
   }
 
-  // Friends' activities (2 notes + 1 flashcard set each = 3 per friend)
+  // Friends' activities — richer: notes, sets, shared tasks, and comments
   for (const friend of friends) {
     const fNotes = friendNoteMap[friend.username];
-    const fSets = friendSetMap[friend.username];
+    const fSets  = friendSetMap[friend.username];
     const otherFriendIds = allFriendIds.filter(id => !id.equals(friend._id));
+    const visibleToAll = [friend._id, justin._id, ...otherFriendIds];
 
-    // 2 note_shared activities (friends visibility — shared with all)
+    // All friend notes shared (not just 2)
     if (fNotes) {
-      for (let i = 0; i < Math.min(2, fNotes.length); i++) {
+      for (const fNote of fNotes) {
         await Activity.create({
           userId: friend._id,
           type: 'note_shared',
-          targetId: fNotes[i]._id,
+          targetId: fNote._id,
           targetType: 'note',
-          visibleTo: [friend._id, justin._id, ...otherFriendIds],
-          metadata: { noteTitle: fNotes[i].title, sharedWithAll: true },
+          visibleTo: visibleToAll,
+          metadata: { noteTitle: fNote.title, sharedWithAll: true },
           createdAt: bumpDate(),
         });
         count++;
       }
     }
 
-    // 1 flashcard_shared activity
-    if (fSets && fSets.length > 0) {
+    // All friend flashcard sets shared
+    if (fSets) {
+      for (const fSet of fSets) {
+        await Activity.create({
+          userId: friend._id,
+          type: 'flashcard_shared',
+          targetId: fSet._id,
+          targetType: 'flashcardSet',
+          visibleTo: visibleToAll,
+          metadata: { setTitle: fSet.title, sharedWithAll: true },
+          createdAt: bumpDate(),
+        });
+        count++;
+      }
+    }
+
+    // Task activities for tasks that this friend owns that are shared
+    const friendSharedTasks = tasks.filter(t => t.userId.toString() === friend._id.toString() && t.isShared);
+    for (const ft of friendSharedTasks) {
+      const participantNames = (ft.participants || []).map(p => {
+        const pid = p.userId?.toString ? p.userId.toString() : p.userId;
+        const participantFriend = friends.find(f => f._id.toString() === pid);
+        if (participantFriend) return friendNameObj(participantFriend);
+        if (pid === justin._id.toString()) return { _id: justin._id, firstName: justin.firstName, lastName: justin.lastName };
+        return null;
+      }).filter(Boolean);
+
       await Activity.create({
         userId: friend._id,
-        type: 'flashcard_shared',
-        targetId: fSets[0]._id,
-        targetType: 'flashcardSet',
-        visibleTo: [friend._id, justin._id, ...otherFriendIds],
-        metadata: { setTitle: fSets[0].title, sharedWithAll: true },
+        type: 'task_created',
+        targetId: ft._id,
+        targetType: 'task',
+        visibleTo: visibleToAll,
+        metadata: { taskTitle: ft.title, sharedWithNames: participantNames, sharedWithAll: false },
         createdAt: bumpDate(),
+      });
+      count++;
+    }
+
+    // Comment activities for friends who commented on Justin's notes
+    const friendComments = comments.filter(c => c.userId.equals(friend._id)).slice(0, 3);
+    for (const fc of friendComments) {
+      await Activity.create({
+        userId: friend._id,
+        type: 'comment_added',
+        targetId: fc._id,
+        targetType: 'comment',
+        visibleTo: visibleToAll,
+        metadata: { commentPreview: fc.content.slice(0, 100) },
+        createdAt: bumpDate(),
+      });
+      count++;
+    }
+
+    // Like activities (2 per friend)
+    if (fNotes && fNotes.length > 0) {
+      await Activity.create({
+        userId: friend._id,
+        type: 'like_added',
+        targetId: fNotes[0]._id,
+        targetType: 'note',
+        visibleTo: visibleToAll,
+        metadata: { noteTitle: fNotes[0].title },
+        createdAt: bumpDate(),
+      });
+      count++;
+    }
+  }
+
+  // Task activities for Justin's outgoing shared tasks
+  const justinSharedTasks = tasks.filter(t => t.userId.toString() === justin._id.toString() && t.isShared);
+  for (const jt of justinSharedTasks) {
+    const participantNames = (jt.participants || []).map(p => {
+      const pid = p.userId?.toString ? p.userId.toString() : p.userId;
+      const pFriend = friends.find(f => f._id.toString() === pid);
+      return pFriend ? friendNameObj(pFriend) : null;
+    }).filter(Boolean);
+
+    if (participantNames.length === 0) continue;
+
+    const ts = bumpDate();
+    // Owner sees all participant names
+    await Activity.create({
+      userId: justin._id,
+      type: 'task_created',
+      targetId: jt._id,
+      targetType: 'task',
+      visibleTo: [justin._id],
+      metadata: { taskTitle: jt.title, sharedWithNames: participantNames },
+      createdAt: ts,
+    });
+    count++;
+
+    // Each participant gets a "with you" entry
+    for (const pName of participantNames) {
+      const recipientFriend = friends.find(f => f._id.toString() === pName._id.toString());
+      if (!recipientFriend) continue;
+      await Activity.create({
+        userId: justin._id,
+        type: 'task_created',
+        targetId: jt._id,
+        targetType: 'task',
+        visibleTo: [recipientFriend._id],
+        metadata: { taskTitle: jt.title, isRecipient: true },
+        createdAt: ts,
+      });
+      count++;
+      // Non-participant friends see the general activity
+      await Activity.create({
+        userId: justin._id,
+        type: 'task_created',
+        targetId: jt._id,
+        targetType: 'task',
+        visibleTo: allFriendIds.filter(id => !id.equals(recipientFriend._id) && !id.equals(justin._id)),
+        metadata: { taskTitle: jt.title, sharedWithNames: participantNames },
+        createdAt: ts,
       });
       count++;
     }
@@ -1064,6 +1588,7 @@ async function main() {
 
     // 4. Seed users and friendships
     const friends = await seedFriends();
+    await seedStrangers();
     await seedFriendships(justin, friends);
 
     // 5. Seed notes
@@ -1085,7 +1610,8 @@ async function main() {
     await seedShareMessages(justin, friends, justinNotes, justinSets, tasks);
 
     // 9. Seed comments and activities
-    const comments = await seedComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap);
+    const comments = await seedComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks);
+    await seedExtraComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks);
     await seedActivities(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks, comments);
 
     // 10. Update Justin's activity visibility
