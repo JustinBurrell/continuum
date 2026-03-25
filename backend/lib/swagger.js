@@ -11,7 +11,7 @@ const options = {
                 'All protected routes require a JWT in the `Authorization: Bearer <token>` header.',
         },
         servers: [
-            { url: 'http://localhost:5000', description: 'Local development' },
+            { url: 'http://localhost:5001', description: 'Local development' },
         ],
         components: {
             securitySchemes: {

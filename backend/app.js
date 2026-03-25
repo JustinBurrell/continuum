@@ -17,11 +17,15 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(pinoHttp({ logger }));
 }
 
-app.use(helmet());
+app.use(helmet({ contentSecurityPolicy: false }));
 app.disable('x-powered-by');
 
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:5173',
+  'http://localhost:5000',
+];
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
