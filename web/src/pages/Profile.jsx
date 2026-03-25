@@ -1066,7 +1066,7 @@ export default function Profile() {
                   </div>
                 </div>
               </div>
-              {me?.googleId ? (
+              {!user?.isDemo && (me?.googleId ? (
                 <Button size="sm" variant="outline"
                   onClick={() => {
                     setShowUnlinkConfirm(true);
@@ -1080,7 +1080,7 @@ export default function Profile() {
                 >
                   <LinkIcon size={13} /> Connect
                 </Button>
-              )}
+              ))}
             </div>
             {me?.googleId && (
               <div style={{ marginTop: 12, padding: '10px 12px', background: '#f5f0ff', borderRadius: 10 }}>
