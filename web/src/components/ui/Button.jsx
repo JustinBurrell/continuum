@@ -47,7 +47,7 @@ export default function Button({
       disabled={disabled || loading}
       style={shadow ? { boxShadow: shadow, ...style } : style}
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed',
+        'inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97]',
         variants[variant],
         sizes[size],
         className
