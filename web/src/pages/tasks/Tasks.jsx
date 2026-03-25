@@ -218,7 +218,7 @@ export default function Tasks() {
       {isLoading ? (
         <TasksSkeleton />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+        <div className="kanban-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
           {columns.map(col => (
             <KanbanColumn
               key={col.status}
