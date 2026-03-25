@@ -10,7 +10,7 @@ import { formatRelative, truncate, stripHtml } from '@/lib/utils';
 // Verified backend response shapes:
 // GET /notes → { notes[], pagination: { total } }
 // GET /tasks → { tasks[] } — no total field
-// GET /activity → { feed[], total } — total is the full count across all pages
+// GET /activity → { feed[], nextCursor, total } — total is the full count across all pages
 // GET /applications → { applications[] }
 // GET /applications/dashboard → { total, pipeline: { applied, screening, interview, offer, rejected, withdrawn } }
 // GET /flashcard-sets → { sets[] }
@@ -732,7 +732,7 @@ export default function Dashboard() {
                       No activity yet.
                     </p>
                   )
-                  : activities.map(item => <FeedItem key={item._id} item={item} />)
+                  : activities.slice(0, 5).map(item => <FeedItem key={item._id} item={item} />)
               }
             </div>
           </Section>

@@ -26,14 +26,12 @@ exports.getActivityFeed = async (req, res) => {
     const cacheKey = `activity:${userId}:${cursor || 'first'}`;
 
     const fetchFeed = async () => {
-        const filter = {
+        // Base filter — no cursor constraint, used for the total count
+        const baseFilter = {
             $or: [
                 { visibleTo: userId },
                 { isPublic: true },
             ],
-            createdAt: cursor
-                ? { $lt: new Date(cursor) }
-                : { $lte: new Date() },
         };
 
         if (search) {
@@ -44,7 +42,7 @@ exports.getActivityFeed = async (req, res) => {
             }).select('_id');
             const matchingUserIds = matchingUsers.map(u => u._id);
 
-            filter.$and = [{
+            baseFilter.$and = [{
                 $or: [
                     { 'metadata.noteTitle': regex },
                     { 'metadata.setTitle': regex },
@@ -55,16 +53,25 @@ exports.getActivityFeed = async (req, res) => {
             }];
         }
 
-        const feed = await Activity.find(filter)
-            .sort({ createdAt: -1 })
-            .limit(limit + 1) // fetch one extra to determine if there is a next page
-            .populate('userId', 'firstName lastName username avatarUrl');
+        // Paged filter — adds cursor constraint on top of base
+        const pagedFilter = {
+            ...baseFilter,
+            createdAt: cursor ? { $lt: new Date(cursor) } : { $lte: new Date() },
+        };
 
-        const hasMore = feed.length > limit;
-        const items = hasMore ? feed.slice(0, limit) : feed;
+        const [feedRaw, total] = await Promise.all([
+            Activity.find(pagedFilter)
+                .sort({ createdAt: -1 })
+                .limit(limit + 1) // fetch one extra to determine if there is a next page
+                .populate('userId', 'firstName lastName username avatarUrl'),
+            Activity.countDocuments(baseFilter),
+        ]);
+
+        const hasMore = feedRaw.length > limit;
+        const items = hasMore ? feedRaw.slice(0, limit) : feedRaw;
         const nextCursor = hasMore ? items[items.length - 1].createdAt.toISOString() : null;
 
-        return { feed: items, nextCursor };
+        return { feed: items, nextCursor, total };
     };
 
     // Cache each cursor page for 5 minutes — pages are stable (new items always land above the cursor)
