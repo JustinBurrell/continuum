@@ -13,7 +13,7 @@
 const request = require('supertest');
 const app = require('../../app');
 const { connectTestDb, clearTestDb, closeTestDb } = require('./testDb');
-const { registerAndLogin } = require('./testHelpers');
+const { registerAndLogin, makeFriends } = require('./testHelpers');
 
 beforeAll(connectTestDb);
 afterEach(clearTestDb);
@@ -148,5 +148,55 @@ describe('DELETE /api/tasks/:id', () => {
       .set('Authorization', `Bearer ${bob.token}`);
 
     expect([403, 404]).toContain(res.statusCode);
+  });
+});
+
+// ─── Shared tasks ─────────────────────────────────────────────────────────────
+
+describe('GET /api/tasks/shared', () => {
+  it('returns tasks where current user is a participant but not the owner', async () => {
+    const { alice, bob } = await makeFriends();
+    const tomorrow = new Date(Date.now() + 86_400_000).toISOString();
+
+    // Alice creates a shared task
+    const create = await request(app)
+      .post('/api/tasks')
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ title: 'Shared Task', dueDate: tomorrow, isShared: true });
+
+    const taskId = create.body.task._id;
+
+    // Alice adds Bob as a participant
+    await request(app)
+      .patch(`/api/tasks/${taskId}/participants`)
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ participants: [{ userId: bob.userId }] });
+
+    // Bob fetches shared tasks — should see Alice's task
+    const res = await request(app)
+      .get('/api/tasks/shared')
+      .set('Authorization', `Bearer ${bob.token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.tasks.some(t => t._id === taskId)).toBe(true);
+  });
+
+  it('does not return tasks owned by the requesting user', async () => {
+    const alice = await registerAndLogin();
+    const tomorrow = new Date(Date.now() + 86_400_000).toISOString();
+
+    await request(app)
+      .post('/api/tasks')
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ title: 'My Own Task', dueDate: tomorrow, isShared: true });
+
+    const res = await request(app)
+      .get('/api/tasks/shared')
+      .set('Authorization', `Bearer ${alice.token}`);
+
+    expect(res.statusCode).toBe(200);
+    // Owner's own tasks should NOT appear in /shared
+    expect(res.body.tasks.every(t => t.userId?.toString() !== alice.userId)).toBe(true);
   });
 });

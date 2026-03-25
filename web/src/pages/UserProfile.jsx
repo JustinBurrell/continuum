@@ -123,6 +123,27 @@ export default function UserProfile() {
     return noteUserId === id?.toString();
   });
 
+  // Shared tasks (friend only)
+  const { data: sharedTasksData } = useQuery({
+    queryKey: ['shared-tasks'],
+    queryFn: () => api.get('/tasks/shared').then(r => r.data),
+    enabled: isFriend,
+  });
+  const allSharedTasks = sharedTasksData?.tasks || [];
+  const sharedTasks = allSharedTasks.filter(t => t.userId?.toString() === id?.toString());
+
+  // Shared flashcard sets (friend only)
+  const { data: sharedSetsData } = useQuery({
+    queryKey: ['shared-flashcard-sets'],
+    queryFn: () => api.get('/flashcard-sets/shared').then(r => r.data),
+    enabled: isFriend,
+  });
+  const allSharedSets = sharedSetsData?.sets || [];
+  const sharedSets = allSharedSets.filter(s => {
+    const setUserId = s.userId?._id?.toString() ?? s.userId?.toString();
+    return setUserId === id?.toString();
+  });
+
   // Activity feed filtered to this user (friend only)
   const { data: activityData } = useQuery({
     queryKey: ['activity-feed'],
@@ -395,6 +416,91 @@ export default function UserProfile() {
                       {note.createdAt && (
                         <p style={{ fontSize: 11, color: '#c4b5d4', margin: 0 }}>{formatDate(note.createdAt)}</p>
                       )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Shared tasks */}
+          <section style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, paddingLeft: 2 }}>
+              <CheckSquare size={13} style={{ color: '#a087b0' }} />
+              <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', margin: 0 }}>
+                Shared Tasks
+              </h2>
+            </div>
+
+            {sharedTasks.length === 0 ? (
+              <div style={{ background: '#fff', border: '1px solid #ede9fe', borderRadius: 16, padding: '32px 0', textAlign: 'center' }}>
+                <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>{name} hasn't shared any tasks with you yet.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {sharedTasks.map(task => (
+                  <Link key={task._id} to="/tasks" style={{ textDecoration: 'none' }}>
+                    <div
+                      style={{
+                        background: '#fff', border: '1px solid #ede9fe', borderRadius: 16,
+                        boxShadow: '0 1px 8px rgba(107,33,168,0.06)', padding: '16px 18px',
+                        cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s', height: '100%',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(107,33,168,0.3)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(107,33,168,0.1)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = '#ede9fe'; e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)'; }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                        <p style={{ fontWeight: 700, fontSize: 13, color: '#111827', lineHeight: 1.4, margin: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {task.title || 'Untitled'}
+                        </p>
+                        {task.status && (
+                          <Badge variant={task.status === 'completed' ? 'success' : task.status === 'in_progress' ? 'primary' : 'neutral'} className="text-xs capitalize" style={{ flexShrink: 0 }}>
+                            {task.status.replace('_', ' ')}
+                          </Badge>
+                        )}
+                      </div>
+                      {task.dueDate && (
+                        <p style={{ fontSize: 11, color: '#c4b5d4', margin: 0 }}>Due {formatDate(task.dueDate)}</p>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Shared flashcard sets */}
+          <section style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, paddingLeft: 2 }}>
+              <Layers size={13} style={{ color: '#a087b0' }} />
+              <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', margin: 0 }}>
+                Shared Flashcard Sets
+              </h2>
+            </div>
+
+            {sharedSets.length === 0 ? (
+              <div style={{ background: '#fff', border: '1px solid #ede9fe', borderRadius: 16, padding: '32px 0', textAlign: 'center' }}>
+                <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>{name} hasn't shared any flashcard sets with you yet.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {sharedSets.map(set => (
+                  <Link key={set._id} to="/flashcards/view" state={{ id: set._id }} style={{ textDecoration: 'none' }}>
+                    <div
+                      style={{
+                        background: '#fff', border: '1px solid #ede9fe', borderRadius: 16,
+                        boxShadow: '0 1px 8px rgba(107,33,168,0.06)', padding: '16px 18px',
+                        cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s', height: '100%',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(107,33,168,0.3)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(107,33,168,0.1)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = '#ede9fe'; e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)'; }}
+                    >
+                      <p style={{ fontWeight: 700, fontSize: 13, color: '#111827', lineHeight: 1.4, margin: '0 0 8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {set.title || 'Untitled'}
+                      </p>
+                      <p style={{ fontSize: 11, color: '#c4b5d4', margin: 0 }}>
+                        {set.totalCards ?? set.cardCount ?? 0} cards
+                      </p>
                     </div>
                   </Link>
                 ))}

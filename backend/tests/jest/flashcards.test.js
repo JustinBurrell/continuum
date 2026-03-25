@@ -12,7 +12,7 @@
 const request = require('supertest');
 const app = require('../../app');
 const { connectTestDb, clearTestDb, closeTestDb } = require('./testDb');
-const { registerAndLogin } = require('./testHelpers');
+const { registerAndLogin, makeFriends } = require('./testHelpers');
 
 beforeAll(connectTestDb);
 afterEach(clearTestDb);
@@ -145,5 +145,55 @@ describe('DELETE /api/flashcard-sets/:id', () => {
       .set('Authorization', `Bearer ${bob.token}`);
 
     expect([403, 404]).toContain(res.statusCode);
+  });
+});
+
+// ─── Shared flashcard sets ────────────────────────────────────────────────────
+
+describe('GET /api/flashcard-sets/shared', () => {
+  it('returns sets with friends visibility from accepted friends', async () => {
+    const { alice, bob } = await makeFriends();
+
+    // Alice creates a set then shares it with friends via PATCH /:id/share
+    // (createSet does not accept visibility — use the dedicated share endpoint)
+    const create = await request(app)
+      .post('/api/flashcard-sets')
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ title: 'Shared Set' });
+
+    const setId = create.body.set._id;
+
+    await request(app)
+      .patch(`/api/flashcard-sets/${setId}/share`)
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ visibility: 'friends' });
+
+    // Bob fetches shared sets — should see Alice's set
+    const res = await request(app)
+      .get('/api/flashcard-sets/shared')
+      .set('Authorization', `Bearer ${bob.token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.sets.some(s => s._id === setId)).toBe(true);
+  });
+
+  it('does not return private sets from friends', async () => {
+    const { alice, bob } = await makeFriends();
+
+    // Alice creates a set without sharing — default visibility is 'private'
+    const create = await request(app)
+      .post('/api/flashcard-sets')
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ title: 'Private Set' });
+
+    const setId = create.body.set._id;
+
+    const res = await request(app)
+      .get('/api/flashcard-sets/shared')
+      .set('Authorization', `Bearer ${bob.token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.sets.some(s => s._id === setId)).toBe(false);
   });
 });

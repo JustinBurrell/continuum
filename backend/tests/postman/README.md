@@ -98,6 +98,7 @@ Run top to bottom within each folder. Each creation request auto-sets the ID for
 | Update Progress — Incorrect, No Confidence | `{ "correct": false }` | `200` | ✅ |
 | Delete Card | none | `200` | ✅ |
 | Delete Set | none | `200` | ✅ |
+| Get Shared Sets | none | `200` — returns sets from friends with `friends`/`specific` visibility | |
 | [Error] Generate — Missing Content | `{ "title" }` only | `400` | ✅ |
 | [Error] Add Card — Missing back | `{ "front" }` only | `400` | ✅ |
 | [Error] Update Progress — Non-Boolean correct | `{ "correct": "yes" }` | `400` | ✅ |
@@ -115,6 +116,7 @@ Run top to bottom within each folder. Each creation request auto-sets the ID for
 | Update Status — completed | `{ "status": "completed" }` | `200` — check `completedAt` is set | ✅ |
 | Update Status — back to todo | `{ "status": "todo" }` | `200` — check `completedAt` is null | ✅ |
 | Delete Task | none | `200` | ✅ |
+| Get Shared Tasks | none | `200` — returns tasks shared with the authenticated user | |
 | [Error] Create Task — Missing dueDate | `{ "title", "type" }` only | `400` | ✅ |
 | [Error] Update Status — Invalid Value | `{ "status": "done" }` | `400` | ✅ |
 
