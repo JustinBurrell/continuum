@@ -741,6 +741,7 @@ Run folders top to bottom. Folder 0 must run first.
 | Get Activity Feed — Search by Comment Preview | query: `?search=<word from a comment>` | `200` — matching `comment_added` activities returned | |
 | Get Activity Feed — Search Miss | query: `?search=zzznomatchzzz` | `200` — empty `feed` array, `total: 0` | |
 | Get Activity Feed — Search with Pagination | query: `?search=<keyword>&limit=5&offset=0` | `200` — paginated search results | |
+| Get Activity Feed — Since param (unseen count) | query: `?since=2025-01-01T00:00:00.000Z` | `200` — `total` reflects only activities after the timestamp; `feed` is unaffected | |
 | [Error] Get Activity Feed — No Token | none | `401` | |
 
 ### 7. Resumes — Search

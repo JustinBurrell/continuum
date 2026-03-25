@@ -27,7 +27,7 @@ Seed scripts for dev data live in `tests/mongodb/`.
 | Flashcard Sets | `flashcards.test.js` | Create set, add card, ownership isolation, shared sets (friends visibility, private exclusion) |
 | Applications | `applications.test.js` | Create, read, update status, delete (owner-only) |
 | Messages | `messages.test.js` | Friend flow → create conversation → send message → read messages, non-participant blocked, message delete (soft, per-user), conversation delete (Instagram-style) |
-| Activity | `activity.test.js` | Feed accessible when authenticated, blocked when not |
+| Activity | `activity.test.js` | Feed accessible when authenticated, blocked when not; `since` param returns `total` ≤ full total; `nextCursor` present in response |
 
 ### How it works
 
