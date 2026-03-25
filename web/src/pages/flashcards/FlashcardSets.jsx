@@ -11,9 +11,11 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import FlashcardSetsSkeleton from '@/components/skeletons/FlashcardSetsSkeleton';
 import Skeleton from '@/components/ui/Skeleton';
 import Badge from '@/components/ui/Badge';
+import { useAuth } from '@/context/AuthContext';
 import { formatRelative } from '@/lib/utils';
 
 export default function FlashcardSets() {
+  const { user } = useAuth();
   const [deleteConfirm, setDeleteConfirm] = useState(null); // set._id to delete
   const [showCreate, setShowCreate] = useState(false);
   const [newSet, setNewSet] = useState({ title: '', description: '', subject: '' });
@@ -57,24 +59,26 @@ export default function FlashcardSets() {
             {sets.length} {sets.length === 1 ? 'set' : 'sets'}
           </p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          style={{
-            background: '#6b21a8',
-            color: 'white',
-            padding: '8px 16px',
-            borderRadius: 12,
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            cursor: 'pointer',
-            border: 'none',
-          }}
-        >
-          <Plus size={15} /> New set
-        </button>
+        {!user?.isDemo && (
+          <button
+            onClick={() => setShowCreate(true)}
+            style={{
+              background: '#6b21a8',
+              color: 'white',
+              padding: '8px 16px',
+              borderRadius: 12,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'pointer',
+              border: 'none',
+            }}
+          >
+            <Plus size={15} /> New set
+          </button>
+        )}
       </div>
 
       {/* Search */}

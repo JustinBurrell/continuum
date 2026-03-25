@@ -64,6 +64,12 @@ const authMiddleware = async (req, res, next) => {
 
     // Attach user to request so controllers can access req.user
     req.user = user;
+
+    // Block all write operations for the demo account — it is read-only
+    if (user.isDemo && !['GET', 'HEAD'].includes(req.method)) {
+        return res.status(403).json({ success: false, error: 'Demo account is read-only.' });
+    }
+
     next();
 };
 

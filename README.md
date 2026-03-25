@@ -14,6 +14,17 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 >
 > **Screenshots:** *coming soon*
 
+### Try it yourself
+
+Explore Continuum with the pre-loaded demo account — no sign-up required:
+
+| Field | Value |
+|-------|-------|
+| Email | `janedoe_demo@example.com` |
+| Password | `Demo@1234` |
+
+The demo account comes pre-loaded with notes, flashcard sets, tasks, job applications, messages, and social content so you can explore every feature. Content is **read-only** — any changes you make won't affect other visitors' experience.
+
 ---
 
 ## What it does

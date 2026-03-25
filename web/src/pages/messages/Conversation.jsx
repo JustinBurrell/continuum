@@ -438,49 +438,55 @@ export default function Conversation({ conversationId }) {
       </div>
 
       {/* Input bar */}
-      <div style={{ flexShrink: 0, display: 'flex', gap: 10, padding: '12px 16px', borderTop: '1px solid #ede9fe', background: '#fff', alignItems: 'center' }}>
-        <input
-          type="text"
-          placeholder="Message..."
-          value={message}
-          onChange={e => setMessage(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
-          }}
-          style={{
-            flex: 1,
-            padding: '10px 18px',
-            borderRadius: 24,
-            border: '1px solid #ede9fe',
-            background: '#fef7ff',
-            fontSize: 14,
-            color: '#111827',
-            outline: 'none',
-            transition: 'border-color 0.15s',
-          }}
-          onFocus={e => e.target.style.borderColor = '#6b21a8'}
-          onBlur={e => e.target.style.borderColor = '#ede9fe'}
-        />
-        <button
-          onClick={handleSend}
-          disabled={!message.trim() || sendMutation.isPending}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            background: message.trim() ? '#6b21a8' : '#f5f0ff',
-            border: 'none',
-            cursor: message.trim() ? 'pointer' : 'default',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            transition: 'background 0.15s',
-          }}
-        >
-          <Send size={16} style={{ color: message.trim() ? '#fff' : '#a087b0' }} />
-        </button>
-      </div>
+      {user?.isDemo ? (
+        <div style={{ flexShrink: 0, padding: '12px 16px', borderTop: '1px solid #ede9fe', background: '#fef7ff', textAlign: 'center' }}>
+          <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>Messaging is view-only in the demo account.</p>
+        </div>
+      ) : (
+        <div style={{ flexShrink: 0, display: 'flex', gap: 10, padding: '12px 16px', borderTop: '1px solid #ede9fe', background: '#fff', alignItems: 'center' }}>
+          <input
+            type="text"
+            placeholder="Message..."
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+            }}
+            style={{
+              flex: 1,
+              padding: '10px 18px',
+              borderRadius: 24,
+              border: '1px solid #ede9fe',
+              background: '#fef7ff',
+              fontSize: 14,
+              color: '#111827',
+              outline: 'none',
+              transition: 'border-color 0.15s',
+            }}
+            onFocus={e => e.target.style.borderColor = '#6b21a8'}
+            onBlur={e => e.target.style.borderColor = '#ede9fe'}
+          />
+          <button
+            onClick={handleSend}
+            disabled={!message.trim() || sendMutation.isPending}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              background: message.trim() ? '#6b21a8' : '#f5f0ff',
+              border: 'none',
+              cursor: message.trim() ? 'pointer' : 'default',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              transition: 'background 0.15s',
+            }}
+          >
+            <Send size={16} style={{ color: message.trim() ? '#fff' : '#a087b0' }} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

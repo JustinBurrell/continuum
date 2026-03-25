@@ -161,9 +161,11 @@ export default function Tasks() {
           </h1>
           <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>{allTasks.length} tasks</p>
         </div>
-        <Button onClick={() => setShowCreate(true)}>
-          <Plus size={16} /> New task
-        </Button>
+        {!user?.isDemo && (
+          <Button onClick={() => setShowCreate(true)}>
+            <Plus size={16} /> New task
+          </Button>
+        )}
       </div>
 
       {/* Search */}

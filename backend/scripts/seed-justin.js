@@ -16,7 +16,7 @@ const {
 } = require('../models');
 const { generateSummary, generateFlashcards } = require('../services/groq.service');
 const { sendShareMessage } = require('../services/share.service');
-const seedData = require('./seed-data');
+const seedData = require('./seed-justin-data');
 
 const CLEAN = process.argv.includes('--clean');
 const NO_AI = process.argv.includes('--no-ai');
@@ -271,7 +271,7 @@ async function seedFriends() {
   for (const data of SEED_FRIENDS) {
     let user = await User.findOne({ username: data.username });
     if (!user) {
-      user = new User(data);
+      user = new User({ ...data, isSeedUser: true });
       await user.save();
       console.log(`  Created user: ${data.username}`);
     } else {
@@ -292,7 +292,7 @@ async function seedStrangers() {
   for (const data of SEED_STRANGERS) {
     const existing = await User.findOne({ username: data.username });
     if (!existing) {
-      await new User(data).save();
+      await new User({ ...data, isSeedUser: true }).save();
       created++;
     }
   }
