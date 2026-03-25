@@ -12,7 +12,20 @@ const authMiddleware = require('../middleware/auth.middleware');
 
 router.use(authMiddleware);
 
-// List the authenticated user's Google Drive files (Docs only)
+/**
+ * @swagger
+ * /api/google/files:
+ *   get:
+ *     summary: List the authenticated user's Google Docs from Drive
+ *     tags: [Google]
+ *     responses:
+ *       200:
+ *         description: Returns array of Google Doc files (id, name, modifiedTime)
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: Google account not linked — connect Google in Integrations settings
+ */
 router.get('/files', googleController.listFiles);
 
 module.exports = router;

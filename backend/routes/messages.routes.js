@@ -14,6 +14,28 @@ const validateObjectId = require('../middleware/validateObjectId');
 router.use(authMiddleware);
 router.param('id', validateObjectId);
 
+/**
+ * @swagger
+ * /api/messages/{id}/read:
+ *   put:
+ *     summary: Mark a message as read
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: Message ID
+ *     responses:
+ *       200:
+ *         description: Message marked as read
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: Not a participant in this conversation
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ */
 router.put('/:id/read', messagesController.markAsRead);
 
 module.exports = router;

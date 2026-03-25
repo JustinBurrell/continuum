@@ -4,7 +4,9 @@ const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const mongoSanitize = require('mongo-sanitize');
 const pinoHttp = require('pino-http');
+const swaggerUi = require('swagger-ui-express');
 const logger = require('./lib/logger');
+const swaggerSpec = require('./lib/swagger');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const passport = require('./config/passport');
 
@@ -56,6 +58,9 @@ app.use('/api/conversations', require('./routes/conversations.routes'));
 app.use('/api/messages', require('./routes/messages.routes'));
 app.use('/api/activity', require('./routes/activity.routes'));
 app.use('/api/sync', require('./routes/sync.routes'));
+
+// API docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Health check
 app.get('/health', (req, res) => {

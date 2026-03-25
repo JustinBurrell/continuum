@@ -12,6 +12,26 @@ const authMiddleware = require('../middleware/auth.middleware');
 
 router.use(authMiddleware);
 
+/**
+ * @swagger
+ * /api/activity:
+ *   get:
+ *     summary: Get the activity feed for the authenticated user and their friends
+ *     tags: [Activity]
+ *     parameters:
+ *       - in: query
+ *         name: cursor
+ *         schema: { type: string }
+ *         description: Cursor (createdAt ISO timestamp) for pagination
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Returns paginated activity feed with nextCursor
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
 router.get('/', activityController.getActivityFeed);
 
 module.exports = router;
