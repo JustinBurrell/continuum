@@ -1,8 +1,18 @@
 # Continuum
 
+![Node.js](https://img.shields.io/badge/Node.js-24-green?logo=node.js) ![Express](https://img.shields.io/badge/Express-5-black?logo=express) ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green?logo=mongodb) ![React](https://img.shields.io/badge/React-18-blue?logo=react) ![Vite](https://img.shields.io/badge/Vite-6-purple?logo=vite) ![CI](https://github.com/JustinBurrell/continuum/actions/workflows/ci.yml/badge.svg)
+
 Continuum is a full-stack educational productivity platform built for college students. It combines note-taking, AI-powered study tools, task management, social features, and career tracking into a single cohesive product.
 
 Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubator with Google Play.
+
+---
+
+## Demo
+
+> **Live app:** _coming soon_
+>
+> **Screenshots:** _coming soon_
 
 ---
 
@@ -55,6 +65,18 @@ continuum/
 
 ---
 
+## API docs
+
+Interactive API browser (Swagger UI) — every endpoint, request/response schema, and live "Try it out":
+
+```
+http://localhost:5001/api-docs
+```
+
+Start the backend, open that URL, click **Authorize**, paste a JWT, and execute any endpoint directly from the browser.
+
+---
+
 ## Getting started
 
 ### Backend
@@ -63,7 +85,7 @@ continuum/
 cd backend
 npm install
 cp .env.example .env   # fill in MONGO_URI, JWT_SECRET, GROQ_API_KEY, etc.
-npm run dev
+npm run dev            # starts on http://localhost:5001
 ```
 
 ### Web
@@ -71,6 +93,15 @@ npm run dev
 ```bash
 cd web
 npm install
-cp .env.example .env   # fill in VITE_API_URL
+cp .env.example .env   # set VITE_API_URL=http://localhost:5001
 npm run dev
 ```
+
+### Tests
+
+```bash
+cd backend
+npm test
+```
+
+Jest + Supertest integration suite covering auth, notes, tasks, flashcards, applications, messages, and activity. Uses an in-memory MongoDB — no Atlas connection needed.

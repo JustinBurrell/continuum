@@ -12,7 +12,8 @@ Full diagram set — architecture, real-time flow, auth flow, scaling path — a
 
 ```
 backend/
-  server.js          Entry point, middleware stack, route registration
+  server.js          Entry point — connects DB, binds Socket.io, starts HTTP server
+  app.js             Express app — middleware stack and route registration (imported by server.js and tests)
   config/            MongoDB connection, Passport strategy, Groq client
   controllers/       Request handlers, one file per resource
   routes/            Express routers, one file per resource
@@ -22,6 +23,11 @@ backend/
   lib/
     socket.js        Socket.io server — JWT auth, user:id rooms, getIO()
     cache.js         Redis helpers — getOrSet / invalidate, no-op fallback
+    swagger.js       OpenAPI spec — swagger-jsdoc config, served at /api-docs
+  tests/
+    jest/            Integration test suites (Jest + Supertest + mongodb-memory-server)
+    mongodb/         MongoDB seed and migration scripts
+    postman/         Postman collections and environment files
   scripts/           One-off scripts (seeding, migrations)
 ```
 
@@ -148,12 +154,30 @@ GOOGLE_TOKEN_ENCRYPTION_KEY     # optional — AES-256-GCM key for Google OAuth 
 
 ---
 
+## API docs
+
+Interactive Swagger UI served at `/api-docs` when the server is running:
+
+```
+http://localhost:5001/api-docs
+```
+
+Every endpoint is documented with request/response schemas and live execution support.
+
+---
+
 ## Running locally
 
 ```bash
 npm install
 cp .env.example .env
-npm run dev
+npm run dev        # starts on http://localhost:5001
 ```
 
 Health check: `GET /health`
+
+Run tests:
+
+```bash
+npm test
+```

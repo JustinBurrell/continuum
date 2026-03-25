@@ -121,7 +121,7 @@ Radix UI primitives are used for accessibility-critical interactions (modals, dr
 
 ```bash
 npm install
-cp .env.example .env   # set VITE_API_URL=http://localhost:5000
+cp .env.example .env   # set VITE_API_URL=http://localhost:5001
 npm run dev
 ```
 
