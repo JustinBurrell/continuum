@@ -9,7 +9,7 @@
  */
 
 const request = require('supertest');
-const app = require('../app');
+const app = require('../../app');
 const { connectTestDb, clearTestDb, closeTestDb } = require('./testDb');
 const { registerAndLogin } = require('./testHelpers');
 

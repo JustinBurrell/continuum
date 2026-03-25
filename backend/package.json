@@ -11,9 +11,9 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/tests/**/*.test.js"],
+    "testMatch": ["**/tests/jest/**/*.test.js"],
     "testTimeout": 30000,
-    "setupFiles": ["./tests/setup.js"]
+    "setupFiles": ["./tests/jest/setup.js"]
   },
   "keywords": [],
   "author": "",
