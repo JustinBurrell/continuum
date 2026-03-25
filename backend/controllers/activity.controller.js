@@ -23,7 +23,7 @@ exports.getActivityFeed = async (req, res) => {
 
     const userId = req.user._id;
     const useCache = !search;
-    const cacheKey = `activity:${userId}:${cursor || 'first'}`;
+    const cacheKey = `activity:${userId}:${cursor || 'first'}:${limit}`;
 
     const fetchFeed = async () => {
         // Base filter — no cursor constraint, used for the total count
