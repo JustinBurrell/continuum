@@ -1,5 +1,8 @@
 const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 
+// Bypass all rate limiting in test environment
+const skip = () => process.env.NODE_ENV === 'test';
+
 // ============================================================
 // RATE LIMITER MIDDLEWARE
 // Purpose: Prevent brute-force attacks on auth endpoints and
@@ -10,6 +13,7 @@ const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 exports.authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 10,
+    skip,
     message: { success: false, error: 'Too many attempts. Try again in 15 minutes.' },
     standardHeaders: true,
     legacyHeaders: false,
@@ -19,6 +23,7 @@ exports.authLimiter = rateLimit({
 exports.apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 300,
+    skip,
     message: { success: false, error: 'Too many requests. Please slow down.' },
     standardHeaders: true,
     legacyHeaders: false,
@@ -29,6 +34,7 @@ exports.apiLimiter = rateLimit({
 exports.perUserWriteLimit = rateLimit({
     windowMs: 60 * 1000, // 1 minute
     max: 30,
+    skip,
     keyGenerator: (req) => req.user?._id?.toString() || ipKeyGenerator(req),
     message: { success: false, error: 'Too many requests. Please slow down.' },
     standardHeaders: true,
@@ -39,6 +45,7 @@ exports.perUserWriteLimit = rateLimit({
 exports.aiRateLimit = rateLimit({
     windowMs: 60 * 1000, // 1 minute
     max: 5,
+    skip,
     keyGenerator: (req) => req.user?._id?.toString() || ipKeyGenerator(req),
     message: { success: false, error: 'Too many AI requests. Please wait a moment.' },
     standardHeaders: true,
