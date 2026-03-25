@@ -34,7 +34,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 ![System Architecture](docs/system-design/system-architecture.png)
 
-See [docs/backend/system-design.md](docs/backend/system-design.md) for the full diagram set including the write/real-time flow, auth flow, and scaling path.
+See [docs/backend/system-design.md](docs/backend/system-design.md) for the full diagram set including the write/real-time flow, auth flow, production deployment, and scaling path.
 
 ---
 

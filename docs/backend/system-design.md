@@ -2,6 +2,8 @@
 
 View at [mermaid.live](https://mermaid.live) or in VS Code with the Mermaid extension.
 
+![System Architecture](../../docs/system-design/system-architecture.png)
+
 ```mermaid
 flowchart TB
     subgraph CLIENT["Browser — React 18 (Vercel)"]
@@ -93,6 +95,8 @@ flowchart TB
 
 Shows what happens when User A shares a task with User B.
 
+![Write + Real-Time Flow](../../docs/system-design/write-realtime-flow.png)
+
 ```mermaid
 sequenceDiagram
     participant UA as User A (Browser)
@@ -132,6 +136,8 @@ sequenceDiagram
 
 ## Auth Flow
 
+![Auth Flow](../../docs/system-design/auth-flow.png)
+
 ```mermaid
 flowchart LR
     subgraph EMAIL["Email / Password"]
@@ -162,6 +168,8 @@ flowchart LR
 
 ## Production Deployment
 
+![Production Deployment](../../docs/system-design/production-deployment.png)
+
 ```mermaid
 flowchart TB
     subgraph PROD["Production Stack"]
@@ -189,6 +197,8 @@ flowchart TB
 ---
 
 ## Scaling Path
+
+![Scaling Path](../../docs/system-design/scaling-path.png)
 
 ```mermaid
 flowchart TB
