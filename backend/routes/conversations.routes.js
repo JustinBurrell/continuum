@@ -58,6 +58,31 @@ router.get('/', conversationsController.getConversations);
 
 /**
  * @swagger
+ * /api/conversations/{id}:
+ *   delete:
+ *     summary: Delete a conversation for the current user (Instagram-style)
+ *     description: Hides the conversation from the current user's inbox. The other participant is unaffected and still sees the conversation.
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: Conversation ID
+ *     responses:
+ *       200:
+ *         description: Conversation hidden for this user
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: Not a participant in this conversation
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ */
+router.delete('/:id', conversationsController.deleteConversation);
+
+/**
+ * @swagger
  * /api/conversations/{id}/messages:
  *   post:
  *     summary: Send a message in a conversation

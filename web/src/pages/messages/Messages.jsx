@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { MessageCircle, Plus, Search } from 'lucide-react';
+import { MessageCircle, Plus, Search, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
@@ -33,6 +33,24 @@ export default function Messages() {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setShowNew(false);
     },
+  });
+
+  const deleteConvMutation = useMutation({
+    mutationFn: (convId) => api.delete(`/conversations/${convId}`),
+    onMutate: async (convId) => {
+      await queryClient.cancelQueries({ queryKey: ['conversations', convSearch] });
+      const prev = queryClient.getQueryData(['conversations', convSearch]);
+      queryClient.setQueryData(['conversations', convSearch], (old) => {
+        if (!old) return old;
+        const conversations = old.conversations || old.data || [];
+        return { ...old, conversations: conversations.filter(c => c._id !== convId) };
+      });
+      return { prev };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['conversations', convSearch], ctx.prev);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['conversations'] }),
   });
 
   const conversations = data?.conversations || data?.data || [];
@@ -112,7 +130,8 @@ export default function Messages() {
             const hasUnread = conv.unreadCount > 0;
 
             return (
-              <Link key={conv._id} to={`/messages/${conv._id}`} style={{ textDecoration: 'none' }}>
+              <div key={conv._id} className="group" style={{ position: 'relative' }}>
+                <Link to={`/messages/${conv._id}`} style={{ textDecoration: 'none' }}>
                 <div
                   style={{
                     background: hasUnread ? '#fef7ff' : '#fff',
@@ -203,6 +222,24 @@ export default function Messages() {
                   )}
                 </div>
               </Link>
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteConvMutation.mutate(conv._id); }}
+                  className="opacity-0 group-hover:opacity-100"
+                  style={{
+                    position: 'absolute', top: '50%', right: 12, transform: 'translateY(-50%)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: 28, height: 28, borderRadius: 8, border: 'none',
+                    background: '#fff', color: '#c4b5d4', cursor: 'pointer',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                    transition: 'color 0.12s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#dc2626'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#c4b5d4'}
+                  title="Delete conversation"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
             );
           })}
         </div>

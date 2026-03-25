@@ -7,8 +7,9 @@ const { getIO } = require('../lib/socket');
 // CONVERSATIONS CONTROLLER
 // Purpose: Handle all messaging endpoints — conversations and messages
 // Routes:
-//   POST   /api/conversations             — start or get existing conversation
-//   GET    /api/conversations             — list user's inbox
+//   POST   /api/conversations              — start or get existing conversation
+//   GET    /api/conversations              — list user's inbox
+//   DELETE /api/conversations/:id          — soft-delete conversation for current user only
 //   POST   /api/conversations/:id/messages — send a message
 //   GET    /api/conversations/:id/messages — get messages (paginated)
 // ============================================================
@@ -40,10 +41,11 @@ exports.startConversation = async (req, res) => {
     // Sort IDs to create a canonical pair — prevents [A,B] vs [B,A] duplicates
     const participants = [userId, participantId].sort();
 
-    // Check if conversation already exists
+    // Check if an active (not deleted for this user) conversation already exists
     const existing = await Conversation.findOne({
         participants: { $all: participants },
         deletedAt: null,
+        deletedFor: { $ne: userId },
     }).populate('participants', 'username firstName lastName avatarUrl');
 
     if (existing) {
@@ -72,7 +74,7 @@ exports.getConversations = async (req, res) => {
     const userId = req.user._id;
     const { search } = req.query;
 
-    const filter = { participants: userId, deletedAt: null };
+    const filter = { participants: userId, deletedAt: null, deletedFor: { $ne: userId } };
 
     if (search) {
         const User = require('../models/User');
@@ -90,6 +92,35 @@ exports.getConversations = async (req, res) => {
         .sort({ 'lastMessage.sentAt': -1, createdAt: -1 });
 
     res.status(200).json({ success: true, conversations });
+};
+
+// ----------------------------------------
+// deleteConversation
+// Purpose: Instagram-style per-user delete — hides conversation from the current
+//          user's inbox without affecting the other participant's view
+// ----------------------------------------
+exports.deleteConversation = async (req, res) => {
+    const { id: conversationId } = req.params;
+    const userId = req.user._id;
+
+    const conversation = await Conversation.findOne({ _id: conversationId, deletedAt: null });
+    if (!conversation) {
+        return res.status(404).json({ success: false, error: 'Conversation not found' });
+    }
+
+    const isParticipant = conversation.participants.some(
+        (p) => p.toString() === userId.toString()
+    );
+    if (!isParticipant) {
+        return res.status(403).json({ success: false, error: 'You are not a participant in this conversation' });
+    }
+
+    if (!conversation.deletedFor.some((id) => id.toString() === userId.toString())) {
+        conversation.deletedFor.push(userId);
+        await conversation.save();
+    }
+
+    res.status(200).json({ success: true });
 };
 
 // ----------------------------------------

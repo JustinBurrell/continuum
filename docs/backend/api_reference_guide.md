@@ -144,10 +144,12 @@ Sharing activities are personalized: the sharer's feed shows who they shared wit
 ## Direct Messaging
 
 ### **Conversations**
-- `POST /api/conversations` - Create or retrieve conversation with a user (find-or-create)
-- `GET /api/conversations` - List user's conversations (inbox), sorted by latest message. Supports `?search=` for participant name (firstName/lastName/username) — two-step lookup matches users first, then filters conversations.
+- `POST /api/conversations` - Create or retrieve conversation with a user (find-or-create). Skips conversations the current user has soft-deleted.
+- `GET /api/conversations` - List user's conversations (inbox), sorted by latest message. Supports `?search=` for participant name. Excludes conversations soft-deleted for the current user.
+- `DELETE /api/conversations/:id` - Instagram-style soft delete — hides conversation from current user's inbox; other participant is unaffected.
 - `POST /api/conversations/:conversationId/messages` - Send a message in a conversation
 - `GET /api/conversations/:conversationId/messages` - List messages (cursor pagination via `?limit=&before=`). Supports `?search=` for content regex match; polling is disabled on the frontend while search is active.
+- `DELETE /api/messages/:messageId` - Instagram-style soft delete — hides message from current user's view only; other participant unaffected.
 - `PUT /api/messages/:messageId/read` - Mark message as read, reset unread count
 
 ---

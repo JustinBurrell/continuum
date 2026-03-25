@@ -210,3 +210,69 @@ describe('Messages in a conversation', () => {
     expect([401, 403, 404]).toContain(res.statusCode);
   });
 });
+
+// ─── Delete conversation ──────────────────────────────────────────────────────
+
+describe('DELETE /api/conversations/:id', () => {
+  async function makeConversation() {
+    const { alice, bob } = await makeFriends();
+    const res = await request(app)
+      .post('/api/conversations')
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ participantId: bob.userId });
+    return { alice, bob, convId: res.body.conversation._id };
+  }
+
+  it('hides conversation for the deleting user but not the other participant', async () => {
+    const { alice, bob, convId } = await makeConversation();
+
+    const del = await request(app)
+      .delete(`/api/conversations/${convId}`)
+      .set('Authorization', `Bearer ${alice.token}`);
+
+    expect(del.statusCode).toBe(200);
+    expect(del.body.success).toBe(true);
+
+    // Alice no longer sees it in her inbox
+    const aliceInbox = await request(app)
+      .get('/api/conversations')
+      .set('Authorization', `Bearer ${alice.token}`);
+    const aliceIds = aliceInbox.body.conversations.map((c) => c._id);
+    expect(aliceIds).not.toContain(convId);
+
+    // Bob still sees it in his inbox
+    const bobInbox = await request(app)
+      .get('/api/conversations')
+      .set('Authorization', `Bearer ${bob.token}`);
+    const bobIds = bobInbox.body.conversations.map((c) => c._id);
+    expect(bobIds).toContain(convId);
+  });
+
+  it('returns 403 when a non-participant tries to delete', async () => {
+    const { convId } = await makeConversation();
+    const eve = await registerAndLogin();
+
+    const res = await request(app)
+      .delete(`/api/conversations/${convId}`)
+      .set('Authorization', `Bearer ${eve.token}`);
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('after alice deletes, starting a new DM with bob creates a fresh conversation', async () => {
+    const { alice, bob, convId } = await makeConversation();
+
+    await request(app)
+      .delete(`/api/conversations/${convId}`)
+      .set('Authorization', `Bearer ${alice.token}`);
+
+    const newConv = await request(app)
+      .post('/api/conversations')
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ participantId: bob.userId });
+
+    expect([200, 201]).toContain(newConv.statusCode);
+    // Should be a new conversation, not the deleted one
+    expect(newConv.body.conversation._id).not.toBe(convId);
+  });
+});
