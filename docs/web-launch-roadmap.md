@@ -162,24 +162,41 @@ Implemented and reverted. The socket-based notification round-trip (enqueue → 
 
 ---
 
-## 11. Hosting + Deployment Config → `chore/deploy-config`
+## 11. Hosting + Deployment Config → `chore/deploy-config` — IN PROGRESS
 
 [future-ideas/scale-readiness.md](future-ideas/scale-readiness.md) — item 7
 [future-ideas/pre-deployment-checklist.md](future-ideas/pre-deployment-checklist.md) — sections 11–13
 [future-ideas/websocket-deployment-notes.md](future-ideas/websocket-deployment-notes.md)
 
-- **Frontend** — deploy `web/dist/` to Vercel, Netlify, or Cloudflare Pages (CDN edge caching included)
-- **Backend** — deploy to Railway, Render, or Fly.io
-- Verify HTTPS end to end
-- Lock MongoDB Atlas Network Access to server static IP
-- Set `NODE_ENV=production`
-- Set spend alerts on Groq, Atlas, Cloudinary, and Resend
-- Confirm WebSocket support and sticky sessions on chosen host
-- **F-H3** — Self-host Google Fonts or add SRI hashes (deferred from step 3)
-- **F-C1** — Migrate refresh token from localStorage to httpOnly cookie — requires backend `Set-Cookie` coordination (deferred from step 3)
-- **F-C3** — AuthCallback one-time code exchange instead of JWT in URL — requires backend C3 fix (deferred from step 3)
-- Update `docs/backend/system-design.md` diagrams to reflect final production architecture
-- Update `docs/database/schema_diagram.md` and regenerate `database_schema.png` if schema changed during launch prep
+**Stack chosen:** Vercel (frontend) + Render Starter (backend) + Upstash Redis
+
+### Phase A — Deploy (do first, in order)
+- ~~**Upstash Redis** — create database, copy `rediss://` URL for Render env var~~
+- ~~**Render** — web service, root dir `backend/`, start `node server.js`, all env vars set (`NODE_ENV=production`, `MONGODB_URI` → `/prod`, `JWT_SECRET`, `GOOGLE_*`, `GROQ_API_KEY`, `CLOUDINARY_*`, `RESEND_API_KEY`, `REDIS_URL`, `GOOGLE_TOKEN_ENCRYPTION_KEY`, `FRONTEND_URL`)~~
+- ~~**Vercel** — root dir `web/`, build `npm run build`, output `dist`, `VITE_API_URL` → Render URL, `vercel.json` rewrite added~~
+- ~~**Update `FRONTEND_URL` on Render** → `https://continuum-web.vercel.app` after Vercel URL is known~~
+- ~~**Google Cloud Console** — add Render callback URL to Authorized redirect URIs, add Vercel URL to Authorized JavaScript origins~~
+
+### Phase B — Verify (once both services are green)
+- [ ] Open `https://continuum-web.vercel.app` — confirm app loads, HTTPS on both frontend and backend
+- [ ] Test login (email + password) and Google OAuth end to end
+- [ ] Test core features: notes, tasks, flashcards, applications
+- [ ] Test real-time: send a message, confirm WebSocket delivery (confirms Render WebSocket + Upstash Redis adapter)
+- [ ] `NODE_ENV=production` — already set; confirm rate limiting is active (auth endpoints should 429 after 10 rapid attempts)
+
+### Phase C — Security hardening (code changes)
+- [ ] **F-H3** — Self-host Google Fonts: download Inter + Geist (or whichever fonts are loaded from `fonts.googleapis.com`) into `web/public/fonts/`, update `index.html` to use local paths, remove external font `<link>` tags
+- [ ] **F-C1** — Migrate refresh token from localStorage to httpOnly cookie: backend sets `Set-Cookie: refreshToken=<token>; HttpOnly; Secure; SameSite=Strict` on login/refresh, new `POST /api/auth/refresh` reads cookie, frontend interceptor calls that endpoint instead of reading localStorage, logout calls backend to clear cookie
+- [ ] **F-C3** — AuthCallback one-time code exchange: on Google OAuth success backend issues a short-lived one-time code (store in Redis, TTL 60s) and redirects to `FRONTEND_URL/auth/callback?code=<code>`, `AuthCallback.jsx` POSTs the code to a new `POST /api/auth/exchange` endpoint which returns the JWT and sets the httpOnly refresh cookie, code is deleted after use — prevents JWT from appearing in browser history/server logs
+
+### Phase D — Docs
+- [ ] Update `docs/backend/system-design.md` — replace placeholder hosting options with Vercel + Render + Upstash, add architecture diagram notes
+- [ ] Update `docs/database/schema_diagram.md` — confirm schema matches current models (no changes expected)
+
+### Phase E — Config (quick, no code)
+- [ ] **Spend alerts** — set billing alerts in Groq, Atlas, Cloudinary, and Resend dashboards
+- [ ] **MongoDB Atlas Network Access** — Render Starter has no static outbound IP; leave `0.0.0.0/0` for now, revisit when upgrading Render tier
+- [ ] **Sticky sessions** — not required; Redis Socket.io adapter handles multi-instance delivery
 
 **When done:** delete `docs/future-ideas/scale-readiness.md`, `docs/future-ideas/websocket-deployment-notes.md`, `docs/future-ideas/pre-deployment-checklist.md`
 
