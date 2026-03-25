@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, forwardRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   Camera, LinkIcon, Unlink, LogOut,
@@ -202,7 +203,7 @@ function AvatarCropModal({ file, onSave, onClose }) {
     }, 'image/png');
   };
 
-  return (
+  return createPortal(
     <div style={{
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
@@ -249,7 +250,8 @@ function AvatarCropModal({ file, onSave, onClose }) {
           <Button style={{ flex: 1 }} onClick={handleCrop}>Save photo</Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -259,7 +261,7 @@ function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading 
   const [showPw, setShowPw] = useState(false);
   const usernameMatch = usernameInput.trim().toLowerCase() === username?.toLowerCase();
 
-  return (
+  return createPortal(
     <div style={{
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
@@ -347,7 +349,8 @@ function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading 
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
