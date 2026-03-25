@@ -181,3 +181,5 @@ Run tests:
 ```bash
 npm test
 ```
+
+57 tests across 7 suites (auth, notes, tasks, flashcards, applications, messages, activity). See [`tests/jest/README.md`](tests/jest/README.md) for suite details, how the in-memory database works, and how to add new tests.

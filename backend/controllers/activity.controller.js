@@ -18,66 +18,84 @@ const { getOrSet } = require('../lib/cache');
 // ----------------------------------------
 exports.getActivityFeed = async (req, res) => {
     const limit = Math.min(Number(req.query.limit) || 20, 50);
-    const cursor = req.query.cursor || null;
+    const rawCursor = req.query.cursor || null;
     const { search } = req.query;
 
     const userId = req.user._id;
     const useCache = !search;
-    const cacheKey = `activity:${userId}:${cursor || 'first'}:${limit}`;
+
+    // Cursor is a compound "ISO|objectId" string so duplicate createdAt timestamps
+    // don't cause items to be skipped between pages.
+    let cursorTs = null;
+    let cursorId = null;
+    if (rawCursor) {
+        const sep = rawCursor.lastIndexOf('|');
+        cursorTs = new Date(rawCursor.slice(0, sep));
+        cursorId = rawCursor.slice(sep + 1);
+    }
+
+    const cacheKey = `activity:${userId}:${rawCursor || 'first'}:${limit}`;
+
+    // Base filter — no cursor constraint, used for the total count
+    const baseFilter = {
+        $or: [
+            { visibleTo: userId },
+            { isPublic: true },
+        ],
+    };
+
+    if (search) {
+        const User = require('../models/User');
+        const regex = { $regex: search, $options: 'i' };
+        const matchingUsers = await User.find({
+            $or: [{ firstName: regex }, { lastName: regex }, { username: regex }],
+        }).select('_id');
+        const matchingUserIds = matchingUsers.map(u => u._id);
+
+        baseFilter.$and = [{
+            $or: [
+                { 'metadata.noteTitle': regex },
+                { 'metadata.setTitle': regex },
+                { 'metadata.taskTitle': regex },
+                { 'metadata.commentPreview': regex },
+                ...(matchingUserIds.length > 0 ? [{ userId: { $in: matchingUserIds } }] : []),
+            ],
+        }];
+    }
 
     const fetchFeed = async () => {
-        // Base filter — no cursor constraint, used for the total count
-        const baseFilter = {
-            $or: [
-                { visibleTo: userId },
-                { isPublic: true },
-            ],
-        };
+        // Compound cursor: items strictly before the cursor timestamp,
+        // OR same timestamp but with a smaller _id — handles duplicate createdAt values.
+        const cursorFilter = cursorTs
+            ? { $or: [
+                { createdAt: { $lt: cursorTs } },
+                { createdAt: cursorTs, _id: { $lt: cursorId } },
+            ]}
+            : {};
 
-        if (search) {
-            const User = require('../models/User');
-            const regex = { $regex: search, $options: 'i' };
-            const matchingUsers = await User.find({
-                $or: [{ firstName: regex }, { lastName: regex }, { username: regex }],
-            }).select('_id');
-            const matchingUserIds = matchingUsers.map(u => u._id);
+        const pagedFilter = { ...baseFilter, ...cursorFilter };
 
-            baseFilter.$and = [{
-                $or: [
-                    { 'metadata.noteTitle': regex },
-                    { 'metadata.setTitle': regex },
-                    { 'metadata.taskTitle': regex },
-                    { 'metadata.commentPreview': regex },
-                    ...(matchingUserIds.length > 0 ? [{ userId: { $in: matchingUserIds } }] : []),
-                ],
-            }];
-        }
-
-        // Paged filter — adds cursor constraint on top of base
-        const pagedFilter = {
-            ...baseFilter,
-            createdAt: cursor ? { $lt: new Date(cursor) } : { $lte: new Date() },
-        };
-
-        const [feedRaw, total] = await Promise.all([
-            Activity.find(pagedFilter)
-                .sort({ createdAt: -1 })
-                .limit(limit + 1) // fetch one extra to determine if there is a next page
-                .populate('userId', 'firstName lastName username avatarUrl'),
-            Activity.countDocuments(baseFilter),
-        ]);
+        const feedRaw = await Activity.find(pagedFilter)
+            .sort({ createdAt: -1, _id: -1 })
+            .limit(limit + 1)
+            .populate('userId', 'firstName lastName username avatarUrl');
 
         const hasMore = feedRaw.length > limit;
         const items = hasMore ? feedRaw.slice(0, limit) : feedRaw;
-        const nextCursor = hasMore ? items[items.length - 1].createdAt.toISOString() : null;
+        const last = items[items.length - 1];
+        const nextCursor = hasMore
+            ? `${last.createdAt.toISOString()}|${last._id.toString()}`
+            : null;
 
-        return { feed: items, nextCursor, total };
+        return { feed: items, nextCursor };
     };
 
     // Cache each cursor page for 5 minutes — pages are stable (new items always land above the cursor)
-    const result = useCache
-        ? await getOrSet(cacheKey, 300, fetchFeed)
-        : await fetchFeed();
+    // total is always fresh (not cached) so it never goes stale after a seed re-run or new activity
+    const [result, total] = await Promise.all([
+        useCache ? getOrSet(cacheKey, 300, fetchFeed) : fetchFeed(),
+        Activity.countDocuments(baseFilter),
+    ]);
 
-    res.status(200).json({ success: true, ...result });
+    res.status(200).json({ success: true, ...result, total });
 };

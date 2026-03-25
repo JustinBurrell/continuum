@@ -147,7 +147,7 @@ Implemented and reverted. The socket-based notification round-trip (enqueue → 
 - ~~**Delete conversation** — Instagram-style per-user soft delete (`DELETE /api/conversations/:id`); trash in Conversation header + hover trash in Messages list~~
 
 ### Testing
-- ~~**POL-8** — Integration test suite: 57 Jest + Supertest tests across auth, notes, tasks, flashcards, applications, messages, activity, shared tasks, shared flashcard sets. GitHub Actions CI blocks PRs on failure. See [backend/testing.md](backend/testing.md).~~
+- ~~**POL-8** — Integration test suite: 57 Jest + Supertest tests across auth, notes, tasks, flashcards, applications, messages, activity, shared tasks, shared flashcard sets. GitHub Actions CI blocks PRs on failure. See [backend/tests/jest/README.md](../backend/tests/jest/README.md).~~
 
 ### Documentation
 - ~~**POL-15** — Swagger/OpenAPI docs — `swagger-jsdoc` + `swagger-ui-express`, served at `/api-docs`~~
