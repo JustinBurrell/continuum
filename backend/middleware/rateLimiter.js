@@ -1,7 +1,7 @@
 const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 
-// Bypass all rate limiting in test environment
-const skip = () => process.env.NODE_ENV === 'test';
+// Bypass all rate limiting in test and development environments
+const skip = () => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development';
 
 // ============================================================
 // RATE LIMITER MIDDLEWARE

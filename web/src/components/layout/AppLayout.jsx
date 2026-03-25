@@ -1,13 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/components/ui/Toast';
 import Sidebar from './Sidebar';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
 export default function AppLayout() {
   const { user, isLoading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const toast = useToast();
+
+  useEffect(() => {
+    const handler = () => toast({
+      message: "You're sending too many requests — please slow down and try again in a moment.",
+      type: 'error',
+      duration: 6000,
+    });
+    window.addEventListener('api:ratelimit', handler);
+    return () => window.removeEventListener('api:ratelimit', handler);
+  }, [toast]);
 
   if (isLoading) {
     return (

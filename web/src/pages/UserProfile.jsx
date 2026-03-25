@@ -68,20 +68,28 @@ export default function UserProfile() {
     queryKey: ['user-profile', id],
     queryFn: () => api.get(`/users/${id}`).then(r => r.data),
     enabled: !!id,
+    staleTime: 120_000,
   });
 
   // Friendship status -- fetch all three states in parallel
+  // queryKey ['friends', ''] matches the Sidebar prefetch so this is a cache hit on normal navigation
   const { data: friendsData } = useQuery({
-    queryKey: ['friends'],
+    queryKey: ['friends', ''],
     queryFn: () => api.get('/friends').then(r => r.data),
+    staleTime: 120_000,
+    enabled: !!id,
   });
   const { data: pendingData } = useQuery({
     queryKey: ['friend-requests'],
     queryFn: () => api.get('/friends?status=pending').then(r => r.data),
+    staleTime: 60_000,
+    enabled: !!id,
   });
   const { data: sentData } = useQuery({
     queryKey: ['friend-requests-sent'],
     queryFn: () => api.get('/friends?status=sent').then(r => r.data),
+    staleTime: 60_000,
+    enabled: !!id,
   });
 
   const profile = profileData?.user;
