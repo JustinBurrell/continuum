@@ -105,6 +105,11 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
     },
   });
 
+  const participantStatusMutation = useMutation({
+    mutationFn: (status) => api.patch(`/tasks/${taskId}/participant-status`, { status }),
+    onSuccess: invalidateAll,
+  });
+
   const openEdit = () => {
     setEditForm({
       title: task.title,
@@ -126,6 +131,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
 
   const isOwner = task && String(task.userId) === String(user?._id);
   const isOverdue = task?.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
+  const myParticipant = task?.participants?.find(p => String(p.userId?._id || p.userId) === String(user?._id));
 
   const priorityPillStyle = (priority) => {
     if (priority === 'high') return { background: '#fef2f2', color: '#dc2626' };
@@ -446,6 +452,38 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* My progress — shown to participants (non-owners) on shared tasks */}
+          {!isOwner && myParticipant && (
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 8 }}>
+                My progress
+              </p>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {STATUSES.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => participantStatusMutation.mutate(s)}
+                    disabled={participantStatusMutation.isPending}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: myParticipant.status === s ? 600 : 400,
+                      padding: '5px 14px',
+                      borderRadius: 999,
+                      border: myParticipant.status === s ? 'none' : '1px solid #ede9fe',
+                      background: myParticipant.status === s ? '#6b21a8' : '#ffffff',
+                      color: myParticipant.status === s ? '#ffffff' : '#111827',
+                      cursor: participantStatusMutation.isPending ? 'not-allowed' : 'pointer',
+                      opacity: participantStatusMutation.isPending ? 0.6 : 1,
+                      transition: 'background 0.15s, color 0.15s',
+                    }}
+                  >
+                    {STATUS_LABELS[s]}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 

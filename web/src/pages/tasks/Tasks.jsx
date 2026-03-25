@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Clock, AlertCircle, Trash2, Users, Search } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
@@ -48,6 +49,7 @@ const emptyForm = {
 
 export default function Tasks() {
   const location = useLocation();
+  const { user } = useAuth();
   const [deleteConfirm, setDeleteConfirm] = useState(null); // task id to delete
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -106,6 +108,30 @@ export default function Tasks() {
     onSettled: invalidateTasks,
   });
 
+  const participantStatusMutation = useMutation({
+    mutationFn: ({ id, status }) => api.patch(`/tasks/${id}/participant-status`, { status }),
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: taskQueryKey });
+      const prev = queryClient.getQueryData(taskQueryKey);
+      queryClient.setQueryData(taskQueryKey, (old) => {
+        if (!old) return old;
+        const tasks = (old.tasks || old.data || []).map(t => {
+          if (t._id !== id) return t;
+          const participants = (t.participants || []).map(p =>
+            String(p.userId?._id || p.userId) === String(user?._id) ? { ...p, status } : p
+          );
+          return { ...t, participants };
+        });
+        return old.tasks ? { ...old, tasks } : { ...old, data: tasks };
+      });
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(taskQueryKey, ctx.prev);
+    },
+    onSettled: invalidateTasks,
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id) => api.delete(`/tasks/${id}`),
     onSuccess: invalidateTasks,
@@ -118,7 +144,11 @@ export default function Tasks() {
   }));
 
   const handleStatusChange = (taskId, newStatus) => {
-    statusMutation.mutate({ id: taskId, status: newStatus });
+    if (sharedTab) {
+      participantStatusMutation.mutate({ id: taskId, status: newStatus });
+    } else {
+      statusMutation.mutate({ id: taskId, status: newStatus });
+    }
   };
 
   return (
@@ -197,6 +227,8 @@ export default function Tasks() {
               onStatusChange={handleStatusChange}
               onDelete={sharedTab ? null : (id) => setDeleteConfirm(id)}
               onView={setViewingTaskId}
+              isSharedTab={sharedTab}
+              currentUserId={user?._id}
             />
           ))}
         </div>
@@ -333,7 +365,7 @@ export default function Tasks() {
   );
 }
 
-function KanbanColumn({ status, tasks, onStatusChange, onDelete, onView }) {
+function KanbanColumn({ status, tasks, onStatusChange, onDelete, onView, isSharedTab, currentUserId }) {
   const meta = COLUMN_META[status];
 
   return (
@@ -394,6 +426,8 @@ function KanbanColumn({ status, tasks, onStatusChange, onDelete, onView }) {
               onStatusChange={onStatusChange}
               onDelete={onDelete}
               onView={onView}
+              isSharedTab={isSharedTab}
+              currentUserId={currentUserId}
             />
           ))
         )}
@@ -402,9 +436,13 @@ function KanbanColumn({ status, tasks, onStatusChange, onDelete, onView }) {
   );
 }
 
-function TaskCard({ task, onStatusChange, onDelete, onView }) {
+function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, currentUserId }) {
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
   const priorityStyle = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.low;
+  const myParticipant = isSharedTab
+    ? task.participants?.find(p => String(p.userId?._id || p.userId) === String(currentUserId))
+    : null;
+  const displayStatus = myParticipant ? myParticipant.status : task.status;
 
   return (
     <div
@@ -502,7 +540,7 @@ function TaskCard({ task, onStatusChange, onDelete, onView }) {
         marginTop: 4,
       }}>
         <select
-          value={task.status}
+          value={displayStatus}
           onChange={e => { e.stopPropagation(); onStatusChange(task._id, e.target.value); }}
           onClick={e => e.stopPropagation()}
           style={{
