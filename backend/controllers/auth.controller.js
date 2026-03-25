@@ -83,7 +83,9 @@ exports.register = async (req, res) => {
         });
     } catch (_) { /* non-blocking */ }
 
-    res.status(201).json({ success: true, token, refreshToken, user });
+    const userObj = user.toObject();
+    delete userObj.password;
+    res.status(201).json({ success: true, token, refreshToken, user: userObj });
 };
 
 // ----------------------------------------
