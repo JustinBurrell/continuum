@@ -1,5 +1,4 @@
 require('dotenv').config();
-require('express-async-errors'); // patches Express to forward async errors to the global handler
 const http = require('http');
 const express = require('express');
 const cors = require('cors');
