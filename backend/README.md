@@ -156,13 +156,16 @@ GOOGLE_TOKEN_ENCRYPTION_KEY     # optional — AES-256-GCM key for Google OAuth 
 
 ## API docs
 
-Interactive Swagger UI served at `/api-docs` when the server is running:
+Interactive Swagger UI with live execution support:
 
+**Production:** https://continuum-backend-yrrr.onrender.com/api-docs
+
+**Local:**
 ```
 http://localhost:5001/api-docs
 ```
 
-Every endpoint is documented with request/response schemas and live execution support.
+Every endpoint is documented with request/response schemas. Click **Authorize**, paste a JWT, and execute any endpoint directly from the browser.
 
 ---
 
