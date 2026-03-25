@@ -42,6 +42,7 @@ export default function FlashcardSetDetail() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['flashcard-set', id],
     queryFn: () => api.get(`/flashcard-sets/${id}`).then(r => r.data),
+    enabled: !!id,
   });
 
   const addCardMutation = useMutation({
