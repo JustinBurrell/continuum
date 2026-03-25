@@ -439,7 +439,7 @@ export default function UserProfile() {
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 {sharedTasks.map(task => (
-                  <Link key={task._id} to="/tasks" style={{ textDecoration: 'none' }}>
+                  <Link key={task._id} to="/tasks" state={{ openTaskId: task._id }} style={{ textDecoration: 'none' }}>
                     <div
                       style={{
                         background: '#fff', border: '1px solid #ede9fe', borderRadius: 16,
