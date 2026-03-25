@@ -1,6 +1,6 @@
 # Continuum
 
-Node.js Express MongoDB React Vite CI ![License](https://img.shields.io/badge/license-Proprietary-red)
+Node.js Express MongoDB React Vite CI License
 
 Continuum is a full-stack educational productivity platform built for college students. It combines note-taking, AI-powered study tools, task management, social features, and career tracking into a single cohesive product.
 
@@ -44,7 +44,7 @@ See [docs/backend/system-design.md](docs/backend/system-design.md) for the full 
 continuum/
   backend/     Node.js + Express REST API, MongoDB
   web/         Vite + React 18 SPA
-  mobile/      React Native + Expo (in progress)
+  mobile/      Kotlin, Jetpack Compose, Android SDK (In-Progress)
   docs/        Architecture, API reference, design specs, future roadmap
 ```
 
