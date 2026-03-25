@@ -50,6 +50,7 @@ exports.searchUsers = async (req, res) => {
     const users = await User.find({
         _id: { $ne: req.user._id },
         deletedAt: null,
+        isSeedUser: { $ne: true },
         $or: [{ username: regex }, { email: regex }],
     })
         .select('username firstName lastName')

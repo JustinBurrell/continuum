@@ -141,25 +141,27 @@ export default function NotesList() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => { setShowImport(true); setImportError(''); }}
-            style={{
-              border: '1px solid #ede9fe',
-              background: 'white',
-              color: '#374151',
-              padding: '8px 16px',
-              borderRadius: 12,
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              cursor: 'pointer',
-            }}
-          >
-            <Upload size={15} /> Import
-          </button>
-          <Link to="/notes/new">
+          {!user?.isDemo && (
+            <button
+              onClick={() => { setShowImport(true); setImportError(''); }}
+              style={{
+                border: '1px solid #ede9fe',
+                background: 'white',
+                color: '#374151',
+                padding: '8px 16px',
+                borderRadius: 12,
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                cursor: 'pointer',
+              }}
+            >
+              <Upload size={15} /> Import
+            </button>
+          )}
+          {!user?.isDemo && <Link to="/notes/new">
             <button
               style={{
                 background: '#6b21a8',
@@ -177,7 +179,7 @@ export default function NotesList() {
             >
               <Plus size={15} /> New note
             </button>
-          </Link>
+          </Link>}
         </div>
       </div>
 
@@ -295,7 +297,7 @@ export default function NotesList() {
             <NoteCard
               key={note._id}
               note={note}
-              onDelete={sharedTab ? null : () => setDeleteConfirm(note._id)}
+              onDelete={sharedTab || user?.isDemo ? null : () => setDeleteConfirm(note._id)}
             />
           ))}
         </div>

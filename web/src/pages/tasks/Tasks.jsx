@@ -161,9 +161,11 @@ export default function Tasks() {
           </h1>
           <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>{allTasks.length} tasks</p>
         </div>
-        <Button onClick={() => setShowCreate(true)}>
-          <Plus size={16} /> New task
-        </Button>
+        {!user?.isDemo && (
+          <Button onClick={() => setShowCreate(true)}>
+            <Plus size={16} /> New task
+          </Button>
+        )}
       </div>
 
       {/* Search */}
@@ -225,7 +227,7 @@ export default function Tasks() {
               status={col.status}
               tasks={col.tasks}
               onStatusChange={handleStatusChange}
-              onDelete={sharedTab ? null : (id) => setDeleteConfirm(id)}
+              onDelete={sharedTab || user?.isDemo ? null : (id) => setDeleteConfirm(id)}
               onView={setViewingTaskId}
               isSharedTab={sharedTab}
               currentUserId={user?._id}

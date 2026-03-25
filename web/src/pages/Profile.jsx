@@ -782,20 +782,24 @@ export default function Profile() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ position: 'relative', flexShrink: 0 }}>
                 <Avatar name={fullName} src={me?.avatarUrl} size="xl" />
-                <button
-                  onClick={() => avatarInputRef.current?.click()}
-                  style={{
-                    position: 'absolute', bottom: 0, right: 0,
-                    width: 26, height: 26, borderRadius: '50%',
-                    background: '#6b21a8', border: '2px solid #fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', boxShadow: '0 2px 8px rgba(107,33,168,0.3)',
-                  }}
-                >
-                  <Camera size={12} style={{ color: '#fff' }} />
-                </button>
-                <input ref={avatarInputRef} type="file" accept="image/*" className="hidden"
-                  onChange={e => { const f = e.target.files[0]; if (f) { setCropFile(f); e.target.value = ''; } }} />
+                {!user?.isDemo && (
+                  <>
+                    <button
+                      onClick={() => avatarInputRef.current?.click()}
+                      style={{
+                        position: 'absolute', bottom: 0, right: 0,
+                        width: 26, height: 26, borderRadius: '50%',
+                        background: '#6b21a8', border: '2px solid #fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', boxShadow: '0 2px 8px rgba(107,33,168,0.3)',
+                      }}
+                    >
+                      <Camera size={12} style={{ color: '#fff' }} />
+                    </button>
+                    <input ref={avatarInputRef} type="file" accept="image/*" className="hidden"
+                      onChange={e => { const f = e.target.files[0]; if (f) { setCropFile(f); e.target.value = ''; } }} />
+                  </>
+                )}
               </div>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 2px' }}>{fullName}</p>
@@ -808,17 +812,25 @@ export default function Profile() {
           {/* Personal info */}
           <div style={card}>
             <p style={sectionLabel}>Personal info</p>
+            {user?.isDemo && (
+              <p style={{ fontSize: 12, color: '#a087b0', marginBottom: 12, fontStyle: 'italic' }}>
+                Demo account — profile is read-only.
+              </p>
+            )}
             <form onSubmit={hProfile(onProfileSave)}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                 <FieldInput label="First name" required error={pErrors.firstName?.message}
+                  disabled={!!user?.isDemo}
                   {...regProfile('firstName', { required: 'Required' })} />
                 <FieldInput label="Last name" required error={pErrors.lastName?.message}
+                  disabled={!!user?.isDemo}
                   {...regProfile('lastName', { required: 'Required' })} />
               </div>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Bio</label>
                 <textarea
                   rows={3}
+                  disabled={!!user?.isDemo}
                   style={{
                     width: '100%', padding: '9px 12px', borderRadius: 10,
                     border: '1px solid #ede9fe', background: '#fef7ff',
@@ -835,6 +847,7 @@ export default function Profile() {
                   Activity visibility
                 </label>
                 <select
+                  disabled={!!user?.isDemo}
                   style={{
                     width: '100%', padding: '9px 12px', borderRadius: 10,
                     border: '1px solid #ede9fe', background: '#fef7ff',
@@ -847,14 +860,16 @@ export default function Profile() {
                   <option value="friends">Friends — your accepted friends</option>
                 </select>
               </div>
-              <Button type="submit" loading={profileMutation.isPending} disabled={!pDirty}>
-                Save changes
-              </Button>
+              {!user?.isDemo && (
+                <Button type="submit" loading={profileMutation.isPending} disabled={!pDirty}>
+                  Save changes
+                </Button>
+              )}
             </form>
           </div>
 
           {/* Username */}
-          <div style={card}>
+          {!user?.isDemo && <div style={card}>
             <p style={sectionLabel}>Username</p>
             <form onSubmit={hUser(vals => usernameMutation.mutate(vals))}>
               <div style={{ marginBottom: 12 }}>
@@ -878,7 +893,7 @@ export default function Profile() {
                 Update username
               </Button>
             </form>
-          </div>
+          </div>}
         </div>
       )}
 
@@ -907,7 +922,7 @@ export default function Profile() {
             </div>
           )}
 
-          <div style={card}>
+          {!user?.isDemo && <div style={card}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
               <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <KeyRound size={17} style={{ color: '#6b21a8' }} />
@@ -948,7 +963,7 @@ export default function Profile() {
                 Update password
               </Button>
             </form>
-          </div>
+          </div>}
         </div>
       )}
 
@@ -1051,7 +1066,7 @@ export default function Profile() {
                   </div>
                 </div>
               </div>
-              {me?.googleId ? (
+              {!user?.isDemo && (me?.googleId ? (
                 <Button size="sm" variant="outline"
                   onClick={() => {
                     setShowUnlinkConfirm(true);
@@ -1065,7 +1080,7 @@ export default function Profile() {
                 >
                   <LinkIcon size={13} /> Connect
                 </Button>
-              )}
+              ))}
             </div>
             {me?.googleId && (
               <div style={{ marginTop: 12, padding: '10px 12px', background: '#f5f0ff', borderRadius: 10 }}>
@@ -1077,7 +1092,7 @@ export default function Profile() {
           </div>
 
           {/* Danger zone */}
-          <div style={{ ...card, borderColor: '#fecaca', background: '#fff' }}>
+          {!user?.isDemo && <div style={{ ...card, borderColor: '#fecaca', background: '#fff' }}>
             <p style={{ ...sectionLabel, color: '#dc2626' }}>Danger zone</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
@@ -1099,7 +1114,7 @@ export default function Profile() {
                 </Button>
               </div>
             </div>
-          </div>
+          </div>}
         </div>
       )}
 

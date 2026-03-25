@@ -164,6 +164,22 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
+
+    /**
+     * Demo / Seed Flags
+     * Purpose: isDemo marks the public read-only demo account (Jane Doe).
+     *          isSeedUser marks all seeded bot accounts so they are excluded
+     *          from friend search in production.
+     */
+    isDemo: {
+        type: Boolean,
+        default: false,
+    },
+    isSeedUser: {
+        type: Boolean,
+        default: false,
+        index: true,
+    },
 }, {
     timestamps: true, // auto-creates createdAt and updatedAt on every document
 });

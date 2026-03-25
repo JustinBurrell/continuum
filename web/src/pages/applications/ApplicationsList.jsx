@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
 import ApplicationsSkeleton from '@/components/skeletons/ApplicationsSkeleton';
+import { useAuth } from '@/context/AuthContext';
 import { formatDate } from '@/lib/utils';
 
 const STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
@@ -47,6 +48,7 @@ function StageBadge({ stage }) {
 }
 
 export default function ApplicationsList() {
+  const { user } = useAuth();
   const [view, setView] = useState('list');
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState('all');
@@ -123,9 +125,11 @@ export default function ApplicationsList() {
               {v}
             </button>
           ))}
-          <Button onClick={() => setShowCreate(true)}>
-            <Plus size={16} /> Add application
-          </Button>
+          {!user?.isDemo && (
+            <Button onClick={() => setShowCreate(true)}>
+              <Plus size={16} /> Add application
+            </Button>
+          )}
         </div>
       </div>
 

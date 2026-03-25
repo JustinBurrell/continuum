@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
 import {
   ArrowLeft, Edit3, ExternalLink,
   MapPin, DollarSign, Calendar, Save, X,
@@ -58,6 +59,7 @@ function StageBadge({ stage }) {
 export default function ApplicationDetail() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const id = location.state?.id;
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(null);
@@ -160,7 +162,7 @@ export default function ApplicationDetail() {
               <Save size={14} /> Save
             </Button>
           </>
-        ) : (
+        ) : !user?.isDemo ? (
           <>
             <button
               onClick={() => setShowDeleteConfirm(true)}
@@ -179,7 +181,7 @@ export default function ApplicationDetail() {
               <Edit3 size={14} /> Edit
             </Button>
           </>
-        )}
+        ) : null}
       </div>
 
       <Modal open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)} title="Delete application">
@@ -325,9 +327,11 @@ export default function ApplicationDetail() {
           <h2 style={{ fontSize: 14, fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
             <User size={16} style={{ color: '#6b21a8' }} /> Contacts
           </h2>
-          <Button size="sm" variant="outline" onClick={() => setShowContactForm(v => !v)}>
-            <Plus size={13} /> Add contact
-          </Button>
+          {!user?.isDemo && (
+            <Button size="sm" variant="outline" onClick={() => setShowContactForm(v => !v)}>
+              <Plus size={13} /> Add contact
+            </Button>
+          )}
         </div>
 
         {displayContacts.length === 0 && !showContactForm && (
@@ -448,9 +452,11 @@ export default function ApplicationDetail() {
           <h2 style={{ fontSize: 14, fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
             <Bell size={16} style={{ color: '#6b21a8' }} /> Reminders
           </h2>
-          <Button size="sm" variant="outline" onClick={() => setShowReminderForm(v => !v)}>
-            <Plus size={13} /> Add reminder
-          </Button>
+          {!user?.isDemo && (
+            <Button size="sm" variant="outline" onClick={() => setShowReminderForm(v => !v)}>
+              <Plus size={13} /> Add reminder
+            </Button>
+          )}
         </div>
 
         {displayReminders.length === 0 && !showReminderForm && (

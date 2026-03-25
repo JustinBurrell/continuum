@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, useNavigate } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
@@ -7,8 +7,9 @@ import Sidebar from './Sidebar';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
 export default function AppLayout() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
   const toast = useToast();
 
   useEffect(() => {
@@ -69,6 +70,39 @@ export default function AppLayout() {
 
       {/* Main content */}
       <main className="flex-1 overflow-y-auto min-w-0">
+        {/* Demo account banner */}
+        {user?.isDemo && (
+          <div style={{
+            background: '#f5f0ff',
+            borderBottom: '1px solid #ede9fe',
+            borderLeft: '4px solid #6b21a8',
+            padding: '10px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}>
+            <span style={{ fontSize: 13, color: '#4b2d6e', lineHeight: 1.4 }}>
+              You're exploring Continuum as a demo account. Content is read-only and changes won't be saved.
+            </span>
+            <button
+              onClick={() => { logout(); navigate('/register'); }}
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#6b21a8',
+                whiteSpace: 'nowrap',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              Want the full experience? Register for free →
+            </button>
+          </div>
+        )}
         {/* Mobile header with hamburger */}
         <div className="mobile-header">
           <button

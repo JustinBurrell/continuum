@@ -420,14 +420,16 @@ export default function Friends() {
                       </Link>
                       <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>@{u.username}</p>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => sendRequestMutation.mutate(u._id)}
-                      loading={sendRequestMutation.isPending}
-                    >
-                      <UserPlus size={12} /> Add
-                    </Button>
+                    {!user?.isDemo && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => sendRequestMutation.mutate(u._id)}
+                        loading={sendRequestMutation.isPending}
+                      >
+                        <UserPlus size={12} /> Add
+                      </Button>
+                    )}
                   </div>
                 ))
               )}
