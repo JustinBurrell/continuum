@@ -134,9 +134,11 @@ Frontend base URL: `http://localhost:5173`
 |--------|----------|---------------|-------|
 | GET | `/api/conversations` | `pages/messages/Messages.jsx` (supports `?search=` by participant name) | List of conversations |
 | POST | `/api/conversations` | `pages/friends/Friends.jsx` → Message button | Body: `{ participantId: friendId }` |
+| DELETE | `/api/conversations/:id` | `pages/messages/Conversation.jsx` header trash icon + `pages/messages/Messages.jsx` hover trash | Instagram-style: hidden for current user only |
 | GET | `/api/conversations/:id/messages` | `pages/messages/Conversation.jsx` (supports `?search=` by content; polling disabled while searching) | Polled every 5s |
 | POST | `/api/conversations/:id/messages` | `pages/messages/Conversation.jsx` → send input | Body: `{ content }` |
-| PUT | `/api/messages/:id/read` | Not yet exposed in UI | Mark message as read |
+| DELETE | `/api/messages/:id` | `pages/messages/Conversation.jsx` hover trash on bubble | Instagram-style: hidden for current user only |
+| PUT | `/api/messages/:id/read` | Auto-mark read on Conversation mount | |
 
 ---
 

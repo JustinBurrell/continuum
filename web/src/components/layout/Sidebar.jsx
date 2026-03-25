@@ -19,7 +19,7 @@ const prefetchMap = {
   '/applications': () => queryClient.prefetchQuery({ queryKey: ['applications'], queryFn: () => api.get('/applications').then(r => r.data), staleTime: 60_000 }),
   '/resumes':      () => queryClient.prefetchQuery({ queryKey: ['resumes', ''], queryFn: () => api.get('/resumes').then(r => r.data), staleTime: 300_000 }),
   '/activity':     () => queryClient.prefetchQuery({ queryKey: ['activity'], queryFn: () => api.get('/activity').then(r => r.data), staleTime: 30_000 }),
-  '/messages':     () => queryClient.prefetchQuery({ queryKey: ['conversations'], queryFn: () => api.get('/messages').then(r => r.data), staleTime: 15_000 }),
+  '/messages':     () => queryClient.prefetchQuery({ queryKey: ['conversations'], queryFn: () => api.get('/conversations').then(r => r.data), staleTime: 15_000 }),
 };
 
 const navGroups = [

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Clock, AlertCircle, Pencil, ArrowLeft, Users, MessageCircle, Send, Heart, Trash } from 'lucide-react';
+import { Clock, AlertCircle, Pencil, ArrowLeft, Users, MessageCircle, Send, Heart, Trash, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Modal from '@/components/ui/Modal';
@@ -43,6 +43,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
   const [showParticipants, setShowParticipants] = useState(false);
   const [showSharePicker, setShowSharePicker] = useState(false);
   const [comment, setComment] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['tasks', 'detail', taskId],
@@ -102,6 +103,17 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
     onSuccess: () => {
       invalidateAll();
       setShowSharePicker(false);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete(`/tasks/${taskId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['shared-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      onUpdated?.();
+      handleClose();
     },
   });
 
@@ -596,11 +608,46 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
           <div style={{ display: 'flex', gap: 12, paddingTop: 8, borderTop: '1px solid #ede9fe', marginTop: 4 }}>
             <Button variant="outline" onClick={handleClose} className="flex-1">Close</Button>
             {isOwner && (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 36, height: 36, borderRadius: 10, border: '1px solid #ede9fe',
+                  background: 'white', color: '#a087b0', cursor: 'pointer', flexShrink: 0,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = '#fecaca'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#ede9fe'; }}
+                title="Delete task"
+              >
+                <Trash2 size={15} />
+              </button>
+            )}
+            {isOwner && (
               <Button onClick={openEdit} className="flex-1" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Pencil size={14} /> Edit task
               </Button>
             )}
           </div>
+
+          {/* Delete confirm */}
+          {showDeleteConfirm && (
+            <div style={{ marginTop: 12, padding: '14px 16px', background: '#fef2f2', borderRadius: 12, border: '1px solid #fecaca' }}>
+              <p style={{ fontSize: 13, color: '#374151', marginBottom: 12 }}>
+                Delete this task? This will remove it for all participants and cannot be undone.
+              </p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Button variant="outline" size="sm" onClick={() => setShowDeleteConfirm(false)} style={{ flex: 1 }}>Cancel</Button>
+                <Button
+                  size="sm"
+                  onClick={() => deleteMutation.mutate()}
+                  loading={deleteMutation.isPending}
+                  style={{ background: '#ef4444', flex: 1 }}
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

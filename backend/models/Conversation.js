@@ -57,6 +57,17 @@ const conversationSchema = new mongoose.Schema({
     }],
 
     /**
+     * Deleted For
+     * Purpose: Instagram-style per-user conversation delete
+     * Fields: deletedFor[] — array of user IDs who have hidden this conversation
+     * Note: Other participant still sees it; not a hard delete
+     */
+    deletedFor: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    }],
+
+    /**
      * Metadata
      * Purpose: Track soft deletes
      * Fields: deletedAt

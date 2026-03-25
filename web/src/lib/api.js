@@ -20,6 +20,9 @@ const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/forgot-password'
 // their own refresh request. All failing requests queue behind the one refresh call.
 let refreshPromise = null;
 
+// Deduplicate 429 toasts — one notification per burst, 10 s cooldown
+let rateLimitFired = false;
+
 const clearSession = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('refreshToken');
@@ -35,6 +38,15 @@ api.interceptors.response.use(
   async (err) => {
     const url = err.config?.url || '';
     const isAuthEndpoint = AUTH_ENDPOINTS.some((path) => url.includes(path));
+
+    if (err.response?.status === 429) {
+      if (!rateLimitFired) {
+        rateLimitFired = true;
+        window.dispatchEvent(new CustomEvent('api:ratelimit'));
+        setTimeout(() => { rateLimitFired = false; }, 10_000);
+      }
+      return Promise.reject(err);
+    }
 
     if (err.response?.status === 401 && !err.config._retry && !isAuthEndpoint) {
       err.config._retry = true;

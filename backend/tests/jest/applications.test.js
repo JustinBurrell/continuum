@@ -5,7 +5,7 @@
  *   POST   /api/applications         → { success, application }
  *   GET    /api/applications         → { success, applications }
  *   PUT    /api/applications/:id     → { success, application }
- *   DELETE /api/applications/:id     → { success, message }
+ *   DELETE /api/applications/:id     → { success, message }     ← hard delete, owner-only
  */
 
 const request = require('supertest');
@@ -111,6 +111,54 @@ describe('PUT /api/applications/:id', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.application.status).toBe('interview');
+  });
+});
+
+// ─── Delete ──────────────────────────────────────────────────────────────────
+
+describe('DELETE /api/applications/:id', () => {
+  it('deletes an application', async () => {
+    const { token } = await registerAndLogin();
+
+    const create = await request(app)
+      .post('/api/applications')
+      .set('Authorization', `Bearer ${token}`)
+      .send(baseApp);
+
+    const appId = create.body.application._id;
+
+    const res = await request(app)
+      .delete(`/api/applications/${appId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+
+    // Confirm it no longer appears in the list
+    const list = await request(app)
+      .get('/api/applications')
+      .set('Authorization', `Bearer ${token}`);
+
+    const ids = list.body.applications.map((a) => a._id);
+    expect(ids).not.toContain(appId);
+  });
+
+  it('returns 403 when another user tries to delete', async () => {
+    const alice = await registerAndLogin();
+    const bob = await registerAndLogin();
+
+    const create = await request(app)
+      .post('/api/applications')
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send(baseApp);
+
+    const appId = create.body.application._id;
+
+    const res = await request(app)
+      .delete(`/api/applications/${appId}`)
+      .set('Authorization', `Bearer ${bob.token}`);
+
+    expect(res.statusCode).toBe(403);
   });
 });
 

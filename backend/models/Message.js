@@ -75,6 +75,17 @@ const messageSchema = new mongoose.Schema({
     },
 
     /**
+     * Per-user delete
+     * Purpose: Instagram-style soft delete — each user can remove a message from their own view
+     *          without affecting the other participant's view
+     * Fields: deletedFor[] — array of userIds who have deleted this message for themselves
+     */
+    deletedFor: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    }],
+
+    /**
      * Metadata
      * Purpose: Track soft deletes
      * Fields: deletedAt

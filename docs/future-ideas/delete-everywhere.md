@@ -1,6 +1,6 @@
 # Spec: Delete Everywhere
 
-**Status:** Not started
+**Status:** Implemented (branch `feat/delete-everywhere`)
 **Priority:** Pre-launch
 **Affects:** Backend (applications, messages), Frontend (tasks, applications, flashcard sets, messages)
 

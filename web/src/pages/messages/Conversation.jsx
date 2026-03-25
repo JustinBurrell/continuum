@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Send, ArrowLeft, FileText, BookOpen, CheckSquare, Search, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Send, ArrowLeft, FileText, BookOpen, CheckSquare, Search, X, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Avatar from '@/components/ui/Avatar';
@@ -46,9 +46,11 @@ function parseShareMessage(content) {
 
 export default function Conversation({ conversationId }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [msgSearch, setMsgSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [showDeleteConvConfirm, setShowDeleteConvConfirm] = useState(false);
   const bottomRef = useRef(null);
   const searchInputRef = useRef(null);
   const markedReadRef = useRef(new Set());
@@ -66,6 +68,30 @@ export default function Conversation({ conversationId }) {
   });
 
   const msgQueryKey = ['messages', conversationId, msgSearch];
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: (messageId) => api.delete(`/messages/${messageId}`),
+    onMutate: async (messageId) => {
+      await queryClient.cancelQueries({ queryKey: msgQueryKey });
+      const prev = queryClient.getQueryData(msgQueryKey);
+      queryClient.setQueryData(msgQueryKey, (old) => {
+        if (!old) return old;
+        return { ...old, messages: old.messages.filter(m => m._id !== messageId) };
+      });
+      return { prev };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(msgQueryKey, ctx.prev);
+    },
+  });
+
+  const deleteConversationMutation = useMutation({
+    mutationFn: () => api.delete(`/conversations/${conversationId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      navigate('/messages');
+    },
+  });
 
   const sendMutation = useMutation({
     mutationFn: (content) =>
@@ -173,7 +199,52 @@ export default function Conversation({ conversationId }) {
           >
             <Search size={16} />
           </button>
+
+          <button
+            onClick={() => setShowDeleteConvConfirm(s => !s)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 32, height: 32, borderRadius: 8, border: 'none',
+              background: showDeleteConvConfirm ? '#fef2f2' : 'transparent',
+              color: showDeleteConvConfirm ? '#dc2626' : '#a087b0',
+              cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s, color 0.15s',
+            }}
+            onMouseEnter={e => { if (!showDeleteConvConfirm) { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#dc2626'; } }}
+            onMouseLeave={e => { if (!showDeleteConvConfirm) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; } }}
+            title="Delete conversation"
+          >
+            <Trash2 size={15} />
+          </button>
         </div>
+
+        {showDeleteConvConfirm && (
+          <div style={{ padding: '0 16px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <p style={{ fontSize: 13, color: '#374151', flex: 1, margin: 0 }}>
+              Delete this conversation for you? The other person won't be notified.
+            </p>
+            <button
+              onClick={() => deleteConversationMutation.mutate()}
+              disabled={deleteConversationMutation.isPending}
+              style={{
+                padding: '5px 14px', borderRadius: 8, border: 'none',
+                background: '#dc2626', color: '#fff', fontSize: 12, fontWeight: 600,
+                cursor: 'pointer', flexShrink: 0,
+              }}
+            >
+              {deleteConversationMutation.isPending ? 'Deleting...' : 'Delete'}
+            </button>
+            <button
+              onClick={() => setShowDeleteConvConfirm(false)}
+              style={{
+                padding: '5px 10px', borderRadius: 8, border: '1px solid #ede9fe',
+                background: 'transparent', color: '#a087b0', fontSize: 12, fontWeight: 600,
+                cursor: 'pointer', flexShrink: 0,
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
 
         {showSearch && (
           <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -261,7 +332,7 @@ export default function Conversation({ conversationId }) {
                   )}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: isOwn ? 'flex-end' : 'flex-start', maxWidth: '68%' }}>
+                <div className="group" style={{ display: 'flex', flexDirection: 'column', alignItems: isOwn ? 'flex-end' : 'flex-start', maxWidth: '68%' }}>
                   {!isOwn && isFirstInGroup && (
                     <Link
                       to="/users/view"
@@ -339,6 +410,24 @@ export default function Conversation({ conversationId }) {
                     <p style={{ fontSize: 10, color: '#c4b5d4', marginTop: 4, marginLeft: isOwn ? 0 : 4, marginRight: isOwn ? 4 : 0 }}>
                       {formatRelative(msg.createdAt)}
                     </p>
+                  )}
+
+                  {!msg._temp && (
+                    <button
+                      onClick={() => deleteMessageMutation.mutate(msg._id)}
+                      className="opacity-0 group-hover:opacity-100"
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: 22, height: 22, borderRadius: 6, border: 'none',
+                        background: 'transparent', color: '#c4b5d4', cursor: 'pointer',
+                        marginTop: 2, transition: 'color 0.12s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                      onMouseLeave={e => e.currentTarget.style.color = '#c4b5d4'}
+                      title="Delete for me"
+                    >
+                      <Trash2 size={11} />
+                    </button>
                   )}
                 </div>
               </div>

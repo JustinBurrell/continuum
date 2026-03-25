@@ -267,6 +267,7 @@ Run folders top to bottom. **Do not run "Remove Friend" until after all Note Sha
 | Get Dashboard | none | `200` — check `pipeline` object with counts per status | ✅ |
 | Add Contact | `{ "name", "role", "email", "linkedIn", "notes" }` | `201` — contact appears in `application.contacts` | ✅ |
 | Add Reminder | `{ "date", "description" }` | `201` — reminder appears in `application.followUpReminders` | ✅ |
+| Delete Application | none | `200` *(run last in this folder)* | ✅ |
 | [Error] Create — Missing company | `{ "position": "..." }` only | `400` | ✅ |
 | [Error] Create — Missing position | `{ "company": "..." }` only | `400` | ✅ |
 
@@ -355,6 +356,7 @@ Run folders top to bottom.
 | Get Messages | none | `200` — both messages in array (newest first), check `hasMore: false` | ✅ |
 | Get Messages — Paginated | query: `?limit=1&before={{messageSentAt}}` | `200` — cursor working, empty array when no older messages exist | ✅ |
 | Mark as Read — User 1 | none | `200` — check `readBy` includes User 1, unread count reset to `0` | ✅ |
+| Delete Message — User 1 | none | `200` — message removed from User 1's view; User 2 still sees it | ✅ |
 | Get Inbox — Verify lastMessage Updated | none | `200` — `lastMessage.content` matches last sent message | ✅ |
 
 ### 3. Error Cases
