@@ -47,6 +47,18 @@ describe('POST /api/tasks', () => {
     expect(res.body.task.status).toBe('todo');
   });
 
+  it('returns 400 when title is missing', async () => {
+    const { token } = await registerAndLogin();
+
+    const res = await request(app)
+      .post('/api/tasks')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ status: 'todo', dueDate: tomorrow });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
   it('returns 400 when dueDate is missing', async () => {
     const { token } = await registerAndLogin();
 
