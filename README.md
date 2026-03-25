@@ -1,6 +1,6 @@
 # Continuum
 
-![Node.js](https://img.shields.io/badge/Node.js-24-green?logo=node.js) ![Express](https://img.shields.io/badge/Express-5-black?logo=express) ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green?logo=mongodb) ![React](https://img.shields.io/badge/React-18-blue?logo=react) ![Vite](https://img.shields.io/badge/Vite-6-purple?logo=vite) ![CI](https://github.com/JustinBurrell/continuum/actions/workflows/ci.yml/badge.svg)
+Node.js Express MongoDB React Vite CI
 
 Continuum is a full-stack educational productivity platform built for college students. It combines note-taking, AI-powered study tools, task management, social features, and career tracking into a single cohesive product.
 
@@ -10,11 +10,11 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 ## Demo
 
-> **Live app:** https://continuum-web.vercel.app
+> **Live app:** [https://continuum-web.vercel.app](https://continuum-web.vercel.app)
 >
-> **API docs:** https://continuum-backend-yrrr.onrender.com/api-docs
+> **API docs:** [https://continuum-backend-yrrr.onrender.com/api-docs](https://continuum-backend-yrrr.onrender.com/api-docs)
 >
-> **Screenshots:** _coming soon_
+> **Screenshots:** *coming soon*
 
 ---
 
@@ -32,7 +32,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 ## System Design
 
-![System Architecture](docs/system-design/system-architecture.png)
+System Architecture
 
 See [docs/backend/system-design.md](docs/backend/system-design.md) for the full diagram set including the write/real-time flow, auth flow, production deployment, and scaling path.
 
@@ -55,15 +55,17 @@ continuum/
 
 ## Tech stack
 
-| Layer    | Stack                                                           |
-| -------- | --------------------------------------------------------------- |
-| Backend  | Node.js, Express 5, MongoDB, Mongoose, Socket.io, Redis, Groq SDK |
-| Web      | Vite, React 18, Tailwind CSS 3, React Query v5, React Router v6 |
-| Mobile   | React Native, Expo                                              |
-| AI       | Groq API (llama-3.1-8b-instant) for summaries, flashcards, resume analysis |
-| Storage  | Cloudinary (images, PDFs)                                       |
-| Email    | Resend                                                          |
-| Auth     | JWT access tokens, refresh token rotation, Google OAuth 2.0    |
+
+| Layer   | Stack                                                                      |
+| ------- | -------------------------------------------------------------------------- |
+| Backend | Node.js, Express 5, MongoDB, Mongoose, Socket.io, Redis, Groq SDK          |
+| Web     | Vite, React 18, Tailwind CSS 3, React Query v5, React Router v6            |
+| Mobile  | Kotlin, Jetpack Compose, Android SDK (In-Progress)                         |
+| AI      | Groq API (llama-3.1-8b-instant) for summaries, flashcards, resume analysis |
+| Storage | Cloudinary (images, PDFs)                                                  |
+| Email   | Resend                                                                     |
+| Auth    | JWT access tokens, refresh token rotation, Google OAuth 2.0                |
+
 
 ---
 
@@ -71,9 +73,10 @@ continuum/
 
 Interactive API browser (Swagger UI) — every endpoint, request/response schema, and live "Try it out":
 
-**Production:** https://continuum-backend-yrrr.onrender.com/api-docs
+**Production:** [https://continuum-backend-yrrr.onrender.com/api-docs](https://continuum-backend-yrrr.onrender.com/api-docs)
 
 **Local:**
+
 ```
 http://localhost:5001/api-docs
 ```
