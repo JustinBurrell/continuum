@@ -634,7 +634,7 @@ export default function FlashcardSetDetail() {
         <div className="space-y-4">
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
-              Front *
+              Front <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <textarea
               style={{
@@ -657,7 +657,7 @@ export default function FlashcardSetDetail() {
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
-              Back *
+              Back <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <textarea
               style={{
@@ -730,7 +730,7 @@ export default function FlashcardSetDetail() {
         <div className="space-y-4">
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
-              Front *
+              Front <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <textarea
               style={{
@@ -753,7 +753,7 @@ export default function FlashcardSetDetail() {
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
-              Back *
+              Back <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <textarea
               style={{

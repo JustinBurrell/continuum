@@ -238,7 +238,7 @@ export default function Tasks() {
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="New task">
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Title *</label>
+            <label className="text-sm font-medium text-foreground block mb-1.5">Title <span className="text-red-500">*</span></label>
             <input
               className="input-field"
               placeholder="What needs to be done?"
@@ -279,7 +279,7 @@ export default function Tasks() {
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Due date</label>
+            <label className="text-sm font-medium text-foreground block mb-1.5">Due date <span className="text-red-500">*</span></label>
             <input
               type="date"
               className="input-field"
@@ -323,7 +323,7 @@ export default function Tasks() {
                 type: form.type || undefined,
               })}
               loading={createMutation.isPending}
-              disabled={!form.title.trim()}
+              disabled={!form.title.trim() || !form.dueDate}
               className="flex-1"
             >
               Create task

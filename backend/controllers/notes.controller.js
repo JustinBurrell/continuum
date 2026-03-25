@@ -148,6 +148,10 @@ exports.createNote = async (req, res) => {
     const { title, contentType, type, tags, subject, folder, visibility } = req.body;
     let { content } = req.body;
 
+    if (!title) {
+        return res.status(400).json({ success: false, error: 'title is required' });
+    }
+
     if (contentType === 'html' && content) {
         content = sanitizeHtml(content);
     }

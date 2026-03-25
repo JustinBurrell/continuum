@@ -77,6 +77,7 @@ export default function Register() {
             label="First name"
             placeholder="Alex"
             autoComplete="given-name"
+            required
             error={errors.firstName?.message}
             {...register('firstName', { required: 'First name is required' })}
           />
@@ -84,6 +85,7 @@ export default function Register() {
             label="Last name"
             placeholder="Johnson"
             autoComplete="family-name"
+            required
             error={errors.lastName?.message}
             {...register('lastName', { required: 'Last name is required' })}
           />
@@ -92,6 +94,7 @@ export default function Register() {
           label="Username"
           placeholder="alexj"
           autoComplete="username"
+          required
           error={errors.username?.message}
           {...register('username', {
             required: 'Username is required',
@@ -104,6 +107,7 @@ export default function Register() {
           type="email"
           placeholder="you@example.com"
           autoComplete="email"
+          required
           error={errors.email?.message}
           {...register('email', { required: 'Email is required' })}
         />
@@ -113,6 +117,7 @@ export default function Register() {
           type="password"
           placeholder="Min 8 characters"
           autoComplete="new-password"
+          required
           error={errors.password?.message}
           {...register('password', {
             required: 'Password is required',

@@ -50,6 +50,18 @@ describe('POST /api/notes', () => {
     expect(res.body.note.title).toBe('My First Note');
     expect(res.body.note.content).toBe('Hello world');
   });
+
+  it('returns 400 when title is missing', async () => {
+    const { token } = await registerAndLogin();
+
+    const res = await request(app)
+      .post('/api/notes')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ content: 'No title here' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
 });
 
 // ─── Read ───────────────────────────────────────────────────────────────────

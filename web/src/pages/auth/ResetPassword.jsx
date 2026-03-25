@@ -49,6 +49,7 @@ export default function ResetPassword() {
           type="password"
           placeholder="Min 8 characters"
           autoComplete="new-password"
+          required
           error={errors.password?.message}
           {...register('password', {
             required: 'Password is required',

@@ -10,7 +10,7 @@ export default function Login() {
   const { login, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
-  const { register, handleSubmit, formState: { isSubmitting } } = useForm();
+  const { register, handleSubmit, formState: { isSubmitting, errors } } = useForm();
 
   const onSubmit = async (data) => {
     setError('');
@@ -71,7 +71,9 @@ export default function Login() {
           type="email"
           placeholder="you@example.com"
           autoComplete="email"
-          {...register('email', { required: true })}
+          required
+          error={errors.email?.message}
+          {...register('email', { required: 'Email is required' })}
         />
         <div>
           <Input
@@ -79,7 +81,9 @@ export default function Login() {
             type="password"
             placeholder="••••••••"
             autoComplete="current-password"
-            {...register('password', { required: true })}
+            required
+            error={errors.password?.message}
+            {...register('password', { required: 'Password is required' })}
           />
           <div className="mt-2 text-right">
             <Link

@@ -39,10 +39,12 @@ const sectionLabel = {
   marginTop: 4,
 };
 
-const FieldInput = forwardRef(function FieldInput({ label, error, ...props }, ref) {
+const FieldInput = forwardRef(function FieldInput({ label, error, required, ...props }, ref) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <label style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{label}</label>
+      <label style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>
+        {label}{required && <span style={{ color: '#dc2626', marginLeft: 2 }}>*</span>}
+      </label>
       <input
         ref={ref}
         style={{
@@ -66,11 +68,13 @@ const FieldInput = forwardRef(function FieldInput({ label, error, ...props }, re
   );
 });
 
-const PasswordInput = forwardRef(function PasswordInput({ label, error, ...props }, ref) {
+const PasswordInput = forwardRef(function PasswordInput({ label, error, required, ...props }, ref) {
   const [show, setShow] = useState(false);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <label style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{label}</label>
+      <label style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>
+        {label}{required && <span style={{ color: '#dc2626', marginLeft: 2 }}>*</span>}
+      </label>
       <div style={{ position: 'relative' }}>
         <input
           ref={ref}
@@ -806,10 +810,10 @@ export default function Profile() {
             <p style={sectionLabel}>Personal info</p>
             <form onSubmit={hProfile(onProfileSave)}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                <FieldInput label="First name" error={pErrors.firstName?.message}
+                <FieldInput label="First name" required error={pErrors.firstName?.message}
                   {...regProfile('firstName', { required: 'Required' })} />
-                <FieldInput label="Last name"
-                  {...regProfile('lastName')} />
+                <FieldInput label="Last name" required error={pErrors.lastName?.message}
+                  {...regProfile('lastName', { required: 'Required' })} />
               </div>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Bio</label>
@@ -920,11 +924,13 @@ export default function Profile() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
                 <PasswordInput
                   label="Current password"
+                  required
                   error={pwErrors.currentPassword?.message}
                   {...regPwd('currentPassword', { required: 'Required' })}
                 />
                 <PasswordInput
                   label="New password"
+                  required
                   error={pwErrors.newPassword?.message}
                   {...regPwd('newPassword', { required: 'Required' })}
                 />
@@ -933,6 +939,7 @@ export default function Profile() {
                 )}
                 <PasswordInput
                   label="Confirm new password"
+                  required
                   error={pwErrors.confirmPassword?.message}
                   {...regPwd('confirmPassword', { required: 'Required' })}
                 />

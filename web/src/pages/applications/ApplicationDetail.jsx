@@ -156,7 +156,7 @@ export default function ApplicationDetail() {
             <Button variant="outline" size="sm" onClick={() => { setEditing(false); setForm(null); }}>
               <X size={14} /> Cancel
             </Button>
-            <Button size="sm" onClick={() => updateMutation.mutate(form)} loading={updateMutation.isPending}>
+            <Button size="sm" onClick={() => updateMutation.mutate(form)} loading={updateMutation.isPending} disabled={!form?.company?.trim() || !form?.position?.trim()}>
               <Save size={14} /> Save
             </Button>
           </>
@@ -206,7 +206,7 @@ export default function ApplicationDetail() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-secondary block mb-1">Company</label>
+                <label className="text-xs font-medium text-secondary block mb-1">Company <span className="text-red-500">*</span></label>
                 <input
                   className="input-field"
                   value={displayForm.company}
@@ -214,7 +214,7 @@ export default function ApplicationDetail() {
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-secondary block mb-1">Role</label>
+                <label className="text-xs font-medium text-secondary block mb-1">Role <span className="text-red-500">*</span></label>
                 <input
                   className="input-field"
                   value={displayForm.position}

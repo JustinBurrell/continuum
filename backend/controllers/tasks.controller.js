@@ -67,6 +67,10 @@ exports.createTask = async (req, res) => {
         participants,
     } = req.body;
 
+    if (!title) {
+        return res.status(400).json({ success: false, error: 'title is required' });
+    }
+
     if (!dueDate) {
         return res.status(400).json({ success: false, error: 'dueDate is required' });
     }

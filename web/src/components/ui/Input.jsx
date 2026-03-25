@@ -1,11 +1,13 @@
 import { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
-const Input = forwardRef(function Input({ className, label, error, ...props }, ref) {
+const Input = forwardRef(function Input({ className, label, error, required, ...props }, ref) {
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label className="text-sm font-medium text-foreground">{label}</label>
+        <label className="text-sm font-medium text-foreground">
+          {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+        </label>
       )}
       <input
         ref={ref}

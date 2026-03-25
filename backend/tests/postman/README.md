@@ -73,6 +73,7 @@ Run top to bottom within each folder. Each creation request auto-sets the ID for
 | **Get Note PDF Download URL** | none | `200` — `downloadUrl` is a Cloudinary `fl_attachment` URL | |
 | **[Error] Get Note PDF — Note Has No PDF** | none (use a text-only `noteId`) | `404` | |
 | [Error] Get Note — Not Found | none | `404` | ✅ |
+| [Error] Create Note — Missing Title | `{ "content": "no title" }` | `400` | |
 | Delete Note | none | `200` *(run last in this folder)* | ✅ |
 
 ### 3. AI Summary
@@ -117,6 +118,7 @@ Run top to bottom within each folder. Each creation request auto-sets the ID for
 | Update Status — back to todo | `{ "status": "todo" }` | `200` — check `completedAt` is null | ✅ |
 | Delete Task | none | `200` | ✅ |
 | Get Shared Tasks | none | `200` — returns tasks shared with the authenticated user | |
+| [Error] Create Task — Missing Title | `{ "dueDate", "status" }` only | `400` | |
 | [Error] Create Task — Missing dueDate | `{ "title", "type" }` only | `400` | ✅ |
 | [Error] Update Status — Invalid Value | `{ "status": "done" }` | `400` | ✅ |
 

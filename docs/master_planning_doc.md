@@ -742,6 +742,13 @@ POL-14. [ ] `build: prepare android build for google play`
 - **Phase 3**: Prioritize web first, then mobile core features. Career screens can be simplified.
 - **Phase 4**: Minimum viable: demo script + sample data. Skip backup video if needed.
 
+---
+
+## Post-Launch Improvements
+
+### Completed
+- [x] `fix: form validation audit` — Added inline error messages and red `*` required indicators across all forms: Login, ForgotPassword, Register, ResetPassword, NoteEditor, Tasks create, FlashcardSets create, FlashcardSetDetail add/edit card, ApplicationsList create, ApplicationDetail edit (also added missing disabled guard on Save button), Profile (lastName now required, all required fields have * indicators). Updated Input, FieldInput, and PasswordInput components to support `required` prop.
+
 ### Reference Documents
 - **Database schemas & data flows**: [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) and [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md)
 - **API routes & conventions**: [API Reference Guide](./backend/api_reference_guide.md)
