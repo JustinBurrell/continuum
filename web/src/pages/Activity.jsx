@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Activity as ActivityIcon, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -124,6 +124,11 @@ const PAGE_SIZE = 20;
 
 export default function Activity() {
   const [actSearch, setActSearch] = useState('');
+
+  // Mark activities as seen — dashboard unseen count resets on next visit
+  useEffect(() => {
+    localStorage.setItem('lastViewedActivityAt', new Date().toISOString());
+  }, []);
 
   const {
     data,

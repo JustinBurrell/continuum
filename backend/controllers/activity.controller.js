@@ -19,7 +19,7 @@ const { getOrSet } = require('../lib/cache');
 exports.getActivityFeed = async (req, res) => {
     const limit = Math.min(Number(req.query.limit) || 20, 50);
     const rawCursor = req.query.cursor || null;
-    const { search } = req.query;
+    const { search, since } = req.query;
 
     const userId = req.user._id;
     const useCache = !search;
@@ -66,14 +66,13 @@ exports.getActivityFeed = async (req, res) => {
     const fetchFeed = async () => {
         // Compound cursor: items strictly before the cursor timestamp,
         // OR same timestamp but with a smaller _id — handles duplicate createdAt values.
-        const cursorFilter = cursorTs
-            ? { $or: [
+        // Use $and to combine with baseFilter so the visibility check is never overwritten.
+        const pagedFilter = cursorTs
+            ? { $and: [baseFilter, { $or: [
                 { createdAt: { $lt: cursorTs } },
                 { createdAt: cursorTs, _id: { $lt: cursorId } },
-            ]}
-            : {};
-
-        const pagedFilter = { ...baseFilter, ...cursorFilter };
+            ]}]}
+            : baseFilter;
 
         const feedRaw = await Activity.find(pagedFilter)
             .sort({ createdAt: -1, _id: -1 })
@@ -90,11 +89,17 @@ exports.getActivityFeed = async (req, res) => {
         return { feed: items, nextCursor };
     };
 
+    // `since` — optional ISO timestamp; when present, count only activities newer than it
+    // (used by the dashboard to show unseen/unread count since the user last visited /activity)
+    const countFilter = since
+        ? { ...baseFilter, createdAt: { $gt: new Date(since) } }
+        : baseFilter;
+
     // Cache each cursor page for 5 minutes — pages are stable (new items always land above the cursor)
     // total is always fresh (not cached) so it never goes stale after a seed re-run or new activity
     const [result, total] = await Promise.all([
         useCache ? getOrSet(cacheKey, 300, fetchFeed) : fetchFeed(),
-        Activity.countDocuments(baseFilter),
+        Activity.countDocuments(countFilter),
     ]);
 
     res.status(200).json({ success: true, ...result, total });
