@@ -117,7 +117,7 @@ Implemented and reverted. The socket-based notification round-trip (enqueue → 
 - ~~All env vars documented in `.env.example`~~
 - ~~Process-level `unhandledRejection` + `uncaughtException` handlers~~
 - ~~Logging (structured logger) — pino + pino-http, structured JSON in prod, pretty in dev~~
-- Rollback strategy — deferred to step 11
+- ~~Rollback strategy — deferred to step 11, completed in step 11b~~
 
 ---
 
@@ -196,7 +196,7 @@ Implemented and reverted. The socket-based notification round-trip (enqueue → 
 ### Phase D — Config (no code)
 - [ ] Set spend alerts on Groq, Atlas, Cloudinary, and Resend
 - [ ] MongoDB Atlas Network Access — leave `0.0.0.0/0` until Render tier upgrade
-- [ ] Rollback strategy — document in `docs/backend/rollback-strategy.md`: Render one-click rollback to previous deploy; Vercel instant rollback via dashboard; MongoDB Atlas point-in-time restore (M10+, not available on free tier — manual snapshot before any schema migration)
+- ~~Rollback strategy — [docs/backend/rollback-strategy.md](backend/rollback-strategy.md): Render one-click rollback; Vercel instant promotion; MongoDB manual export before schema migrations (M10+ needed for automated backups); deploy checklist~~
 
 **When done:** delete `docs/future-ideas/scale-readiness.md`, `docs/future-ideas/websocket-deployment-notes.md`, `docs/future-ideas/pre-deployment-checklist.md`
 
