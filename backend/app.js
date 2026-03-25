@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const mongoSanitize = require('mongo-sanitize');
 const pinoHttp = require('pino-http');
@@ -31,6 +32,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
+app.use(cookieParser());
 app.use(bodyParser.json({ limit: '200kb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '200kb' }));
 

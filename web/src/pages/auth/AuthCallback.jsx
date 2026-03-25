@@ -23,9 +23,8 @@ export default function AuthCallback() {
     api
       .post('/auth/google/exchange', { code })
       .then((res) => {
-        const { token, refreshToken } = res.data;
+        const { token } = res.data;
         localStorage.setItem('token', token);
-        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
         connectSocket(token);
         return api.get('/auth/me');
       })
@@ -36,7 +35,6 @@ export default function AuthCallback() {
       })
       .catch(() => {
         localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
         navigate('/login?error=oauth_failed');
       });
   }, []);

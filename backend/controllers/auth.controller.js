@@ -31,6 +31,19 @@ const signToken = (userId) => {
 };
 
 // ----------------------------------------
+// HELPER: Set the refresh token as an httpOnly cookie
+// ----------------------------------------
+const setRefreshCookie = (res, rawToken) => {
+    res.cookie('refreshToken', rawToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        path: '/',
+    });
+};
+
+// ----------------------------------------
 // HELPER: Generate a long-lived refresh token (30d)
 // Stores a SHA-256 hash in the RefreshToken collection
 // Returns the raw token to give to the client — never stored raw
@@ -85,7 +98,8 @@ exports.register = async (req, res) => {
 
     const userObj = user.toObject();
     delete userObj.password;
-    res.status(201).json({ success: true, token, refreshToken, user: userObj });
+    setRefreshCookie(res, refreshToken);
+    res.status(201).json({ success: true, token, user: userObj });
 };
 
 // ----------------------------------------
@@ -132,7 +146,8 @@ exports.login = async (req, res) => {
 
     const userObj = user.toObject();
     delete userObj.password;
-    res.status(200).json({ success: true, token, refreshToken, user: userObj });
+    setRefreshCookie(res, refreshToken);
+    res.status(200).json({ success: true, token, user: userObj });
 };
 
 // ----------------------------------------
@@ -257,7 +272,8 @@ exports.googleExchange = async (req, res) => {
     const token = signToken(record.userId);
     const refreshToken = await generateRefreshToken(record.userId, deviceId);
 
-    res.status(200).json({ success: true, token, refreshToken });
+    setRefreshCookie(res, refreshToken);
+    res.status(200).json({ success: true, token });
 };
 
 // ----------------------------------------
@@ -339,7 +355,7 @@ exports.googleUnlink = async (req, res) => {
 // Public — no JWT required (used when the access token has expired)
 // ----------------------------------------
 exports.refresh = async (req, res) => {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies?.refreshToken;
 
     if (!refreshToken) {
         return res.status(400).json({ success: false, error: 'refreshToken is required' });
@@ -435,7 +451,7 @@ exports.updateProfile = async (req, res) => {
 // Idempotent — returns 200 even if token is already revoked or not found
 // ----------------------------------------
 exports.logout = async (req, res) => {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies?.refreshToken;
 
     if (refreshToken) {
         const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
@@ -445,6 +461,7 @@ exports.logout = async (req, res) => {
         );
     }
 
+    res.clearCookie('refreshToken', { path: '/' });
     res.status(200).json({ success: true, message: 'Logged out' });
 };
 

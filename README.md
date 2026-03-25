@@ -10,7 +10,9 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 ## Demo
 
-> **Live app:** _coming soon_
+> **Live app:** https://continuum-web.vercel.app
+>
+> **API docs:** https://continuum-backend-yrrr.onrender.com/api-docs
 >
 > **Screenshots:** _coming soon_
 
@@ -32,7 +34,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 ![System Architecture](docs/system-design/system-architecture.png)
 
-See [docs/backend/system-design.md](docs/backend/system-design.md) for the full diagram set including the write/real-time flow, auth flow, and scaling path.
+See [docs/backend/system-design.md](docs/backend/system-design.md) for the full diagram set including the write/real-time flow, auth flow, production deployment, and scaling path.
 
 ---
 
@@ -69,11 +71,14 @@ continuum/
 
 Interactive API browser (Swagger UI) — every endpoint, request/response schema, and live "Try it out":
 
+**Production:** https://continuum-backend-yrrr.onrender.com/api-docs
+
+**Local:**
 ```
 http://localhost:5001/api-docs
 ```
 
-Start the backend, open that URL, click **Authorize**, paste a JWT, and execute any endpoint directly from the browser.
+Click **Authorize**, paste a JWT, and execute any endpoint directly from the browser.
 
 ---
 
