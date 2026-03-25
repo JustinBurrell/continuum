@@ -116,7 +116,7 @@ Implemented and reverted. The socket-based notification round-trip (enqueue → 
 - ~~`npm audit` — 0 vulnerabilities~~
 - ~~All env vars documented in `.env.example`~~
 - ~~Process-level `unhandledRejection` + `uncaughtException` handlers~~
-- Logging (structured logger) — deferred to post-launch
+- ~~Logging (structured logger) — pino + pino-http, structured JSON in prod, pretty in dev~~
 - Rollback strategy — deferred to step 11
 
 ---
@@ -146,7 +146,7 @@ Already completed from this list: ~~POL-1 (rate limiting — step 5)~~, ~~POL-3 
 - [ ] **Share flashcard set** — `PATCH /api/flashcard-sets/:id/share` — share button on FlashcardSetDetail
 
 ### Testing
-- [ ] **POL-8** — Integration test suite for critical paths — auth flow, note create/share, task create/assign, resume upload + AI feedback
+- ~~**POL-8** — Integration test suite: 47 Jest + Supertest tests across auth, notes, tasks, flashcards, applications, messages, activity. GitHub Actions CI blocks PRs on failure. See [backend/testing.md](backend/testing.md).~~
 
 ### Documentation
 - [ ] **POL-15** — Swagger/OpenAPI docs — `swagger-jsdoc` + `swagger-ui-express`, serve at `/api-docs`

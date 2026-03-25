@@ -69,23 +69,39 @@ backend/
 │   ├── groq.service.js           # Groq API client + prompt templates
 │   ├── google.service.js         # Google Drive/Docs API client
 │   └── cloudinary.service.js     # Cloudinary upload helper
-├── testing/
-│   └── postman/                  # Postman collections + environment
+├── tests/
+│   ├── jest/                     # Jest + Supertest integration tests (47 tests, 7 suites)
+│   │   ├── setup.js              # Env vars + skip flags loaded before every suite
+│   │   ├── testDb.js             # mongodb-memory-server connect/clear/close helpers
+│   │   ├── testHelpers.js        # registerAndLogin() — creates user, returns token
+│   │   ├── auth.test.js
+│   │   ├── notes.test.js
+│   │   ├── tasks.test.js
+│   │   ├── flashcards.test.js
+│   │   ├── applications.test.js
+│   │   ├── messages.test.js
+│   │   └── activity.test.js
+│   ├── mongodb/                  # Seed scripts for dev/demo data
+│   └── postman/                  # Postman collections + environment file
 ├── .env
 ├── .env.example
 ├── .gitignore
+├── app.js                        # Express app (middleware + routes) — no DB, no listen
 ├── package.json
-└── server.js
+└── server.js                     # Entry point: imports app.js, connects DB, starts HTTP server
 ```
 
 ### Why This Structure
 
+- **`app.js`** — Pure Express app: registers middleware and routes. No DB connection, no `listen()`. Imported by `server.js` for production and by Jest test files directly, which lets tests start the app without a real database or port.
+- **`server.js`** — Entry point only. Imports `app.js`, calls `connectDB()`, calls `initSocket()`, then `listen()`. Never imported by tests.
+- **`lib/`** — Shared infrastructure singletons: `logger.js` (pino) and `socket.js` (Socket.io + Redis adapter). Kept separate from `config/` because these are runtime instances, not connection setup.
 - **`routes/`** — Define HTTP endpoints. Thin layer: parse request, call model/service, send response.
 - **`models/`** — Mongoose schemas with validation, hooks, virtuals, indexes. Business logic lives here.
-- **`middleware/`** — Reusable request pipeline functions (auth, errors, validation).
+- **`middleware/`** — Reusable request pipeline functions (auth, rate limiting, ObjectId validation).
 - **`services/`** — External API integrations (Groq, Google, Cloudinary). Keeps routes clean.
-- **`seeds/`** — Test data scripts for development and demo.
 - **`config/`** — Connection setup for external services.
+- **`tests/jest/`** — Jest + Supertest integration tests. Each suite gets an isolated in-memory MongoDB via `mongodb-memory-server`. See [testing.md](testing.md) for how to add new tests.
 
 ---
 
