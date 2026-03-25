@@ -75,7 +75,7 @@ export default function Landing() {
               Continuum
             </span>
           </div>
-          <nav className="hidden md:flex items-center gap-1 mr-2">
+          <nav className="flex items-center gap-1 mr-2">
             <Link to="/product" className="text-sm font-medium px-3 py-2" style={{ color: 'rgba(17,24,39,0.6)' }}>Product</Link>
             <Link to="/about" className="text-sm font-medium px-3 py-2" style={{ color: 'rgba(17,24,39,0.6)' }}>About</Link>
           </nav>
