@@ -9,7 +9,7 @@ import Input from '@/components/ui/Input';
 export default function ForgotPassword() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
-  const { register, handleSubmit, formState: { isSubmitting } } = useForm();
+  const { register, handleSubmit, formState: { isSubmitting, errors } } = useForm();
 
   const onSubmit = async (data) => {
     setError('');
@@ -77,7 +77,9 @@ export default function ForgotPassword() {
           label="Email"
           type="email"
           placeholder="you@example.com"
-          {...register('email', { required: true })}
+          required
+          error={errors.email?.message}
+          {...register('email', { required: 'Email is required' })}
         />
         <Button type="submit" loading={isSubmitting} className="w-full">
           Send reset link

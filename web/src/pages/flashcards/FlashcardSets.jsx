@@ -186,7 +186,7 @@ export default function FlashcardSets() {
         <div className="space-y-4">
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#111827', marginBottom: 6 }}>
-              Title *
+              Title <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <input
               style={{

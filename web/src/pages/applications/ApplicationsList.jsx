@@ -316,7 +316,7 @@ export default function ApplicationsList() {
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1.5">Company *</label>
+              <label className="text-sm font-medium text-foreground block mb-1.5">Company <span className="text-red-500">*</span></label>
               <input
                 className="input-field"
                 placeholder="Google"
@@ -325,7 +325,7 @@ export default function ApplicationsList() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1.5">Position *</label>
+              <label className="text-sm font-medium text-foreground block mb-1.5">Position <span className="text-red-500">*</span></label>
               <input
                 className="input-field"
                 placeholder="Software Engineer"
