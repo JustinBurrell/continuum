@@ -25,6 +25,8 @@ erDiagram
         Boolean emailVerified
         Object settings
         Date lastLoginAt
+        Boolean pendingDeletion "soft-mark for 30-day grace period deletion"
+        Date scheduledDeletionAt "hard delete runs when this date passes"
         Date deletedAt
         Date createdAt
         Date updatedAt

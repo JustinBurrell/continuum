@@ -189,9 +189,9 @@ Implemented and reverted. The socket-based notification round-trip (enqueue → 
 - ~~**F-C1** — Migrate refresh token from localStorage to httpOnly cookie: `cookie-parser` added, `setRefreshCookie` helper sets `HttpOnly; Secure; SameSite=None` in production; `login`, `register`, `googleExchange` set cookie and no longer return `refreshToken` in JSON body; `refresh` reads `req.cookies.refreshToken`; `logout` clears cookie; frontend removes all `refreshToken` localStorage references; axios `withCredentials: true` added~~
 - ~~**F-C3** — AuthCallback one-time code exchange: already fully implemented (backend `googleCallback` → OAuthCode → `googleExchange`; `AuthCallback.jsx` exchanges code via `POST /auth/google/exchange`)~~
 
-### Phase C — Docs
-- [ ] Update `docs/backend/system-design.md` — reflect Vercel + Render + Upstash as production stack
-- [ ] Update `docs/database/schema_diagram.md` — confirm schema matches current models
+### Phase C — Docs — DONE
+- ~~Update `docs/backend/system-design.md` — added Production Deployment section (Vercel + Render + Upstash table + diagram); updated CLIENT and BACKEND subgraph labels; updated Data Layer to MongoDB Atlas + Upstash Redis; updated Auth Flow to reflect httpOnly cookie refresh token~~
+- ~~Update `docs/database/schema_diagram.md` — added missing `pendingDeletion` and `scheduledDeletionAt` fields to User entity~~
 
 ### Phase D — Config (no code)
 - [ ] Set spend alerts on Groq, Atlas, Cloudinary, and Resend

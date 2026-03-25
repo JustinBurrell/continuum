@@ -4,15 +4,15 @@ View at [mermaid.live](https://mermaid.live) or in VS Code with the Mermaid exte
 
 ```mermaid
 flowchart TB
-    subgraph CLIENT["Browser — React 18"]
+    subgraph CLIENT["Browser — React 18 (Vercel)"]
         direction TB
         RQ["React Query v5\nstaleTime: 30s\ninvalidateQueries on socket events"]
         AC["AuthContext\nuser state · login · logout\nupdateUser()"]
         SC["Socket.io Client\ntransports: websocket\nauth: Bearer JWT"]
-        AX["Axios Instance\nJWT interceptor\nauto-refresh on 401"]
+        AX["Axios Instance\nwithCredentials: true\nJWT interceptor\nauto-refresh on 401 via httpOnly cookie"]
     end
 
-    subgraph BACKEND["Backend — Node.js + Express"]
+    subgraph BACKEND["Backend — Node.js + Express (Render Starter)"]
         direction TB
         ROUTER["Express Router\n16 route groups"]
 
@@ -41,8 +41,8 @@ flowchart TB
     end
 
     subgraph DATA["Data Layer"]
-        MONGO[("MongoDB\nUser · Note · Task\nFlashcardSet · Flashcard\nConversation · Message\nFriendship · Activity\nComment · Application\nResume · RefreshToken\nOAuthCode · Notification")]
-        REDIS[("Redis\nuser:id — 5 min\nactivity:<userId>:<cursor> — 5 min\nshared-notes:id — 60s\nshared-sets:id — 60s\nshared-tasks:id — 60s\nai:<type>:<userId>:<date> — daily cap")]
+        MONGO[("MongoDB Atlas\nUser · Note · Task\nFlashcardSet · Flashcard\nConversation · Message\nFriendship · Activity\nComment · Application\nResume · RefreshToken\nOAuthCode · SyncQueue")]
+        REDIS[("Upstash Redis (TLS)\nuser:id — 5 min\nactivity:<userId>:<cursor> — 5 min\nshared-notes:id — 60s\nshared-sets:id — 60s\nshared-tasks:id — 60s\nai:<type>:<userId>:<date> — daily cap")]
     end
 
     subgraph EXTERNAL["External Services"]
@@ -135,28 +135,56 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     subgraph EMAIL["Email / Password"]
-        REG["POST /auth/register"] --> JWT1["issue JWT\n+ refreshToken"]
+        REG["POST /auth/register"] --> JWT1["issue JWT\nset httpOnly refreshToken cookie"]
         LOGIN["POST /auth/login"] --> JWT1
     end
 
     subgraph GOOGLE["Google OAuth"]
         REDIRECT["window.location\n→ /api/auth/google"] --> CONSENT["Google consent screen"]
         CONSENT --> CALLBACK["GET /api/auth/google/callback"]
-        CALLBACK --> CODE["OAuthCode\n30s TTL"]
-        CODE --> TOKEN["POST /api/auth/google/token"]
-        TOKEN --> JWT2["issue JWT\n+ refreshToken"]
+        CALLBACK --> CODE["OAuthCode (SHA-256 hash)\n60s TTL — single use"]
+        CODE --> TOKEN["POST /api/auth/google/exchange"]
+        TOKEN --> JWT2["issue JWT\nset httpOnly refreshToken cookie"]
     end
 
-    JWT1 --> STORE["localStorage\ntoken + refreshToken"]
+    JWT1 --> STORE["localStorage: token only\nhttpOnly cookie: refreshToken\n(set by server, not readable by JS)"]
     JWT2 --> STORE
     STORE --> CONNECT["connectSocket(token)\nregisterSocketEvents()"]
 
     subgraph REFRESH["Token Refresh (axios interceptor)"]
-        R401["401 response"] --> TRY["POST /auth/refresh\nwith refreshToken"]
-        TRY --> SUCCESS["store new token\nretry original request"]
-        TRY --> FAIL["clear storage\nredirect /login"]
+        R401["401 response"] --> TRY["POST /auth/refresh\ncookie sent automatically"]
+        TRY --> SUCCESS["store new access token\nretry original request"]
+        TRY --> FAIL["clear localStorage\nredirect /login"]
     end
 ```
+
+---
+
+## Production Deployment
+
+```mermaid
+flowchart TB
+    subgraph PROD["Production Stack"]
+        USER["User Browser"] --> VERCEL["Vercel\nhttps://continuum-web.vercel.app\nVite SPA — vercel.json SPA rewrite"]
+        VERCEL -- "REST + WebSocket\nHTTPS + WSS" --> RENDER["Render Starter\nhttps://continuum-backend-yrrr.onrender.com\nNode.js · Express 5"]
+        RENDER --> ATLAS["MongoDB Atlas\nShared Cluster (M0)"]
+        RENDER --> UPSTASH["Upstash Redis\nrediss:// TLS\nHTTP + WebSocket pub/sub"]
+        RENDER --> CLOUDINARY["Cloudinary\nImage + PDF storage"]
+        RENDER --> RESEND["Resend\nTransactional email"]
+        RENDER --> GROQ["Groq API\nLlama 3 inference"]
+        RENDER --> GOOGLEOAUTH["Google Cloud\nOAuth 2.0"]
+    end
+```
+
+| Service | Plan | URL |
+|---------|------|-----|
+| Frontend | Vercel Hobby | https://continuum-web.vercel.app |
+| Backend | Render Starter | https://continuum-backend-yrrr.onrender.com |
+| Database | MongoDB Atlas M0 (free) | Atlas cloud console |
+| Cache / Pub-Sub | Upstash Redis (free) | `rediss://` TLS endpoint |
+| Storage | Cloudinary (free) | — |
+| Email | Resend (free) | — |
+| AI | Groq API (free) | — |
 
 ---
 
@@ -164,17 +192,17 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph NOW["Current — Single Instance"]
-        LB1["Direct / Load Balancer"] --> B1["Backend × 1"]
-        B1 --> R1[("Redis")]
-        B1 --> M1[("MongoDB")]
+    subgraph NOW["Current — Single Instance (Render Starter)"]
+        LB1["Render load balancer"] --> B1["Backend × 1"]
+        B1 --> R1[("Upstash Redis")]
+        B1 --> M1[("MongoDB Atlas")]
     end
 
     subgraph NEXT["Multi-Instance — When Needed"]
-        LB2["Load Balancer\nsticky sessions"] --> B2["Backend × N"]
-        B2 -- "@socket.io/redis-adapter\nPub/Sub" --> R2[("Redis")]
-        B2 --> M2[("MongoDB")]
+        LB2["Render load balancer"] --> B2["Backend × N"]
+        B2 -- "@socket.io/redis-adapter\nPub/Sub" --> R2[("Upstash Redis")]
+        B2 --> M2[("MongoDB Atlas")]
     end
 
-    NOW -.->|"add replicas\n@socket.io/redis-adapter already wired"| NEXT
+    NOW -.->|"upgrade Render plan · add replicas\n@socket.io/redis-adapter already wired"| NEXT
 ```
