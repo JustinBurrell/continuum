@@ -31,6 +31,29 @@ const JANE_FRIEND_USERNAMES = [
   'rachelmontgomery', 'ryanfoster', 'taylormorgan', 'trevornash', 'zoeanderson',
 ];
 
+const FRIEND_NAMES = {
+  carolinehall:    { firstName: 'Caroline',  lastName: 'Hall' },
+  chrisnguyen:     { firstName: 'Chris',     lastName: 'Nguyen' },
+  connorflynn:     { firstName: 'Connor',    lastName: 'Flynn' },
+  dianachen:       { firstName: 'Diana',     lastName: 'Chen' },
+  ethancooper:     { firstName: 'Ethan',     lastName: 'Cooper' },
+  evawong:         { firstName: 'Eva',       lastName: 'Wong' },
+  graciecallahan:  { firstName: 'Gracie',    lastName: 'Callahan' },
+  isabellachang:   { firstName: 'Isabella',  lastName: 'Chang' },
+  jadewashington:  { firstName: 'Jade',      lastName: 'Washington' },
+  jasonmendez:     { firstName: 'Jason',     lastName: 'Mendez' },
+  kevinzhang:      { firstName: 'Kevin',     lastName: 'Zhang' },
+  kiananderson:    { firstName: 'Kian',      lastName: 'Anderson' },
+  logancarter:     { firstName: 'Logan',     lastName: 'Carter' },
+  michaelrobbins:  { firstName: 'Michael',   lastName: 'Robbins' },
+  noahcoleman:     { firstName: 'Noah',      lastName: 'Coleman' },
+  rachelmontgomery:{ firstName: 'Rachel',    lastName: 'Montgomery' },
+  ryanfoster:      { firstName: 'Ryan',      lastName: 'Foster' },
+  taylormorgan:    { firstName: 'Taylor',    lastName: 'Morgan' },
+  trevornash:      { firstName: 'Trevor',    lastName: 'Nash' },
+  zoeanderson:     { firstName: 'Zoe',       lastName: 'Anderson' },
+};
+
 // ─── Clean ───────────────────────────────────────────────────────────────────
 
 async function cleanJaneData(janeId) {
@@ -131,12 +154,13 @@ async function seedFriends(jane) {
     let user = await User.findOne({ username });
     if (!user) {
       // Friend hasn't been seeded yet — create with isSeedUser flag
+      const names = FRIEND_NAMES[username] || { firstName: username, lastName: 'Demo' };
       user = new User({
         username,
         email: `${username}_demo@example.com`,
         password: 'Demo@1234',
-        firstName: username.charAt(0).toUpperCase() + username.slice(1),
-        lastName: '',
+        firstName: names.firstName,
+        lastName: names.lastName,
         bio: '',
         settings: { activityVisibility: 'public' },
         isSeedUser: true,
