@@ -105,6 +105,38 @@ describe('POST /api/auth/login', () => {
   });
 });
 
+// ─── Refresh Token (cookie) ─────────────────────────────────────────────────
+
+describe('POST /api/auth/refresh', () => {
+  it('sets a refreshToken cookie on login and exchanges it for a new access token', async () => {
+    const reg = await request(app).post('/api/auth/register').send(validUser);
+    expect(reg.statusCode).toBe(201);
+
+    // Cookie should be set — body should NOT contain refreshToken
+    const setCookieHeader = reg.headers['set-cookie'] || [];
+    expect(setCookieHeader.some((c) => c.startsWith('refreshToken='))).toBe(true);
+    expect(reg.body.refreshToken).toBeUndefined();
+
+    // Extract the cookie value for the refresh call
+    const cookieString = setCookieHeader.find((c) => c.startsWith('refreshToken='));
+
+    const res = await request(app)
+      .post('/api/auth/refresh')
+      .set('Cookie', cookieString);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.token).toBeDefined();
+  });
+
+  it('returns 400 when no cookie is sent', async () => {
+    const res = await request(app).post('/api/auth/refresh');
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+});
+
 // ─── Get Current User ───────────────────────────────────────────────────────
 
 describe('GET /api/auth/me', () => {

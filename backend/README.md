@@ -62,8 +62,9 @@ All responses follow `{ success: boolean, data? }` or `{ success: false, error: 
 ## Authentication
 
 - Access tokens are short-lived JWTs signed with HS256, sent via `Authorization: Bearer`.
-- Refresh tokens are stored in MongoDB with expiry and rotated on each use.
-- Google OAuth uses Passport.js (passport-google-oauth20). On callback, a JWT is issued and the user is redirected to the frontend with the token in the query string.
+- Refresh tokens are stored in MongoDB with expiry and issued as httpOnly cookies (`Secure; SameSite=None` in production) — never exposed in JSON response bodies.
+- `POST /api/auth/refresh` reads the refresh token from the `refreshToken` cookie (not the request body). The browser sends the cookie automatically; no client-side token management needed.
+- Google OAuth uses Passport.js (passport-google-oauth20). On callback, a one-time code (OAuthCode, 60s TTL) is issued and the frontend exchanges it via `POST /api/auth/google/exchange` — the JWT never appears in browser history or server logs.
 - Passwords are hashed with bcryptjs (cost factor 12).
 
 ---

@@ -85,7 +85,6 @@ export function AuthProvider({ children }) {
       })
       .catch(() => {
         localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
       })
       .finally(() => setIsLoading(false));
@@ -93,9 +92,8 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
-    const { token, refreshToken, user: u } = res.data;
+    const { token, user: u } = res.data;
     localStorage.setItem('token', token);
-    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
     setUser(u);
     const socket = connectSocket(token);
     registerSocketEvents(socket);
@@ -104,9 +102,8 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async (data) => {
     const res = await api.post('/auth/register', data);
-    const { token, refreshToken, user: u } = res.data;
+    const { token, user: u } = res.data;
     localStorage.setItem('token', token);
-    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
     setUser(u);
     const socket = connectSocket(token);
     registerSocketEvents(socket);
@@ -114,13 +111,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (refreshToken) {
-      api.post('/auth/logout', { refreshToken }).catch(() => {});
-    }
+    api.post('/auth/logout').catch(() => {});
     disconnectSocket();
     localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     queryClient.clear();
     setUser(null);

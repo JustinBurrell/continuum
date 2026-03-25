@@ -17,11 +17,11 @@ Seed scripts for dev data live in `tests/mongodb/`.
 
 ### What's tested
 
-57 tests across 7 suites covering every core feature:
+61 tests across 7 suites covering every core feature:
 
 | Suite | File | What it covers |
 |-------|------|----------------|
-| Auth | `auth.test.js` | Register, login, `GET /me`, token validation, password not leaked in response |
+| Auth | `auth.test.js` | Register, login, `GET /me`, token validation, password not leaked in response; login sets httpOnly refresh cookie (not in body); `POST /api/auth/refresh` via cookie returns new access token; 400 when no cookie sent |
 | Notes | `notes.test.js` | CRUD, ownership isolation (Alice can't read Bob's notes) |
 | Tasks | `tasks.test.js` | CRUD, status update, ownership isolation, shared tasks (participant visibility, owner exclusion) |
 | Flashcard Sets | `flashcards.test.js` | Create set, add card, ownership isolation, shared sets (friends visibility, private exclusion) |

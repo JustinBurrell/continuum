@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api',
+  withCredentials: true,
 });
 
 // Attach JWT to every request
@@ -25,7 +26,6 @@ let rateLimitFired = false;
 
 const clearSession = () => {
   localStorage.removeItem('token');
-  localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
   window.location.href = '/login';
 };
@@ -50,36 +50,32 @@ api.interceptors.response.use(
 
     if (err.response?.status === 401 && !err.config._retry && !isAuthEndpoint) {
       err.config._retry = true;
-      const refreshToken = localStorage.getItem('refreshToken');
 
-      if (refreshToken) {
-        // Reuse an in-flight refresh if one is already running
-        if (!refreshPromise) {
-          refreshPromise = axios
-            .post(
-              (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/auth/refresh',
-              { refreshToken }
-            )
-            .then(({ data }) => {
-              localStorage.setItem('token', data.token);
-              return data.token;
-            })
-            .finally(() => {
-              refreshPromise = null;
-            });
-        }
-
-        try {
-          const newToken = await refreshPromise;
-          err.config.headers.Authorization = `Bearer ${newToken}`;
-          return api(err.config);
-        } catch {
-          clearSession();
-          return Promise.reject(err);
-        }
+      // Reuse an in-flight refresh if one is already running
+      if (!refreshPromise) {
+        refreshPromise = axios
+          .post(
+            (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/auth/refresh',
+            {},
+            { withCredentials: true }
+          )
+          .then(({ data }) => {
+            localStorage.setItem('token', data.token);
+            return data.token;
+          })
+          .finally(() => {
+            refreshPromise = null;
+          });
       }
 
-      clearSession();
+      try {
+        const newToken = await refreshPromise;
+        err.config.headers.Authorization = `Bearer ${newToken}`;
+        return api(err.config);
+      } catch {
+        clearSession();
+        return Promise.reject(err);
+      }
     }
     return Promise.reject(err);
   }

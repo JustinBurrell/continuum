@@ -184,10 +184,10 @@ Implemented and reverted. The socket-based notification round-trip (enqueue → 
 - ~~Test core features: notes, tasks, flashcards, applications~~
 - ~~Test real-time: send a message, confirm WebSocket delivery~~
 
-### Phase B — Security hardening (code changes)
-- [ ] **F-H3** — Self-host Google Fonts: download Inter into `web/public/fonts/`, update `index.html` to use local paths, remove `fonts.googleapis.com` `<link>` tags
-- [ ] **F-C1** — Migrate refresh token from localStorage to httpOnly cookie: backend sets `Set-Cookie: refreshToken=<token>; HttpOnly; Secure; SameSite=Strict` on login/refresh, new `POST /api/auth/refresh` reads cookie, frontend interceptor calls that endpoint instead of reading localStorage, logout calls backend to clear cookie
-- [ ] **F-C3** — AuthCallback one-time code exchange: backend issues short-lived one-time code (Redis TTL 60s) on Google OAuth success, redirects to `FRONTEND_URL/auth/callback?code=<code>`, `AuthCallback.jsx` POSTs code to new `POST /api/auth/exchange` which returns JWT and sets httpOnly refresh cookie — prevents JWT appearing in browser history/logs
+### Phase B — Security hardening (code changes) — DONE
+- ~~**F-H3** — Self-host Google Fonts: replaced Google Fonts CDN with `@fontsource-variable/dm-sans` + `@fontsource/lora` npm packages; removed `fonts.googleapis.com` and `fonts.gstatic.com` from CSP; fonts bundled by Vite at build time~~
+- ~~**F-C1** — Migrate refresh token from localStorage to httpOnly cookie: `cookie-parser` added, `setRefreshCookie` helper sets `HttpOnly; Secure; SameSite=None` in production; `login`, `register`, `googleExchange` set cookie and no longer return `refreshToken` in JSON body; `refresh` reads `req.cookies.refreshToken`; `logout` clears cookie; frontend removes all `refreshToken` localStorage references; axios `withCredentials: true` added~~
+- ~~**F-C3** — AuthCallback one-time code exchange: already fully implemented (backend `googleCallback` → OAuthCode → `googleExchange`; `AuthCallback.jsx` exchanges code via `POST /auth/google/exchange`)~~
 
 ### Phase C — Docs
 - [ ] Update `docs/backend/system-design.md` — reflect Vercel + Render + Upstash as production stack
@@ -196,6 +196,7 @@ Implemented and reverted. The socket-based notification round-trip (enqueue → 
 ### Phase D — Config (no code)
 - [ ] Set spend alerts on Groq, Atlas, Cloudinary, and Resend
 - [ ] MongoDB Atlas Network Access — leave `0.0.0.0/0` until Render tier upgrade
+- [ ] Rollback strategy — document in `docs/backend/rollback-strategy.md`: Render one-click rollback to previous deploy; Vercel instant rollback via dashboard; MongoDB Atlas point-in-time restore (M10+, not available on free tier — manual snapshot before any schema migration)
 
 **When done:** delete `docs/future-ideas/scale-readiness.md`, `docs/future-ideas/websocket-deployment-notes.md`, `docs/future-ideas/pre-deployment-checklist.md`
 
