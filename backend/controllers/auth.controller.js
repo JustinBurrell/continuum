@@ -311,7 +311,7 @@ exports.googleUnlink = async (req, res) => {
         return res.status(400).json({ success: false, error: 'Set a password before unlinking Google' });
     }
 
-    const { keepNotes = true } = req.body;
+    const { keepNotes = true } = req.body || {};
 
     // If keepNotes is false, soft delete all notes imported from Google Docs
     // Google Docs notes are identified by googleDocId being set on the note
