@@ -1,7 +1,5 @@
 # Continuum
 
-Node.js Express MongoDB React Vite CI License
-
 Continuum is a full-stack educational productivity platform built for college students. It combines note-taking, AI-powered study tools, task management, social features, and career tracking into a single cohesive product.
 
 Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubator with Google Play.
