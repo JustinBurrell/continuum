@@ -77,6 +77,18 @@ async function cleanJaneData(janeId) {
     $or: [{ user1: janeId }, { user2: janeId }],
   });
 
+  // Friend content (shared notes, flashcard sets, shared tasks seeded for Jane's friends)
+  const friendUsers = await User.find({ username: { $in: JANE_FRIEND_USERNAMES } }).select('_id');
+  const friendIds = friendUsers.map(f => f._id);
+  if (friendIds.length) {
+    const friendSets = await FlashcardSet.find({ userId: { $in: friendIds } }).select('_id');
+    await Flashcard.deleteMany({ setId: { $in: friendSets.map(s => s._id) } });
+    await FlashcardSet.deleteMany({ userId: { $in: friendIds } });
+    await Note.deleteMany({ userId: { $in: friendIds } });
+    await Task.deleteMany({ userId: { $in: friendIds }, isShared: true });
+    await Comment.deleteMany({ userId: janeId, targetType: 'note' }); // Jane's comments on friend notes
+  }
+
   // Jane herself
   await User.deleteOne({ _id: janeId });
 
@@ -712,25 +724,187 @@ async function seedActivities(jane, friends, sharedNotes, allSets, allTasks, all
     count++;
   }
 
-  // Task completion activities for Jane's completed tasks
-  const completedTasks = allTasks.filter(
-    t => t.status === 'completed' && t.userId?.toString() === jane._id.toString()
-  ).slice(0, 5);
+  console.log(`  Created ${count} activities.`);
+}
 
-  for (const task of completedTasks) {
-    await Activity.create({
-      userId: jane._id,
-      type: 'task_completed',
-      targetId: task._id,
-      targetType: 'task',
-      visibleTo: [jane._id, ...allFriendIds],
-      metadata: { taskTitle: task.title },
-      createdAt: bumpDate(),
-    });
-    count++;
+// ─── SECTION 12: Friend Content ───────────────────────────────────────────────
+// Give each of Jane's 20 friends shared notes, a flashcard set, and (for some)
+// a shared task — so Jane's feeds and profile pages feel populated.
+
+const FRIEND_NOTES = [
+  { title: 'OS Scheduling Algorithms', type: 'lecture', content: '<p>Round Robin, FCFS, SJF, and Priority scheduling. Round Robin assigns each process a fixed time slice (quantum). Preemptive priority scheduling can cause starvation — solved by aging.</p><ul><li>CPU burst vs I/O burst</li><li>Gantt chart analysis for average wait time</li><li>Multilevel feedback queue combines approaches</li></ul>' },
+  { title: 'Database Normalization', type: 'lecture', content: '<p>1NF: atomic values, no repeating groups. 2NF: no partial dependencies on composite keys. 3NF: no transitive dependencies. BCNF: every determinant is a candidate key.</p><p>Denormalization trades storage for read performance.</p>' },
+  { title: 'React Hooks Deep Dive', type: 'general', content: '<p>useState, useEffect, useCallback, useMemo, useRef — when and why to use each. useCallback memoizes functions; useMemo memoizes computed values. Both take dependency arrays.</p><p>Custom hooks encapsulate reusable stateful logic.</p>' },
+  { title: 'Algorithms: Dynamic Programming', type: 'lecture', content: '<p>Optimal substructure + overlapping subproblems → DP. Top-down (memoization) vs bottom-up (tabulation). Classic examples: Fibonacci, Knapsack, Longest Common Subsequence, Edit Distance.</p>' },
+  { title: 'Machine Learning: Gradient Descent', type: 'research', content: '<p>Gradient descent minimizes the loss function by iteratively moving in the direction of steepest descent. Learning rate α controls step size. Variants: batch GD, stochastic GD (SGD), mini-batch GD.</p><p>Adam optimizer adapts learning rates per parameter.</p>' },
+  { title: 'Computer Networks: TCP/IP', type: 'lecture', content: '<p>TCP: reliable, ordered, connection-oriented. Three-way handshake (SYN, SYN-ACK, ACK). Flow control via sliding window. Congestion control: slow start, congestion avoidance, fast retransmit.</p>' },
+  { title: 'Software Engineering Principles', type: 'general', content: '<p>SOLID principles: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion. DRY, YAGNI, KISS. Design patterns: Factory, Singleton, Observer, Strategy.</p>' },
+  { title: 'Linear Algebra for ML', type: 'research', content: '<p>Vectors, matrices, dot products, eigenvalues. Matrix multiplication dimensions must align. Singular Value Decomposition (SVD) used in recommendation systems and PCA for dimensionality reduction.</p>' },
+  { title: 'Midterm Prep: Data Structures', type: 'lecture', content: '<p>Arrays, linked lists, stacks, queues, trees, heaps, hash tables, graphs. Know time complexity for insert/search/delete. Binary search tree: O(log n) average, O(n) worst case. Red-black trees guarantee O(log n).</p>' },
+  { title: 'Cloud Computing Fundamentals', type: 'general', content: '<p>IaaS vs PaaS vs SaaS. AWS core services: EC2 (compute), S3 (storage), RDS (relational DB), Lambda (serverless). Horizontal vs vertical scaling. CAP theorem: consistency, availability, partition tolerance — pick two.</p>' },
+  { title: 'UX Research Methods', type: 'research', content: '<p>User interviews, surveys, usability testing, A/B testing, heuristic evaluation. Think-aloud protocol captures user mental models. Affinity diagrams synthesize qualitative data. Persona creation from research findings.</p>' },
+  { title: 'Cybersecurity Fundamentals', type: 'lecture', content: '<p>CIA triad: Confidentiality, Integrity, Availability. Common attacks: SQL injection, XSS, CSRF, man-in-the-middle. Defense: input validation, HTTPS, CSP headers, rate limiting, principle of least privilege.</p>' },
+  { title: 'Product Management Basics', type: 'general', content: '<p>Product roadmap, OKRs, user stories, sprint planning. Jobs-to-be-done framework. Prioritization: RICE score (Reach, Impact, Confidence, Effort). Metrics: DAU, retention, NPS, conversion rate.</p>' },
+  { title: 'Compilers: Lexing and Parsing', type: 'lecture', content: '<p>Lexical analysis converts source code to tokens. Parsing builds an AST. Context-free grammars define language syntax. LL(1) vs LR(1) parsers. Recursive descent parsing is intuitive to implement.</p>' },
+  { title: 'Statistics for Data Science', type: 'research', content: '<p>Descriptive vs inferential statistics. Central limit theorem, hypothesis testing, p-values, confidence intervals. Type I (false positive) and Type II (false negative) errors. Bayesian vs frequentist approaches.</p>' },
+  { title: 'Distributed Systems Notes', type: 'general', content: '<p>Consistency models: strong, eventual, causal. Consensus algorithms: Paxos, Raft. Leader election, fault tolerance, replication. Two-phase commit for distributed transactions. Vector clocks for event ordering.</p>' },
+  { title: 'iOS Development: SwiftUI', type: 'general', content: '<p>Declarative UI — describe what, not how. Views are value types (structs). State management: @State, @Binding, @ObservedObject, @EnvironmentObject. Navigation: NavigationStack, TabView. Combine for reactive data flow.</p>' },
+  { title: 'Ethics in AI', type: 'research', content: '<p>Algorithmic bias, fairness definitions (demographic parity, equalized odds). Explainability vs accuracy trade-off. Data privacy: GDPR, differential privacy. Responsible AI frameworks: transparency, accountability, non-maleficence.</p>' },
+  { title: 'System Design Interview Prep', type: 'general', content: '<p>Clarify requirements → estimate scale → high-level design → deep dive → bottlenecks. Key concepts: load balancing, caching (Redis), CDNs, database sharding, message queues (Kafka), microservices vs monolith.</p>' },
+  { title: 'Interview Prep: Behavioral Questions', type: 'general', content: '<p>STAR method: Situation, Task, Action, Result. Prepare stories for: leadership, conflict, failure, teamwork, technical challenge. Research company values and align examples. Ask thoughtful questions about team and growth.</p>' },
+];
+
+const FRIEND_FLASHCARD_SETS = [
+  { title: 'OS Concepts', cards: [{ front: 'What is a process?', back: 'A program in execution, with its own memory space, registers, and program counter.' }, { front: 'Deadlock conditions', back: 'Mutual exclusion, hold and wait, no preemption, circular wait — all four must hold.' }, { front: 'What is thrashing?', back: 'When a system spends more time paging than executing processes due to insufficient physical memory.' }] },
+  { title: 'DB Normalization', cards: [{ front: '1NF requirement', back: 'All attributes are atomic (indivisible) and each row is unique.' }, { front: '3NF rule', back: 'No transitive dependencies — non-key attributes depend only on the primary key.' }, { front: 'ACID properties', back: 'Atomicity, Consistency, Isolation, Durability — guarantees for database transactions.' }] },
+  { title: 'React Fundamentals', cards: [{ front: 'useCallback vs useMemo', back: 'useCallback memoizes a function reference; useMemo memoizes the return value of a function.' }, { front: 'When to use useRef?', back: 'Accessing DOM elements directly, persisting values across renders without causing re-renders.' }, { front: 'React reconciliation', back: 'React diffs the virtual DOM tree to find minimal changes needed to update the real DOM.' }] },
+  { title: 'DP Patterns', cards: [{ front: 'Overlapping subproblems', back: 'The same sub-problems are solved multiple times — DP stores solutions to avoid recomputation.' }, { front: 'Optimal substructure', back: 'An optimal solution to a problem contains optimal solutions to its subproblems.' }, { front: 'Knapsack complexity', back: 'O(n × W) with bottom-up DP, where n = items and W = max capacity.' }] },
+  { title: 'ML Key Concepts', cards: [{ front: 'Bias-variance trade-off', back: 'High bias = underfitting; high variance = overfitting. Goal is to balance both for good generalization.' }, { front: 'What is regularization?', back: 'Techniques (L1/L2) that penalize large model weights to reduce overfitting.' }, { front: 'Cross-entropy loss', back: 'Measures difference between predicted probability distribution and true labels in classification.' }] },
+  { title: 'Networks & Protocols', cards: [{ front: 'TCP vs UDP', back: 'TCP: reliable, ordered, connection-oriented. UDP: fast, connectionless, no delivery guarantees.' }, { front: 'HTTP status codes', back: '2xx success, 3xx redirect, 4xx client error, 5xx server error. 404 = Not Found, 401 = Unauthorized.' }, { front: 'What is DNS?', back: 'Domain Name System translates human-readable hostnames to IP addresses.' }] },
+  { title: 'SOLID Principles', cards: [{ front: 'Single Responsibility Principle', back: 'A class should have only one reason to change — one job, one responsibility.' }, { front: 'Open/Closed Principle', back: 'Software entities should be open for extension but closed for modification.' }, { front: 'Dependency Inversion', back: 'Depend on abstractions, not concretions. High-level modules should not depend on low-level modules.' }] },
+  { title: 'Cloud & Distributed Systems', cards: [{ front: 'CAP Theorem', back: 'A distributed system can guarantee only 2 of 3: Consistency, Availability, Partition Tolerance.' }, { front: 'What is eventual consistency?', back: 'Replicas will converge to the same value eventually, but reads may be stale in the interim.' }, { front: 'Horizontal vs vertical scaling', back: 'Horizontal: add more machines. Vertical: add more resources to one machine.' }] },
+  { title: 'System Design Vocab', cards: [{ front: 'What is a CDN?', back: 'Content Delivery Network — caches static assets geographically close to users to reduce latency.' }, { front: 'Message queue purpose', back: 'Decouples producers and consumers; buffers bursts of traffic; enables async processing.' }, { front: 'Database sharding', back: 'Partitioning a database horizontally across multiple servers to improve scalability.' }] },
+  { title: 'Interview Behavioral', cards: [{ front: 'STAR method', back: 'Situation, Task, Action, Result — structure for answering behavioral interview questions.' }, { front: 'Good failure story', back: 'Pick a real failure, own your role, explain what you learned, and show how you applied that learning.' }, { front: 'Why this company?', back: 'Show research: mention specific product, values, team, or problems the company is solving that excite you.' }] },
+  { title: 'Statistics Vocabulary', cards: [{ front: 'p-value meaning', back: 'Probability of observing results at least as extreme as the data, assuming the null hypothesis is true.' }, { front: 'Type I error', back: 'False positive — rejecting the null hypothesis when it is actually true. Controlled by significance level α.' }, { front: 'Central Limit Theorem', back: 'The sampling distribution of the mean approaches a normal distribution as sample size increases.' }] },
+  { title: 'Data Structure Complexity', cards: [{ front: 'Hash table lookup', back: 'O(1) average case for search, insert, delete. O(n) worst case due to hash collisions.' }, { front: 'Heap operations', back: 'Insert and extract-min/max: O(log n). Build heap from array: O(n) using Floyd\'s algorithm.' }, { front: 'Binary search', back: 'O(log n) — requires sorted array. Halves the search space with each comparison.' }] },
+  { title: 'UX Principles', cards: [{ front: 'Hick\'s Law', back: 'The time to make a decision increases logarithmically with the number of choices.' }, { front: 'Fitts\'s Law', back: 'Time to reach a target depends on distance and size — larger, closer targets are faster to click.' }, { front: 'Jakob\'s Law', back: 'Users expect your site to work the same as all other sites they already use.' }] },
+  { title: 'Security Concepts', cards: [{ front: 'SQL injection', back: 'Attacker injects SQL code via user inputs to manipulate database queries. Prevent with parameterized queries.' }, { front: 'XSS (Cross-Site Scripting)', back: 'Injecting malicious scripts into web pages viewed by others. Prevent with output encoding and CSP headers.' }, { front: 'JWT structure', back: 'Header.Payload.Signature — base64 encoded. Signature verifies the token was not tampered with.' }] },
+  { title: 'SwiftUI Essentials', cards: [{ front: '@State vs @Binding', back: '@State owns the data; @Binding is a reference to @State owned by a parent view.' }, { front: 'ViewModifier protocol', back: 'Allows creating reusable, composable view transformations applied with .modifier() or custom methods.' }, { front: 'LazyVStack vs VStack', back: 'LazyVStack renders only visible items — use for long lists to avoid memory and performance issues.' }] },
+  { title: 'Product Metrics', cards: [{ front: 'DAU / MAU ratio', back: 'Measures stickiness — how often monthly active users return daily. >20% is generally healthy.' }, { front: 'NPS (Net Promoter Score)', back: 'Asks "how likely to recommend?" (0-10). Promoters (9-10) minus Detractors (0-6) = NPS.' }, { front: 'Cohort retention', back: 'Tracks what % of users who joined in a given period return in subsequent periods.' }] },
+  { title: 'Compiler Theory', cards: [{ front: 'Lexical analysis output', back: 'A stream of tokens — the fundamental units of the language (keywords, identifiers, literals, operators).' }, { front: 'AST (Abstract Syntax Tree)', back: 'Tree representation of the abstract syntactic structure of source code, built during parsing.' }, { front: 'Semantic analysis', back: 'Checks type correctness, scope resolution, and meaning after parsing — catches logical errors.' }] },
+  { title: 'AI Ethics Terms', cards: [{ front: 'Demographic parity', back: 'A fairness criterion requiring that positive outcome rates are equal across demographic groups.' }, { front: 'Differential privacy', back: 'A mathematical framework ensuring individual records cannot be identified from aggregate query results.' }, { front: 'Explainability vs accuracy', back: 'Simpler models (linear, decision tree) are more explainable but often less accurate than deep learning.' }] },
+  { title: 'Distributed Systems', cards: [{ front: 'Raft consensus', back: 'Leader election + log replication. A leader is elected by majority vote and replicates log entries to followers.' }, { front: 'Vector clocks', back: 'Track causality in distributed systems — each event increments the sender\'s clock entry in the vector.' }, { front: '2-Phase Commit', back: 'Coordinator asks all participants to prepare (phase 1), then sends commit or abort (phase 2). Blocking protocol.' }] },
+  { title: 'Behavioral Finance', cards: [{ front: 'Loss aversion', back: 'People feel losses ~2× more intensely than equivalent gains (Kahneman & Tversky).' }, { front: 'Confirmation bias', back: 'Tendency to search for and interpret information in a way that confirms pre-existing beliefs.' }, { front: 'Sunk cost fallacy', back: 'Continuing a decision because of already-invested resources rather than future value.' }] },
+];
+
+async function seedFriendContent(jane, friends) {
+  console.log('Seeding friend content (notes, flashcard sets, shared tasks)...');
+  let noteCount = 0;
+  let setCount = 0;
+  let taskCount = 0;
+
+  const allFriendIds = friends.map(f => f._id);
+
+  for (let i = 0; i < friends.length; i++) {
+    const friend = friends[i];
+
+    // Skip if this friend already has shared notes (idempotent)
+    const existingNotes = await Note.countDocuments({ userId: friend._id, visibility: 'friends' });
+    if (existingNotes >= 2) continue;
+
+    const noteA = FRIEND_NOTES[i % FRIEND_NOTES.length];
+    const noteB = FRIEND_NOTES[(i + 10) % FRIEND_NOTES.length];
+
+    const noteDate = new Date(Date.now() - (60 - i * 2) * 24 * 60 * 60 * 1000);
+
+    await Note.create([
+      {
+        userId: friend._id,
+        title: noteA.title,
+        content: noteA.content,
+        type: noteA.type,
+        visibility: 'friends',
+        tags: [],
+        createdAt: noteDate,
+        updatedAt: noteDate,
+      },
+      {
+        userId: friend._id,
+        title: noteB.title,
+        content: noteB.content,
+        type: noteB.type,
+        visibility: 'friends',
+        tags: [],
+        createdAt: new Date(noteDate.getTime() + 3 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(noteDate.getTime() + 3 * 24 * 60 * 60 * 1000),
+      },
+    ]);
+    noteCount += 2;
+
+    // Flashcard set
+    const existingSets = await FlashcardSet.countDocuments({ userId: friend._id, visibility: 'friends' });
+    if (existingSets === 0) {
+      const fsData = FRIEND_FLASHCARD_SETS[i % FRIEND_FLASHCARD_SETS.length];
+      const fs = await FlashcardSet.create({
+        userId: friend._id,
+        title: fsData.title,
+        visibility: 'friends',
+        createdAt: noteDate,
+        updatedAt: noteDate,
+      });
+
+      for (const card of fsData.cards) {
+        await Flashcard.create({ setId: fs._id, front: card.front, back: card.back });
+      }
+      setCount++;
+    }
+
+    // Shared task with Jane as participant (first 6 friends only)
+    if (i < 6) {
+      const sharedTaskTitles = [
+        'CS Senior Project: Design Doc',
+        'Study Group: Algorithms Final',
+        'Hackathon: Team Planning',
+        'Research Paper Outline',
+        'Group Presentation Slides',
+        'Capstone Milestone Review',
+      ];
+      const existing = await Task.countDocuments({
+        userId: friend._id,
+        isShared: true,
+        'participants.userId': jane._id,
+      });
+      if (existing === 0) {
+        await Task.create({
+          userId: friend._id,
+          title: sharedTaskTitles[i],
+          description: 'Shared task — collaborating with Jane and others.',
+          status: i < 2 ? 'in_progress' : i < 4 ? 'todo' : 'completed',
+          priority: 'medium',
+          type: 'project',
+          isShared: true,
+          participants: [{ userId: jane._id, role: 'contributor' }],
+          dueDate: new Date(Date.now() + (7 + i * 5) * 24 * 60 * 60 * 1000),
+          createdAt: noteDate,
+          updatedAt: noteDate,
+        });
+        taskCount++;
+      }
+    }
   }
 
-  console.log(`  Created ${count} activities.`);
+  // Jane comments on a few friends' shared notes
+  const friendNotes = await Note.find({
+    userId: { $in: allFriendIds },
+    visibility: 'friends',
+  }).limit(10);
+
+  const janeCommentBank = [
+    'This is super helpful — exactly what I needed for my exam review.',
+    'Love how clearly you broke this down. Adding to my notes!',
+    'Really useful perspective here. Thanks for sharing!',
+    'This would have saved me hours last semester. Bookmarked.',
+    'Great summary. The examples help a ton.',
+    'This is the clearest explanation of this topic I\'ve seen.',
+    'Could you share more resources on this? Would love to dive deeper.',
+    'I was struggling with this concept — this cleared everything up.',
+  ];
+
+  let janeCommentCount = 0;
+  for (let i = 0; i < Math.min(8, friendNotes.length); i++) {
+    const existing = await Comment.countDocuments({ userId: jane._id, targetId: friendNotes[i]._id });
+    if (existing === 0) {
+      await Comment.create({
+        targetId: friendNotes[i]._id,
+        targetType: 'note',
+        userId: jane._id,
+        content: janeCommentBank[i % janeCommentBank.length],
+      });
+      janeCommentCount++;
+    }
+  }
+
+  console.log(`  Friends: ${noteCount} notes, ${setCount} flashcard sets, ${taskCount} shared tasks, ${janeCommentCount} Jane comments`);
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -790,6 +964,9 @@ async function main() {
 
     // 11. Activity feed
     await seedActivities(jane, friends, sharedNotes, allSets, allTasks, allComments);
+
+    // 12. Friend content (shared notes, flashcard sets, shared tasks with Jane)
+    await seedFriendContent(jane, friends);
 
     console.log('\nJane Doe demo account seeded successfully!');
     console.log('  Email:    janedoe_demo@example.com');

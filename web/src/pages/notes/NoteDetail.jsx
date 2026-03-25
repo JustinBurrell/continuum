@@ -193,7 +193,7 @@ export default function NoteDetail() {
         </Link>
         <div style={{ flex: 1 }} />
 
-        {isOwner && (
+        {isOwner && !user?.isDemo && (
           <button
             onClick={() => setShowShareModal(true)}
             style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
@@ -209,7 +209,7 @@ export default function NoteDetail() {
             ) : 'Share'}
           </button>
         )}
-        {isOwner && (
+        {isOwner && !user?.isDemo && (
           <Link to="/notes/edit" state={{ id }}>
             <button style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
               <Edit3 size={14} /> Edit
@@ -221,7 +221,7 @@ export default function NoteDetail() {
             <Download size={14} /> PDF
           </Button>
         )}
-        {isOwner && (
+        {isOwner && !user?.isDemo && (
           <Button
             variant="danger"
             size="sm"
@@ -323,33 +323,35 @@ export default function NoteDetail() {
           <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '0.9375rem', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Sparkles size={16} style={{ color: '#6b21a8' }} /> AI Summary
           </h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => generateFlashcardsMutation.mutate()}
-              loading={generateFlashcardsMutation.isPending}
-            >
-              <BookOpen size={14} /> Generate Flashcards
-            </Button>
-            <button
-              onClick={handleAiSummary}
-              disabled={aiLoading}
-              style={{
-                padding: '6px 14px',
-                borderRadius: 10,
-                border: 'none',
-                background: '#f5f0ff',
-                color: '#6b21a8',
-                fontSize: '0.8125rem',
-                fontWeight: 500,
-                cursor: aiLoading ? 'not-allowed' : 'pointer',
-                opacity: aiLoading ? 0.6 : 1,
-              }}
-            >
-              {aiLoading ? 'Generating...' : 'Generate'}
-            </button>
-          </div>
+          {!user?.isDemo && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => generateFlashcardsMutation.mutate()}
+                loading={generateFlashcardsMutation.isPending}
+              >
+                <BookOpen size={14} /> Generate Flashcards
+              </Button>
+              <button
+                onClick={handleAiSummary}
+                disabled={aiLoading}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: '#f5f0ff',
+                  color: '#6b21a8',
+                  fontSize: '0.8125rem',
+                  fontWeight: 500,
+                  cursor: aiLoading ? 'not-allowed' : 'pointer',
+                  opacity: aiLoading ? 0.6 : 1,
+                }}
+              >
+                {aiLoading ? 'Generating...' : 'Generate'}
+              </button>
+            </div>
+          )}
         </div>
 
         {flashcardMsg && (
@@ -439,7 +441,7 @@ export default function NoteDetail() {
                           <Heart size={12} style={{ fill: isLiked ? '#ef4444' : 'none' }} />
                           {likeCount > 0 && <span>{likeCount}</span>}
                         </button>
-                        {isOwn && (
+                        {isOwn && !user?.isDemo && (
                           <button
                             onClick={() => deleteCommentMutation.mutate(c._id)}
                             className="opacity-0 group-hover:opacity-100"
@@ -471,41 +473,43 @@ export default function NoteDetail() {
         </div>
 
         {/* Comment input */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <Avatar name={user?.name || user?.username} src={user?.avatarUrl} size="sm" />
-          <div style={{ flex: 1, display: 'flex', gap: 8 }}>
-            <input
-              type="text"
-              placeholder="Write a comment..."
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && comment.trim()) {
-                  e.preventDefault();
-                  commentMutation.mutate(comment.trim());
-                }
-              }}
-              style={{
-                flex: 1,
-                background: 'white',
-                border: '1px solid #ede9fe',
-                borderRadius: 12,
-                padding: '9px 14px',
-                fontSize: '0.875rem',
-                color: '#111827',
-                outline: 'none',
-              }}
-            />
-            <Button
-              size="sm"
-              onClick={() => comment.trim() && commentMutation.mutate(comment.trim())}
-              loading={commentMutation.isPending}
-              disabled={!comment.trim()}
-            >
-              <Send size={14} />
-            </Button>
+        {!user?.isDemo && (
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <Avatar name={user?.name || user?.username} src={user?.avatarUrl} size="sm" />
+            <div style={{ flex: 1, display: 'flex', gap: 8 }}>
+              <input
+                type="text"
+                placeholder="Write a comment..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && comment.trim()) {
+                    e.preventDefault();
+                    commentMutation.mutate(comment.trim());
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  background: 'white',
+                  border: '1px solid #ede9fe',
+                  borderRadius: 12,
+                  padding: '9px 14px',
+                  fontSize: '0.875rem',
+                  color: '#111827',
+                  outline: 'none',
+                }}
+              />
+              <Button
+                size="sm"
+                onClick={() => comment.trim() && commentMutation.mutate(comment.trim())}
+                loading={commentMutation.isPending}
+                disabled={!comment.trim()}
+              >
+                <Send size={14} />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <ConfirmModal

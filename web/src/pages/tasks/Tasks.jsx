@@ -227,7 +227,7 @@ export default function Tasks() {
               status={col.status}
               tasks={col.tasks}
               onStatusChange={handleStatusChange}
-              onDelete={sharedTab ? null : (id) => setDeleteConfirm(id)}
+              onDelete={sharedTab || user?.isDemo ? null : (id) => setDeleteConfirm(id)}
               onView={setViewingTaskId}
               isSharedTab={sharedTab}
               currentUserId={user?._id}

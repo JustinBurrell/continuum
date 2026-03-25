@@ -179,7 +179,7 @@ export default function FlashcardSets() {
             <FlashcardSetCard
               key={set._id}
               set={set}
-              onDelete={sharedTab ? null : () => setDeleteConfirm(set._id)}
+              onDelete={sharedTab || user?.isDemo ? null : () => setDeleteConfirm(set._id)}
             />
           ))}
         </div>

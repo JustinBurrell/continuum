@@ -297,7 +297,7 @@ export default function NotesList() {
             <NoteCard
               key={note._id}
               note={note}
-              onDelete={sharedTab ? null : () => setDeleteConfirm(note._id)}
+              onDelete={sharedTab || user?.isDemo ? null : () => setDeleteConfirm(note._id)}
             />
           ))}
         </div>

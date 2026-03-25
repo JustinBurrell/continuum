@@ -7,9 +7,11 @@ import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import ResumesSkeleton from '@/components/skeletons/ResumesSkeleton';
+import { useAuth } from '@/context/AuthContext';
 import { formatDate } from '@/lib/utils';
 
 export default function Resumes() {
+  const { user } = useAuth();
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [expandedFeedback, setExpandedFeedback] = useState({});
@@ -74,22 +76,24 @@ export default function Resumes() {
             {resumeSearch ? `${resumes.length} result${resumes.length !== 1 ? 's' : ''}` : `${resumes.length} uploaded`}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf"
-            className="hidden"
-            onChange={e => handleUpload(e.target.files[0])}
-          />
-          <Button onClick={() => fileInputRef.current?.click()} loading={uploading}>
-            <Plus size={16} /> Upload resume
-          </Button>
-        </div>
+        {!user?.isDemo && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf"
+              className="hidden"
+              onChange={e => handleUpload(e.target.files[0])}
+            />
+            <Button onClick={() => fileInputRef.current?.click()} loading={uploading}>
+              <Plus size={16} /> Upload resume
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Drop zone */}
-      <div
+      {!user?.isDemo && <div
         onClick={() => fileInputRef.current?.click()}
         onDragOver={e => e.preventDefault()}
         onDrop={e => {
@@ -124,7 +128,7 @@ export default function Resumes() {
         </div>
         <p style={{ fontSize: 14, fontWeight: 600, color: '#374151', margin: '0 0 4px' }}>Upload your resume</p>
         <p style={{ fontSize: 12, color: '#a087b0', margin: 0 }}>Drag and drop a PDF here, or click to browse</p>
-      </div>
+      </div>}
 
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: 20 }}>
@@ -172,6 +176,7 @@ export default function Resumes() {
               onAiFeedback={() => handleAiFeedback(resume._id)}
               onDelete={() => setDeleteConfirm(resume._id)}
               deleteLoading={deleteMutation.isPending && deleteMutation.variables === resume._id}
+              isDemo={!!user?.isDemo}
             />
           ))}
         </div>
@@ -189,7 +194,7 @@ export default function Resumes() {
   );
 }
 
-function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiFeedback, onDelete, deleteLoading }) {
+function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiFeedback, onDelete, deleteLoading, isDemo }) {
   const hasFeedback = resume.feedback?.length > 0;
   const allFeedback = resume.feedback || [];
   const latestFeedback = allFeedback[allFeedback.length - 1];
@@ -264,17 +269,21 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
         </div>
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-          <Button size="sm" variant="ghost" onClick={onAiFeedback} loading={feedbackLoading}>
-            <Sparkles size={13} /> {hasFeedback ? 'Regenerate' : 'AI Feedback'}
-          </Button>
+          {!isDemo && (
+            <Button size="sm" variant="ghost" onClick={onAiFeedback} loading={feedbackLoading}>
+              <Sparkles size={13} /> {hasFeedback ? 'Regenerate' : 'AI Feedback'}
+            </Button>
+          )}
           {resume.fileUrl && (
             <Button size="sm" variant="outline" onClick={handleDownload} loading={downloading}>
               <Download size={13} />
             </Button>
           )}
-          <Button size="sm" variant="danger" onClick={onDelete} loading={deleteLoading}>
-            <Trash2 size={13} />
-          </Button>
+          {!isDemo && (
+            <Button size="sm" variant="danger" onClick={onDelete} loading={deleteLoading}>
+              <Trash2 size={13} />
+            </Button>
+          )}
         </div>
       </div>
 

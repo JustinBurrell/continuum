@@ -227,7 +227,7 @@ export default function FlashcardSetDetail() {
               style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', lineHeight: 1.2, display: 'flex', alignItems: 'center', gap: 8 }}
             >
               {set.title}
-              {isOwner && (
+              {isOwner && !user?.isDemo && (
                 <button
                   onClick={() => { setTitleDraft(set.title); setEditingTitle(true); }}
                   style={{ padding: 4, borderRadius: 6, border: 'none', background: 'transparent', color: '#a087b0', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0 }}
@@ -268,7 +268,7 @@ export default function FlashcardSetDetail() {
             {duplicateMutation.isPending ? 'Saving...' : duplicatedId ? 'Saved' : 'Save a copy'}
           </button>
         )}
-        {isOwner && (
+        {isOwner && !user?.isDemo && (
           <button
             onClick={() => setShowShareModal(true)}
             style={{
@@ -297,7 +297,7 @@ export default function FlashcardSetDetail() {
           </button>
         )}
 
-        {isOwner && (
+        {isOwner && !user?.isDemo && (
           <button
             onClick={() => setShowDeleteSet(true)}
             style={{
@@ -320,7 +320,7 @@ export default function FlashcardSetDetail() {
           </button>
         )}
 
-        {isOwner && (
+        {isOwner && !user?.isDemo && (
           <button
             onClick={() => setShowAddCard(true)}
             style={{
@@ -436,7 +436,7 @@ export default function FlashcardSetDetail() {
               }}
             >
               {/* Actions — owner only */}
-              {isOwner && (
+              {isOwner && !user?.isDemo && (
                 <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 4, opacity: 0.4 }} className="group-hover:opacity-100">
                   <button
                     onClick={() => openEditCard(card)}
@@ -560,7 +560,7 @@ export default function FlashcardSetDetail() {
                           <Heart size={12} style={{ fill: isLiked ? '#ef4444' : 'none' }} />
                           {likeCount > 0 && <span>{likeCount}</span>}
                         </button>
-                        {isOwn && (
+                        {isOwn && !user?.isDemo && (
                           <button
                             onClick={() => deleteCommentMutation.mutate(c._id)}
                             className="opacity-0 group-hover:opacity-100"
@@ -592,41 +592,43 @@ export default function FlashcardSetDetail() {
         </div>
 
         {/* Comment input */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <Avatar name={user?.name || user?.username} src={user?.avatarUrl} size="sm" />
-          <div style={{ flex: 1, display: 'flex', gap: 8 }}>
-            <input
-              type="text"
-              placeholder="Write a comment..."
-              value={comment}
-              onChange={e => setComment(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey && comment.trim()) {
-                  e.preventDefault();
-                  commentMutation.mutate(comment.trim());
-                }
-              }}
-              style={{
-                flex: 1,
-                background: 'white',
-                border: '1px solid #ede9fe',
-                borderRadius: 12,
-                padding: '9px 14px',
-                fontSize: '0.875rem',
-                color: '#111827',
-                outline: 'none',
-              }}
-            />
-            <Button
-              size="sm"
-              onClick={() => comment.trim() && commentMutation.mutate(comment.trim())}
-              loading={commentMutation.isPending}
-              disabled={!comment.trim()}
-            >
-              <Send size={14} />
-            </Button>
+        {!user?.isDemo && (
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <Avatar name={user?.name || user?.username} src={user?.avatarUrl} size="sm" />
+            <div style={{ flex: 1, display: 'flex', gap: 8 }}>
+              <input
+                type="text"
+                placeholder="Write a comment..."
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey && comment.trim()) {
+                    e.preventDefault();
+                    commentMutation.mutate(comment.trim());
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  background: 'white',
+                  border: '1px solid #ede9fe',
+                  borderRadius: 12,
+                  padding: '9px 14px',
+                  fontSize: '0.875rem',
+                  color: '#111827',
+                  outline: 'none',
+                }}
+              />
+              <Button
+                size="sm"
+                onClick={() => comment.trim() && commentMutation.mutate(comment.trim())}
+                loading={commentMutation.isPending}
+                disabled={!comment.trim()}
+              >
+                <Send size={14} />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Add card modal */}
