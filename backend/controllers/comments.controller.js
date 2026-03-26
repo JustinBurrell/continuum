@@ -264,15 +264,18 @@ exports.toggleLike = async (req, res) => {
 // Purpose: Soft delete a comment — only the author can delete their own comment
 // ----------------------------------------
 exports.deleteComment = async (req, res) => {
-    const comment = await Comment.findOneAndUpdate(
-        { _id: req.params.id, userId: req.user._id, deletedAt: null },
-        { deletedAt: new Date() },
-        { new: true }
-    );
+    const comment = await Comment.findOne({ _id: req.params.id, deletedAt: null });
 
     if (!comment) {
         return res.status(404).json({ success: false, error: 'Comment not found' });
     }
+
+    if (comment.userId.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ success: false, error: 'Not authorized to delete this comment' });
+    }
+
+    comment.deletedAt = new Date();
+    await comment.save();
 
     res.status(200).json({ success: true, message: 'Comment deleted' });
 };

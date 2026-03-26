@@ -5,13 +5,17 @@
  *   POST /api/auth/register
  *   POST /api/auth/login
  *   GET  /api/auth/me
+ *   POST /api/auth/forgot-password
+ *   POST /api/auth/reset-password
  *
  * Each test gets a fresh in-memory database — no real MongoDB touched.
+ * Resend and Cloudinary are mocked — no emails or uploads sent.
  */
 
 const request = require('supertest');
 const app = require('../../app');
 const { connectTestDb, clearTestDb, closeTestDb } = require('./testDb');
+const User = require('../../models/User');
 
 beforeAll(connectTestDb);
 afterEach(clearTestDb);
@@ -166,5 +170,133 @@ describe('GET /api/auth/me', () => {
       .set('Authorization', 'Bearer thisisnotatoken');
 
     expect(res.statusCode).toBe(401);
+  });
+});
+
+// ─── Forgot Password ────────────────────────────────────────────────────────
+
+describe('POST /api/auth/forgot-password', () => {
+  it('returns 200 for an unknown email — never reveals if email exists', async () => {
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: 'nobody@continuum.test' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it('returns 400 for an unverified account', async () => {
+    // registerAndLogin creates an unverified user by default
+    await request(app).post('/api/auth/register').send(validUser);
+
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: validUser.email });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('returns 200 for a verified account and sets a reset token', async () => {
+    const reg = await request(app).post('/api/auth/register').send(validUser);
+    await User.findByIdAndUpdate(reg.body.user._id, { emailVerified: true });
+
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: validUser.email });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+
+    // Confirm the reset token was stored on the user
+    const user = await User.findOne({ email: validUser.email }).select('+passwordResetToken +passwordResetExpires');
+    expect(user.passwordResetToken).toBeDefined();
+    expect(user.passwordResetExpires).toBeDefined();
+  });
+});
+
+// ─── Reset Password ─────────────────────────────────────────────────────────
+
+describe('POST /api/auth/reset-password', () => {
+  // Helper: register, verify, and generate a reset token — returns { rawToken, email }
+  async function setupResetToken() {
+    const reg = await request(app).post('/api/auth/register').send(validUser);
+    const user = await User.findById(reg.body.user._id).select('+password');
+    user.emailVerified = true;
+    const rawToken = user.createPasswordResetToken();
+    await user.save();
+    return { rawToken, email: validUser.email };
+  }
+
+  it('resets the password with a valid token', async () => {
+    const { rawToken } = await setupResetToken();
+
+    const res = await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token: rawToken, newPassword: 'ResetPass@99' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it('new password works for login after reset', async () => {
+    const { rawToken } = await setupResetToken();
+    const newPassword = 'ResetPass@99';
+
+    await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token: rawToken, newPassword });
+
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: validUser.email, password: newPassword });
+
+    expect(loginRes.statusCode).toBe(200);
+    expect(loginRes.body.token).toBeDefined();
+  });
+
+  it('token cannot be reused after a successful reset', async () => {
+    const { rawToken } = await setupResetToken();
+
+    await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token: rawToken, newPassword: 'ResetPass@99' });
+
+    const res = await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token: rawToken, newPassword: 'AnotherPass@99' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('returns 400 for an invalid token', async () => {
+    const res = await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token: 'completelyfaketoken', newPassword: 'ResetPass@99' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('returns 400 when new password does not meet complexity requirements', async () => {
+    const { rawToken } = await setupResetToken();
+
+    const res = await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token: rawToken, newPassword: 'weakpassword' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('returns 400 when token is an empty string', async () => {
+    const res = await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token: '', newPassword: 'ResetPass@99' });
+
+    // Empty string hashes to a value that won't match any user → 400
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
   });
 });
