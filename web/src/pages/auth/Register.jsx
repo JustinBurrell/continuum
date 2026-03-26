@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import { friendlyError } from '@/lib/errors';
 
 export default function Register() {
@@ -127,6 +128,10 @@ export default function Register() {
               'Must include a letter, a number, and a special character',
           })}
         />
+
+        {watch('password')?.length > 0 && (
+          <PasswordRequirements password={watch('password')} />
+        )}
 
         <Input
           label="Confirm password"
