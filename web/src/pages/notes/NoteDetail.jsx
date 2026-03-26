@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
@@ -302,8 +303,8 @@ export default function NoteDetail() {
         )}
 
         {/* Content */}
-        <div style={{ color: '#1f2937', lineHeight: 1.7, fontSize: '0.95rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-          {note.content}
+        <div className="prose prose-sm max-w-none" style={{ color: '#1f2937', lineHeight: 1.7 }}>
+          <ReactMarkdown>{note.content}</ReactMarkdown>
         </div>
       </div>
 
