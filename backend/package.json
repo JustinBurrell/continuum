@@ -19,7 +19,8 @@
       "./tests/jest/setup.js"
     ],
     "moduleNameMapper": {
-      "^cloudinary$": "<rootDir>/tests/jest/__mocks__/cloudinary.js"
+      "^cloudinary$": "<rootDir>/tests/jest/__mocks__/cloudinary.js",
+      "^resend$": "<rootDir>/tests/jest/__mocks__/resend.js"
     }
   },
   "keywords": [],
