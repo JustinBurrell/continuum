@@ -322,6 +322,7 @@ These are production-ready and don't need changes:
 - ✅ **MongoDB sanitization** — `express-mongo-sanitize` applied
 - ✅ **Refresh token cookie** — httpOnly, sameSite
 - ✅ **Demo account guard** — isDemo blocks all writes at middleware level
+- ✅ **Jest integration tests** — 130+ tests across 12 suites (auth, profile, users, friends, calendar, notes, tasks, flashcards, comments, resumes, applications, messages, activity)
 
 ---
 

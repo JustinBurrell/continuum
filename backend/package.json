@@ -17,7 +17,10 @@
     "testTimeout": 30000,
     "setupFiles": [
       "./tests/jest/setup.js"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^cloudinary$": "<rootDir>/tests/jest/__mocks__/cloudinary.js"
+    }
   },
   "keywords": [],
   "author": "",

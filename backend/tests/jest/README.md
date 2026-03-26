@@ -17,14 +17,20 @@ Seed scripts for dev data live in `tests/mongodb/`.
 
 ### What's tested
 
-63 tests across 7 suites covering every core feature:
+130+ tests across 12 suites covering every route group:
 
 | Suite | File | What it covers |
 |-------|------|----------------|
 | Auth | `auth.test.js` | Register, login, `GET /me`, token validation, password not leaked in response; login sets httpOnly refresh cookie (not in body); `POST /api/auth/refresh` via cookie returns new access token; 400 when no cookie sent |
+| Profile | `profile.test.js` | `PATCH /me/profile` (bio, name), `PATCH /me/password` (correct/wrong/weak, login works after change, old password rejected), `PATCH /me/username` (conflict), `DELETE /me` (soft delete, login blocked after), `POST /me/restore`, logout, logout-all (refresh revoked), send-verification, verify-email (valid token, invalid token), Google unlink, demo account guard (blocks all writes, allows GETs) |
+| Users | `users.test.js` | `GET /search` (matches, excludes self, no results, no password leak), `GET /:id` (public profile, 404 nonexistent, 400 invalid ID) |
+| Friends | `friends.test.js` | Send request (duplicate, self-request, nonexistent recipient), accept/decline (403 when sender tries to accept), cancel request (403 when recipient cancels), list (accepted, pending, sent, empty), remove friend (403 for third party) |
+| Calendar | `calendar.test.js` | Empty calendar for new user, task appears after creation, isolates private tasks, date range filter, shared tasks visible to participants |
 | Notes | `notes.test.js` | CRUD, ownership isolation (Alice can't read Bob's notes); 400 when title is missing |
 | Tasks | `tasks.test.js` | CRUD, status update, ownership isolation, shared tasks (participant visibility, owner exclusion); 400 when title missing; 400 when dueDate missing |
 | Flashcard Sets | `flashcards.test.js` | Create set, add card, ownership isolation, shared sets (friends visibility, private exclusion) |
+| Comments | `comments.test.js` | Add comment (missing content/targetId/invalid targetType), get comments (all, empty), toggle like (like, unlike, 404), delete (owner, 403 non-owner, 404 nonexistent) |
+| Resumes | `resumes.test.js` | List (empty, owner isolation), download URL (owner, 403, 404), get feedback (403, 404, no feedback yet), delete (owner, 403, 404, 400 invalid ID); upload skipped (requires Cloudinary) |
 | Applications | `applications.test.js` | Create, read, update status, delete (owner-only) |
 | Messages | `messages.test.js` | Friend flow → create conversation → send message → read messages, non-participant blocked, message delete (soft, per-user), conversation delete (Instagram-style) |
 | Activity | `activity.test.js` | Feed accessible when authenticated, blocked when not; `since` param returns `total` ≤ full total; `nextCursor` present in response |
