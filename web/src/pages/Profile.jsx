@@ -949,7 +949,13 @@ export default function Profile() {
                   label="New password"
                   required
                   error={pwErrors.newPassword?.message}
-                  {...regPwd('newPassword', { required: 'Required' })}
+                  {...regPwd('newPassword', {
+                    required: 'Required',
+                    minLength: { value: 8, message: 'Min 8 characters' },
+                    validate: (v) =>
+                      /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(v) ||
+                      'Must include a letter, a number, and a special character',
+                  })}
                 />
                 {newPasswordValue.length > 0 && (
                   <PasswordRequirements password={newPasswordValue} />

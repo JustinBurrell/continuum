@@ -54,6 +54,9 @@ export default function ResetPassword() {
           {...register('password', {
             required: 'Password is required',
             minLength: { value: 8, message: 'Min 8 characters' },
+            validate: (v) =>
+              /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(v) ||
+              'Must include a letter, a number, and a special character',
           })}
         />
         <Input
