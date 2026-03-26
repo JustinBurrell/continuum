@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
+import queryClient from '@/lib/queryClient';
 import { connectSocket } from '@/lib/socket';
 
 export default function AuthCallback() {
@@ -30,6 +31,7 @@ export default function AuthCallback() {
       })
       .then((res) => {
         const user = res.data.user || res.data.data;
+        queryClient.invalidateQueries({ queryKey: ['me'] });
         updateUser(user);
         navigate('/dashboard');
       })

@@ -378,6 +378,8 @@ export default function Profile() {
   const { data } = useQuery({
     queryKey: ['me'],
     queryFn: () => api.get('/auth/me').then(r => r.data),
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   // Overview data — only load when on overview tab
