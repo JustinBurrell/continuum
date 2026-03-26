@@ -10,7 +10,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 > **Live app:** [https://usecontinuum.dev/](https://usecontinuum.dev/)
 >
-> **API docs:** [https://continuum-backend-yrrr.onrender.com/api-docs](https://api.usecontinuum.dev/api-docs/)
+> **API docs:** [https://api.usecontinuum.dev/api-docs/](https://api.usecontinuum.dev/api-docs/)
 >
 > **Screenshots:** *coming soon*
 
