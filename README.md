@@ -8,9 +8,9 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 ## Demo
 
-> **Live app:** [https://continuum-web.vercel.app](https://continuum-web.vercel.app)
+> **Live app:** [https://usecontinuum.dev/](https://usecontinuum.dev/)
 >
-> **API docs:** [https://continuum-backend-yrrr.onrender.com/api-docs](https://continuum-backend-yrrr.onrender.com/api-docs)
+> **API docs:** [https://continuum-backend-yrrr.onrender.com/api-docs](https://api.usecontinuum.dev/api-docs/)
 >
 > **Screenshots:** *coming soon*
 
