@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import DOMPurify from 'dompurify';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
@@ -303,11 +302,9 @@ export default function NoteDetail() {
         )}
 
         {/* Content */}
-        <div
-          className="prose prose-sm max-w-none"
-          style={{ color: '#1f2937', lineHeight: 1.7 }}
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(note.content) }}
-        />
+        <div style={{ color: '#1f2937', lineHeight: 1.7, fontSize: '0.95rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+          {note.content}
+        </div>
       </div>
 
       {/* AI Summary card */}
