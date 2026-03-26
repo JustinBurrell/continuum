@@ -100,7 +100,7 @@ describe('GET /api/calendar', () => {
     await request(app)
       .post('/api/tasks')
       .set('Authorization', `Bearer ${alice.token}`)
-      .send({ title: 'Shared Calendar Task', dueDate, status: 'todo', participants: [bob.userId] });
+      .send({ title: 'Shared Calendar Task', dueDate, status: 'todo', isShared: true, participants: [{ userId: bob.userId }] });
 
     const res = await request(app)
       .get('/api/calendar')
