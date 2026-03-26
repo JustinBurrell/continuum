@@ -18,6 +18,7 @@ import Skeleton from '@/components/ui/Skeleton';
 import { useForm } from 'react-hook-form';
 import { formatDate } from '@/lib/utils';
 import { useToast } from '@/components/ui/Toast';
+import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 
 const card = {
@@ -113,32 +114,6 @@ const PasswordInput = forwardRef(function PasswordInput({ label, error, required
   );
 });
 
-function PasswordRequirements({ password }) {
-  const checks = [
-    { label: 'At least 8 characters', ok: password.length >= 8 },
-    { label: 'At least one letter', ok: /[a-zA-Z]/.test(password) },
-    { label: 'At least one number', ok: /\d/.test(password) },
-    { label: 'At least one special character', ok: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) },
-  ];
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
-      {checks.map(c => (
-        <div key={c.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{
-            width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
-            background: c.ok ? '#dcfce7' : '#f5f0ff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <span style={{ fontSize: 9, color: c.ok ? '#16a34a' : '#a087b0', fontWeight: 700 }}>
-              {c.ok ? '✓' : '✗'}
-            </span>
-          </div>
-          <span style={{ fontSize: 11, color: c.ok ? '#16a34a' : '#a087b0' }}>{c.label}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function AvatarCropModal({ file, onSave, onClose }) {
   const CROP_SIZE = 280;
@@ -949,7 +924,13 @@ export default function Profile() {
                   label="New password"
                   required
                   error={pwErrors.newPassword?.message}
-                  {...regPwd('newPassword', { required: 'Required' })}
+                  {...regPwd('newPassword', {
+                    required: 'Required',
+                    minLength: { value: 8, message: 'Min 8 characters' },
+                    validate: (v) =>
+                      /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(v) ||
+                      'Must include a letter, a number, and a special character',
+                  })}
                 />
                 {newPasswordValue.length > 0 && (
                   <PasswordRequirements password={newPasswordValue} />
