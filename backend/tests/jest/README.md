@@ -17,11 +17,11 @@ Seed scripts for dev data live in `tests/mongodb/`.
 
 ### What's tested
 
-130+ tests across 12 suites covering every route group:
+140+ tests across 12 suites covering every route group:
 
 | Suite | File | What it covers |
 |-------|------|----------------|
-| Auth | `auth.test.js` | Register, login, `GET /me`, token validation, password not leaked in response; login sets httpOnly refresh cookie (not in body); `POST /api/auth/refresh` via cookie returns new access token; 400 when no cookie sent |
+| Auth | `auth.test.js` | Register, login, `GET /me`, token validation, password not leaked in response; login sets httpOnly refresh cookie (not in body); `POST /api/auth/refresh` via cookie returns new access token; 400 when no cookie sent; `POST /api/auth/forgot-password` (unknown email returns 200, unverified account returns 400, verified account sets reset token); `POST /api/auth/reset-password` (valid token resets password, new password works for login, token cannot be reused, invalid token returns 400, weak password returns 400) |
 | Profile | `profile.test.js` | `PATCH /me/profile` (bio, name), `PATCH /me/password` (correct/wrong/weak, login works after change, old password rejected), `PATCH /me/username` (conflict), `DELETE /me` (soft delete, login blocked after), `POST /me/restore`, logout, logout-all (refresh revoked), send-verification, verify-email (valid token, invalid token), Google unlink, demo account guard (blocks all writes, allows GETs) |
 | Users | `users.test.js` | `GET /search` (matches, excludes self, no results, no password leak), `GET /:id` (public profile, 404 nonexistent, 400 invalid ID) |
 | Friends | `friends.test.js` | Send request (duplicate, self-request, nonexistent recipient), accept/decline (403 when sender tries to accept), cancel request (403 when recipient cancels), list (accepted, pending, sent, empty), remove friend (403 for third party) |
@@ -85,6 +85,17 @@ describe('POST /api/<feature>', () => {
 ```
 
 3. Run `npm test` — Jest picks it up automatically. No config changes needed.
+
+### Mocked external services
+
+Two SDKs are replaced entirely so no real network calls are made during tests:
+
+| Mock file | Replaces | Why |
+|-----------|----------|-----|
+| `__mocks__/cloudinary.js` | `cloudinary` | Prevents ETIMEDOUT on upload/destroy calls |
+| `__mocks__/resend.js` | `resend` | Prevents real emails being sent; `forgotPassword` has no try/catch so it would throw 500 without this |
+
+Both mocks are wired via `moduleNameMapper` in `package.json` and apply to every test file automatically.
 
 ### Adding a new env var requirement
 
