@@ -19,23 +19,27 @@ const Task = require('../models/Task');
 //   overdue — all tasks past due + not completed (regardless of range)
 // ----------------------------------------
 exports.getCalendar = async (req, res) => {
-    const { from, to, view } = req.query;
+    const { from, to, start, end, view } = req.query;
 
-    if (!from || !to) {
-        return res.status(400).json({
-            success: false,
-            error: 'from and to query params are required (ISO 8601)',
-        });
-    }
+    const fromParam = from || start;
+    const toParam = to || end;
 
-    const fromDate = new Date(from);
-    const toDate = new Date(to);
+    let fromDate, toDate;
 
-    if (isNaN(fromDate) || isNaN(toDate)) {
-        return res.status(400).json({
-            success: false,
-            error: 'from and to must be valid ISO 8601 dates',
-        });
+    if (fromParam || toParam) {
+        fromDate = new Date(fromParam);
+        toDate = new Date(toParam);
+        if (isNaN(fromDate) || isNaN(toDate)) {
+            return res.status(400).json({
+                success: false,
+                error: 'from and to must be valid ISO 8601 dates',
+            });
+        }
+    } else {
+        // Default to current month when no range is provided
+        const now = new Date();
+        fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        toDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     }
 
     // Extend toDate to end of day so tasks due on that day are included

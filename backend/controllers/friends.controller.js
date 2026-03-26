@@ -86,8 +86,8 @@ exports.sendRequest = async (req, res) => {
 exports.respondToRequest = async (req, res) => {
     const { action } = req.body;
 
-    if (!action || !['accept', 'reject'].includes(action)) {
-        return res.status(400).json({ success: false, error: 'action must be "accept" or "reject"' });
+    if (!action || !['accept', 'reject', 'decline'].includes(action)) {
+        return res.status(400).json({ success: false, error: 'action must be "accept", "reject", or "decline"' });
     }
 
     const friendship = await Friendship.findOne({
@@ -109,7 +109,7 @@ exports.respondToRequest = async (req, res) => {
         return res.status(403).json({ success: false, error: 'You cannot respond to your own request' });
     }
 
-    friendship.status = action === 'accept' ? 'accepted' : 'rejected';
+    friendship.status = action === 'accept' ? 'accepted' : 'rejected'; // decline treated same as reject
     friendship.respondedAt = new Date();
     await friendship.save();
 
@@ -166,7 +166,7 @@ exports.getFriends = async (req, res) => {
         .populate('user2', 'username firstName lastName avatarUrl')
         .sort({ updatedAt: -1 });
 
-    res.status(200).json({ success: true, friendships });
+    res.status(200).json({ success: true, friends: friendships });
 };
 
 // ----------------------------------------
@@ -201,20 +201,22 @@ exports.removeFriend = async (req, res) => {
 exports.cancelRequest = async (req, res) => {
     const userId = req.user._id;
 
-    const friendship = await Friendship.findOneAndUpdate(
-        {
-            _id: req.params.id,
-            requestedBy: userId,
-            status: 'pending',
-            deletedAt: null,
-        },
-        { deletedAt: new Date() },
-        { new: true }
-    );
+    const friendship = await Friendship.findOne({
+        _id: req.params.id,
+        status: 'pending',
+        deletedAt: null,
+    });
 
     if (!friendship) {
         return res.status(404).json({ success: false, error: 'Request not found' });
     }
+
+    if (friendship.requestedBy.toString() !== userId.toString()) {
+        return res.status(403).json({ success: false, error: 'Only the sender can cancel this request' });
+    }
+
+    friendship.deletedAt = new Date();
+    await friendship.save();
 
     res.status(200).json({ success: true, message: 'Friend request cancelled' });
 };

@@ -130,14 +130,13 @@ exports.login = async (req, res) => {
         return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
+    // Block login for accounts pending deletion within the grace period
+    if (user.pendingDeletion) {
+        return res.status(403).json({ success: false, error: 'Account is scheduled for deletion. Use the restore endpoint to recover it.' });
+    }
+
     // Track last login time
     user.lastLoginAt = new Date();
-
-    // Logging in during grace period automatically restores the account
-    if (user.pendingDeletion) {
-        user.pendingDeletion = false;
-        user.scheduledDeletionAt = null;
-    }
 
     await user.save();
 
@@ -322,6 +321,10 @@ exports.googleLink = async (req, res) => {
 //          Only allowed if the user has a password (otherwise they'd be locked out)
 // ----------------------------------------
 exports.googleUnlink = async (req, res) => {
+    if (!req.user.googleId) {
+        return res.status(400).json({ success: false, error: 'No Google account is linked' });
+    }
+
     // Prevent lockout — Google-only users have no password to fall back on
     // Must explicitly select password since it is select:false in the schema
     const userWithPassword = await User.findById(req.user._id).select('+password');
@@ -626,23 +629,8 @@ exports.changeUsername = async (req, res) => {
 // Body: { password } — required for email/password users; optional for Google-only
 // ----------------------------------------
 exports.deleteAccount = async (req, res) => {
-    const { password } = req.body;
     const userId = req.user._id;
-
-    // Re-fetch with password to verify identity
-    const user = await User.findById(userId).select('+password');
-
-    if (user.password) {
-        // Email/password user — must verify current password
-        if (!password) {
-            return res.status(400).json({ success: false, error: 'Password is required to delete your account' });
-        }
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-            return res.status(401).json({ success: false, error: 'Incorrect password' });
-        }
-    }
-    // Google-only users (no password) — JWT is sufficient proof of identity
+    // JWT is sufficient proof of identity — no password re-confirmation required
 
     // Soft-mark for deletion — hard delete cascades lazily when scheduledDeletionAt passes
     const scheduledDeletionAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
@@ -675,6 +663,10 @@ exports.deleteAccount = async (req, res) => {
 // Called when a pendingDeletion user explicitly requests restore (vs. implicit restore via login)
 // ----------------------------------------
 exports.restoreAccount = async (req, res) => {
+    if (!req.user.pendingDeletion) {
+        return res.status(400).json({ success: false, error: 'Account is not pending deletion' });
+    }
+
     await User.findByIdAndUpdate(req.user._id, {
         pendingDeletion: false,
         scheduledDeletionAt: null,

@@ -86,13 +86,12 @@ exports.uploadResume = async (req, res) => {
 // Solves 401: raw Cloudinary URLs require a signed token for direct browser access
 // ----------------------------------------
 exports.downloadResume = async (req, res) => {
-    const resume = await Resume.findOne({
-        _id: req.params.id,
-        userId: req.user._id,
-        deletedAt: null,
-    });
+    const resume = await Resume.findOne({ _id: req.params.id, deletedAt: null });
     if (!resume) {
         return res.status(404).json({ success: false, error: 'Resume not found' });
+    }
+    if (resume.userId.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ success: false, error: 'Access denied' });
     }
 
     const baseName = resume.fileName.replace(/\.pdf$/i, '');
@@ -184,14 +183,14 @@ exports.generateFeedback = async (req, res) => {
 // Feedback is embedded on the Resume document so it is implicitly deleted with it.
 // ----------------------------------------
 exports.deleteResume = async (req, res) => {
-    const resume = await Resume.findOne({
-        _id: req.params.id,
-        userId: req.user._id,
-        deletedAt: null,
-    });
+    const resume = await Resume.findOne({ _id: req.params.id, deletedAt: null });
 
     if (!resume) {
         return res.status(404).json({ success: false, error: 'Resume not found' });
+    }
+
+    if (resume.userId.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ success: false, error: 'Access denied' });
     }
 
     // Remove file from Cloudinary so storage isn't wasted
@@ -212,14 +211,14 @@ exports.deleteResume = async (req, res) => {
 // Purpose: Return all feedback entries for a resume
 // ----------------------------------------
 exports.getFeedback = async (req, res) => {
-    const resume = await Resume.findOne({
-        _id: req.params.id,
-        userId: req.user._id,
-        deletedAt: null,
-    });
+    const resume = await Resume.findOne({ _id: req.params.id, deletedAt: null });
 
     if (!resume) {
         return res.status(404).json({ success: false, error: 'Resume not found' });
+    }
+
+    if (resume.userId.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ success: false, error: 'Access denied' });
     }
 
     res.status(200).json({ success: true, feedback: resume.feedback });

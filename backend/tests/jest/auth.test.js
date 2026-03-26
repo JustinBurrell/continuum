@@ -209,7 +209,7 @@ describe('POST /api/auth/forgot-password', () => {
     expect(res.body.success).toBe(true);
 
     // Confirm the reset token was stored on the user
-    const user = await User.findOne({ email: validUser.email });
+    const user = await User.findOne({ email: validUser.email }).select('+passwordResetToken +passwordResetExpires');
     expect(user.passwordResetToken).toBeDefined();
     expect(user.passwordResetExpires).toBeDefined();
   });
