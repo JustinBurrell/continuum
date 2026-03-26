@@ -88,7 +88,7 @@ exports.getCalendar = async (req, res) => {
         view: view || null,
         from: fromDate,
         to: toDate,
-        days,
+        calendar: days,
         overdue,
     });
 };
