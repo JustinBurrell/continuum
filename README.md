@@ -82,7 +82,7 @@ continuum/
 
 Interactive API browser (Swagger UI), every endpoint, request/response schema, and live "Try it out":
 
-**Production:** https://api.usecontinuum.dev/api-docs/](https://api.usecontinuum.dev/api-docs/)
+**Production:** [https://api.usecontinuum.dev/api-docs/](https://api.usecontinuum.dev/api-docs/)
 
 
 **Local:**
