@@ -16,14 +16,14 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 ### Try it yourself
 
-Explore Continuum with the pre-loaded demo account — no sign-up required:
+Explore Continuum with the pre-loaded demo account, no sign-up required:
 
 | Field | Value |
 |-------|-------|
 | Email | `janedoe_demo@example.com` |
 | Password | `Demo@1234` |
 
-The demo account comes pre-loaded with notes, flashcard sets, tasks, job applications, messages, and social content so you can explore every feature. Content is **read-only** — any changes you make won't affect other visitors' experience.
+The demo account comes pre-loaded with notes, flashcard sets, tasks, job applications, messages, and social content so you can explore every feature. Content is **read-only**, any changes you make won't affect other visitors' experience.
 
 ---
 
@@ -80,9 +80,10 @@ continuum/
 
 ## API docs
 
-Interactive API browser (Swagger UI) — every endpoint, request/response schema, and live "Try it out":
+Interactive API browser (Swagger UI), every endpoint, request/response schema, and live "Try it out":
 
-**Production:** [https://continuum-backend-yrrr.onrender.com/api-docs](https://continuum-backend-yrrr.onrender.com/api-docs)
+**Production:** [https://api.usecontinuum.dev/api-docs/](https://api.usecontinuum.dev/api-docs/)
+
 
 **Local:**
 
@@ -121,4 +122,4 @@ cd backend
 npm test
 ```
 
-Jest + Supertest integration suite covering auth, notes, tasks, flashcards, applications, messages, and activity. Uses an in-memory MongoDB — no Atlas connection needed.
+Jest + Supertest integration suite covering auth, notes, tasks, flashcards, applications, messages, and activity. Uses an in-memory MongoDB, no Atlas connection needed.
