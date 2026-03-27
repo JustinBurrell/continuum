@@ -4,7 +4,7 @@ REST API for the Continuum platform. Built with Node.js, Express 5, MongoDB, Soc
 
 ![System Architecture](../docs/system-design/system-architecture.png)
 
-Full diagram set — architecture, real-time flow, auth flow, scaling path — at [docs/backend/system-design.md](../docs/backend/system-design.md).
+Full diagram set, architecture, real-time flow, auth flow, scaling path, at [docs/backend/system-design.md](../docs/backend/system-design.md).
 
 ---
 
@@ -159,7 +159,8 @@ GOOGLE_TOKEN_ENCRYPTION_KEY     # optional — AES-256-GCM key for Google OAuth 
 
 Interactive Swagger UI with live execution support:
 
-**Production:** https://continuum-backend-yrrr.onrender.com/api-docs
+**Production:** [https://api.usecontinuum.dev/api-docs/](https://api.usecontinuum.dev/api-docs/)
+
 
 **Local:**
 ```
