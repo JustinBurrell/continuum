@@ -18,6 +18,8 @@ import EmailVerified from '@/pages/auth/EmailVerified';
 import Landing from '@/pages/Landing';
 import Product from '@/pages/Product';
 import About from '@/pages/About';
+import PrivacyPolicy from '@/pages/legal/PrivacyPolicy';
+import TermsOfService from '@/pages/legal/TermsOfService';
 import Dashboard from '@/pages/Dashboard';
 import NotesList from '@/pages/notes/NotesList';
 import NoteDetail from '@/pages/notes/NoteDetail';
@@ -48,6 +50,8 @@ export default function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/product" element={<Product />} />
             <Route path="/about" element={<About />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
 
             {/* Auth — unauthenticated */}
             <Route element={<AuthLayout />}>
