@@ -7,6 +7,7 @@ import { ToastProvider } from '@/components/ui/Toast';
 import AppLayout from '@/components/layout/AppLayout';
 import AuthLayout from '@/components/layout/AuthLayout';
 import TitleManager from '@/components/TitleManager';
+import ScrollToTop from '@/components/ScrollToTop';
 
 import Login from '@/pages/auth/Login';
 import Register from '@/pages/auth/Register';
@@ -44,6 +45,7 @@ export default function App() {
       <ToastProvider>
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <TitleManager />
           <Routes>
             {/* Public pages */}
