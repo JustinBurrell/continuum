@@ -1,0 +1,20 @@
+User-agent: *
+Disallow: /dashboard
+Disallow: /notes
+Disallow: /tasks
+Disallow: /flashcards
+Disallow: /applications
+Disallow: /messages
+Disallow: /friends
+Disallow: /profile
+Disallow: /calendar
+Disallow: /auth/
+Allow: /
+Allow: /about
+Allow: /product
+Allow: /login
+Allow: /register
+Allow: /privacy
+Allow: /terms
+
+Sitemap: https://usecontinuum.dev/sitemap.xml
