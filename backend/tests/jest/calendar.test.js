@@ -55,7 +55,7 @@ describe('GET /api/calendar', () => {
     expect(res.body.success).toBe(true);
 
     // The response is an object keyed by date string — at least one entry
-    const keys = Object.keys(res.body.calendar || res.body.tasks || {});
+    const keys = Object.keys(res.body.days || {});
     expect(keys.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -74,7 +74,7 @@ describe('GET /api/calendar', () => {
       .set('Authorization', `Bearer ${alice.token}`);
 
     expect(res.statusCode).toBe(200);
-    const allTasks = Object.values(res.body.calendar || res.body.tasks || {}).flat();
+    const allTasks = Object.values(res.body.days || {}).flat();
     const titles = allTasks.map((t) => t.title);
     expect(titles).not.toContain('Bob Private Task');
   });
@@ -107,7 +107,7 @@ describe('GET /api/calendar', () => {
       .set('Authorization', `Bearer ${bob.token}`);
 
     expect(res.statusCode).toBe(200);
-    const allTasks = Object.values(res.body.calendar || res.body.tasks || {}).flat();
+    const allTasks = Object.values(res.body.days || {}).flat();
     const titles = allTasks.map((t) => t.title);
     expect(titles).toContain('Shared Calendar Task');
   });
