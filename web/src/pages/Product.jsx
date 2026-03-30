@@ -4,6 +4,8 @@ import {
   Sparkles, ArrowRight, Brain, Target, Zap,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import MarketingNav from '@/components/layout/MarketingNav';
+import MarketingFooter from '@/components/layout/MarketingFooter';
 
 const sections = [
   {
@@ -40,11 +42,11 @@ const sections = [
               <span style={{ fontSize: 12, fontWeight: 700, color: '#6b21a8' }}>AI Summary</span>
               <span style={{ fontSize: 10, color: '#a087b0', marginLeft: 'auto' }}>Generated just now</span>
             </div>
-            <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.6, margin: 0 }}>GDP measures economic output via C + I + G + NX. Growth above 2% signals expansion. Key terms: inflation, fiscal policy, monetary policy, trade deficit.</p>
+            <p style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.6, margin: 0 }}>GDP measures economic output via C + I + G + NX. Growth above 2% signals expansion. Key terms: inflation, fiscal policy, monetary policy, trade deficit.</p>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {['#economics', '#macro', '#exam-prep', '#ch4'].map(tag => (
-              <span key={tag} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 8, background: '#f3f4f6', color: '#6B7280' }}>{tag}</span>
+              <span key={tag} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 8, background: '#f3f4f6', color: '#6b7280' }}>{tag}</span>
             ))}
           </div>
         </div>
@@ -68,20 +70,20 @@ const sections = [
       <div style={{ width: '100%', maxWidth: 460 }}>
         <div style={{ background: 'white', borderRadius: 16, border: '1px solid #ede9fe', padding: '28px 32px', boxShadow: '0 8px 40px rgba(107,33,168,0.1)', marginBottom: 14, textAlign: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 1 }}>Economics Set</span>
-            <span style={{ fontSize: 11, color: '#9CA3AF' }}>Card 3 of 14</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 1 }}>Economics Set</span>
+            <span style={{ fontSize: 11, color: '#9ca3af' }}>Card 3 of 14</span>
           </div>
           <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 24, lineHeight: 1.4 }}>What is opportunity cost?</div>
           <div style={{ height: 1, background: 'rgba(107,33,168,0.15)', marginBottom: 20 }} />
           <div style={{ fontSize: 14, color: '#6b21a8', fontStyle: 'italic', lineHeight: 1.6 }}>The value of the next best alternative forgone when a decision is made between two or more options.</div>
         </div>
         <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-          <div style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #FCA5A5', background: '#FEF2F2', textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#DC2626', cursor: 'pointer' }}>Again</div>
-          <div style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #6EE7B7', background: '#ECFDF5', textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#059669', cursor: 'pointer' }}>Got it</div>
+          <div style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fca5a5', background: '#fef2f2', textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#dc2626' }}>Again</div>
+          <div style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #6ee7b7', background: '#ecfdf5', textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#059669' }}>Got it</div>
         </div>
         <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
           {Array.from({ length: 14 }).map((_, i) => (
-            <div key={i} style={{ width: 22, height: 5, borderRadius: 3, background: i < 3 ? '#6b21a8' : i < 6 ? '#a087b0' : '#e5e7eb', transition: 'background 0.2s' }} />
+            <div key={i} style={{ width: 22, height: 5, borderRadius: 3, background: i < 3 ? '#6b21a8' : i < 6 ? '#a087b0' : '#e5e7eb' }} />
           ))}
         </div>
       </div>
@@ -112,7 +114,7 @@ const sections = [
             ],
           },
           {
-            label: 'In Progress', color: '#0891B2', bg: 'rgba(8,145,178,0.06)',
+            label: 'In Progress', color: '#0891b2', bg: 'rgba(8,145,178,0.06)',
             tasks: [
               { title: 'Group Project Slides', due: 'Fri, Oct 27', urgent: false },
               { title: 'Biology Lab Report', due: 'Thu, Oct 26', urgent: true },
@@ -129,12 +131,12 @@ const sections = [
           <div key={col.label} style={{ flex: 1, background: col.bg, borderRadius: 12, padding: '12px 10px', border: `1px solid ${col.color}22` }}>
             <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: col.color, marginBottom: 10, paddingLeft: 2 }}>{col.label}</div>
             {col.tasks.map(t => (
-              <div key={t.title} style={{ background: 'white', borderRadius: 8, padding: '9px 10px', marginBottom: 6, border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+              <div key={t.title} style={{ background: 'white', borderRadius: 8, padding: '9px 10px', marginBottom: 6, border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                 <div style={{ fontSize: 11, color: '#111827', fontWeight: 500, lineHeight: 1.3, marginBottom: 4 }}>{t.title}</div>
-                <div style={{ fontSize: 10, color: t.urgent ? '#DC2626' : '#9CA3AF' }}>{t.due}</div>
+                <div style={{ fontSize: 10, color: t.urgent ? '#dc2626' : '#9ca3af' }}>{t.due}</div>
               </div>
             ))}
-            <div style={{ border: '1px dashed #D1D5DB', borderRadius: 8, padding: '8px 0', fontSize: 11, color: '#9CA3AF', textAlign: 'center' }}>+ Add task</div>
+            <div style={{ border: '1px dashed #d1d5db', borderRadius: 8, padding: '8px 0', fontSize: 11, color: '#9ca3af', textAlign: 'center' }}>+ Add task</div>
           </div>
         ))}
       </div>
@@ -162,20 +164,20 @@ const sections = [
             { label: 'Interview', active: true },
             { label: 'Offer', active: false },
           ].map(s => (
-            <span key={s.label} style={{ fontSize: 11, padding: '4px 12px', borderRadius: 20, fontWeight: 600, background: s.active ? '#6b21a8' : '#F3F4F6', color: s.active ? 'white' : '#6B7280', transition: 'all 0.2s' }}>{s.label}</span>
+            <span key={s.label} style={{ fontSize: 11, padding: '4px 12px', borderRadius: 20, fontWeight: 600, background: s.active ? '#6b21a8' : '#f3f4f6', color: s.active ? 'white' : '#6b7280' }}>{s.label}</span>
           ))}
         </div>
         {[
           { co: 'L', title: 'Product Intern', company: 'Linear', stage: 'Interview', badge: { bg: 'rgba(107,33,168,0.08)', color: '#6b21a8', border: '#c4b5fd' } },
-          { co: 'S', title: 'SWE Intern', company: 'Stripe', stage: 'Applied', badge: { bg: '#EFF6FF', color: '#2563EB', border: '#BFDBFE' } },
-          { co: 'V', title: 'Data Analyst', company: 'Vercel', stage: 'Applied', badge: { bg: '#EFF6FF', color: '#2563EB', border: '#BFDBFE' } },
-          { co: 'N', title: 'Design Intern', company: 'Notion', stage: 'Saved', badge: { bg: '#F9FAFB', color: '#6B7280', border: '#E5E7EB' } },
+          { co: 'S', title: 'SWE Intern', company: 'Stripe', stage: 'Applied', badge: { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' } },
+          { co: 'V', title: 'Data Analyst', company: 'Vercel', stage: 'Applied', badge: { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' } },
+          { co: 'N', title: 'Design Intern', company: 'Notion', stage: 'Saved', badge: { bg: '#f9fafb', color: '#6b7280', border: '#e5e7eb' } },
         ].map(app => (
-          <div key={app.co} style={{ display: 'flex', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #F9FAFB', gap: 12 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#F3F4F6', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#6B7280', flexShrink: 0 }}>{app.co}</div>
+          <div key={app.co} style={{ display: 'flex', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #f9fafb', gap: 12 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f3f4f6', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#6b7280', flexShrink: 0 }}>{app.co}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{app.title}</div>
-              <div style={{ fontSize: 11, color: '#9CA3AF' }}>{app.company}</div>
+              <div style={{ fontSize: 11, color: '#9ca3af' }}>{app.company}</div>
             </div>
             <span style={{ fontSize: 10, padding: '3px 10px', borderRadius: 12, fontWeight: 600, background: app.badge.bg, color: app.badge.color, border: `1px solid ${app.badge.border}` }}>{app.stage}</span>
           </div>
@@ -188,7 +190,7 @@ const sections = [
     title: 'Resume Tracking',
     tag: 'Career',
     description:
-      'Upload multiple resume versions for different roles. Get structured AI feedback with an overall score, strengths, section analysis, and keyword optimization, every time.',
+      'Upload multiple resume versions for different roles. Get structured AI feedback with an overall score, strengths, section analysis, and keyword optimization every time.',
     bullets: [
       'Upload and version your resumes',
       'AI feedback: score, strengths, improvements',
@@ -201,7 +203,7 @@ const sections = [
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 4 }}>SWE_Resume_v3.pdf</div>
-            <div style={{ fontSize: 12, color: '#9CA3AF' }}>Uploaded Mar 12 · Software Engineering</div>
+            <div style={{ fontSize: 12, color: '#9ca3af' }}>Uploaded Mar 12 · Software Engineering</div>
           </div>
           <div style={{ textAlign: 'center', background: 'rgba(107,33,168,0.06)', borderRadius: 12, padding: '10px 16px' }}>
             <div style={{ fontSize: 28, fontWeight: 800, color: '#6b21a8', lineHeight: 1 }}>84</div>
@@ -209,18 +211,18 @@ const sections = [
           </div>
         </div>
         <div style={{ height: 8, borderRadius: 4, background: '#f3f0ff', marginBottom: 20, overflow: 'hidden' }}>
-          <div style={{ width: '84%', height: '100%', borderRadius: 4, background: 'linear-gradient(90deg, #6b21a8, #a087b0)', transition: 'width 0.8s ease' }} />
+          <div style={{ width: '84%', height: '100%', borderRadius: 4, background: 'linear-gradient(90deg, #6b21a8, #a087b0)' }} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {[
             { label: 'Experience', score: 90, color: '#059669' },
-            { label: 'Education', score: 88, color: '#0891B2' },
-            { label: 'Skills', score: 78, color: '#7C3AED' },
-            { label: 'Keywords', score: 72, color: '#D97706' },
-            { label: 'Formatting', score: 85, color: '#DB2777' },
+            { label: 'Education', score: 88, color: '#0891b2' },
+            { label: 'Skills', score: 78, color: '#7c3aed' },
+            { label: 'Keywords', score: 72, color: '#d97706' },
+            { label: 'Formatting', score: 85, color: '#db2777' },
           ].map(s => (
             <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ fontSize: 12, color: '#6B7280', width: 80, fontWeight: 500 }}>{s.label}</div>
+              <div style={{ fontSize: 12, color: '#6b7280', width: 80, fontWeight: 500 }}>{s.label}</div>
               <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#f3f4f6', overflow: 'hidden' }}>
                 <div style={{ width: `${s.score}%`, height: '100%', borderRadius: 3, background: s.color }} />
               </div>
@@ -251,19 +253,19 @@ const sections = [
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Sarah M.</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22C55E' }} />
-              <div style={{ fontSize: 10, color: '#9CA3AF' }}>Online</div>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+              <div style={{ fontSize: 10, color: '#9ca3af' }}>Online</div>
             </div>
           </div>
         </div>
         <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ alignSelf: 'flex-start', background: '#F3F4F6', borderRadius: '4px 14px 14px 14px', padding: '10px 14px', maxWidth: '78%' }}>
+          <div style={{ alignSelf: 'flex-start', background: '#f3f4f6', borderRadius: '4px 14px 14px 14px', padding: '10px 14px', maxWidth: '78%' }}>
             <p style={{ fontSize: 12, color: '#374151', margin: 0, lineHeight: 1.5 }}>Did you see the Calc midterm study guide I shared?</p>
           </div>
           <div style={{ alignSelf: 'flex-end', background: '#6b21a8', borderRadius: '14px 4px 14px 14px', padding: '10px 14px', maxWidth: '78%' }}>
             <p style={{ fontSize: 12, color: 'white', margin: 0, lineHeight: 1.5 }}>Yes! Just added it to my flashcards. Super helpful, thank you</p>
           </div>
-          <div style={{ alignSelf: 'flex-start', background: '#F3F4F6', borderRadius: '4px 14px 14px 14px', padding: '10px 14px', maxWidth: '78%' }}>
+          <div style={{ alignSelf: 'flex-start', background: '#f3f4f6', borderRadius: '4px 14px 14px 14px', padding: '10px 14px', maxWidth: '78%' }}>
             <p style={{ fontSize: 12, color: '#374151', margin: 0, lineHeight: 1.5 }}>Want to study together Thursday? Library at 3?</p>
           </div>
           <div style={{ alignSelf: 'flex-end', background: '#6b21a8', borderRadius: '14px 4px 14px 14px', padding: '10px 14px', maxWidth: '78%' }}>
@@ -271,8 +273,8 @@ const sections = [
           </div>
         </div>
         <div style={{ padding: '10px 18px', borderTop: '1px solid #f3f0ff', display: 'flex', gap: 10, alignItems: 'center' }}>
-          <div style={{ flex: 1, background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 22, padding: '8px 14px', fontSize: 12, color: '#9CA3AF' }}>Type a message...</div>
-          <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#6b21a8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
+          <div style={{ flex: 1, background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 22, padding: '8px 14px', fontSize: 12, color: '#9ca3af' }}>Type a message...</div>
+          <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#6b21a8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <ArrowRight size={14} color="white" />
           </div>
         </div>
@@ -299,52 +301,31 @@ const aiFeatures = [
   },
 ];
 
-function NavBar({ user }) {
-  return (
-    <header className="sticky top-0 z-40 border-b" style={{ backgroundColor: 'rgba(254,247,255,0.9)', backdropFilter: 'blur(12px)', borderColor: '#ede9fe' }}>
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5 no-underline">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #6b21a8, #a087b0)' }}>
-            <span className="text-white font-bold text-sm">C</span>
-          </div>
-          <span className="font-bold text-xl tracking-tight" style={{ fontFamily: 'Georgia, serif', color: '#6b21a8' }}>Continuum</span>
-        </Link>
-        <nav className="hidden md:flex items-center gap-1 mr-2">
-          <Link to="/product" className="text-sm font-semibold px-3 py-2 border-b-2" style={{ color: '#6b21a8', borderColor: '#6b21a8' }}>Product</Link>
-          <Link to="/about" className="text-sm font-medium px-3 py-2" style={{ color: 'rgba(17,24,39,0.6)' }}>About</Link>
-        </nav>
-        <div className="flex items-center gap-3">
-          {user ? (
-            <Link to="/dashboard" className="text-sm font-semibold text-white px-4 py-2 rounded-lg" style={{ background: '#6b21a8' }}>Go to Dashboard</Link>
-          ) : (
-            <>
-              <Link to="/login" className="text-sm font-medium px-4 py-2" style={{ color: 'rgba(17,24,39,0.6)' }}>Sign in</Link>
-              <Link to="/register" className="text-sm font-semibold text-white px-4 py-2 rounded-lg" style={{ background: '#6b21a8', boxShadow: '0 1px 8px rgba(107,33,168,0.25)' }}>Get started</Link>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
-  );
-}
-
 export default function Product() {
   const { user } = useAuth();
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#fef7ff' }}>
-      <NavBar user={user} />
+      <MarketingNav active="product" />
 
       {/* Hero */}
       <section className="max-w-3xl mx-auto px-6 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 border" style={{ background: '#f5f0ff', borderColor: 'rgba(107,33,168,0.2)' }}>
+        <div
+          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 border"
+          style={{ background: '#f5f0ff', borderColor: 'rgba(107,33,168,0.2)' }}
+        >
           <Sparkles size={12} style={{ color: '#6b21a8' }} />
           <span className="text-xs font-semibold" style={{ color: '#6b21a8' }}>Full feature breakdown</span>
         </div>
-        <h1 className="font-bold tracking-tight leading-tight mb-5" style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#111827' }}>
-          Everything Continuum does
+        <h1
+          className="font-bold tracking-tight leading-tight mb-5"
+          style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#111827' }}
+        >
+          Everything a student needs.
+          <br />
+          <span style={{ color: '#6b21a8' }}>Nothing they don't.</span>
         </h1>
-        <p className="text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: '#6B7280' }}>
+        <p className="text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: '#6b7280' }}>
           One platform for your academic life and career. Notes, flashcards, tasks, job
           applications, resumes, and your social network, connected and powered by AI.
         </p>
@@ -358,13 +339,26 @@ export default function Product() {
             className={`flex flex-col ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} gap-16 items-center`}
           >
             <div className="flex-1 min-w-0">
-              <span className="text-xs font-bold uppercase tracking-widest mb-3 block" style={{ color: '#a087b0', letterSpacing: '0.15em' }}>{s.tag}</span>
-              <h2 className="font-bold mb-4" style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.5rem, 3vw, 2rem)', color: '#111827' }}>{s.title}</h2>
-              <p className="leading-relaxed mb-8 text-base" style={{ color: '#6B7280' }}>{s.description}</p>
+              <span
+                className="text-xs font-bold uppercase tracking-widest mb-3 block"
+                style={{ color: '#a087b0', letterSpacing: '0.15em' }}
+              >
+                {s.tag}
+              </span>
+              <h2
+                className="font-bold mb-4"
+                style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.5rem, 3vw, 2rem)', color: '#111827' }}
+              >
+                {s.title}
+              </h2>
+              <p className="leading-relaxed mb-8 text-base" style={{ color: '#6b7280' }}>{s.description}</p>
               <ul className="space-y-3">
                 {s.bullets.map(b => (
                   <li key={b} className="flex items-start gap-3 text-sm" style={{ color: '#374151' }}>
-                    <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: '#6b21a8' }} />
+                    <span
+                      className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
+                      style={{ background: '#6b21a8' }}
+                    />
                     {b}
                   </li>
                 ))}
@@ -382,18 +376,30 @@ export default function Product() {
       <section style={{ background: 'linear-gradient(135deg, #6b21a8 0%, #4c1671 100%)' }}>
         <div className="max-w-6xl mx-auto px-6 py-20">
           <div className="text-center mb-14">
-            <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-5" style={{ background: 'rgba(255,255,255,0.12)' }}>
+            <div
+              className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-5"
+              style={{ background: 'rgba(255,255,255,0.12)' }}
+            >
               <Sparkles size={12} style={{ color: 'rgba(255,255,255,0.8)' }} />
               <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.8)' }}>AI-powered</span>
             </div>
-            <h2 className="font-bold text-white mb-3" style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)' }}>AI built into every layer</h2>
+            <h2
+              className="font-bold text-white mb-3"
+              style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)' }}
+            >
+              AI built into every layer
+            </h2>
             <p className="max-w-xl mx-auto" style={{ color: 'rgba(255,255,255,0.7)' }}>
               Not a bolt-on chatbot. AI is woven into the features you already use every day.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto">
             {aiFeatures.map(f => (
-              <div key={f.title} className="rounded-2xl p-7" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)' }}>
+              <div
+                key={f.title}
+                className="rounded-2xl p-7"
+                style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)' }}
+              >
                 <f.icon size={22} style={{ color: 'rgba(255,255,255,0.85)', marginBottom: 14 }} />
                 <h3 className="font-semibold text-white mb-2" style={{ fontSize: 15 }}>{f.title}</h3>
                 <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>{f.description}</p>
@@ -405,37 +411,48 @@ export default function Product() {
 
       {/* CTA */}
       <section className="max-w-6xl mx-auto px-6 py-24 text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#a087b0', letterSpacing: '0.15em' }}>Get started</p>
-        <h2 className="font-bold mb-3" style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.75rem, 4vw, 2.25rem)', color: '#111827' }}>Ready to try it?</h2>
-        <p className="mb-10" style={{ color: '#6B7280' }}>Create an account. It is free.</p>
+        <p
+          className="text-xs font-semibold uppercase tracking-widest mb-3"
+          style={{ color: '#a087b0', letterSpacing: '0.15em' }}
+        >
+          Get started
+        </p>
+        <h2
+          className="font-bold mb-3"
+          style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.75rem, 4vw, 2.25rem)', color: '#111827' }}
+        >
+          Ready to try it?
+        </h2>
+        <p className="mb-10" style={{ color: '#6b7280' }}>Create an account. It is free.</p>
         {user ? (
-          <Link to="/dashboard" className="inline-flex items-center gap-2 text-white font-semibold px-7 py-3.5 rounded-xl" style={{ background: '#6b21a8', boxShadow: '0 4px 20px rgba(107,33,168,0.3)' }}>
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-2 text-white font-semibold px-7 py-3.5 rounded-xl"
+            style={{ background: '#6b21a8', boxShadow: '0 4px 20px rgba(107,33,168,0.3)' }}
+          >
             Go to Dashboard <ArrowRight size={15} />
           </Link>
         ) : (
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/register" className="inline-flex items-center justify-center gap-2 text-white font-semibold px-7 py-3.5 rounded-xl" style={{ background: '#6b21a8', boxShadow: '0 4px 20px rgba(107,33,168,0.3)' }}>
+            <Link
+              to="/register"
+              className="inline-flex items-center justify-center gap-2 text-white font-semibold px-7 py-3.5 rounded-xl"
+              style={{ background: '#6b21a8', boxShadow: '0 4px 20px rgba(107,33,168,0.3)' }}
+            >
               Create your account <ArrowRight size={15} />
             </Link>
-            <Link to="/login" className="inline-flex items-center justify-center gap-2 font-semibold px-7 py-3.5 rounded-xl border" style={{ background: 'white', borderColor: '#d1d5db', color: '#374151' }}>
+            <Link
+              to="/login"
+              className="inline-flex items-center justify-center gap-2 font-semibold px-7 py-3.5 rounded-xl border"
+              style={{ background: 'white', borderColor: '#d1d5db', color: '#374151' }}
+            >
               Sign in
             </Link>
           </div>
         )}
       </section>
 
-      {/* Footer */}
-      <footer style={{ borderTop: '1px solid #E5E7EB' }}>
-        <div className="max-w-6xl mx-auto px-6 py-8 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 no-underline">
-            <div className="w-6 h-6 rounded flex items-center justify-center" style={{ background: '#6b21a8' }}>
-              <span className="text-white font-bold text-xs">C</span>
-            </div>
-            <span className="font-semibold text-sm" style={{ color: '#111827' }}>Continuum</span>
-          </Link>
-          <p className="text-xs" style={{ color: '#9CA3AF' }}>Your academic and career companion.</p>
-        </div>
-      </footer>
+      <MarketingFooter />
     </div>
   );
 }

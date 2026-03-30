@@ -7,6 +7,7 @@ import { ToastProvider } from '@/components/ui/Toast';
 import AppLayout from '@/components/layout/AppLayout';
 import AuthLayout from '@/components/layout/AuthLayout';
 import TitleManager from '@/components/TitleManager';
+import ScrollToTop from '@/components/ScrollToTop';
 
 import Login from '@/pages/auth/Login';
 import Register from '@/pages/auth/Register';
@@ -18,6 +19,8 @@ import EmailVerified from '@/pages/auth/EmailVerified';
 import Landing from '@/pages/Landing';
 import Product from '@/pages/Product';
 import About from '@/pages/About';
+import PrivacyPolicy from '@/pages/legal/PrivacyPolicy';
+import TermsOfService from '@/pages/legal/TermsOfService';
 import Dashboard from '@/pages/Dashboard';
 import NotesList from '@/pages/notes/NotesList';
 import NoteDetail from '@/pages/notes/NoteDetail';
@@ -42,12 +45,15 @@ export default function App() {
       <ToastProvider>
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <TitleManager />
           <Routes>
             {/* Public pages */}
             <Route path="/" element={<Landing />} />
             <Route path="/product" element={<Product />} />
             <Route path="/about" element={<About />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
 
             {/* Auth — unauthenticated */}
             <Route element={<AuthLayout />}>

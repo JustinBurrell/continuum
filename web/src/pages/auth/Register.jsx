@@ -149,8 +149,20 @@ export default function Register() {
         </Button>
       </form>
 
+      {/* Legal consent */}
+      <p className="mt-5 text-center text-xs text-[#a087b0] leading-relaxed">
+        By signing up, you agree to our{' '}
+        <Link to="/terms" className="text-[#6b21a8] font-semibold hover:underline">
+          Terms of Service
+        </Link>
+        {' '}and{' '}
+        <Link to="/privacy" className="text-[#6b21a8] font-semibold hover:underline">
+          Privacy Policy
+        </Link>.
+      </p>
+
       {/* Footer */}
-      <p className="mt-6 text-center text-sm text-[#a087b0]">
+      <p className="mt-4 text-center text-sm text-[#a087b0]">
         Already have an account?{' '}
         <Link to="/login" className="text-[#6b21a8] font-semibold hover:underline">
           Sign in
