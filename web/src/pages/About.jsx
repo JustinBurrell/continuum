@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
-import { Linkedin, Globe, FileText, ArrowRight, Sparkles } from 'lucide-react';
+import { Linkedin, Globe, FileText, ArrowRight, Sparkles, Github } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import MarketingNav from '@/components/layout/MarketingNav';
 import MarketingFooter from '@/components/layout/MarketingFooter';
 
 const JUSTIN_LINKEDIN = 'https://www.linkedin.com/in/thejustinburrell/';
 const JUSTIN_WEBSITE = 'https://www.thejustinburrell.com/';
+const JUSTIN_GITHUB = 'https://github.com/JustinBurrell';
 const JUSTIN_RESUME =
   'https://prlxghfadjdnxqoqwlla.supabase.co/storage/v1/object/public/assets/assets/documents/Justin%20Burrell%20Resume.pdf';
 
@@ -97,25 +98,88 @@ export default function About() {
             </div>
           </div>
 
-          {/* Visual accent */}
+          {/* Visual accent — journey timeline */}
           <div className="flex-1 flex justify-center items-center">
             <div
-              className="w-full rounded-2xl overflow-hidden"
-              style={{ maxWidth: 420, aspectRatio: '4/3', background: 'linear-gradient(135deg, #f5f0ff 0%, #fffade 100%)', border: '1px solid #ede9fe', position: 'relative' }}
+              className="w-full rounded-2xl p-8"
+              style={{ maxWidth: 420, background: 'white', border: '1px solid #ede9fe', boxShadow: '0 8px 40px rgba(107,33,168,0.08)' }}
             >
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 }}>
-                <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #6b21a8, #a087b0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontFamily: 'Georgia, serif', fontSize: 24, fontWeight: 700, color: 'white' }}>C</span>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'Georgia, serif', fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 6 }}>Continuum</div>
-                  <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.6 }}>From TEI 2026 at Lehigh University to a platform for every student.</div>
-                </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-                  {['TEI 2026', 'Google Play', 'All Star Code'].map(label => (
-                    <span key={label} style={{ fontSize: 11, padding: '4px 12px', borderRadius: 20, background: 'white', border: '1px solid #ede9fe', color: '#6b21a8', fontWeight: 600 }}>{label}</span>
-                  ))}
-                </div>
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.13em', color: '#a087b0', marginBottom: 28 }}>
+                How Continuum was built
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {[
+                  {
+                    label: 'Ideation',
+                    detail: 'What if one app replaced all of them?',
+                    icon: '💡',
+                    accent: '#fffade',
+                    border: 'rgba(107,33,168,0.15)',
+                    done: true,
+                  },
+                  {
+                    label: 'Brainstorming',
+                    detail: 'Mapping every student pain point',
+                    icon: '🧠',
+                    accent: '#f5f0ff',
+                    border: 'rgba(107,33,168,0.2)',
+                    done: true,
+                  },
+                  {
+                    label: 'Building',
+                    detail: '70 endpoints, 3 AI integrations, full-stack',
+                    icon: '⚙️',
+                    accent: '#ede9fe',
+                    border: 'rgba(107,33,168,0.25)',
+                    done: true,
+                  },
+                  {
+                    label: 'Testing',
+                    detail: '130+ integration tests across 12 suites',
+                    icon: '✅',
+                    accent: '#ecfdf5',
+                    border: 'rgba(5,150,105,0.2)',
+                    done: true,
+                  },
+                  {
+                    label: 'Storytelling',
+                    detail: 'Built for the student doing it all',
+                    icon: '📖',
+                    accent: 'linear-gradient(135deg, #6b21a8, #a087b0)',
+                    border: 'transparent',
+                    done: false,
+                    highlight: true,
+                  },
+                ].map((step, i, arr) => (
+                  <div key={step.label} style={{ display: 'flex', gap: 14, alignItems: 'stretch' }}>
+                    {/* Left — dot + line */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 28, flexShrink: 0 }}>
+                      <div style={{
+                        width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                        background: step.highlight ? 'linear-gradient(135deg, #6b21a8, #a087b0)' : step.accent,
+                        border: `1.5px solid ${step.border}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 13,
+                        zIndex: 1,
+                      }}>
+                        {step.icon}
+                      </div>
+                      {i < arr.length - 1 && (
+                        <div style={{ width: 2, flex: 1, minHeight: 16, background: 'linear-gradient(180deg, rgba(107,33,168,0.2), rgba(107,33,168,0.06))', margin: '4px 0' }} />
+                      )}
+                    </div>
+
+                    {/* Right — content */}
+                    <div style={{ paddingBottom: i < arr.length - 1 ? 20 : 0, paddingTop: 2 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: step.highlight ? '#6b21a8' : '#111827', marginBottom: 2 }}>
+                        {step.label}
+                      </div>
+                      <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
+                        {step.detail}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -199,29 +263,18 @@ export default function About() {
 
           <div className="p-10">
             <div className="flex flex-col sm:flex-row gap-8 items-start">
-              {/* Photo placeholder */}
-              <div className="flex-shrink-0">
+              {/* Founder photo */}
+              <div className="flex-shrink-0 flex flex-col items-center gap-3">
+                <img
+                  src="/justin.jpg"
+                  alt="Justin Burrell"
+                  className="rounded-2xl object-cover object-top"
+                  style={{ width: 160, height: 200, border: '2px solid #ede9fe' }}
+                />
                 <div
-                  className="w-24 h-24 rounded-2xl border-2"
-                  style={{
-                    background: '#f3f4f6',
-                    borderColor: '#ede9fe',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexDirection: 'column',
-                    gap: 4,
-                  }}
+                  style={{ fontSize: 11, fontWeight: 600, color: '#6b21a8', background: 'rgba(107,33,168,0.08)', borderRadius: 8, padding: '3px 12px' }}
                 >
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#e5e7eb' }} />
-                  <div style={{ width: 40, height: 16, borderRadius: 4, background: '#e5e7eb' }} />
-                </div>
-                <div className="mt-3 text-center">
-                  <div
-                    style={{ fontSize: 11, fontWeight: 600, color: '#6b21a8', background: 'rgba(107,33,168,0.08)', borderRadius: 8, padding: '3px 10px', display: 'inline-block' }}
-                  >
-                    Founder
-                  </div>
+                  Founder
                 </div>
               </div>
 
@@ -240,7 +293,7 @@ export default function About() {
                   students navigating the gap between school and career.
                 </p>
 
-                <div className="flex flex-wrap gap-3">
+                <div className="flex gap-2">
                   <a
                     href={JUSTIN_LINKEDIN}
                     target="_blank"
@@ -249,6 +302,15 @@ export default function About() {
                     style={{ color: '#111827', borderColor: '#e5e7eb', background: 'white' }}
                   >
                     <Linkedin size={15} style={{ color: '#0077b5' }} /> LinkedIn
+                  </a>
+                  <a
+                    href={JUSTIN_GITHUB}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-semibold rounded-xl px-4 py-2.5 border no-underline"
+                    style={{ color: '#111827', borderColor: '#e5e7eb', background: 'white' }}
+                  >
+                    <Github size={15} style={{ color: '#111827' }} /> GitHub
                   </a>
                   <a
                     href={JUSTIN_WEBSITE}
