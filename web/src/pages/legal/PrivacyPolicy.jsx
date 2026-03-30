@@ -76,8 +76,8 @@ const sections = [
     content: (
       <>
         <p>We retain your account data for as long as your account is active. If you wish to delete your account and all associated data, you may submit a request to us at the contact email below.</p>
-        <p>Upon receiving a valid deletion request, we will remove your account, profile, notes, flashcard sets, tasks, applications, resumes, and messages from our systems within 30 days.</p>
-        <p>Some data may be retained for a limited period in backups, after which it will be permanently deleted.</p>
+        <p>When you delete your account from settings, your account enters a 30-day grace period during which it is deactivated but not permanently removed. You can restore your account at any time within those 30 days by logging back in. After 30 days, your account, profile, notes, flashcard sets, tasks, applications, resumes, and messages are permanently deleted and cannot be recovered.</p>
+        <p>Some data may be retained for a limited period in backups, after which it will be permanently purged.</p>
       </>
     ),
   },

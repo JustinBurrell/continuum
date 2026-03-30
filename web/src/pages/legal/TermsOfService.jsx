@@ -109,7 +109,7 @@ const sections = [
     title: '10. Termination',
     content: (
       <>
-        <p>You may delete your account at any time by contacting us at <a href="mailto:privacy@continuumapp.dev">privacy@continuumapp.dev</a>. We will process deletion requests within 30 days.</p>
+        <p>You may delete your account at any time from your account settings. When you initiate a deletion, your account enters a 30-day grace period. During this period your account and all associated data are deactivated but not yet permanently removed. You can restore your account at any time within those 30 days by logging back in. After 30 days, your account and all associated data are permanently deleted and cannot be recovered.</p>
         <p>We reserve the right to suspend or terminate your account at any time, without prior notice, if we reasonably believe you have violated these Terms or if we discontinue the platform. Upon termination, your right to use Continuum ceases immediately.</p>
       </>
     ),
