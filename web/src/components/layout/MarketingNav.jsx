@@ -20,19 +20,8 @@ export default function MarketingNav({ active }) {
       }}
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5 no-underline">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #6b21a8, #a087b0)' }}
-          >
-            <span className="text-white font-bold text-sm">C</span>
-          </div>
-          <span
-            className="font-bold text-xl tracking-tight"
-            style={{ fontFamily: 'Georgia, serif', color: '#6b21a8' }}
-          >
-            Continuum
-          </span>
+        <Link to="/" className="no-underline">
+          <img src="/wordmark.svg" alt="Continuum" style={{ height: 30 }} />
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">

@@ -62,22 +62,8 @@ export default function Sidebar() {
     >
       {/* Brand */}
       <div style={{ padding: '20px 16px 16px' }}>
-        <a href="/" className="flex items-center gap-2.5" style={{ textDecoration: 'none' }}>
-          <div
-            className="flex items-center justify-center flex-shrink-0"
-            style={{ width: 32, height: 32, borderRadius: 8, background: '#6b21a8' }}
-          >
-            <span style={{ color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'Georgia, serif' }}>C</span>
-          </div>
-          <span style={{
-            fontFamily: 'Georgia, serif',
-            fontWeight: 600,
-            fontSize: 18,
-            color: '#111827',
-            letterSpacing: '-0.02em',
-          }}>
-            Continuum
-          </span>
+        <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
+          <img src="/wordmark.svg" alt="Continuum" style={{ height: 26 }} />
         </a>
       </div>
 

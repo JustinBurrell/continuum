@@ -7,9 +7,7 @@ export default function AuthLayout() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center animate-pulse">
-          <span className="text-primary font-bold text-lg">C</span>
-        </div>
+        <img src="/wordmark.svg" alt="Continuum" style={{ height: 28, opacity: 0.4 }} className="animate-pulse" />
       </div>
     );
   }
@@ -28,16 +26,10 @@ export default function AuthLayout() {
 
       <div className="relative w-full max-w-md">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2.5 mb-2 no-underline">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-lg">
-              <span className="text-white text-base font-bold">C</span>
-            </div>
-            <span className="font-serif font-bold text-2xl text-primary tracking-tight">
-              Continuum
-            </span>
+        <div className="text-center mb-3">
+          <Link to="/" className="inline-block no-underline">
+            <img src="/wordmark.svg" alt="Continuum" style={{ height: 36 }} />
           </Link>
-          <p className="text-secondary text-sm">Your academic & career companion</p>
         </div>
 
         {/* Card */}
