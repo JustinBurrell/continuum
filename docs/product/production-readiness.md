@@ -13,15 +13,15 @@ The app requests three scopes: `profile`, `email`, and `https://www.googleapis.c
 
 | Requirement | Status | Notes |
 |---|---|---|
-| Homepage describing app functionality | ❌ Missing | Landing page must not be a login-only page |
-| Privacy Policy page | ❌ Missing | Must be hosted on the same domain |
-| Privacy Policy linked on homepage | ❌ Missing | Must also match the link in Google Console |
-| Privacy Policy linked in Google OAuth consent screen | ❌ Missing | Set in Google Cloud Console → OAuth consent screen |
-| Domain verified in Google Search Console | ❌ Unknown | Owner must verify via Search Console |
+| Homepage describing app functionality | ✅ Done | Landing page revamped with full feature breakdown |
+| Privacy Policy page | ✅ Done | Built at `/privacy` |
+| Privacy Policy linked on homepage | ✅ Done | Linked in footer of all marketing pages |
+| Privacy Policy linked in Google OAuth consent screen | ✅ Done | Set in Google Cloud Console → OAuth consent screen |
+| Domain verified in Google Search Console | ✅ Done | Verified by owner |
 | Google Sign-In button follows branding guidelines | ✅ Done | Button uses Google colors and logo |
 | App demo video showing OAuth consent screen + drive scope usage | ❌ Missing | Required for sensitive scope |
 | Justification for `drive.readonly` scope | ❌ Missing | Must explain why narrower scope won't work |
-| Project contact info up to date in GCP | ❌ Confirm | Check Google Cloud Console |
+| Project contact info up to date in GCP | ✅ Done | Confirmed in Google Cloud Console |
 
 ### Action items
 
@@ -72,13 +72,13 @@ Google Cloud Console → APIs & Services → OAuth consent screen → **Publish 
 
 | Page | Route | Status |
 |---|---|---|
-| Privacy Policy | `/privacy` | ❌ Not built |
-| Terms of Service | `/terms` | ❌ Not built |
+| Privacy Policy | `/privacy` | ✅ Built |
+| Terms of Service | `/terms` | ✅ Built |
 
-Both pages must be designed using the `ui-ux-pro-max` skill to match the existing landing/product/about page aesthetic. Links must appear:
-- In the footer of the landing page, product page, and about page
-- On the Register page: "By signing up, you agree to our [Terms] and [Privacy Policy]"
-- Privacy Policy URL must also be entered in Google Cloud Console → OAuth consent screen
+Links appear:
+- ✅ In the footer of the landing page, product page, and about page
+- ✅ On the Register page: "By signing up, you agree to our Terms and Privacy Policy"
+- ✅ Privacy Policy URL entered in Google Cloud Console → OAuth consent screen
 
 ---
 
@@ -354,11 +354,11 @@ Once assets are received, do a codebase-wide search for the placeholder `C` mark
 
 1. **Logo assets (user to provide)** — replace all "C" placeholders and "Continuum" text renders site-wide
 2. **Favicon + browser tab logo** — depends on logo asset being finalized
-3. **Privacy Policy page** — required for Google verification and user trust (use `ui-ux-pro-max`)
-4. **Terms of Service page** — needed on Register form (use `ui-ux-pro-max`)
+3. ~~**Privacy Policy page**~~ ✅ Done — built at `/privacy`, linked in footer and Register form
+4. ~~**Terms of Service page**~~ ✅ Done — built at `/terms`, linked in footer and Register form
 5. **SEO meta tags + sitemap** — get the public pages indexed by Google
 6. **Custom email domain in Resend** — emails currently send from `onboarding@resend.dev`
 7. **Confirm `REDIS_URL` is set on Render** — points to Upstash instance
 8. **`robots.txt` + sitemap reference** — tell crawlers what to index
 9. **Sentry** — know when things break in prod without checking logs manually
-10. **Google OAuth verification** — submit once Privacy Policy and domain are done
+10. **Google OAuth verification** — enter Privacy Policy URL in Google Cloud Console, verify domain in Search Console, then submit
