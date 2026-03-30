@@ -13,83 +13,19 @@ const justinNotes = [
     subject: 'CS 211 — Data Structures & Algorithms',
     visibility: 'friends',
     isPinned: false,
-    content: `# Dynamic Programming: From Recursion to Optimization
+    content: `Dynamic programming is an algorithmic technique that solves complex problems by breaking them into overlapping subproblems and storing their solutions to avoid redundant computation. Richard Bellman coined the term in the 1950s, and it remains one of the most powerful tools in algorithm design.
 
-## What is Dynamic Programming?
+DP applies when a problem has two properties. **Optimal substructure** means an optimal solution contains optimal solutions to its subproblems. **Overlapping subproblems** means the same subproblems get solved multiple times in a naive recursive approach.
 
-Dynamic programming (DP) is an algorithmic technique that solves complex problems by breaking them down into simpler overlapping subproblems and storing their solutions to avoid redundant computation. The term was coined by Richard Bellman in the 1950s, and it remains one of the most powerful tools in algorithm design.
+The classic example is Fibonacci. A direct recursion computes fib(5) by calling fib(4) and fib(3), then fib(4) calls fib(3) and fib(2), which means fib(3) gets computed twice, fib(2) three times, and so on. The call tree grows exponentially — O(2^n) — because of all this repeated work.
 
-DP applies when a problem exhibits two key properties:
+**Memoization** (top-down) fixes this by caching results. Before computing a subproblem, check if the answer is already stored. If it is, return it immediately. This cuts time complexity from O(2^n) to O(n) since each subproblem is solved exactly once. Space is O(n) for the cache plus O(n) for the call stack.
 
-1. **Optimal Substructure** — an optimal solution to the problem contains optimal solutions to its subproblems.
-2. **Overlapping Subproblems** — the same subproblems are solved multiple times during a naive recursive approach.
+**Tabulation** (bottom-up) flips the approach entirely. Instead of recursing down from the top, start from the base cases and build the solution iteratively from the ground up. Same O(n) time and O(n) space, but no call stack overhead. You can even optimize space to O(1) by only tracking the last two values.
 
-## Recursive Approach: The Starting Point
+Classic DP problems to know: **coin change** — find the minimum number of coins to make a target amount; dp[i] = min(dp[i - coin] + 1) for each denomination. **Longest common subsequence** — build a 2D table where dp[i][j] holds the LCS length of the first i and j characters of the two strings. **0/1 knapsack** — maximize value under a weight constraint; dp[i][w] = maximum value using the first i items with capacity w.
 
-Consider the classic Fibonacci sequence: F(n) = F(n-1) + F(n-2). A direct recursive implementation looks clean but has exponential time complexity O(2^n) because it recomputes the same values over and over.
-
-\`\`\`
-fib(5) calls fib(4) + fib(3)
-fib(4) calls fib(3) + fib(2)
-fib(3) calls fib(2) + fib(1)  <-- repeated
-\`\`\`
-
-The call tree grows exponentially, and we end up solving fib(2) three separate times, fib(1) five times, and so on. This is the hallmark of overlapping subproblems.
-
-## Top-Down: Memoization
-
-Memoization adds a cache to the recursive approach. Before computing a subproblem, check if the answer is already stored. If it is, return it immediately. If not, compute it, store it, then return it.
-
-\`\`\`python
-def fib_memo(n, memo={}):
-    if n in memo:
-        return memo[n]
-    if n <= 1:
-        return n
-    memo[n] = fib_memo(n-1, memo) + fib_memo(n-2, memo)
-    return memo[n]
-\`\`\`
-
-This reduces the time complexity from O(2^n) to O(n) because each subproblem is solved exactly once. Space complexity is O(n) for the memo table plus O(n) for the call stack.
-
-## Bottom-Up: Tabulation
-
-Tabulation flips the approach: instead of starting from the top and recursing down, we start from the base cases and build up. We fill a table iteratively, so there is no recursion overhead.
-
-\`\`\`python
-def fib_tab(n):
-    if n <= 1:
-        return n
-    dp = [0] * (n + 1)
-    dp[1] = 1
-    for i in range(2, n + 1):
-        dp[i] = dp[i-1] + dp[i-2]
-    return dp[n]
-\`\`\`
-
-Time complexity is O(n) and space is O(n), but we eliminate the call stack overhead. We can even optimize space to O(1) by only keeping the last two values.
-
-## Classic DP Problems
-
-### Coin Change
-Given denominations and a target amount, find the minimum number of coins needed. State: dp[i] = minimum coins to make amount i. Transition: dp[i] = min(dp[i - coin] + 1) for each coin denomination.
-
-### Longest Common Subsequence (LCS)
-Given two strings, find the longest subsequence common to both. Build a 2D table where dp[i][j] represents the LCS of the first i characters of string A and first j characters of string B.
-
-### 0/1 Knapsack
-Given items with weights and values, maximize value without exceeding a weight limit. dp[i][w] = maximum value using first i items with capacity w.
-
-## When to Use DP
-
-Ask yourself: can I define the solution in terms of smaller instances of the same problem? Are there repeated subproblems? If yes to both, DP is likely the right approach. Start with the recursive solution, identify the state, add memoization, and then optionally convert to tabulation for better constant factors.
-
-## Key Takeaways
-
-- DP is not a single algorithm but a problem-solving paradigm
-- Memoization (top-down) is easier to implement; tabulation (bottom-up) is often faster in practice
-- Identifying the state and transition is the hardest part
-- Practice on classic problems: Fibonacci, coin change, LCS, knapsack, edit distance, matrix chain multiplication`,
+The diagnostic question for DP is: can I define the solution in terms of smaller instances of the same problem, and do those smaller instances repeat? If yes to both, start with the recursive solution, identify the state clearly, add memoization, then optionally convert to tabulation for better constant factors. Identifying the state and transition is the hardest part — everything else follows from that.`,
   },
 
   // --- INDEX 1 ---
@@ -100,81 +36,19 @@ Ask yourself: can I define the solution in terms of smaller instances of the sam
     subject: 'CS 301 — Operating Systems',
     visibility: 'specific',
     isPinned: false,
-    content: `# OS Process Scheduling Algorithms
+    content: `The CPU is a shared resource. When multiple processes are ready to run, the OS must decide which one gets it next. The scheduling algorithm directly affects throughput, response time, fairness, and resource utilization. A bad scheduler can starve processes or make interactive apps feel sluggish.
 
-## Why Scheduling Matters
+**FCFS** (First-Come, First-Served) is the simplest approach. Processes run in the order they arrive, non-preemptively. Simple and starvation-free, but suffers from the convoy effect — short processes get stuck behind long ones. If burst times are [24, 3, 3], average waiting time is 17. Flip the order to [3, 3, 24] and it drops to 3. Order matters enormously.
 
-The CPU is a shared resource. When multiple processes are ready to run, the operating system must decide which one gets the CPU next. The scheduling algorithm directly impacts system throughput, response time, fairness, and resource utilization. A poor scheduler can starve processes, waste CPU cycles, or make interactive applications feel sluggish.
+**SJF** (Shortest Job First) always picks the process with the smallest burst time next. It is provably optimal for minimizing average waiting time among non-preemptive algorithms. The catch: we rarely know burst times in advance. The OS predicts them using exponential averaging of past bursts — blending the last actual burst with the last prediction, typically with alpha = 0.5. The main downside is starvation: if short processes keep arriving, long ones may never run.
 
-## First-Come, First-Served (FCFS)
+**Round Robin** gives each process a fixed time quantum (10–100ms typically) and cycles through the ready queue. When a process uses its full quantum, it gets preempted and goes to the back of the line. The key design decision is quantum size — too small and context switching overhead dominates, too large and it degenerates into FCFS. A good rule of thumb: 80% of CPU bursts should complete within one quantum. RR is fair and has excellent response time, which is why it is the foundation of most interactive schedulers.
 
-FCFS is the simplest scheduling algorithm. Processes are executed in the order they arrive in the ready queue. It is non-preemptive — once a process starts, it runs to completion.
+**Priority scheduling** always runs the highest-priority process. Priorities can be static or dynamic. The major problem is starvation of low-priority processes, solved by aging — gradually increasing the priority of processes that have been waiting a long time.
 
-**Advantages**: Simple to implement, no starvation.
-**Disadvantages**: Convoy effect — short processes get stuck behind long ones, leading to high average waiting time.
+**MLFQ** (Multilevel Feedback Queue) is the most sophisticated scheduler and what real systems actually use. New processes enter the highest-priority queue. If a process uses its full quantum, it drops to a lower-priority queue. If it voluntarily gives up the CPU early (because it is doing I/O), it stays at the same level or moves up. Periodic priority boosts prevent starvation. The result: interactive processes automatically stay in high-priority queues, CPU-bound processes sink to lower ones with longer quanta.
 
-Example: if processes arrive with burst times [24, 3, 3], the average waiting time is (0 + 24 + 27) / 3 = 17. Reorder them as [3, 3, 24] and the average drops to (0 + 3 + 6) / 3 = 3. Order matters enormously.
-
-## Shortest Job First (SJF)
-
-SJF selects the process with the smallest burst time next. It can be non-preemptive (once started, runs to completion) or preemptive (Shortest Remaining Time First — SRTF).
-
-SJF is provably optimal for minimizing average waiting time among non-preemptive algorithms. The challenge is that we rarely know burst times in advance. The OS typically uses exponential averaging of past burst times to predict the next one:
-
-\`\`\`
-predicted_next = alpha * actual_last + (1 - alpha) * predicted_last
-\`\`\`
-
-where alpha is typically 0.5.
-
-**Problem**: SJF can starve long processes indefinitely if short processes keep arriving.
-
-## Round Robin (RR)
-
-Round Robin assigns each process a fixed time quantum (e.g., 10-100ms). Processes cycle through the ready queue, each getting at most one quantum before being preempted and sent to the back of the queue.
-
-**Key design decision**: quantum size.
-- Too small: excessive context switching overhead dominates
-- Too large: degenerates into FCFS
-- Rule of thumb: 80% of CPU bursts should complete within one quantum
-
-Round Robin is fair and responsive, making it the foundation of most modern interactive schedulers. Average turnaround time is generally higher than SJF, but response time is much better.
-
-## Priority Scheduling
-
-Each process is assigned a priority. The scheduler always picks the highest-priority process. Priorities can be static (assigned at creation) or dynamic (adjusted over time).
-
-**Major problem**: starvation of low-priority processes. Solution: aging — gradually increase the priority of waiting processes.
-
-Modern systems often combine priority scheduling with Round Robin: processes at the same priority level are scheduled round-robin.
-
-## Multilevel Feedback Queue (MLFQ)
-
-MLFQ is the most sophisticated and widely used scheduler in practice. It uses multiple queues with different priority levels:
-
-1. New processes enter the highest-priority queue
-2. If a process uses its full quantum, it drops to a lower-priority queue
-3. If a process gives up the CPU before its quantum expires (I/O), it stays at the same level or moves up
-4. Periodically boost all processes to the highest queue to prevent starvation
-
-This approach automatically adapts: interactive processes (short CPU bursts) stay in high-priority queues, while CPU-bound processes sink to lower queues where they get longer quanta.
-
-## Evaluation Criteria
-
-| Criterion | FCFS | SJF | RR | Priority |
-|-----------|------|-----|-----|----------|
-| Throughput | Medium | High | Medium | Varies |
-| Waiting Time | High | Optimal | Medium | Varies |
-| Response Time | High | Varies | Low | Varies |
-| Fairness | Yes | No (starvation) | Yes | No (starvation) |
-| Overhead | Low | Medium | High | Medium |
-
-## Key Takeaways
-
-- No single algorithm is best for all scenarios
-- Real systems use hybrid approaches (MLFQ)
-- The quantum size in RR is a critical tuning parameter
-- Starvation is the primary concern with SJF and Priority scheduling`,
+Comparing the algorithms: no single one is best for all scenarios. FCFS has low overhead but high waiting time. SJF has optimal waiting time but requires prediction and causes starvation. RR trades higher turnaround time for better response time and fairness. Priority scheduling varies based on the priority assignment. Real systems use MLFQ to get the best of all of them.`,
   },
 
   // --- INDEX 2 ---
@@ -185,88 +59,19 @@ This approach automatically adapts: interactive processes (short CPU bursts) sta
     subject: 'CS 350 — Computer Networks',
     visibility: 'specific',
     isPinned: false,
-    content: `# Computer Networks: TCP/IP Stack and HTTP
+    content: `The TCP/IP model organizes network communication into four layers. The **link layer** handles physical transmission over a single hop — Ethernet, Wi-Fi. The **internet layer** routes packets across networks using IP and ICMP. The **transport layer** provides end-to-end communication with TCP and UDP. The **application layer** is where user-facing protocols live: HTTP, DNS, SMTP. Each layer adds a header on the sending side (encapsulation) and strips it on the receiving side (decapsulation), which lets each layer evolve independently.
 
-## The TCP/IP Model
+IP handles addressing and routing. Every device gets an IP address — IPv4 is 32-bit, IPv6 is 128-bit. IP is connectionless and unreliable, making a best-effort attempt to deliver packets with no guarantees on order, duplication, or delivery. Key ideas: **subnetting** divides a network into smaller ranges using subnet masks; **NAT** translates private addresses like 192.168.x.x to public ones; **TTL** is a hop counter on each packet that prevents infinite loops.
 
-The TCP/IP model organizes network communication into four layers, each with a distinct responsibility:
+**TCP** provides reliable, ordered, byte-stream delivery on top of IP. It requires a connection before data flows. The three-way handshake: client sends SYN, server responds with SYN-ACK, client sends ACK. TCP reliability comes from sequence numbers (tracking byte position), acknowledgments (retransmitting if no ACK arrives within timeout), checksums (detecting corruption), flow control (a sliding window to prevent overwhelming the receiver), and congestion control (slow start, congestion avoidance, and fast retransmit to avoid overwhelming the network). Teardown is four-way: FIN, ACK, FIN, ACK. The TIME_WAIT state handles any delayed segments before the port is reused.
 
-1. **Link Layer** — handles physical transmission over a single hop (Ethernet, Wi-Fi)
-2. **Internet Layer** — routes packets across networks (IP, ICMP)
-3. **Transport Layer** — provides end-to-end communication (TCP, UDP)
-4. **Application Layer** — user-facing protocols (HTTP, DNS, SMTP)
+**UDP** is connectionless and unreliable — no handshake, no acknowledgments, no ordering. Its header is only 8 bytes vs TCP's 20 bytes. Used where speed matters more than reliability: DNS, video streaming, gaming, VoIP.
 
-Each layer adds a header to the data (encapsulation) on the sending side and strips it on the receiving side (decapsulation). This layered design allows each layer to evolve independently.
+**HTTP** follows a request-response model. HTTP/1.1 introduced persistent connections to reuse TCP across multiple requests, but suffered from head-of-line blocking — requests on the same connection are sequential. HTTP/2 switched to binary framing and added multiplexing, where multiple requests and responses are interleaved on a single TCP connection. It also added header compression (HPACK) and server push. HTTP/3 runs over QUIC, which is UDP-based, eliminating TCP head-of-line blocking at the transport level entirely. It has built-in TLS 1.3 and performs better on unreliable mobile and Wi-Fi networks.
 
-## IP: The Internet Protocol
+**TLS** encrypts HTTP traffic. TLS 1.3 streamlined the handshake from two round trips to one (or zero with 0-RTT resumption), removed weak cipher suites, and mandated forward secrecy — meaning even if a server's private key is later compromised, past sessions remain protected.
 
-IP is responsible for addressing and routing. Every device gets an IP address (IPv4: 32-bit, IPv6: 128-bit). IP is connectionless and unreliable — it makes a best-effort attempt to deliver packets but provides no guarantees about order, duplication, or delivery.
-
-Key concepts:
-- **Subnetting**: dividing a network into smaller ranges using subnet masks
-- **NAT**: translating private addresses (192.168.x.x) to public addresses
-- **TTL**: each packet has a time-to-live counter decremented at each hop to prevent infinite loops
-
-## TCP: Transmission Control Protocol
-
-TCP provides reliable, ordered, byte-stream delivery on top of IP. It is connection-oriented, meaning a connection must be established before data flows.
-
-### Three-Way Handshake
-1. Client sends SYN (synchronize sequence number)
-2. Server responds with SYN-ACK (acknowledge + its own sequence number)
-3. Client sends ACK — connection established
-
-### Reliability Mechanisms
-- **Sequence numbers** track byte position in the stream
-- **Acknowledgments** confirm receipt; if an ACK is not received within a timeout, the segment is retransmitted
-- **Checksums** detect corruption
-- **Flow control** uses a sliding window to prevent the sender from overwhelming the receiver
-- **Congestion control** (slow start, congestion avoidance, fast retransmit) prevents the sender from overwhelming the network
-
-### Connection Teardown
-Either side can initiate with a FIN. The four-way teardown: FIN, ACK, FIN, ACK. The TIME_WAIT state ensures all delayed segments are handled before the port is reused.
-
-## UDP: User Datagram Protocol
-
-UDP is connectionless and unreliable — no handshake, no acknowledgments, no ordering. It adds minimal overhead (8-byte header vs TCP's 20-byte header). Used for applications where speed matters more than reliability: DNS queries, video streaming, online gaming, VoIP.
-
-## HTTP: HyperText Transfer Protocol
-
-HTTP is an application-layer protocol for fetching web resources. It follows a request-response model: the client sends a request, the server sends a response.
-
-### HTTP/1.1
-- Persistent connections (keep-alive) — reuse TCP connections for multiple requests
-- Chunked transfer encoding for streaming
-- Head-of-line blocking: requests on the same connection are processed sequentially
-
-### HTTP/2
-- Binary framing instead of text
-- Multiplexing: multiple requests and responses interleaved on a single TCP connection
-- Header compression (HPACK) reduces overhead
-- Server push: server can proactively send resources
-
-### HTTP/3
-- Runs over QUIC (UDP-based) instead of TCP
-- Eliminates TCP head-of-line blocking at the transport layer
-- Built-in TLS 1.3 — faster handshakes (0-RTT resumption)
-- Better performance on unreliable networks (mobile, Wi-Fi)
-
-## TLS: Transport Layer Security
-
-TLS encrypts HTTP traffic (HTTPS). The TLS handshake establishes a shared secret using asymmetric cryptography, then switches to symmetric encryption for the session.
-
-TLS 1.3 streamlined the handshake from two round trips to one (or zero with 0-RTT resumption), removed weak cipher suites, and mandated forward secrecy.
-
-## DNS: Domain Name System
-
-DNS translates human-readable domain names to IP addresses. The resolution process follows a hierarchy: root servers, TLD servers (.com, .org), authoritative servers. Results are cached at multiple levels (browser, OS, ISP resolver) with TTL values.
-
-## Key Takeaways
-
-- TCP provides reliability at the cost of latency; UDP trades reliability for speed
-- HTTP has evolved significantly: HTTP/1.1 -> HTTP/2 (multiplexing) -> HTTP/3 (QUIC)
-- TLS is essential for security and is now effectively mandatory on the modern web
-- Understanding the layered model helps debug network issues systematically`,
+**DNS** translates domain names to IP addresses through a hierarchy: root servers, TLD servers (.com, .org), and authoritative servers. Results are cached at multiple levels with TTL values controlling how long they stay valid.`,
   },
 
   // --- INDEX 3 ---
@@ -277,91 +82,21 @@ DNS translates human-readable domain names to IP addresses. The resolution proce
     subject: 'CS 340 — Database Systems',
     visibility: 'private',
     isPinned: false,
-    content: `# Database Systems: Indexing, Query Optimization, and Transactions
+    content: `An index is a data structure that speeds up data retrieval at the cost of additional storage and slower writes. Without an index, the database does a full table scan — reading every row to find matches.
 
-## Indexing
+**B+ trees** are the most common index structure in relational databases. Internal nodes store keys and pointers; leaf nodes store keys and pointers to actual row data, and those leaf nodes are linked together, which makes range queries efficient. A typical branching factor of 100–200 means 3–4 levels of the tree can index millions of rows, requiring only about 3 disk reads — vs potentially millions for a full scan.
 
-An index is a data structure that speeds up data retrieval at the cost of additional storage and slower writes. Without an index, the database must perform a full table scan — reading every row to find matches.
+**Hash indexes** map keys to bucket locations using a hash function, giving O(1) average lookup time. The trade-off: they only work for equality predicates. No range queries, no ordering.
 
-### B+ Trees
+Index types to know: a **primary index** is built on the primary key and determines physical row order. A **secondary index** is built on non-key columns. A **composite index** spans multiple columns — column order matters for which queries it can satisfy. A **covering index** includes all columns a query needs, so the engine never has to fetch the actual row.
 
-B+ trees are the most common index structure in relational databases. They are balanced trees where:
-- Internal nodes store keys and pointers to child nodes
-- Leaf nodes store keys and pointers to actual data rows
-- Leaf nodes are linked together for efficient range queries
-- Typical fan-out of 100-200 means 3-4 levels can index millions of rows
+Index when columns appear in WHERE, JOIN, ORDER BY, or GROUP BY. Avoid indexing columns with low cardinality or tables with heavy write workloads where index maintenance becomes a bottleneck.
 
-A lookup in a B+ tree with N rows requires O(log_b(N)) I/O operations, where b is the branching factor. For a table with 10 million rows and branching factor 200, that is about 3 disk reads — compared to potentially millions for a full scan.
+**Query optimization:** the optimizer transforms a SQL query into an efficient execution plan by considering multiple equivalent plans and estimating each one's cost. Logical optimizations include predicate pushdown (filter as early as possible), projection pushdown (fetch only needed columns), and join reordering (smaller tables first to reduce intermediate sizes). Physical optimizations choose between index, sequential, or bitmap scans, and select join algorithms — nested loop, hash join, or sort-merge. Cost estimates depend on table statistics: row counts, cardinality, histograms, and index selectivity. Stale statistics cause bad plans — run ANALYZE regularly. Use EXPLAIN ANALYZE to see actual execution stats and catch sequential scans on large tables.
 
-### Hash Indexes
+**ACID transactions** group operations into a single logical unit. *Atomicity*: all operations complete or none take effect, enforced by write-ahead logging so crashes can undo incomplete transactions. *Consistency*: a transaction moves the database from one valid state to another, satisfying all constraints. *Isolation*: concurrent transactions appear to run separately. Isolation levels go from Read Uncommitted (can see dirty reads) to Read Committed (no dirty reads but non-repeatable reads possible) to Repeatable Read (consistent reads within a transaction, but phantom rows can appear) to Serializable (full isolation, highest overhead). *Durability*: committed changes survive crashes because the WAL is flushed to disk before acknowledging the commit.
 
-Hash indexes use a hash function to map keys to bucket locations. They excel at exact-match lookups (O(1) average) but cannot support range queries or ordering. Most useful for equality predicates in WHERE clauses.
-
-### Index Types
-- **Primary index**: built on the primary key, determines physical row order (clustered)
-- **Secondary index**: built on non-key columns, points to row locations
-- **Composite index**: spans multiple columns — column order matters for query matching
-- **Covering index**: includes all columns needed by a query, eliminating the need to fetch the actual row
-
-### When to Index
-Index columns that appear in WHERE, JOIN, ORDER BY, and GROUP BY clauses. Avoid indexing columns with low cardinality (few distinct values) or tables with heavy write workloads where index maintenance overhead dominates.
-
-## Query Optimization
-
-The query optimizer transforms a SQL query into an efficient execution plan. It considers multiple equivalent plans and estimates the cost of each.
-
-### Logical Optimization
-- Predicate pushdown: apply WHERE filters as early as possible
-- Projection pushdown: only fetch needed columns
-- Join reordering: process smaller tables first to reduce intermediate result sizes
-
-### Physical Optimization
-- Choose between index scan, sequential scan, or bitmap scan
-- Select join algorithms: nested loop, hash join, sort-merge join
-- Decide on parallelism and pipelining
-
-### Cost Estimation
-The optimizer estimates costs using table statistics: row counts, column cardinality, value distribution histograms, and index selectivity. Stale statistics lead to poor plans — run ANALYZE regularly.
-
-### EXPLAIN
-Use EXPLAIN (or EXPLAIN ANALYZE for actual execution stats) to understand query plans. Look for sequential scans on large tables, nested loop joins with large inputs, and high estimated row counts at each stage.
-
-## Transactions and ACID
-
-A transaction is a sequence of operations treated as a single logical unit. Transactions provide four guarantees (ACID):
-
-### Atomicity
-All operations in a transaction either complete successfully or none of them take effect. If any step fails, the entire transaction is rolled back. Implemented via write-ahead logging (WAL): changes are logged before being applied, and the log is used to undo incomplete transactions on crash recovery.
-
-### Consistency
-A transaction brings the database from one valid state to another. All integrity constraints, foreign keys, and check constraints are satisfied after the transaction commits.
-
-### Isolation
-Concurrent transactions do not interfere with each other. The database provides the illusion that each transaction runs in isolation, even when many run concurrently.
-
-#### Isolation Levels
-- **Read Uncommitted**: can see uncommitted changes (dirty reads)
-- **Read Committed**: only sees committed data, but may see different results on re-read (non-repeatable reads)
-- **Repeatable Read**: same query returns same results within a transaction, but phantom rows can appear
-- **Serializable**: full isolation, equivalent to serial execution (highest overhead)
-
-### Durability
-Once a transaction commits, its changes survive system crashes. Guaranteed by flushing the WAL to disk before acknowledging the commit.
-
-## Concurrency Control
-
-### Locking
-Two-phase locking (2PL): acquire all locks before releasing any. Prevents most anomalies but can cause deadlocks. Deadlock detection uses wait-for graphs; resolution involves aborting one transaction.
-
-### MVCC (Multi-Version Concurrency Control)
-Instead of locking, maintain multiple versions of each row. Readers see a consistent snapshot without blocking writers. Used by PostgreSQL, MySQL InnoDB, and Oracle. Provides better concurrency than locking for read-heavy workloads.
-
-## Key Takeaways
-
-- Indexing is the single most impactful tool for query performance
-- The query optimizer relies on accurate statistics — keep them updated
-- Choose the right isolation level: higher isolation means more overhead
-- MVCC enables high concurrency by allowing readers and writers to operate without blocking each other`,
+**Concurrency control:** two-phase locking (2PL) acquires all locks before releasing any — prevents most anomalies but can deadlock. MVCC (Multi-Version Concurrency Control) maintains multiple row versions so readers see a consistent snapshot without blocking writers. PostgreSQL and MySQL InnoDB both use MVCC, which is why they perform well under read-heavy workloads.`,
   },
 
   // --- INDEX 4 ---
@@ -372,88 +107,15 @@ Instead of locking, maintain multiple versions of each row. Readers see a consis
     subject: 'CS 320 — Compilers',
     visibility: 'private',
     isPinned: false,
-    content: `# Compilers: Lexing, Parsing, and Semantic Analysis
+    content: `A compiler translates source code into machine code (or an intermediate representation) through several phases, each producing a progressively lower-level representation. The front end — lexing, parsing, and semantic analysis — is language-dependent. The back end — optimization and code generation — is architecture-dependent. An intermediate representation (IR) bridges them, letting the same front end target multiple architectures and the same back end support multiple languages.
 
-## Overview of Compilation
+**Phase 1: Lexical analysis.** The lexer reads raw characters and groups them into tokens — the smallest meaningful units. Tokens include keywords (if, while, return), identifiers (variable and function names), literals (numbers, strings, booleans), operators (+, ==, &&), and delimiters (parentheses, braces, semicolons). Whitespace and comments are typically discarded. Lexers are implemented as finite automata derived from regular expressions. Given the input "int x = 42;", the lexer produces tokens like [KEYWORD:int] [IDENT:x] [OP:=] [INT_LIT:42] [DELIM:;].
 
-A compiler translates source code written in a high-level language into machine code (or an intermediate representation) that a computer can execute. The compilation process is divided into several phases, each transforming the program into a progressively lower-level representation.
+**Phase 2: Parsing.** The parser takes the token stream and builds an Abstract Syntax Tree (AST) according to the language's context-free grammar. Top-down (LL) parsing starts from the start symbol and tries to derive the input using one token of lookahead — each non-terminal becomes a recursive function. LL cannot handle left-recursive grammars without transformation. Bottom-up (LR) parsing starts from the input and reduces back to the start symbol using shift-reduce operations. LR is more powerful and handles a larger class of grammars. The hierarchy is LR(0) → SLR → LALR(1) → CLR(1), with LALR(1) being the practical sweet spot used by Yacc/Bison. The AST captures hierarchical structure while discarding syntactic sugar like parentheses and semicolons.
 
-The front end (lexing, parsing, semantic analysis) is language-dependent. The back end (optimization, code generation) is machine-dependent. An intermediate representation (IR) bridges the two, allowing the same front end to target multiple architectures and the same back end to support multiple languages.
+**Phase 3: Semantic analysis.** The semantic analyzer enforces rules the grammar cannot express. Type checking verifies that operand types match operators, function call arguments match parameter types, and return types match declarations. Symbol tables map identifiers to their type, scope, and memory location — nested scopes form a stack so inner scopes can shadow outer ones. Other checks: variables declared before use, break and continue only inside loops, access modifiers respected, constants not reassigned.
 
-## Phase 1: Lexical Analysis (Lexing)
-
-The lexer (also called a scanner or tokenizer) reads the raw character stream and groups characters into tokens — the smallest meaningful units of the language.
-
-### Token Types
-- **Keywords**: if, while, return, class
-- **Identifiers**: variable names, function names
-- **Literals**: numbers (42), strings ("hello"), booleans (true)
-- **Operators**: +, -, *, ==, &&
-- **Delimiters**: (, ), {, }, ;, ,
-- **Whitespace and comments**: typically discarded
-
-### Implementation
-Lexers are typically implemented as finite automata (DFAs). Each state represents partial progress through a token pattern. Regular expressions define the patterns for each token type, and tools like Flex or hand-written state machines convert them to DFAs.
-
-\`\`\`
-Input: "int x = 42;"
-Tokens: [KEYWORD:int] [IDENT:x] [OP:=] [INT_LIT:42] [DELIM:;]
-\`\`\`
-
-### Error Handling
-When the lexer encounters an unexpected character, it can: report an error and stop, skip the character and continue (error recovery), or insert a token it thinks was intended.
-
-## Phase 2: Parsing (Syntax Analysis)
-
-The parser takes the token stream and builds an Abstract Syntax Tree (AST) according to the language's grammar. The grammar is typically specified as a context-free grammar (CFG) in Backus-Naur Form (BNF).
-
-### Top-Down Parsing (LL)
-- Starts from the start symbol and tries to derive the input
-- Recursive descent: each non-terminal becomes a function
-- LL(1): uses one token of lookahead to decide which production to apply
-- Cannot handle left-recursive grammars directly — must be transformed
-
-### Bottom-Up Parsing (LR)
-- Starts from the input tokens and reduces them to the start symbol
-- More powerful than LL: can handle a larger class of grammars
-- LR(0), SLR, LALR(1), CLR(1) — increasing power and table size
-- LALR(1) is the sweet spot (used by Yacc/Bison)
-- Uses shift-reduce actions: shift tokens onto a stack, reduce when a complete production is recognized
-
-### AST Construction
-The parser builds an AST that captures the hierarchical structure of the program while discarding syntactic sugar (parentheses, semicolons). Each node represents a construct: function declarations, if statements, binary expressions, variable references.
-
-## Phase 3: Semantic Analysis
-
-The semantic analyzer traverses the AST to enforce rules that cannot be expressed in the grammar. This includes:
-
-### Type Checking
-- Verify operand types match operators (cannot add string + int unless coercion is defined)
-- Check function call argument types against parameter types
-- Ensure return types match function declarations
-- Handle implicit type conversions and generic types
-
-### Symbol Tables
-A symbol table maps identifiers to their declarations (type, scope, memory location). The semantic analyzer builds and queries symbol tables as it traverses the AST. Scoping rules determine visibility: block scope, function scope, global scope. Nested scopes form a stack — inner scopes can shadow outer ones.
-
-### Other Checks
-- Variables must be declared before use
-- Functions must be defined (or at least declared) before calling
-- Break and continue only appear inside loops
-- Access modifiers (public, private) are respected
-- Constant variables are not reassigned
-
-## Beyond the Front End
-
-After semantic analysis, the compiler emits an intermediate representation (IR) such as three-address code or SSA form. The optimizer transforms the IR to improve performance (constant folding, dead code elimination, loop unrolling, inlining). Finally, the code generator maps the optimized IR to target machine instructions, performing register allocation and instruction selection.
-
-## Key Takeaways
-
-- Lexing converts characters to tokens using finite automata
-- Parsing converts tokens to an AST using context-free grammars
-- Semantic analysis enforces type rules and scoping using symbol tables
-- The front end is language-specific; the back end is architecture-specific
-- Tools like Flex (lexing) and Bison (parsing) automate much of the front end`,
+After semantic analysis, the compiler emits an IR (three-address code or SSA form). The optimizer then applies passes like constant folding, dead code elimination, and loop unrolling. Finally, the code generator maps the optimized IR to target instructions, performing register allocation (often modeled as graph coloring) and instruction selection.`,
   },
 
   // --- INDEX 5 ---
@@ -464,80 +126,19 @@ After semantic analysis, the compiler emits an intermediate representation (IR) 
     subject: 'Research',
     visibility: 'friends',
     isPinned: false,
-    content: `# Neural Networks & Deep Learning: Architecture Overview
+    content: `Artificial neural networks are loosely inspired by biological neurons — a neuron receives signals through dendrites, processes them in the cell body, and transmits output through the axon. An artificial neuron does the same thing mathematically: it takes weighted inputs, applies an activation function, and produces an output. The biology is useful for intuition but the math is what matters.
 
-## Biological Inspiration
+The **perceptron** is the simplest possible network — a single neuron that computes a weighted sum of inputs plus a bias, then passes the result through a step function. A perceptron can learn linearly separable functions like AND and OR, but cannot learn XOR. This limitation drove the development of multi-layer networks.
 
-Artificial neural networks are loosely inspired by biological neurons. A biological neuron receives signals through dendrites, processes them in the cell body, and transmits output through the axon. Similarly, an artificial neuron takes weighted inputs, applies an activation function, and produces an output. The analogy is useful for intuition but the math is what matters.
+A **feedforward network** stacks layers — input, one or more hidden, output — with full connections between layers. Data flows forward only. **Activation functions** are critical because they introduce non-linearity, which is what lets the network learn complex patterns. Sigmoid maps outputs to (0,1) but suffers from vanishing gradients. Tanh is zero-centered but has the same gradient problem. **ReLU** (max(0, x)) is simple, efficient, and avoids vanishing gradients — it is the default for most architectures today. Leaky ReLU prevents the "dead neuron" problem where ReLU neurons get stuck outputting zero. GELU is used in transformers. The universal approximation theorem says a single hidden layer with enough neurons can approximate any continuous function — but in practice, depth is more efficient than width.
 
-## The Perceptron
+**Training** means finding weights that minimize a loss function. Backpropagation computes the gradient of the loss with respect to each weight via the chain rule, then gradient descent updates the weights. Variants: batch GD uses the full dataset (stable, slow); SGD uses one sample (fast, noisy); mini-batch (32–256 samples) is the practical default; Adam adapts the learning rate per parameter by combining momentum and RMSProp, making it the most commonly used optimizer. Training challenges: vanishing gradients (fix with ReLU and skip connections), exploding gradients (fix with gradient clipping), and overfitting (fix with dropout, regularization, data augmentation).
 
-The perceptron is the simplest neural network — a single neuron. It computes a weighted sum of inputs, adds a bias, and passes the result through a step function:
+**CNNs** are designed for images. Convolutional layers learn local spatial patterns using filters that slide across the input. Pooling layers downsample the feature maps. The feature hierarchy is intuitive: early layers detect edges, middle layers detect textures and shapes, deep layers detect objects. Architecture progression: LeNet → AlexNet → VGG → ResNet (introduced skip connections in 2015) → EfficientNet.
 
-\`\`\`
-output = step(w1*x1 + w2*x2 + ... + wn*xn + b)
-\`\`\`
+**RNNs** maintain a hidden state that carries information across time steps, making them suited for sequences. The problem is vanishing gradients on long sequences — vanilla RNNs forget things far back. LSTM solves this with forget, input, and output gates that control what information flows through. GRU is a simpler variant with fewer parameters.
 
-A single perceptron can learn linearly separable functions (AND, OR) but famously cannot learn XOR. This limitation motivated the development of multi-layer networks.
-
-## Feedforward Neural Networks
-
-A feedforward network consists of an input layer, one or more hidden layers, and an output layer. Each layer is fully connected to the next. Data flows in one direction — forward from input to output.
-
-### Activation Functions
-The activation function introduces non-linearity, which is essential for learning complex patterns:
-- **Sigmoid**: σ(x) = 1/(1+e^(-x)) — maps to (0,1), suffers from vanishing gradients
-- **Tanh**: maps to (-1,1), zero-centered but still has vanishing gradient issues
-- **ReLU**: max(0, x) — simple, efficient, avoids vanishing gradients but can "die" (output stuck at 0)
-- **Leaky ReLU**: max(αx, x) where α is small — prevents dead neurons
-- **GELU**: used in transformers, smoother approximation of ReLU
-
-### Universal Approximation Theorem
-A feedforward network with a single hidden layer and a non-linear activation function can approximate any continuous function to arbitrary precision, given enough neurons. In practice, deeper networks (more layers) learn hierarchical features more efficiently than shallow wide ones.
-
-## Backpropagation and Gradient Descent
-
-Training a neural network means finding weights that minimize a loss function (e.g., cross-entropy for classification, MSE for regression). Backpropagation computes the gradient of the loss with respect to each weight by applying the chain rule through the network layers.
-
-### Gradient Descent Variants
-- **Batch GD**: compute gradient on entire dataset — stable but slow
-- **Stochastic GD (SGD)**: compute gradient on one sample — noisy but fast
-- **Mini-batch GD**: compute gradient on a small batch (32-256) — best of both worlds
-- **Adam**: adaptive learning rates per parameter, combines momentum and RMSProp — most commonly used
-
-### Training Challenges
-- **Vanishing gradients**: gradients shrink exponentially in deep networks (solved by ReLU, skip connections)
-- **Exploding gradients**: gradients grow exponentially (solved by gradient clipping)
-- **Overfitting**: model memorizes training data (solved by dropout, regularization, data augmentation)
-
-## Convolutional Neural Networks (CNNs)
-
-CNNs are designed for grid-like data (images). Key components:
-- **Convolutional layers**: learn local spatial patterns using filters that slide across the input
-- **Pooling layers**: downsample feature maps (max pooling, average pooling)
-- **Feature hierarchy**: early layers detect edges, middle layers detect textures, deep layers detect objects
-
-Architectures: LeNet (1998) → AlexNet (2012) → VGG → ResNet (2015, introduced skip connections) → EfficientNet.
-
-## Recurrent Neural Networks (RNNs)
-
-RNNs process sequential data by maintaining a hidden state that carries information across time steps. Vanilla RNNs suffer from vanishing gradients on long sequences.
-
-**LSTM** (Long Short-Term Memory) solves this with gates (forget, input, output) that control information flow. **GRU** (Gated Recurrent Unit) is a simplified variant with fewer parameters.
-
-## Transformers
-
-Transformers replaced RNNs for most sequence tasks. Key innovation: **self-attention** allows every token to attend to every other token in parallel, eliminating the sequential bottleneck of RNNs.
-
-Components: multi-head attention, positional encoding, layer normalization, feedforward layers. BERT (encoder-only) for understanding, GPT (decoder-only) for generation.
-
-## Key Takeaways
-
-- Neural networks are universal function approximators
-- Depth enables hierarchical feature learning
-- CNNs exploit spatial structure; RNNs and transformers exploit sequential structure
-- Adam optimizer and batch normalization are standard practices
-- Transformers have become the dominant architecture for NLP and increasingly for vision`,
+**Transformers** replaced RNNs for most sequence tasks. The key innovation is self-attention: every token can attend to every other token in parallel, eliminating the sequential bottleneck. Components include multi-head attention, positional encoding, layer normalization, and feedforward layers. BERT is encoder-only (good at understanding), GPT is decoder-only (good at generation). Transformers now dominate NLP and are increasingly used in vision as well.`,
   },
 
   // --- INDEX 6 ---
@@ -548,71 +149,19 @@ Components: multi-head attention, positional encoding, layer normalization, feed
     subject: 'Research',
     visibility: 'friends',
     isPinned: false,
-    content: `# Distributed Systems: CAP Theorem and Consistency Models
+    content: `A distributed system is a collection of independent computers that appears to users as a single coherent system. The fundamental challenges: network communication is unreliable, nodes can fail independently, and there is no global clock. These realities force designers into difficult trade-offs between correctness, performance, and availability.
 
-## What Makes Distributed Systems Hard?
+The **CAP theorem**, formulated by Eric Brewer in 2000 and proven by Gilbert and Lynch in 2002, says a distributed data store can provide at most two of three guarantees simultaneously: **Consistency** (every read returns the most recent write or an error), **Availability** (every request gets a non-error response), and **Partition Tolerance** (the system keeps operating despite network partitions). Since network partitions are inevitable in practice, the real choice is between CP and AP during a partition.
 
-A distributed system is a collection of independent computers that appears to its users as a single coherent system. The fundamental challenges arise from three realities: network communication is unreliable, nodes can fail independently, and there is no global clock. These constraints force designers to make difficult trade-offs between correctness, performance, and availability.
+**CP systems** may refuse to respond during a partition to guarantee consistency. Examples: HBase, MongoDB with majority read concern, Zookeeper. These are right for bank balances, inventory, and anything where stale data causes real harm. **AP systems** keep serving requests during partitions but may return stale data. Examples: Cassandra, DynamoDB, CouchDB. These work for social media feeds, analytics dashboards, and anything where eventual consistency is acceptable.
 
-## The CAP Theorem
+**Consistency models** define what values a read can return. They form a spectrum from strict to relaxed. *Strong consistency (linearizability)*: every operation appears to execute atomically at some point between invocation and completion — reads always return the latest write. Most expensive, requires coordination on every operation. *Sequential consistency*: all operations appear in some total order, and operations from each node appear in their issued order. Weaker than linearizability because the total order does not need to respect real-time. *Causal consistency*: if A causally preceded B, all nodes see A before B — causally unrelated operations can be seen in different orders. Captures the important real-world ordering constraints with more concurrency. *Eventual consistency*: if no new writes occur, all replicas eventually converge. No guarantees on timing or intermediate values. Weakest useful model, highest availability and lowest latency.
 
-The CAP theorem, formulated by Eric Brewer in 2000 and proven by Gilbert and Lynch in 2002, states that a distributed data store can provide at most two of three guarantees simultaneously:
+**Paxos** (Lamport, 1989) assigns roles: proposer, acceptor, learner. A value is chosen when a majority of acceptors agree. Provably correct but notoriously hard to implement. **Raft** (Ongaro and Ousterhout, 2014) was designed specifically to be understandable. It breaks consensus into leader election, log replication, and safety. One leader handles all client requests and replicates entries to followers, committing when a majority acknowledge. Raft is the algorithm we are using in the distributed key-value store project, which makes it directly relevant.
 
-1. **Consistency (C)** — every read receives the most recent write or an error
-2. **Availability (A)** — every request receives a non-error response (but not necessarily the most recent data)
-3. **Partition Tolerance (P)** — the system continues to operate despite network partitions between nodes
+Real-world examples: Google Spanner achieves linearizability by using TrueTime — atomic clocks and GPS — for global ordering. Amazon DynamoDB offers configurable consistency per read, defaulting to eventual. Apache Cassandra lets you tune quorum levels for stronger guarantees. etcd is strongly consistent via Raft and is the backing store for Kubernetes configuration.
 
-Since network partitions are inevitable in practice, the real choice is between consistency (CP) and availability (AP) during a partition.
-
-### CP Systems
-When a partition occurs, a CP system may refuse to respond (sacrificing availability) to guarantee consistency. Examples: HBase, MongoDB (with majority read concern), Zookeeper. Bank account balances, inventory counts, and anything where stale data could cause real harm.
-
-### AP Systems
-When a partition occurs, an AP system continues to serve requests (maintaining availability) but may return stale data. Examples: Cassandra, DynamoDB, CouchDB. Social media feeds, analytics dashboards, and use cases where eventual consistency is acceptable.
-
-## Consistency Models
-
-Consistency models define the rules for what values a read can return in a distributed system. They form a spectrum from strict to relaxed.
-
-### Strong Consistency (Linearizability)
-Every operation appears to take effect instantaneously at some point between its invocation and completion. Reads always return the latest write. This is the strongest model but the most expensive — it requires coordination between nodes on every operation.
-
-### Sequential Consistency
-Operations from all nodes appear in some total order, and operations from each individual node appear in the order they were issued. Weaker than linearizability because the total order does not need to respect real-time ordering.
-
-### Causal Consistency
-If operation A causally precedes operation B (A happened before B and B could have been influenced by A), then all nodes see A before B. Operations that are not causally related can be seen in different orders by different nodes. Captures the most important real-world ordering constraints while allowing more concurrency.
-
-### Eventual Consistency
-If no new writes are made to a data item, all replicas will eventually converge to the same value. No guarantees about how long convergence takes or what values reads return in the interim. The weakest useful model but allows the highest availability and lowest latency.
-
-## Consensus Protocols
-
-To achieve strong consistency, distributed systems use consensus protocols that allow nodes to agree on a value despite failures.
-
-### Paxos
-Proposed by Lamport in 1989. Nodes take on roles (proposer, acceptor, learner). A value is chosen when a majority of acceptors agree. Paxos is notoriously difficult to understand and implement correctly, but it is provably correct.
-
-### Raft
-Designed by Ongaro and Ousterhout in 2014 as an understandable alternative to Paxos. Divides consensus into three sub-problems: leader election, log replication, and safety. One node is elected leader and handles all client requests. The leader replicates log entries to followers and commits them when a majority acknowledge.
-
-Raft is the consensus algorithm we are using in our distributed key-value store project, which makes it directly relevant.
-
-## Real-World Systems
-
-| System | Model | Trade-off |
-|--------|-------|-----------|
-| Google Spanner | Strong (linearizable) | Uses TrueTime (atomic clocks) for global ordering |
-| Amazon DynamoDB | Eventual (or strong per-request) | Configurable per-read |
-| Apache Cassandra | Tunable | Quorum reads/writes for stronger guarantees |
-| etcd | Strong (Raft-based) | CP system, used for configuration |
-
-## Key Takeaways
-
-- The CAP theorem forces a choice between consistency and availability during partitions
-- Most real systems are not purely CP or AP — they offer tunable consistency
-- Raft is the most practical consensus protocol for new systems
-- Choose the weakest consistency model that satisfies your application requirements`,
+Most real systems are not purely CP or AP — they offer tunable consistency. The practical rule: choose the weakest consistency model that actually satisfies your application requirements.`,
   },
 
   // --- INDEX 7 ---
@@ -623,86 +172,21 @@ Raft is the consensus algorithm we are using in our distributed key-value store 
     subject: 'Research',
     visibility: 'private',
     isPinned: false,
-    content: `# Cryptography: Public Key Infrastructure and TLS
+    content: `Cryptography is the science of securing communication in the presence of adversaries. Two fundamental approaches.
 
-## Symmetric vs Asymmetric Cryptography
+**Symmetric cryptography** uses the same key for encryption and decryption. Both parties must share the key through a secure channel beforehand. AES (Advanced Encryption Standard) operates on 128-bit blocks with key sizes of 128, 192, or 256 bits. AES-256 is considered secure against all known attacks, including quantum computers running Grover's algorithm — which effectively halves key length, reducing AES-256 to 128-bit equivalent security.
 
-Cryptography is the science of securing communication in the presence of adversaries. There are two fundamental approaches.
+**Asymmetric cryptography** uses a key pair: a public key shared freely and a private key kept secret. Data encrypted with the public key can only be decrypted with the private key. This solves the key distribution problem but is orders of magnitude slower than symmetric encryption.
 
-**Symmetric cryptography** uses the same key for encryption and decryption. Both parties must share the key through a secure channel beforehand. Algorithms include AES (Advanced Encryption Standard), which operates on 128-bit blocks with key sizes of 128, 192, or 256 bits. AES-256 is considered secure against all known attacks, including quantum computers with Grover's algorithm (which would halve the effective key length, reducing AES-256 to 128-bit equivalent security).
+**RSA** (1977) is the most widely known asymmetric algorithm. Security rests on the difficulty of factoring the product of two large primes. Key generation: choose two large primes p and q, compute the modulus n = p × q, compute the totient φ(n) = (p-1)(q-1), choose a public exponent e (commonly 65537), then compute private exponent d such that e × d ≡ 1 (mod φ(n)). RSA 2048-bit keys are the current standard; 4096 provides extra margin. RSA is used for key exchange and signatures, not bulk data encryption — it is too slow for that.
 
-**Asymmetric cryptography** uses a key pair: a public key (shared freely) and a private key (kept secret). Data encrypted with the public key can only be decrypted with the private key, and vice versa. This solves the key distribution problem but is orders of magnitude slower than symmetric encryption.
+**ECC** achieves equivalent security to RSA with much smaller keys. A 256-bit ECC key is roughly equivalent to a 3072-bit RSA key. This makes ECC faster and more efficient, especially on mobile. The security relies on the elliptic curve discrete logarithm problem (ECDLP). Common curves: P-256 (NIST) and Curve25519 (Bernstein, used in modern protocols).
 
-## RSA
+**Digital signatures** provide authentication, integrity, and non-repudiation. The signer hashes the message and encrypts the hash with their private key; anyone can verify using the signer's public key. Common schemes: RSA-PSS, ECDSA, and EdDSA (Ed25519 — fast, deterministic, resistant to side-channel attacks).
 
-RSA (Rivest-Shamir-Adleman, 1977) is the most widely known asymmetric algorithm. Its security rests on the difficulty of factoring the product of two large primes.
+**PKI** (Public Key Infrastructure) binds public keys to identities via digital certificates issued by Certificate Authorities. The chain of trust goes: Root CA (self-signed, pre-installed in browsers and OS) → Intermediate CA (signed by root) → end-entity certificate (the server's cert, signed by intermediate). When a browser connects, it verifies the full chain. X.509 certificates contain: subject, issuer, public key, validity period, signature, and extensions like Subject Alternative Names. If a private key is compromised, the certificate must be revoked — either via CRL (a published list of revoked serial numbers, large and slow) or OCSP (real-time check with the CA, faster but adds latency).
 
-Key generation:
-1. Choose two large primes p and q
-2. Compute n = p * q (the modulus)
-3. Compute the totient φ(n) = (p-1)(q-1)
-4. Choose public exponent e (commonly 65537)
-5. Compute private exponent d such that e * d ≡ 1 (mod φ(n))
-
-RSA key sizes of 2048 bits are currently standard; 4096 bits provide extra margin. RSA is used for key exchange and digital signatures but not for encrypting bulk data (too slow).
-
-## Elliptic Curve Cryptography (ECC)
-
-ECC achieves equivalent security to RSA with much smaller key sizes. A 256-bit ECC key provides roughly the same security as a 3072-bit RSA key. This makes ECC faster and more efficient, especially on mobile devices and constrained environments.
-
-The most common curves: P-256 (NIST), Curve25519 (Daniel Bernstein — used in modern protocols). The security of ECC relies on the difficulty of the elliptic curve discrete logarithm problem (ECDLP).
-
-## Digital Signatures
-
-Digital signatures provide authentication, integrity, and non-repudiation. The signer hashes the message and encrypts the hash with their private key. Anyone can verify the signature using the signer's public key.
-
-Common schemes: RSA-PSS, ECDSA (Elliptic Curve Digital Signature Algorithm), EdDSA (Ed25519 — fast, deterministic, resistant to side-channel attacks).
-
-## Public Key Infrastructure (PKI)
-
-PKI is the framework that binds public keys to identities through digital certificates issued by trusted Certificate Authorities (CAs).
-
-### Certificate Chain of Trust
-1. **Root CA**: self-signed certificate, pre-installed in browsers/OS
-2. **Intermediate CA**: signed by the root CA, issues end-entity certificates
-3. **End-entity certificate**: the server's certificate, signed by an intermediate CA
-
-When a browser connects to a server, it verifies the certificate chain: the server's cert is signed by an intermediate CA, which is signed by a trusted root CA. If any link is broken or untrusted, the connection is rejected.
-
-### Certificate Contents (X.509)
-- Subject (domain name, organization)
-- Issuer (the CA that signed it)
-- Public key
-- Validity period (not before / not after)
-- Signature algorithm and value
-- Extensions (Subject Alternative Names, Key Usage)
-
-### Certificate Revocation
-If a private key is compromised, the certificate must be revoked. Two mechanisms:
-- **CRL** (Certificate Revocation List): CA publishes a list of revoked serial numbers — large, slow to check
-- **OCSP** (Online Certificate Status Protocol): real-time check with the CA — faster but adds latency
-
-## TLS: Transport Layer Security
-
-TLS is the protocol that provides encrypted communication over the internet. HTTPS is HTTP over TLS.
-
-### TLS 1.3 Handshake (simplified)
-1. Client sends ClientHello (supported cipher suites, random value, key share)
-2. Server sends ServerHello (chosen cipher suite, random value, key share) + encrypted certificate + Finished
-3. Client verifies certificate, sends Finished
-4. Symmetric encryption begins using the derived session key
-
-The handshake completes in one round trip (1-RTT). With 0-RTT resumption, returning clients can send data immediately using a pre-shared key from a previous session.
-
-### Forward Secrecy
-TLS 1.3 mandates forward secrecy through ephemeral Diffie-Hellman key exchange. Even if the server's private key is later compromised, past sessions cannot be decrypted because each session used a unique ephemeral key that was discarded.
-
-## Key Takeaways
-
-- Symmetric encryption (AES) is fast but requires shared keys; asymmetric encryption (RSA, ECC) solves key distribution
-- PKI and certificate chains are the foundation of trust on the internet
-- TLS 1.3 is faster, simpler, and more secure than its predecessors
-- Forward secrecy protects past communications even if keys are compromised later`,
+**TLS 1.3** is the current standard for encrypted web communication. The handshake: client sends ClientHello with supported cipher suites and a key share; server responds with ServerHello, its key share, and an encrypted certificate plus Finished message; client verifies and sends Finished. The whole thing completes in one round trip (1-RTT). With 0-RTT resumption, returning clients can send data immediately. TLS 1.3 mandates **forward secrecy** via ephemeral Diffie-Hellman — each session uses a unique key that is discarded afterward, so compromising the server's long-term private key cannot decrypt past sessions.`,
   },
 
   // --- INDEX 8 ---
@@ -713,79 +197,19 @@ TLS 1.3 mandates forward secrecy through ephemeral Diffie-Hellman key exchange. 
     subject: 'Research',
     visibility: 'private',
     isPinned: false,
-    content: `# Quantum Computing: Qubits, Superposition, and Grover's Algorithm
+    content: `A classical bit is either 0 or 1. A qubit can exist in a **superposition** of both states simultaneously, represented as |ψ⟩ = α|0⟩ + β|1⟩, where α and β are complex probability amplitudes satisfying |α|² + |β|² = 1. When measured, the qubit collapses to |0⟩ with probability |α|² or |1⟩ with probability |β|². The power of quantum computing comes from manipulating these amplitudes before measurement so that correct answers become more probable.
 
-## Classical vs Quantum Bits
+With n qubits you can represent 2^n states simultaneously. 300 qubits can represent more states than there are atoms in the observable universe — but you cannot simply read all these states. Measurement collapses the superposition. The **Hadamard gate** creates superposition from a definite state: H|0⟩ = (|0⟩ + |1⟩)/√2. Applying H to n qubits in the |0⟩ state creates an equal superposition of all 2^n bit strings, the standard starting point for quantum algorithms.
 
-A classical bit can be in one of two states: 0 or 1. A qubit (quantum bit) can be in a superposition of both states simultaneously. Mathematically, a qubit's state is represented as:
+**Entanglement** is a quantum phenomenon with no classical analog. When qubits are entangled, measuring one instantly determines the other regardless of distance. The Bell state |Φ+⟩ = (|00⟩ + |11⟩)/√2 is the simplest example — measuring the first qubit as 0 guarantees the second is 0, and vice versa. This correlation is stronger than anything achievable classically.
 
-|ψ⟩ = α|0⟩ + β|1⟩
+**Quantum gates** perform unitary transformations on qubits. The Pauli-X flips |0⟩ to |1⟩ (quantum NOT). The Hadamard creates superposition. The CNOT flips the target qubit if and only if the control qubit is |1⟩ — this is how entanglement is created. The Toffoli gate is controlled-controlled-NOT and is universal for classical computation. Phase gates (S, T) add phase shifts to the |1⟩ component. All quantum gates must be reversible (unitary), so there is no quantum analog of the classical AND gate, which loses information.
 
-where α and β are complex numbers called probability amplitudes, and |α|² + |β|² = 1. When measured, the qubit collapses to |0⟩ with probability |α|² or |1⟩ with probability |β|². The power of quantum computing comes from manipulating these amplitudes before measurement to make correct answers more probable.
+**Grover's algorithm** (1996) solves unstructured search: given a function that returns 1 for exactly one input out of N, find that input. Classically this requires O(N) evaluations. Grover's does it in O(√N) — a quadratic speedup. The algorithm works in three steps repeated approximately √N times. First, initialize all n qubits into equal superposition. Then apply an **oracle** gate that marks the target state by flipping its amplitude (multiplying by -1). Then apply the **diffusion operator**, which reflects all amplitudes about their mean — the marked state has negative amplitude so it gets boosted above the mean, while others decrease slightly. After the optimal number of iterations the target amplitude is close to 1. Applications: database search, halving the effective security of symmetric keys (AES-256 drops to 128-bit equivalent security against Grover's, which is why 256-bit keys are recommended for post-quantum resistance), and finding extrema in unsorted lists.
 
-## Superposition
+**Shor's algorithm** (1994) factors large integers in polynomial time, which would break RSA and all factoring-based cryptography. This is the primary motivation for post-quantum cryptography research. Practical deployment would require thousands to millions of stable logical qubits with error correction.
 
-Superposition allows a qubit to exist in a combination of states. With n qubits, you can represent 2^n states simultaneously. A system of 300 qubits can represent more states than there are atoms in the observable universe. However, you cannot simply read all these states — measurement collapses the superposition.
-
-The Hadamard gate (H) creates superposition from a definite state:
-H|0⟩ = (|0⟩ + |1⟩)/√2 — equal probability of measuring 0 or 1
-
-Applying H to n qubits in the |0⟩ state creates an equal superposition of all 2^n possible bit strings, which is the starting point for many quantum algorithms.
-
-## Entanglement
-
-Entanglement is a uniquely quantum phenomenon where two or more qubits become correlated in ways that have no classical analog. When qubits are entangled, measuring one instantly determines the state of the other, regardless of physical distance.
-
-The Bell state (created by a Hadamard gate followed by a CNOT gate) is the simplest entangled state:
-|Φ+⟩ = (|00⟩ + |11⟩)/√2
-
-Measuring the first qubit as 0 means the second is guaranteed to be 0, and measuring it as 1 guarantees the second is 1. This correlation is stronger than any classical correlation and is a key resource for quantum algorithms and quantum cryptography.
-
-## Quantum Gates
-
-Quantum computation is performed by applying quantum gates (unitary transformations) to qubits:
-- **Pauli-X**: flips |0⟩ to |1⟩ and vice versa (quantum NOT)
-- **Hadamard (H)**: creates superposition
-- **CNOT**: controlled-NOT, flips target qubit if control qubit is |1⟩ — creates entanglement
-- **Toffoli**: controlled-controlled-NOT, universal for classical computation
-- **Phase gates (S, T)**: add phase shifts to the |1⟩ component
-
-Quantum circuits are sequences of gates applied to qubits. Unlike classical circuits, quantum gates must be reversible (unitary), so there is no quantum analog of the classical AND gate (which loses information).
-
-## Grover's Algorithm
-
-Grover's algorithm (1996) solves the unstructured search problem: given a function f(x) that returns 1 for exactly one input x* out of N possibilities, find x*. Classically, this requires O(N) evaluations. Grover's algorithm finds x* in O(√N) evaluations — a quadratic speedup.
-
-### How It Works
-
-1. **Initialize**: put all n qubits into equal superposition using Hadamard gates — each of the N = 2^n states has amplitude 1/√N
-
-2. **Oracle**: mark the target state by flipping its amplitude (multiply by -1). This is implemented as a quantum gate that recognizes the correct answer. The oracle does not reveal the answer directly but subtly tags it.
-
-3. **Diffusion (Grover operator)**: amplify the amplitude of the marked state. This is done by reflecting all amplitudes about the mean amplitude. The marked state (which has negative amplitude) gets boosted above the mean, while all other states get slightly reduced.
-
-4. **Repeat steps 2-3**: approximately √N times. After the optimal number of iterations, the marked state has an amplitude close to 1, and measuring yields the correct answer with high probability.
-
-### Applications
-
-- Database search: O(√N) instead of O(N)
-- Cryptography: Grover's algorithm can brute-force a symmetric key in O(√(2^n)) = O(2^(n/2)) time, effectively halving the security of symmetric ciphers (hence why AES-256 is recommended for post-quantum security — it provides 128-bit equivalent security against Grover's)
-- Optimization: finding minimum/maximum values in an unsorted list
-
-## Shor's Algorithm (Brief)
-
-Shor's algorithm (1994) can factor large integers in polynomial time, which would break RSA and other factoring-based cryptosystems. This is the primary motivation for post-quantum cryptography research. A quantum computer with enough stable qubits (estimated thousands to millions with error correction) could run Shor's algorithm practically.
-
-## Current State of Quantum Computing
-
-As of 2025, quantum computers have reached the "noisy intermediate-scale quantum" (NISQ) era. IBM, Google, and others have built processors with 100+ qubits, but error rates remain high. Quantum error correction requires many physical qubits per logical qubit. Practical quantum advantage for real-world problems is still years away, but the theoretical foundations are well established.
-
-## Key Takeaways
-
-- Qubits leverage superposition and entanglement to process information in fundamentally different ways than classical bits
-- Grover's algorithm provides quadratic speedup for search problems
-- Shor's algorithm threatens current public-key cryptography
-- We are still in the early NISQ era — quantum computing is not yet practical for most problems`,
+As of 2025 we are in the NISQ (Noisy Intermediate-Scale Quantum) era. IBM and Google have processors with 100+ physical qubits, but error rates remain high and error correction requires many physical qubits per logical qubit. Practical quantum advantage for real-world problems is still years away, but the theoretical foundations are solid.`,
   },
 
   // --- INDEX 9 ---
@@ -796,109 +220,19 @@ As of 2025, quantum computers have reached the "noisy intermediate-scale quantum
     subject: 'CS 211 — Data Structures & Algorithms',
     visibility: 'private',
     isPinned: false,
-    content: `# Graph Algorithms: Dijkstra, Bellman-Ford, and A*
+    content: `Before diving into shortest-path algorithms, you need to choose a graph representation. An **adjacency list** stores for each vertex a list of its neighbors and edge weights — space is O(V + E), and it is the go-to for sparse graphs like road networks or social graphs. An **adjacency matrix** is a V×V grid where entry (i,j) holds the edge weight — space is O(V²), better for dense graphs or when you need O(1) edge-existence checks. Most real-world shortest-path work uses adjacency lists.
 
-## Graph Representations
+The problem in all three algorithms: given a graph G and a source vertex s, find the shortest path from s to every other vertex (or a specific target). The algorithms differ in their assumptions about edge weights and their time complexity.
 
-Before diving into algorithms, choose how to represent the graph:
+**Dijkstra's algorithm** (1956) handles graphs with non-negative edge weights. Initialize dist[s] = 0 and dist[v] = ∞ for all others. Pull the vertex u with the minimum distance off a priority queue. For each neighbor v of u, if dist[u] + weight(u,v) is less than dist[v], update dist[v] and record prev[v] = u for path reconstruction. Repeat until the queue is empty. With a binary heap the complexity is O((V + E) log V). With a Fibonacci heap it is O(V log V + E), which is theoretically faster for dense graphs, but in practice binary heaps with lazy deletion are most common. The greedy step is valid because once a vertex is finalized, no later edge can provide a shorter path — and that guarantee only holds when all edge weights are non-negative.
 
-**Adjacency List**: for each vertex, store a list of its neighbors and edge weights. Space: O(V + E). Best for sparse graphs (most real-world graphs).
+**Bellman-Ford** (1958) handles graphs with negative edge weights and can detect negative-weight cycles. Initialize dist[s] = 0, all others ∞. Then repeat V-1 times: for every edge (u, v) with weight w, if dist[u] + w is less than dist[v], update dist[v]. After V-1 rounds every shortest path has been found (assuming no negative cycle). Do one more pass — if any distance still decreases, a negative-weight cycle exists and shortest paths are undefined for vertices reachable from it. Complexity is O(V * E), slower than Dijkstra but applicable to graphs with negative edges. Use cases: BGP routing, arbitrage detection in currency exchange, and as a subroutine in Johnson's all-pairs shortest-path algorithm.
 
-**Adjacency Matrix**: V×V matrix where entry (i,j) holds the edge weight. Space: O(V²). Best for dense graphs or when you need O(1) edge existence checks.
+**A\*** (1968, Hart, Nilsson, Raphael) is an informed search that finds the shortest path from source to a single target vertex by using a heuristic to guide the search. It maintains a priority queue ordered by f(v) = g(v) + h(v), where g(v) is the actual cost from the source to v and h(v) is the heuristic estimate of the cost from v to the goal. The heuristic must be **admissible** (never overestimates) and **consistent** (h(u) ≤ weight(u,v) + h(v)) for A* to find the optimal path. Common heuristics: Euclidean distance for geometric graphs, Manhattan distance for grids without diagonal movement, and Haversine distance for geographic coordinates on a sphere. Worst-case complexity is the same as Dijkstra, but in practice A* is much faster because the heuristic prunes large parts of the search space.
 
-Most shortest-path implementations use adjacency lists because real-world graphs (road networks, social graphs, web graphs) are sparse.
+Comparing the three: **Dijkstra** — non-negative weights, finds all shortest paths from source, O((V+E) log V), no heuristic. **Bellman-Ford** — any weights including negative, detects negative cycles, O(V*E), no heuristic. **A\*** — non-negative weights, single target, O((V+E) log V) worst case but typically much faster in practice, requires a heuristic.
 
-## Single-Source Shortest Path Problem
-
-Given a graph G = (V, E) and a source vertex s, find the shortest path from s to every other vertex. The algorithms differ in their assumptions about edge weights and their time complexity.
-
-## Dijkstra's Algorithm
-
-Dijkstra's algorithm (1956) finds shortest paths from a single source to all other vertices in a graph with **non-negative** edge weights.
-
-### Algorithm
-1. Initialize: dist[s] = 0, dist[v] = ∞ for all other vertices. Add all vertices to a priority queue.
-2. While the priority queue is not empty:
-   a. Extract the vertex u with minimum dist[u]
-   b. For each neighbor v of u:
-      If dist[u] + weight(u, v) < dist[v]:
-        Update dist[v] = dist[u] + weight(u, v)
-        Set prev[v] = u (for path reconstruction)
-        Decrease key of v in the priority queue
-
-### Complexity
-- With a binary heap: O((V + E) log V)
-- With a Fibonacci heap: O(V log V + E) — theoretically faster for dense graphs
-- In practice, binary heaps with lazy deletion are most common
-
-### Why Non-Negative Weights?
-Dijkstra's algorithm is greedy: once a vertex is extracted from the priority queue, its shortest distance is finalized. Negative edges can invalidate this invariant — a later edge could provide a shorter path to an already-finalized vertex.
-
-## Bellman-Ford Algorithm
-
-Bellman-Ford (1958) handles graphs with **negative edge weights** and can detect negative-weight cycles.
-
-### Algorithm
-1. Initialize: dist[s] = 0, dist[v] = ∞ for all other vertices
-2. Repeat V-1 times:
-   For each edge (u, v) with weight w:
-     If dist[u] + w < dist[v]:
-       Update dist[v] = dist[u] + w
-3. Check for negative cycles: repeat step 2 one more time. If any distance decreases, a negative-weight cycle exists (and shortest paths are undefined for vertices reachable from the cycle).
-
-### Complexity
-O(V * E) — slower than Dijkstra but more general.
-
-### When to Use
-- When edges can have negative weights (e.g., currency exchange, where logarithmic representation creates negative edges)
-- When you need to detect negative cycles (arbitrage detection in finance)
-- As a component in other algorithms (e.g., Johnson's algorithm for all-pairs shortest path)
-
-## A* Algorithm
-
-A* (1968, Hart, Nilsson, Raphael) is an informed search algorithm that uses a heuristic to guide the search toward the goal. It finds the shortest path from source to a specific target vertex (not all vertices).
-
-### Algorithm
-A* maintains a priority queue ordered by f(v) = g(v) + h(v), where:
-- g(v) = actual cost from source to v (like Dijkstra's dist)
-- h(v) = heuristic estimate of cost from v to the goal
-
-The heuristic must be **admissible** (never overestimates the true cost) and **consistent** (satisfies the triangle inequality: h(u) ≤ weight(u,v) + h(v)) for A* to find the optimal path.
-
-### Common Heuristics
-- **Euclidean distance**: straight-line distance to the goal — admissible for geometric graphs
-- **Manhattan distance**: sum of horizontal and vertical distances — admissible for grid-based movement without diagonal movement
-- **Haversine distance**: for geographic coordinates on a sphere
-
-### Complexity
-- Worst case: same as Dijkstra O((V + E) log V)
-- Best case: much faster than Dijkstra because the heuristic prunes large portions of the search space
-- The quality of the heuristic directly determines performance
-
-### Comparison
-
-| Algorithm | Edge Weights | Target | Complexity | Heuristic |
-|-----------|-------------|--------|------------|-----------|
-| Dijkstra | Non-negative | All vertices | O((V+E) log V) | None |
-| Bellman-Ford | Any (detects negative cycles) | All vertices | O(V * E) | None |
-| A* | Non-negative | Single target | O((V+E) log V) worst case | Required |
-
-## Applications
-
-- **Dijkstra**: network routing (OSPF protocol), shortest path in road networks (when preprocessing is not possible)
-- **Bellman-Ford**: BGP routing protocol, arbitrage detection, any graph with negative weights
-- **A***: pathfinding in games and robotics, GPS navigation, puzzle solving (15-puzzle, Rubik's cube)
-
-## Advanced: Bidirectional Search
-
-For point-to-point shortest path, run Dijkstra (or A*) simultaneously from both source and target. The two searches meet in the middle, reducing the explored area from a circle of radius d to two circles of radius d/2 — roughly halving the number of vertices explored.
-
-## Key Takeaways
-
-- Dijkstra is the go-to for non-negative edge weights
-- Bellman-Ford handles negative weights and detects negative cycles but is slower
-- A* uses heuristics to efficiently find single-target shortest paths
-- Choose the algorithm based on edge weight properties and whether you need all paths or just one`,
+Applications: Dijkstra powers network routing protocols like OSPF. Bellman-Ford underlies BGP and arbitrage detection. A* is everywhere in game AI pathfinding, GPS navigation, and puzzle solving. For point-to-point queries you can also run bidirectional Dijkstra (or A*) from both source and target simultaneously — the two searches meet in the middle and roughly halve the number of vertices explored compared to one-directional search.`,
   },
 
   // --- INDEX 10 ---
@@ -909,89 +243,23 @@ For point-to-point shortest path, run Dijkstra (or A*) simultaneously from both 
     subject: 'Career',
     visibility: 'friends',
     isPinned: false,
-    content: `# Technical Interview Preparation Guide
+    content: `Technical interviews at top tech companies typically consist of multiple rounds: an online assessment, a phone screen, and an on-site loop with 3-5 interviews. Each round tests different skills, so preparation needs to cover coding, system design, and behavioral questions.
 
-## Overview
+For the coding rounds, the core data structures to master are: **arrays and strings** (two pointers, sliding window, prefix sums), **hash maps and sets** (frequency counting, two-sum patterns, deduplication), **stacks and queues** (monotonic stacks, BFS, expression evaluation), **linked lists** (reversal, cycle detection with Floyd's, merge operations), **trees** (DFS preorder/inorder/postorder, BFS level order, BST operations), **heaps** (top-K problems, median finding), and **graphs** (BFS, DFS, topological sort, union-find, shortest path).
 
-Technical interviews at top tech companies typically consist of multiple rounds: an online assessment (OA), a phone screen, and an on-site loop with 3-5 interviews. Each round tests different skills, and preparation should be structured around the specific formats you will face.
+The key algorithm patterns that show up repeatedly: **sliding window** for subarray and substring problems, **two pointers** for sorted arrays and palindromes, **binary search** for searching rotated arrays and finding boundaries, **DFS/BFS** for tree traversals and graph connectivity, **dynamic programming** where you identify state, transition, and base cases (coin change, LCS, knapsack, house robber, word break are the must-knows), **greedy** for interval scheduling and activity selection, and **backtracking** for permutations, combinations, N-queens, and Sudoku.
 
-## Data Structures & Algorithms (Coding Rounds)
+Rough study plan: weeks 1-4 on core data structures with easy problems (aim for 50+), weeks 5-8 on algorithm patterns with medium problems (aim for 80+), weeks 9-12 on hard problems, mock interviews, and system design.
 
-### Core Data Structures to Master
-- **Arrays and Strings**: two pointers, sliding window, prefix sums
-- **Hash Maps / Sets**: frequency counting, two-sum patterns, deduplication
-- **Stacks and Queues**: monotonic stacks, BFS with queues, expression evaluation
-- **Linked Lists**: reversal, cycle detection (Floyd's), merge operations
-- **Trees**: DFS (preorder, inorder, postorder), BFS (level order), BST operations
-- **Heaps**: top-K problems, median finding, priority queues
-- **Graphs**: BFS, DFS, topological sort, union-find, shortest path
+For system design, the framework that works: first clarify requirements (both functional and non-functional — scale, latency, availability), then sketch the high-level components and data flow with API design, then deep dive into database schema, caching strategy, and scaling bottlenecks, then discuss trade-offs and alternatives. Common problems to practice: URL shortener, rate limiter, chat system, news feed, and video streaming.
 
-### Key Algorithm Patterns
-1. **Sliding Window**: fixed or variable size window for subarray/substring problems
-2. **Two Pointers**: sorted arrays, palindromes, container with most water
-3. **Binary Search**: search in rotated arrays, find boundaries, minimize maximum
-4. **DFS/BFS**: tree traversals, graph connectivity, shortest paths in unweighted graphs
-5. **Dynamic Programming**: identify state, transition, base cases. Practice: coin change, LCS, knapsack, house robber, word break
-6. **Greedy**: interval scheduling, Huffman coding, activity selection
-7. **Backtracking**: permutations, combinations, N-queens, Sudoku solver
+For behavioral interviews, use the STAR method: **Situation** (context), **Task** (your responsibility), **Action** (what you specifically did), **Result** (quantified outcome). Stories to prepare: a challenging technical problem, a time you disagreed with a teammate, a project you led, a failure and what you learned, and a time you had to learn something quickly.
 
-### Study Plan
-- Weeks 1-4: core data structures, easy problems (aim for 50+)
-- Weeks 5-8: algorithm patterns, medium problems (aim for 80+)
-- Weeks 9-12: hard problems, mock interviews, system design
+Practical tips: time yourself during practice (20 min easy, 30 min medium, 45 min hard), always communicate your thought process, start with brute force then optimize, write clean code with meaningful names, test with examples and edge cases before declaring done, and ask clarifying questions before coding.
 
-## System Design (Senior and Some Intern Rounds)
+Resources: LeetCode filtered by company, Neetcode 150 organized by pattern, Cracking the Coding Interview, Designing Data-Intensive Applications for system design, and Pramp or interviewing.io for mock interviews.
 
-### Framework
-1. **Clarify requirements**: functional requirements, non-functional requirements (scale, latency, availability)
-2. **High-level design**: major components, data flow, API design
-3. **Deep dive**: database schema, caching strategy, scaling bottlenecks
-4. **Trade-offs**: justify decisions, discuss alternatives
-
-### Common Problems
-- URL shortener, paste bin, rate limiter
-- Chat system, notification service
-- News feed, timeline, social graph
-- Video streaming, file storage
-
-## Behavioral Interviews
-
-### STAR Method
-- **Situation**: set the context
-- **Task**: describe your responsibility
-- **Action**: explain what you did (focus on YOUR contribution)
-- **Result**: quantify the outcome
-
-### Key Stories to Prepare
-- A challenging technical problem you solved
-- A time you disagreed with a teammate and how you resolved it
-- A project you led or significantly contributed to
-- A failure and what you learned from it
-- A time you had to learn something quickly
-
-## Practical Tips
-
-- Time yourself during practice: 20 minutes for easy, 30 for medium, 45 for hard
-- Always communicate your thought process out loud
-- Start with brute force, then optimize
-- Write clean code with meaningful variable names
-- Test your solution with examples and edge cases before declaring it done
-- Ask clarifying questions before coding — interviewers want to see this
-
-## Resources
-
-- LeetCode: filter by company, focus on top 100 most-asked
-- Neetcode 150: curated list organized by pattern
-- "Cracking the Coding Interview" by Gayle McDowell
-- System Design: "Designing Data-Intensive Applications" by Martin Kleppmann
-- Mock interviews: Pramp, interviewing.io
-
-## My Progress (as of March 2026)
-
-- LeetCode solved: 142 (68 easy, 58 medium, 16 hard)
-- Strongest areas: arrays, trees, DP
-- Weakest areas: graphs (improving), hard DP
-- Mock interviews completed: 4 (2 with Alex, 1 Pramp, 1 with ACM mentor)`,
+My progress as of March 2026: 142 LeetCode problems solved (68 easy, 58 medium, 16 hard). Strongest areas are arrays, trees, and DP. Weakest areas are graphs (improving) and hard DP. Four mock interviews completed — two with Alex, one on Pramp, one with an ACM mentor.`,
   },
 
   // --- INDEX 11 ---
@@ -1002,114 +270,23 @@ Technical interviews at top tech companies typically consist of multiple rounds:
     subject: 'Side Projects',
     visibility: 'private',
     isPinned: false,
-    content: `# React Hooks: Patterns and Best Practices
+    content: `React Hooks (introduced in React 16.8) let you use state and other React features in functional components without writing classes. Before hooks, class components were required for state, lifecycle methods, and context. Hooks simplify component logic, make it easier to reuse stateful logic, and eliminate confusion around \`this\` binding.
 
-## Why Hooks?
+**useState** manages local component state — it returns a state variable and a setter function. A few important points: state updates are batched in React 18 everywhere, not just in event handlers. When new state depends on previous state, use the functional form: \`setCount(prev => prev + 1)\`. For object state, spread the previous object: \`setState(prev => ({ ...prev, name: 'new' }))\`. For expensive initial computations, pass a function to useState so it only runs once.
 
-React Hooks (introduced in React 16.8) let you use state and other React features in functional components. Before hooks, you needed class components for state management, lifecycle methods, and context. Hooks simplify component logic, make it easier to reuse stateful logic between components, and eliminate the confusion around \`this\` binding in classes.
+**useEffect** runs side effects after render and replaces componentDidMount, componentDidUpdate, and componentWillUnmount. The return value is the cleanup function. The dependency array controls when the effect re-runs — pass an empty array to run only on mount/unmount. The most common mistake is missing dependencies, which leads to stale closures. Avoid putting objects or arrays directly in the dependency array since they create new references every render; use specific primitive values or memoize them.
 
-## Core Hooks
+**useContext** reads context values without nesting Consumer components. Combine with createContext and a Provider to pass data through the component tree without prop drilling.
 
-### useState
-Manages local component state. Returns a state variable and a setter function.
+**useRef** holds a mutable value that persists across renders without causing re-renders. Two common uses: DOM references (ref.current points to the DOM node) and instance variables (storing previous values, timers, or any mutable value you want to persist without triggering re-renders).
 
-\`\`\`jsx
-const [count, setCount] = useState(0);
-\`\`\`
+**useMemo** memoizes a computed value and recomputes only when dependencies change. **useCallback** memoizes a function reference to prevent unnecessary re-renders of child components that depend on it. Use both only when profiling shows a performance problem — premature memoization adds complexity without measurable benefit in most cases.
 
-Key points:
-- State updates are batched in event handlers (React 18 batches everywhere)
-- Use functional updates when new state depends on previous: \`setCount(prev => prev + 1)\`
-- For object state, spread the previous state: \`setState(prev => ({ ...prev, name: 'new' }))\`
-- Lazy initialization for expensive computations: \`useState(() => computeExpensiveValue())\`
+**Custom hooks** extract reusable logic into functions that call other hooks. Name them starting with "use". Useful patterns: useDebounce (delay a value update until input settles), useFetch (manage loading/data/error states for API calls), useMediaQuery (respond to CSS media query changes), useOnClickOutside (detect clicks outside a component for modals and dropdowns), and usePrevious (track the previous value of a prop or state).
 
-### useEffect
-Runs side effects after render. Replaces componentDidMount, componentDidUpdate, and componentWillUnmount.
+For server state, React Query (TanStack Query) replaces manual useEffect + fetch patterns entirely. You pass a query key and a query function, and it handles caching, background refetching, request deduplication, optimistic updates, and pagination automatically. It is strictly better than manual fetch patterns for any data that lives on a server.
 
-\`\`\`jsx
-useEffect(() => {
-  const subscription = subscribe(id);
-  return () => subscription.unsubscribe(); // cleanup
-}, [id]); // dependency array
-\`\`\`
-
-Common mistakes:
-- Missing dependencies: leads to stale closures
-- Object/array dependencies: use specific primitive values or useMemo
-- Running effects too often: make sure the dependency array is correct
-
-### useContext
-Reads context values without nesting Consumer components.
-
-\`\`\`jsx
-const theme = useContext(ThemeContext);
-\`\`\`
-
-Combine with createContext and a Provider to pass data through the component tree without prop drilling.
-
-### useRef
-Holds a mutable value that persists across renders without causing re-renders. Two common uses:
-1. DOM references: \`ref.current\` points to the DOM node
-2. Instance variables: store previous values, timers, or any mutable value
-
-### useMemo and useCallback
-- \`useMemo\`: memoizes a computed value — recomputes only when dependencies change
-- \`useCallback\`: memoizes a function reference — prevents unnecessary re-renders of child components that depend on the function
-
-Use them when profiling shows performance issues, not preemptively. Premature memoization adds complexity without measurable benefit in most cases.
-
-## Custom Hooks
-
-Custom hooks extract reusable logic. They are just functions that call other hooks.
-
-\`\`\`jsx
-function useLocalStorage(key, initialValue) {
-  const [value, setValue] = useState(() => {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : initialValue;
-  });
-
-  useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value]);
-
-  return [value, setValue];
-}
-\`\`\`
-
-### Useful Custom Hook Patterns
-- **useDebounce**: delay a value update until input settles
-- **useFetch**: manage loading, data, and error states for API calls
-- **useMediaQuery**: respond to CSS media query changes
-- **useOnClickOutside**: detect clicks outside a component (modals, dropdowns)
-- **usePrevious**: track the previous value of a prop or state
-
-## React Query Integration
-
-For server state, React Query (TanStack Query) replaces manual useEffect + fetch patterns:
-
-\`\`\`jsx
-const { data, isLoading, error } = useQuery({
-  queryKey: ['notes'],
-  queryFn: () => api.get('/notes').then(res => res.data),
-});
-\`\`\`
-
-Benefits over manual useEffect: automatic caching, background refetching, request deduplication, optimistic updates, and pagination/infinite scroll support.
-
-## Rules of Hooks
-
-1. Only call hooks at the top level (no conditionals, loops, or nested functions)
-2. Only call hooks from React function components or custom hooks
-3. Custom hooks must start with "use"
-
-## Key Takeaways
-
-- useState for local state, useEffect for side effects, useContext for global state
-- Custom hooks are the primary mechanism for logic reuse
-- Only memoize (useMemo/useCallback) when profiling shows a need
-- React Query is superior to manual useEffect for server state
-- Follow the rules of hooks strictly — the linter will help`,
+Three rules of hooks: only call hooks at the top level (no conditionals, loops, or nested functions), only call hooks from React function components or custom hooks, and custom hooks must start with "use". The ESLint plugin enforces all three.`,
   },
 
   // --- INDEX 12 ---
@@ -1120,102 +297,23 @@ Benefits over manual useEffect: automatic caching, background refetching, reques
     subject: 'Tools',
     visibility: 'private',
     isPinned: false,
-    content: `# Git Workflow and Branching Strategies
+    content: `Git branches are cheap — creating one is just creating a pointer to a commit. A good branching strategy keeps the main branch stable, enables parallel development, and makes code review manageable. A bad one leads to merge conflicts, broken builds, and deployment pain.
 
-## Why Branching Matters
+**Git Flow** (Vincent Driessen, 2010) uses long-lived branches: main for production-ready code, develop as the integration branch, feature branches from develop merged back via PR, release branches for release prep merged to both main and develop, and hotfix branches from main for emergency fixes. The pros: clear separation of concerns, well-suited for scheduled releases. The cons: it is complex, the many long-lived branches create overhead, and the feedback loop is slow. It is overkill for most projects.
 
-Git branches are cheap and fast — creating a branch is just creating a pointer to a commit. A good branching strategy keeps the main branch stable, enables parallel development, and makes code review tractable. A bad strategy leads to merge conflicts, broken builds, and deployment nightmares.
+**GitHub Flow** is much simpler: branch from main, make commits, open a pull request, get code review, merge to main, deploy. The key principle is that main is always deployable and feature branches are short-lived (days, not weeks). This is what we use in our projects and it works well for continuous deployment.
 
-## Git Flow
+**Trunk-Based Development** takes it further — developers commit directly to main or merge very short-lived branches. Feature flags control incomplete features in production. Google, Meta, and other large engineering orgs use this. It requires excellent test coverage, a solid CI/CD pipeline, and feature flag infrastructure. The fastest workflow when the team is disciplined.
 
-Git Flow (proposed by Vincent Driessen in 2010) uses long-lived branches:
-- **main**: production-ready code
-- **develop**: integration branch for features
-- **feature/**: branched from develop, merged back via PR
-- **release/**: branched from develop for release prep, merged to both main and develop
-- **hotfix/**: branched from main for emergency fixes, merged to both main and develop
+**Conventional commits** structure commit messages as: type(scope): description, with an optional body and footer. Types include feat, fix, docs, style, refactor, test, chore, perf, ci, and build. For example: feat(auth): add Google OAuth login flow. The benefits are auto-generated changelogs, semantic versioning triggers, and a searchable git history.
 
-Pros: clear separation of concerns, well-suited for scheduled releases.
-Cons: complex, many long-lived branches, slow feedback loops. Overkill for most projects.
+Branch naming conventions: feat/description for new features, fix/description for bug fixes, docs/description for documentation, chore/description for maintenance, and refactor/description for code restructuring.
 
-## GitHub Flow
+To keep a branch up to date, regularly run git fetch origin and git rebase origin/main. Rebase creates a linear history but rewrites commits — never rebase shared branches. Merge preserves history but creates merge commits. For local feature branches, rebasing is generally cleaner.
 
-GitHub Flow is simpler:
-1. Branch from main (feature/fix/chore branch)
-2. Make commits
-3. Open a pull request
-4. Code review
-5. Merge to main
-6. Deploy
+Pull request best practices: keep PRs under 400 lines changed when possible, write a descriptive title and body, include screenshots for UI changes, link related issues, request reviews from relevant team members, and address comments promptly. Small PRs get reviewed faster and have fewer bugs.
 
-This is what we use in our projects. The key principle: main is always deployable. Feature branches are short-lived (days, not weeks).
-
-## Trunk-Based Development
-
-Developers commit directly to main (or merge very short-lived branches). Feature flags control incomplete features in production. Used by Google, Meta, and other large engineering organizations.
-
-Requires: excellent test coverage, CI/CD pipeline, feature flag infrastructure. The fastest workflow when the team is disciplined.
-
-## Conventional Commits
-
-Commit messages follow a structured format:
-
-\`\`\`
-type(scope): description
-
-[optional body]
-[optional footer]
-\`\`\`
-
-Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build
-Example: \`feat(auth): add Google OAuth login flow\`
-
-Benefits: auto-generate changelogs, trigger semantic versioning, make git history searchable.
-
-## Branching in Practice
-
-### Naming Conventions
-- \`feat/description\` — new features
-- \`fix/description\` — bug fixes
-- \`docs/description\` — documentation
-- \`chore/description\` — maintenance tasks
-- \`refactor/description\` — code restructuring
-
-### Keeping Branches Updated
-Regularly rebase or merge main into your feature branch to avoid large merge conflicts at the end:
-
-\`\`\`bash
-git fetch origin
-git rebase origin/main
-\`\`\`
-
-Rebase creates a linear history (cleaner) but rewrites commits (never rebase shared branches). Merge preserves history but creates merge commits.
-
-### Pull Request Best Practices
-- Keep PRs small (under 400 lines changed when possible)
-- Write a descriptive title and body
-- Include screenshots for UI changes
-- Link related issues
-- Request reviews from relevant team members
-- Address review comments promptly
-
-## Useful Commands
-
-\`\`\`bash
-git stash              # temporarily shelve changes
-git cherry-pick <sha>  # apply a specific commit to current branch
-git bisect             # binary search for the commit that introduced a bug
-git reflog             # recover lost commits
-git log --oneline --graph --all  # visualize branch history
-\`\`\`
-
-## Key Takeaways
-
-- GitHub Flow is the sweet spot for most teams
-- Keep branches short-lived and focused
-- Use conventional commits for structured history
-- Rebase for clean history, merge for shared branches
-- Small PRs get reviewed faster and have fewer bugs`,
+A few commands worth knowing well: git stash for temporarily shelving changes, git cherry-pick \`<sha>\` to apply a specific commit to the current branch, git bisect for binary searching to find which commit introduced a bug, git reflog to recover lost commits, and git log --oneline --graph --all to visualize branch history.`,
   },
 
   // --- INDEX 13 ---
@@ -1226,89 +324,23 @@ git log --oneline --graph --all  # visualize branch history
     subject: 'Career',
     visibility: 'friends',
     isPinned: false,
-    content: `# System Design Primer: Scalability Fundamentals
+    content: `Building systems that work for 100 users is easy. Building systems that work for 100 million users requires understanding scalability, reliability, and performance trade-offs. This is the core of system design interviews.
 
-## Why System Design?
+**Vertical vs horizontal scaling:** vertical means adding more resources to a single machine — more CPU, RAM, faster storage. Simple but has a ceiling and creates a single point of failure. Horizontal means adding more machines — theoretically no ceiling and provides redundancy, but introduces complexity around distributed state, network communication, and consistency. Most production systems combine both.
 
-Building systems that work for 100 users is easy. Building systems that work for 100 million users requires understanding fundamental concepts in scalability, reliability, and performance. System design interviews test whether you can reason about these trade-offs.
+**Load balancing** distributes requests across servers. Common algorithms: Round Robin (requests in order, simple and even), Weighted Round Robin (some servers get more traffic), Least Connections (send to the server with fewest active connections), and IP Hash (deterministic by client IP, ensures session stickiness). L4 load balancers route based on IP/port (fast, no request inspection). L7 load balancers route based on HTTP headers, URL, and cookies (more flexible, slightly slower).
 
-## Vertical vs Horizontal Scaling
+**Caching** stores frequently accessed data in memory to reduce database load and response latency. Cache locations: client-side (browser cache, CDN), application-level (in-process HashMap or distributed cache like Redis/Memcached), and database-level (query cache, buffer pool). Strategies: **cache-aside** (app checks cache first, on miss fetches from DB and populates cache), **write-through** (write to cache and DB simultaneously, ensures consistency), **write-behind** (write to cache, async write to DB, faster writes but risk of data loss), **read-through** (cache handles DB fetching transparently). Eviction policies: **LRU** (evict least recently used, good general-purpose), **LFU** (evict least frequently used, better for skewed access patterns), **TTL** (items expire after a set duration).
 
-**Vertical scaling (scale up)**: add more resources to a single machine — more CPU, RAM, faster storage. Simple but has limits — there is a ceiling to how powerful a single machine can be, and it creates a single point of failure.
+**Database scaling:** primary-replica replication puts one primary in charge of writes and replicas handle reads, which increases read throughput but writes are still limited by the primary and replication lag can cause stale reads. Multi-primary replication allows multiple nodes to accept writes for higher write throughput but conflict resolution is complex. Sharding partitions data across multiple databases based on a shard key — range-based (by date or ID range), hash-based (consistent hashing for even distribution), or directory-based (lookup table maps keys to shards). Challenges: choosing a good shard key to avoid hotspots, handling cross-shard queries, and rebalancing when shards are added.
 
-**Horizontal scaling (scale out)**: add more machines. No ceiling (in theory), provides redundancy, but introduces complexity: distributed state, network communication, consistency challenges.
+**CDNs** cache static content (images, CSS, JS) at edge servers close to users — lower latency, less load on the origin server, and built-in DDoS protection. Major providers: Cloudflare, AWS CloudFront, Akamai.
 
-Most production systems combine both: scale up individual machines and scale out by adding more of them.
+**Message queues** (RabbitMQ, Kafka, SQS) decouple producers and consumers — they handle traffic spikes, enable retries on failure, and allow asynchronous processing. Use cases: email sending, image processing, event logging, microservice communication.
 
-## Load Balancing
+**Observability** has three pillars: metrics (quantitative measurements like request latency, error rate, CPU usage), logs (detailed event records for debugging), and traces (request flow across services for distributed tracing). You cannot improve what you cannot measure.
 
-A load balancer distributes incoming requests across multiple servers. It sits between clients and your server fleet.
-
-### Algorithms
-- **Round Robin**: requests go to servers in order — simple, even distribution
-- **Weighted Round Robin**: some servers get more traffic (e.g., more powerful machines)
-- **Least Connections**: send to the server with fewest active connections
-- **IP Hash**: deterministic mapping based on client IP — ensures session stickiness
-
-### Layers
-- **L4 (Transport)**: routes based on IP/port, fast, no request inspection
-- **L7 (Application)**: routes based on HTTP headers, URL, cookies — more flexible, slower
-
-## Caching
-
-Caching stores frequently accessed data in fast storage (memory) to reduce database load and response latency.
-
-### Cache Locations
-1. **Client-side**: browser cache, CDN cache
-2. **Application-level**: in-process cache (HashMap), distributed cache (Redis, Memcached)
-3. **Database-level**: query cache, buffer pool
-
-### Strategies
-- **Cache-aside**: application checks cache first, on miss fetches from DB and populates cache
-- **Write-through**: write to cache and DB simultaneously — ensures consistency
-- **Write-behind**: write to cache, asynchronously write to DB — faster writes, risk of data loss
-- **Read-through**: cache handles DB fetching transparently
-
-### Eviction Policies
-- **LRU** (Least Recently Used): evict the oldest-accessed item — good general-purpose policy
-- **LFU** (Least Frequently Used): evict the least-accessed item — better for skewed distributions
-- **TTL** (Time to Live): items expire after a set duration
-
-## Database Scaling
-
-### Replication
-- **Primary-replica**: one primary handles writes, replicas handle reads. Increases read throughput but writes are still limited by the primary. Replication lag means replicas may serve stale data.
-- **Multi-primary**: multiple nodes accept writes — higher write throughput but conflict resolution is complex.
-
-### Sharding (Partitioning)
-Split data across multiple databases based on a shard key. Each shard holds a subset of the data. Challenges: choosing a good shard key (avoid hotspots), cross-shard queries, rebalancing when adding shards.
-
-Common strategies: range-based (partition by date/ID range), hash-based (consistent hashing for even distribution), directory-based (lookup table maps keys to shards).
-
-## CDN (Content Delivery Network)
-
-CDNs cache static content (images, CSS, JS) at edge servers close to users. Benefits: lower latency, reduced origin server load, DDoS protection. Major providers: Cloudflare, AWS CloudFront, Akamai.
-
-## Message Queues
-
-Decouple producers and consumers using a queue (RabbitMQ, Kafka, SQS). Benefits: handle traffic spikes, retry failed operations, enable asynchronous processing.
-
-Use cases: email sending, image processing, event logging, microservice communication.
-
-## Monitoring and Observability
-
-You cannot improve what you cannot measure. Three pillars:
-1. **Metrics**: quantitative measurements (request latency, error rate, CPU usage)
-2. **Logs**: detailed event records for debugging
-3. **Traces**: request flow across services (distributed tracing)
-
-## Key Takeaways
-
-- Start simple, scale when needed — premature optimization is the root of all evil
-- Horizontal scaling provides better availability than vertical scaling
-- Caching is the single most impactful performance optimization
-- Database sharding is a last resort — exhaust replication and caching first
-- Every architectural decision is a trade-off — understand what you are giving up`,
+Start simple and scale when needed — premature optimization is the root of all evil. Caching is the single most impactful performance optimization. Database sharding is a last resort — exhaust replication and caching first. Every architectural decision is a trade-off.`,
   },
 
   // --- INDEX 14 ---
@@ -1319,114 +351,23 @@ You cannot improve what you cannot measure. Three pillars:
     subject: 'Tools',
     visibility: 'private',
     isPinned: false,
-    content: `# UNIX Command Line Toolkit
+    content: `The UNIX philosophy is about small, composable tools that do one thing well. Programs read from stdin, write to stdout, and chain together through pipes. That composability is what makes the command line so powerful for text processing, system administration, and development workflows.
 
-## Philosophy
+**File system navigation** essentials: pwd prints the working directory, ls -la lists all files with details including hidden ones, tree -L 2 shows the directory tree two levels deep, find . -name "*.js" searches by filename pattern, find . -mtime -7 finds files modified in the last 7 days, and du -sh */ gives a disk usage summary per subdirectory.
 
-The UNIX philosophy emphasizes small, composable tools that do one thing well. Programs read from stdin, write to stdout, and can be chained together with pipes. This composability makes the command line incredibly powerful for text processing, system administration, and development workflows.
+**Text processing** commands: cat displays a file, head -n 20 shows the first 20 lines, tail -f follows a log file in real time, wc -l counts lines, sort sorts lines alphabetically (sort -n -k2 sorts numerically by the second column), uniq -c counts unique occurrences (requires sorted input first), and cut -d',' -f2 extracts the second column from a CSV.
 
-## File System Navigation
+**grep** is the most important text search tool. grep "error" searches for a pattern, -r searches recursively through a directory, -i is case-insensitive, -c counts matches instead of printing them, -n shows line numbers, -E enables extended regular expressions for patterns like err(or|no), and -v inverts the match to show lines that do not match.
 
-\`\`\`bash
-pwd                     # print working directory
-ls -la                  # list all files with details
-cd ~/projects           # change directory
-tree -L 2               # show directory tree, 2 levels deep
-find . -name "*.js"     # find files by name pattern
-find . -mtime -7        # files modified in the last 7 days
-du -sh */               # disk usage summary per directory
-\`\`\`
+**sed and awk** handle more complex text transformations. sed 's/old/new/g' replaces all occurrences in a file, sed -n '10,20p' prints lines 10-20, and sed -i '' '/^$/d' deletes blank lines in-place (the extra quotes are for macOS). awk '{print $1, $3}' prints the first and third space-separated columns, awk -F',' '{sum+=$2} END {print sum}' sums the second CSV column, and the pattern syntax awk '/ERROR/ {count++} END {print count}' counts matching lines.
 
-## Text Processing
+**Process management:** ps aux lists all running processes, top or htop gives an interactive monitor, kill -9 PID force-kills a process, jobs lists background jobs, bg/fg moves jobs between background and foreground, and nohup command & runs a command that survives terminal close.
 
-\`\`\`bash
-cat file.txt            # display file contents
-head -n 20 file.txt     # first 20 lines
-tail -f log.txt         # follow log output in real time
-wc -l file.txt          # count lines
-sort file.txt           # sort lines alphabetically
-sort -n -k2 file.txt    # sort numerically by 2nd column
-uniq -c                 # count unique occurrences (requires sorted input)
-cut -d',' -f2 data.csv  # extract 2nd column from CSV
-\`\`\`
+**Pipes and redirection:** the pipe operator \`|\` sends stdout of one command to stdin of the next. \`>\` redirects stdout to a file (overwrite), \`>>\` appends, \`2>\` redirects stderr, and \`2>&1\` merges stderr into stdout. Practical pipelines: find . -type f combined with du and sort to find the 10 largest files; awk on access logs piped through sort and uniq -c to count unique HTTP status codes; tail -f on a log file piped to grep to monitor errors in real time.
 
-## grep and Regular Expressions
+**Networking:** curl makes HTTP requests — add -X GET/POST for method, -s for silent output, and pipe to jq '.' to pretty-print JSON. wget downloads files recursively with -r and -l to control depth. ssh user@host connects to a remote server, and scp copies files securely.
 
-\`\`\`bash
-grep "error" log.txt              # find lines containing "error"
-grep -r "TODO" src/               # recursive search in directory
-grep -i "warning" log.txt         # case-insensitive
-grep -c "error" log.txt           # count matches
-grep -n "function" *.js           # show line numbers
-grep -E "err(or|no)" log.txt      # extended regex (ERE)
-grep -v "debug" log.txt           # invert match (exclude lines)
-\`\`\`
-
-## sed and awk
-
-\`\`\`bash
-sed 's/old/new/g' file.txt             # replace all occurrences
-sed -n '10,20p' file.txt               # print lines 10-20
-sed -i '' '/^$/d' file.txt             # delete blank lines in-place (macOS)
-awk '{print $1, $3}' file.txt          # print 1st and 3rd columns
-awk -F',' '{sum+=$2} END {print sum}'  # sum 2nd CSV column
-awk '/ERROR/ {count++} END {print count}' log.txt  # count ERROR lines
-\`\`\`
-
-## Process Management
-
-\`\`\`bash
-ps aux                  # list all running processes
-top / htop              # interactive process monitor
-kill -9 PID             # force kill a process
-jobs                    # list background jobs
-bg / fg                 # move job to background / foreground
-nohup command &         # run command that survives terminal close
-\`\`\`
-
-## Pipes and Redirection
-
-\`\`\`bash
-command > file.txt      # redirect stdout to file (overwrite)
-command >> file.txt     # append stdout to file
-command 2> error.log    # redirect stderr
-command 2>&1            # merge stderr into stdout
-command1 | command2     # pipe stdout of cmd1 to stdin of cmd2
-\`\`\`
-
-### Practical Pipeline Examples
-
-\`\`\`bash
-# Find the 10 largest files in current directory tree
-find . -type f -exec du -h {} + | sort -rh | head -10
-
-# Count unique HTTP status codes in access log
-awk '{print $9}' access.log | sort | uniq -c | sort -rn
-
-# Find all TODO comments in JavaScript files
-grep -rn "TODO" --include="*.js" src/ | wc -l
-
-# Monitor a log file for errors in real time
-tail -f app.log | grep --line-buffered "ERROR"
-\`\`\`
-
-## Networking
-
-\`\`\`bash
-curl -X GET https://api.example.com/data    # HTTP request
-curl -s url | jq '.'                        # pretty-print JSON response
-wget -r -l 2 https://example.com            # recursive download
-ssh user@host                               # remote login
-scp file.txt user@host:/path/               # secure copy to remote
-\`\`\`
-
-## Key Takeaways
-
-- Master pipes and composition — the power of UNIX is chaining simple tools
-- grep, sed, and awk handle 90% of text processing needs
-- Learn keyboard shortcuts: Ctrl+R (reverse search), Ctrl+A/E (line start/end), Ctrl+K (kill to end of line)
-- Create aliases for frequently used commands in your shell profile
-- Use man pages: \`man command\` is always available offline`,
+The keyboard shortcuts worth memorizing: Ctrl+R for reverse history search, Ctrl+A/E to jump to line start/end, and Ctrl+K to kill from cursor to end of line. Create aliases in your shell profile for commands you type constantly, and use man pages whenever you need to check flags — they are always available offline.`,
   },
 
   // --- INDEX 15 ---
@@ -1437,76 +378,60 @@ scp file.txt user@host:/path/               # secure copy to remote
     subject: 'Planning',
     visibility: 'private',
     isPinned: false,
-    content: `# Finals Week Study Plan — Spring 2026
+    content: `Finals Week Study Plan — Spring 2026
 
-## Exam Schedule
+Exam schedule: CS 211 Data Structures Final on Apr 16 at 10:00 AM (2hr, closed book). CS 320 Compilers Final on Apr 21 at 1:00 PM (2hr, one page notes allowed). CS 301 OS Final on Apr 23 at 10:00 AM (2hr, open note).
 
-| Date | Course | Time | Format |
-|------|--------|------|--------|
-| Apr 16 | CS 211 Data Structures Final | 10:00 AM | 2hr, closed book |
-| Apr 21 | CS 320 Compilers Final | 1:00 PM | 2hr, one page notes |
-| Apr 23 | CS 301 OS Final | 10:00 AM | 2hr, open note |
+**Week Before Finals (Apr 6 - Apr 12)**
 
-## Week Before Finals (Apr 6 - Apr 12)
-
-### Monday - Tuesday: CS 211 Deep Review
+Monday - Tuesday: CS 211 deep review.
 - [ ] Review all DP problems from class and homework
 - [ ] Practice graph algorithm implementations (Dijkstra, BFS, DFS, topological sort)
 - [ ] Work through NP-completeness reduction examples
 - [ ] Amortized analysis: aggregate, accounting, and potential methods
 - [ ] Do 2 practice exams under timed conditions
 
-### Wednesday - Thursday: CS 320 Compilers
+Wednesday - Thursday: CS 320 Compilers.
 - [ ] Review lexer construction: regex to NFA to DFA
 - [ ] Parsing: LL(1) parse tables, LR(0) items, LALR(1)
 - [ ] AST construction and type checking rules
 - [ ] Code generation: three-address code, register allocation
 - [ ] Optimization passes: constant folding, dead code elimination, loop invariant code motion
 
-### Friday - Saturday: CS 301 OS
+Friday - Saturday: CS 301 OS.
 - [ ] Process management: scheduling algorithms, context switching
 - [ ] Memory management: paging, segmentation, virtual memory, TLB
 - [ ] File systems: inode structure, journaling, RAID levels
 - [ ] Synchronization: mutexes, semaphores, monitors, deadlock conditions
 - [ ] Security: access control, capabilities, sandboxing
 
-### Sunday: Light Review
+Sunday: light review.
 - [ ] Flash card review for all three courses
 - [ ] Re-read class notes on weak topics
 - [ ] Get 8 hours of sleep
 
-## Finals Week (Apr 13 - Apr 23)
+**Finals Week (Apr 13 - Apr 23)**
 
-### Monday Apr 13: CS 211 Final Prep
+Monday Apr 13: CS 211 final prep.
 - [ ] Morning: practice exam #3
 - [ ] Afternoon: review mistakes from practice exams
 - [ ] Evening: light review of key formulas and complexities
 
-### Tuesday Apr 14: REST DAY
-- Sleep, eat well, light exercise. Do not cram.
+Tuesday Apr 14: REST DAY. Sleep, eat well, light exercise. Do not cram.
 
-### Wednesday Apr 15: nothing scheduled
+Wednesday Apr 15: nothing scheduled.
 - [ ] Start compilers prep: focus on parsing and code generation
 
-### Thursday Apr 16: CS 211 FINAL (10 AM)
-- Arrive 15 min early. Deep breaths. Trust the prep.
-- Afternoon: decompress, then start compilers review
+Thursday Apr 16: CS 211 FINAL (10 AM). Arrive 15 min early. Deep breaths. Trust the prep. Afternoon: decompress, then start compilers review.
 
-### Friday Apr 17 - Sunday Apr 19: Compilers Sprint
+Friday Apr 17 - Sunday Apr 19: Compilers Sprint.
 - [ ] Full practice exam for compilers
 - [ ] Prepare one-page cheat sheet (allowed)
 - [ ] Focus on optimization passes — weakest area
 
-### Monday Apr 20: Rest + light OS review
-### Tuesday Apr 21: CS 320 COMPILERS FINAL (1 PM)
-### Wednesday Apr 22: Full OS review day
-### Thursday Apr 23: CS 301 OS FINAL (10 AM)
+Monday Apr 20: Rest + light OS review. Tuesday Apr 21: CS 320 COMPILERS FINAL (1 PM). Wednesday Apr 22: Full OS review day. Thursday Apr 23: CS 301 OS FINAL (10 AM).
 
-## Study Strategies
-- Pomodoro technique: 50 min work, 10 min break
-- Teach concepts out loud (rubber duck debugging for studying)
-- Prioritize understanding over memorization
-- Use Continuum flashcards for quick reviews between sessions`,
+Study strategies: Pomodoro technique (50 min work, 10 min break), teach concepts out loud (rubber duck debugging for studying), prioritize understanding over memorization, and use Continuum flashcards for quick reviews between sessions.`,
   },
 
   // --- INDEX 16 ---
@@ -1517,9 +442,9 @@ scp file.txt user@host:/path/               # secure copy to remote
     subject: 'Career',
     visibility: 'private',
     isPinned: false,
-    content: `# Internship Application Checklist — Spring 2026
+    content: `Internship Application Checklist — Spring 2026
 
-## Resume & Materials
+**Resume & Materials**
 - [x] Update resume with fall 2025 projects
 - [x] Add REST API project and distributed systems coursework
 - [x] Get resume reviewed by career center (Jan 22)
@@ -1528,15 +453,15 @@ scp file.txt user@host:/path/               # secure copy to remote
 - [ ] Update portfolio website with new projects
 - [ ] Record 2-minute elevator pitch video
 
-## Applications Submitted (as of mid-March)
+**Applications Submitted (as of mid-March)**
 
-### Offers Received
+Offers received:
 - [x] Stripe — SWE Intern, $58/hr, SF — **BEST OFFER**
 - [x] HubSpot — SWE Intern, $50/hr, Cambridge
 - [x] Shopify — SWE Intern, $52/hr CAD, Remote
 - [x] Twilio — SWE Intern, $48/hr, SF
 
-### Active Interviews
+Active interviews:
 - [x] Google — On-site loop Mar 10 (**waiting for results**)
 - [x] Apple — Phone screen done, waiting for next steps
 - [x] Nvidia — Technical screen done
@@ -1546,30 +471,27 @@ scp file.txt user@host:/path/               # secure copy to remote
 - [x] Notion — Values interview done
 - [x] Vercel — Technical screen done
 
-### Pending (Applied, Waiting)
-- [x] Meta, Microsoft, Uber, LinkedIn, Coinbase, DoorDash, Netflix, Palantir
+Pending (applied, waiting): Meta, Microsoft, Uber, LinkedIn, Coinbase, DoorDash, Netflix, Palantir
 
-### Rejected
-- [x] Amazon, Goldman Sachs, Citadel, Roblox, ByteDance, Snap, Pinterest, Datadog
+Rejected: Amazon, Goldman Sachs, Citadel, Roblox, ByteDance, Snap, Pinterest, Datadog
 
-### Withdrawn
-- [x] Zillow, Dropbox, Asana, Box, Qualtrics, Okta
+Withdrawn: Zillow, Dropbox, Asana, Box, Qualtrics, Okta
 
-## Decision Timeline
+**Decision Timeline**
 - All offer deadlines: April 15, 2026
 - Need to decide between Stripe, HubSpot, Shopify, Twilio
 - Waiting on Google — if they come through, that changes everything
 - Talk to Marcus about salary negotiation tactics
 - Talk to Jordan about SF vs remote vs Cambridge lifestyle
 
-## Interview Prep Ongoing
+**Interview Prep Ongoing**
 - [x] LeetCode: 142 problems solved
 - [ ] Target: 175 by end of March
 - [x] Mock interviews: 4 completed
 - [ ] System design: practice 2 more problems
 - [ ] Behavioral: prepare 2 more STAR stories
 
-## Networking
+**Networking**
 - [x] Connect with ACM alumni at target companies
 - [x] Attend career fair (Feb 12)
 - [ ] Follow up with Google recruiter Sarah Kim
@@ -1584,62 +506,46 @@ scp file.txt user@host:/path/               # secure copy to remote
     subject: 'CS 301 — Operating Systems',
     visibility: 'private',
     isPinned: false,
-    content: `# Group Project Task Breakdown: Distributed Key-Value Store
+    content: `Group Project Task Breakdown: Distributed Key-Value Store
 
-## Team
-- Justin Burrell (team lead) — consensus layer, gRPC
-- Alex Chen — storage engine, data persistence
-- Jordan Williams — network layer, failure detection
+**Team:** Justin Burrell (team lead) — consensus layer, gRPC. Alex Chen — storage engine, data persistence. Jordan Williams — network layer, failure detection.
 
-## Project Overview
-Build a distributed key-value store that supports PUT, GET, DELETE operations with strong consistency guaranteed by the Raft consensus protocol. The system should handle node failures gracefully and re-elect leaders automatically.
+**Project Overview:** Build a distributed key-value store that supports PUT, GET, DELETE operations with strong consistency guaranteed by the Raft consensus protocol. The system should handle node failures gracefully and re-elect leaders automatically. Architecture: clients talk to a gRPC API, which feeds into the Raft consensus layer, which replicates to a log that the storage engine reads from. Three nodes total (Node 1, Node 2, Node 3) with a replicated log.
 
-## Architecture
-\`\`\`
-Client -> gRPC API -> Raft Consensus -> Storage Engine -> Disk
-                          |
-                    Replicated Log
-                          |
-              Node 1 / Node 2 / Node 3
-\`\`\`
-
-## Milestone 1: Foundation (Due Feb 28) — COMPLETED
+**Milestone 1: Foundation (Due Feb 28) — COMPLETED**
 - [x] Design system architecture and data flow diagrams
 - [x] Set up project repository with Go modules
 - [x] Define protobuf schemas for gRPC communication
 - [x] Implement basic storage engine (in-memory hash map with WAL)
 - [x] Write unit tests for storage engine
 
-## Milestone 2: Raft Consensus (Due Mar 21) — IN PROGRESS
+**Milestone 2: Raft Consensus (Due Mar 21) — IN PROGRESS**
 - [x] Implement Raft leader election
 - [x] Implement log replication
 - [ ] Implement log compaction (snapshotting)
 - [ ] Handle split-brain scenarios
 - [ ] Write integration tests for consensus
 
-## Milestone 3: Client API & Networking (Due Apr 4)
+**Milestone 3: Client API & Networking (Due Apr 4)**
 - [ ] Implement gRPC server with PUT/GET/DELETE endpoints
 - [ ] Client request forwarding (follower -> leader)
 - [ ] Failure detection with heartbeats and timeouts
 - [ ] Automatic leader re-election on failure
 - [ ] Connection pooling and retry logic
 
-## Milestone 4: Testing & Polish (Due Apr 18)
+**Milestone 4: Testing & Polish (Due Apr 18)**
 - [ ] End-to-end integration tests
 - [ ] Chaos testing: random node failures
 - [ ] Performance benchmarking (throughput, latency)
 - [ ] Write final report (10 pages)
 - [ ] Record demo video
 
-## Current Blockers
+**Current Blockers**
 - Log compaction is tricky — need to snapshot state without blocking reads
 - Jordan's failure detection has false positives under high load
 - Need to agree on linearizability testing strategy
 
-## Meeting Notes
-- Weekly sync: Thursdays 4 PM, Siebel 1304
-- Use Slack channel #cs301-kvstore for async communication
-- Code review required for all PRs before merge`,
+**Meeting Notes:** Weekly sync Thursdays 4 PM in Siebel 1304. Slack channel #cs301-kvstore for async communication. Code review required for all PRs before merge.`,
   },
 
   // --- INDEX 18 ---
@@ -1650,55 +556,51 @@ Client -> gRPC API -> Raft Consensus -> Storage Engine -> Disk
     subject: 'Planning',
     visibility: 'private',
     isPinned: false,
-    content: `# Week 9 Action Items (Mar 16 - Mar 22, 2026)
+    content: `Week 9 Action Items (Mar 16 - Mar 22, 2026)
 
-## Priority: HIGH
+**Priority: HIGH**
 
-### Academics
+Academics:
 - [ ] Submit CS 211 Assignment 4: DP Coin Change (Due Mar 20)
   - Implement memoization and tabulation approaches
   - Compare time/space complexity with analysis writeup
   - Run against all test cases on Gradescope
-
 - [ ] Study for CS 350 Networks Quiz (Mar 19)
   - TCP congestion control: slow start, AIMD, fast retransmit
   - HTTP/2 vs HTTP/3 differences
   - Review lecture slides 12-16
-
 - [ ] Raft log compaction implementation for group project
   - Review Raft paper section 7 (log compaction)
   - Coordinate with Alex on snapshot format
 
-### Career
+Career:
 - [ ] Follow up on Google on-site loop results
   - Email Sarah Kim if no response by Wednesday
   - Prepare for potential offer negotiation
 
-## Priority: MEDIUM
+**Priority: MEDIUM**
 
-### Academics
+Academics:
 - [ ] Read DDIA Chapter 5-6 (Replication and Partitioning)
-- [ ] Start compilers midterm prep (exam is Mar 26)
-  - Focus on LL/LR parsing — weakest area
+- [ ] Start compilers midterm prep (exam is Mar 26) — focus on LL/LR parsing, weakest area
 
-### Personal
+Personal:
 - [ ] ACM Weekly Meeting (Thursday)
 - [ ] Review Maya's stats notes for cross-study benefit
 - [ ] Buy new laptop charger (Amazon order)
 
-## Priority: LOW
+**Priority: LOW**
 - [ ] Continue portfolio website (Next.js setup)
 - [ ] LeetCode daily: target 3 medium problems this week
 - [ ] Read Clean Code chapters 3-5
 
-## Completed Last Week
+**Completed Last Week**
 - [x] CS 350 Networks Quiz studying (scored 88%)
 - [x] Raft leader election implementation
 - [x] Sent thank-you to Google recruiter
 - [x] ACM mock interview workshop attended
 
-## Reflection
-Feeling pretty stretched this week. The DP assignment and group project are both demanding. Need to be disciplined about time blocking. Also anxious about the Google results — trying not to let it distract from current work.`,
+**Reflection:** Feeling pretty stretched this week. The DP assignment and group project are both demanding. Need to be disciplined about time blocking. Also anxious about the Google results — trying not to let it distract from current work.`,
   },
 
   // --- INDEX 19 ---
@@ -1709,11 +611,11 @@ Feeling pretty stretched this week. The DP assignment and group project are both
     subject: 'Planning',
     visibility: 'private',
     isPinned: false,
-    content: `# Summer 2026 Prep Roadmap
+    content: `Summer 2026 Prep Roadmap
 
-## Before Internship Starts (May 1 - Jun 1)
+**Before Internship Starts (May 1 - Jun 1)**
 
-### Technical Prep
+Technical prep:
 - [ ] Complete Neetcode 150 (currently at 95/150)
 - [ ] Deep dive into payments systems (Stripe-specific prep)
   - Read Stripe engineering blog posts
@@ -1723,46 +625,45 @@ Feeling pretty stretched this week. The DP assignment and group project are both
 - [ ] Build a small project with Go or Rust (expand language skills)
 - [ ] Review distributed systems concepts (directly relevant to Stripe infrastructure)
 
-### Soft Skills
+Soft skills:
 - [ ] Practice presenting technical concepts (mock demos)
 - [ ] Read "The Manager's Path" Chapter 1-3 (understanding engineering culture)
 - [ ] Prepare questions to ask mentor and team on day one
 
-### Logistics
+Logistics:
 - [ ] Secure summer housing in SF (start searching April)
 - [ ] Set up banking/finances for SF cost of living
 - [ ] Plan travel from campus to SF
 - [ ] Get any required onboarding paperwork done early
 
-## During Internship (Jun - Aug)
+**During Internship (Jun - Aug)**
 
-### Week 1 Goals
+Week 1 goals:
 - [ ] Understand team codebase and development workflow
 - [ ] Set up local development environment
 - [ ] Meet team members and skip-level manager
 - [ ] Identify my intern project scope
 
-### Ongoing Goals
+Ongoing goals:
 - [ ] Ship meaningful code every week
 - [ ] Ask for feedback every 2 weeks (do not wait for formal reviews)
 - [ ] Document what I learn daily (personal engineering journal)
 - [ ] Network with other interns and full-time engineers
 - [ ] Attend tech talks and company events
 
-### End-of-Internship Goals
+End-of-internship goals:
 - [ ] Complete intern project with measurable impact
 - [ ] Present project to the team
 - [ ] Get return offer (stretch: full-time conversion for after graduation)
 - [ ] Write a reflection on what went well and what to improve
 
-## After Internship (Aug - Sep)
-
+**After Internship (Aug - Sep)**
 - [ ] Update resume with internship experience
 - [ ] Write LinkedIn post about the experience
 - [ ] Decide on fall recruiting strategy (if no return offer)
 - [ ] Start thinking about senior thesis or capstone project
 
-## Skills to Develop This Summer
+**Skills to Develop This Summer**
 1. Production code quality (testing, monitoring, deployment)
 2. Working in a large codebase (navigation, code review, documentation)
 3. Communication (standups, design docs, code review comments)
@@ -1777,13 +678,13 @@ Feeling pretty stretched this week. The DP assignment and group project are both
     subject: 'Personal',
     visibility: 'private',
     isPinned: false,
-    content: `# Week 3 Reflection — Adjusting to Spring Semester
+    content: `Week 3 Reflection — Adjusting to Spring Semester
 
-## Feb 9, 2026
+Feb 9, 2026
 
 Three weeks into the spring semester and I am finally starting to find my rhythm. The first two weeks were a blur of syllabus readings, office hours, and trying to figure out how five courses fit into a weekly schedule without losing my mind.
 
-## Course Load
+**Course Load**
 
 CS 211 (Data Structures & Algorithms) is going to be the most important course this semester. Professor Martinez moves fast, but the material is directly applicable to interview prep. We just covered hash tables and are moving into trees next week. The first assignment on Big-O analysis went well — scored 94 after a careless mistake on the amortized analysis question.
 
@@ -1795,7 +696,7 @@ CS 320 (Compilers) starts slow with lexing, which feels mechanical, but I know p
 
 CS 340 (Databases) is practical and satisfying. Writing SQL queries that actually optimize performance feels like a superpower. Index design is already my favorite topic.
 
-## Social Life
+**Social Life**
 
 Joined ACM officially and attended the first two weekly meetings. The guest speaker on open source contributions was surprisingly inspiring — I might try to contribute to a Node.js tooling project over spring break.
 
@@ -1803,11 +704,11 @@ Started hanging out with Priya more after we ran into each other at the library.
 
 Marcus invited me to a finance networking event. Went out of curiosity. The culture is wildly different from tech — everyone in suits, firm handshakes, rehearsed elevator pitches. Made me appreciate the relative informality of CS recruiting. But Marcus's advice on salary negotiation tactics is going to be invaluable.
 
-## Internship Applications
+**Internship Applications**
 
 Submitted my first batch of applications this week: Google, Stripe, Amazon, and a few others. The resume is tight after feedback from Alex and the career center. The waiting game is the hardest part — I keep refreshing my email for OA invitations.
 
-## Goals for Next Week
+**Goals for Next Week**
 - Start LeetCode daily practice (targeting 5 problems per week)
 - Attend CS 211 office hours to clarify red-black tree rotations
 - Submit the linked list implementation assignment early
@@ -1822,13 +723,13 @@ Submitted my first batch of applications this week: Google, Stripe, Amazon, and 
     subject: 'Personal',
     visibility: 'private',
     isPinned: false,
-    content: `# Week 6 Reflection — Midterm Season Hits Different
+    content: `Week 6 Reflection — Midterm Season Hits Different
 
-## Mar 1, 2026
+Mar 1, 2026
 
 Midterm season is in full swing and it is testing me in every sense. Two exams down, one quiz cleared, and I am running on caffeine and determination.
 
-## Exam Results
+**Exam Results**
 
 CS 211 Midterm: 87. Solid but not where I wanted to be. Lost points on the AVL tree rotation question — I drew the rotations correctly but forgot to update the height field after rebalancing. Frustrating because I knew the concept but made a mechanical error under time pressure. Need to practice more timed problems.
 
@@ -1836,13 +737,13 @@ CS 301 OS Midterm: 91. Much better than expected. The scheduling algorithm compa
 
 CS 350 Networks Quiz: 88. Missed a question about TCP congestion window behavior during fast recovery. Need to revisit that section.
 
-## Group Project Progress
+**Group Project Progress**
 
 The distributed KV store project is moving well. We finished Milestone 1 on time — the storage engine works, the protobuf schemas are defined, and we have a solid test suite. Now we are tackling Raft consensus, which is where the real complexity lives.
 
 Leader election was surprisingly tricky. The edge cases around split votes and network partitions required careful handling. Alex had a clever idea for using randomized election timeouts to reduce the chance of repeated split votes. Jordan set up a local Docker network to simulate node failures, which has been invaluable for testing.
 
-## Interview Season Heating Up
+**Interview Season Heating Up**
 
 This has been the most stressful part of the semester. I have done phone screens with Apple, Nvidia, and Two Sigma. Each one required specific preparation — Apple asked about WebKit internals (had to research on the fly), Nvidia focused on GPU programming concepts (outside my comfort zone), and Two Sigma went deep on system design.
 
@@ -1850,7 +751,7 @@ The Stripe process has been the smoothest. Two interviews so far, both well-stru
 
 On the rejection side, Amazon and Goldman Sachs both sent rejection emails this week. Amazon stung because I know I could have done better on the OA with more practice. Goldman's HireVue format caught me off guard — answering finance questions to a camera with a timer is deeply uncomfortable.
 
-## Mental Health Check
+**Mental Health Check**
 
 I will not sugarcoat it: this week was hard. The combination of exams, interviews, and the group project created a level of sustained stress that I have not experienced before. I found myself snapping at small things and having trouble sleeping.
 
@@ -1858,7 +759,7 @@ What helped: talking to Sofia about cognitive load theory (ironic that her psych
 
 Also had a good conversation with Jordan about career anxiety. As a senior, he has been through this cycle and reassured me that the uncertainty is normal and temporary. Perspective from someone slightly ahead in the journey is invaluable.
 
-## Goals for Next Two Weeks
+**Goals for Next Two Weeks**
 - Complete Raft log replication implementation
 - Start preparing for Networks quiz
 - Continue LeetCode: aim for 120 total solved
@@ -1873,13 +774,13 @@ Also had a good conversation with Jordan about career anxiety. As a senior, he h
     subject: 'Personal',
     visibility: 'private',
     isPinned: false,
-    content: `# Week 8 Reflection — Progress and Setbacks
+    content: `Week 8 Reflection — Progress and Setbacks
 
-## Mar 15, 2026
+Mar 15, 2026
 
 Week 8. Past the midpoint of the semester. Time is moving faster than I would like, and the finish line feels both close and impossibly far.
 
-## Academic Updates
+**Academic Updates**
 
 CS 211: the DP unit is the most challenging material so far. Assignment 4 (coin change) is due next week and I am still working through the tabulation approach. The memoization version came naturally, but building the table bottom-up requires thinking about the problem differently. I spent two hours on Tuesday just staring at the recurrence relation before it clicked. The feeling when it finally did was worth every minute of frustration.
 
@@ -1887,7 +788,7 @@ CS 301: Raft log replication is working in the group project. We can now replica
 
 CS 320: parsing has gotten significantly harder. We are deep into LR parsing now and building parser tables by hand is tedious but illuminating. Seeing how the parser generator automates what would be impossible to do manually gives me appreciation for the tool chain we take for granted.
 
-## Internship Updates
+**Internship Updates**
 
 The big news: I received my first offer. Stripe came through with $58/hour for their payments infrastructure team in San Francisco. Twelve-week program starting mid-June. I was genuinely shocked — I knew the interviews went well but part of me had assumed rejection was the default outcome.
 
@@ -1895,13 +796,13 @@ Calling my parents to tell them was one of the best moments of the semester. My 
 
 The offer deadline is April 15, which gives me time to hear back from other companies. HubSpot also extended an offer ($50/hour, Cambridge), and I am waiting on Google, Apple, and a few others.
 
-## The LeetCode Grind
+**The LeetCode Grind**
 
 Current count: 130 solved (up from 110 two weeks ago). I am getting faster at recognizing patterns. When I see a string manipulation problem now, my brain immediately categorizes it: sliding window, two pointers, or hash map. This pattern recognition is exactly what the grind is supposed to build.
 
 Hardest problem this week: Trapping Rain Water. Took me 45 minutes and I had to look at a hint. But after understanding the two-pointer approach, I could explain it clearly, which means I actually learned it rather than memorized it.
 
-## Personal Growth
+**Personal Growth**
 
 I have been thinking about what kind of engineer I want to be. Not just which company or which tech stack, but what my values are. After talking to Jordan about his senior job search and Marcus about finance culture, I have landed on a few things:
 
@@ -1909,7 +810,7 @@ I have been thinking about what kind of engineer I want to be. Not just which co
 2. I care about mentorship culture. Stripe's interview process showed me what a team that invests in new engineers looks like.
 3. I want to keep learning across disciplines. The conversations with Maya about statistics, Priya about research methods, and Sofia about cognitive science have made me a better thinker, not just a better coder.
 
-## Looking Ahead
+**Looking Ahead**
 
 The next five weeks are going to be intense: finish the group project, prep for finals, and make the internship decision. But I feel more grounded than I did at week 6. The stress has not decreased but my ability to manage it has improved.
 
@@ -1924,13 +825,13 @@ One thing at a time. One problem at a time. One day at a time.`,
     subject: 'Personal',
     visibility: 'private',
     isPinned: false,
-    content: `# Week 11 Reflection — Internship Offer and What It Means
+    content: `Week 11 Reflection — Internship Offer and What It Means
 
-## Apr 5, 2026
+Apr 5, 2026
 
 I have been putting off writing this reflection because I was not sure how to process everything. But here I am at 11 PM on a Sunday, and it feels like the right time.
 
-## The Decision
+**The Decision**
 
 The offer deadline is April 15. Ten days from now. I have four offers on the table: Stripe ($58/hr, SF), HubSpot ($50/hr, Cambridge), Shopify ($52/hr CAD, remote), and Twilio ($48/hr, SF). Google has gone silent after the on-site loop — at this point I am operating under the assumption that it is a rejection they have not bothered to send yet.
 
@@ -1940,7 +841,7 @@ HubSpot in Cambridge is appealing for the East Coast experience and the more rel
 
 I talked to Marcus about negotiation. His advice: do not negotiate intern offers aggressively because the companies have less flexibility and you risk souring the relationship. Instead, use competing offers to ask for small perks — housing stipend, start date flexibility, team preference. This is good advice and different from what I would have done on my own (which was to ask Stripe to match a Google offer that does not exist).
 
-## Academic Status
+**Academic Status**
 
 Finals are approaching and I am trying to stay focused despite the internship distraction. The group project is in its final stretch — we need to finish log compaction, run benchmarks, write the report, and record the demo video. Alex has been clutch on the storage engine optimizations and Jordan's failure detection is finally reliable after switching from fixed timeouts to an adaptive phi-accrual failure detector.
 
@@ -1948,13 +849,13 @@ My CS 211 prep is going well. The DP and graph algorithm units are the hardest m
 
 CS 320 Compilers has been a grind but I have a grudging respect for the material. Understanding how source code becomes machine code has changed how I think about programming. I catch myself thinking about the AST implications of syntax choices, which is either a sign of deep learning or madness.
 
-## Relationships
+**Relationships**
 
 My friendships have deepened significantly this semester, and I think it is because we have all been under pressure together. Alex and I have spent dozens of hours debugging Raft implementations and grinding LeetCode. Maya taught me enough statistics to actually understand the ML papers I was trying to read. Jordan has been a steady source of career wisdom. Priya reminds me that there are entire worlds of knowledge outside CS that are equally deep and demanding. Marcus showed me that the skills of communication and persuasion are as valuable as technical skills. Sofia helped me understand why my brain works the way it does under stress.
 
 I came to college expecting to learn computer science. I did not expect to learn so much from people studying completely different things. That might be the most important lesson of this semester.
 
-## What This Internship Means
+**What This Internship Means**
 
 This is not just a job. It is validation. It is the first real evidence that the hours of studying, the rejection emails, the imposter syndrome — all of it was building toward something tangible. A team of engineers at one of the most respected companies in tech looked at my work and said: we want you on our team.
 
@@ -1971,13 +872,13 @@ But for now, in this moment, I am proud of myself. And I am going to let myself 
     subject: 'Personal',
     visibility: 'private',
     isPinned: false,
-    content: `# Week 14 Reflection — End of Semester Thoughts
+    content: `Week 14 Reflection — End of Semester Thoughts
 
-## Apr 26, 2026
+Apr 26, 2026
 
 The semester is effectively over. Two finals down, one to go. The distributed KV store project is submitted. My internship decision is made. And I am sitting in the library at 9 PM writing what might be my last journal entry of the spring semester.
 
-## Finals Recap
+**Finals Recap**
 
 CS 211 Data Structures Final: feeling good about this one. The DP section was straightforward — the coin change and LCS problems were almost identical to what I practiced. The graph section had a tricky shortest path question with negative edges (Bellman-Ford territory) that I think I got right. The NP-completeness reduction was the hardest question: reduce 3-SAT to Independent Set. I had seen this in lecture but doing it under time pressure was stressful.
 
@@ -1985,7 +886,7 @@ CS 320 Compilers Final: done. The one-page cheat sheet was a lifesaver — I pac
 
 CS 301 OS Final: tomorrow morning. I have been reviewing all day. File systems and security are the new material since the midterm. The open-note format means organization is key. I spent an hour today just indexing my notes with page numbers and topic headers.
 
-## The Group Project
+**The Group Project**
 
 We submitted the distributed KV store project on Friday. Final state: 3-node cluster running Raft consensus with log replication, log compaction via snapshots, and automatic leader re-election. PUT/GET/DELETE operations via gRPC. Benchmarks showed we could handle 500 operations per second with sub-10ms latency for reads and sub-50ms for writes. Not production-grade, but solid for a semester project.
 
@@ -1993,7 +894,7 @@ The demo video turned out well. Alex walked through the architecture, I demonstr
 
 Working with Alex and Jordan was one of the highlights of the semester. We had our disagreements — the great debate over Go vs Rust lasted two weeks before we settled on Go — but we always resolved them through technical merit rather than ego. That is the kind of team I want to work on professionally.
 
-## Internship Decision: Stripe
+**Internship Decision: Stripe**
 
 I accepted Stripe on April 14, one day before the deadline. Called HubSpot, Shopify, and Twilio to decline. Each conversation was brief and professional. The recruiters were gracious and wished me well. This is a small industry and burning bridges is never worth it.
 
@@ -2001,7 +902,7 @@ Google finally sent a rejection email on April 10. Five weeks after the on-site.
 
 I start at Stripe on June 15. Payments infrastructure team in San Francisco. I have already started reading their engineering blog and skimming the Stripe API documentation. The more I learn about their system architecture, the more excited I get.
 
-## Semester GPA Projection
+**Semester GPA Projection**
 
 Based on exam performance and assignment grades:
 - CS 211: A- (the midterm docked me)
@@ -2012,7 +913,7 @@ Based on exam performance and assignment grades:
 
 If this holds, my cumulative GPA stays above 3.7. Not perfect, but I am learning that GPA matters less and less the further into your career you get. The skills, projects, and relationships matter more.
 
-## Looking Forward
+**Looking Forward**
 
 This semester taught me more than any previous one. Not just technically — although I have learned more CS in four months than I thought possible — but about who I am and what I want. I want to build infrastructure. I want to work on systems that millions of people depend on. I want to keep growing, keep learning, and keep surrounding myself with people who challenge me.
 
@@ -2085,282 +986,97 @@ const friendNotes = {
       title: 'Big-O Complexity Guide',
       tags: ['algorithms', 'big-o', 'complexity'],
       subject: 'CS 211',
-      content: `# Big-O Complexity Guide
+      content: `Big-O notation describes how an algorithm's runtime or memory usage grows relative to input size. It gives us a language to compare algorithms independent of hardware. When someone says "binary search is O(log n)," they are saying the number of steps grows logarithmically with the input — doubling the input adds just one more step.
 
-## Why Big-O Matters
+**O(1) — Constant:** runtime does not depend on input size. Array access by index, hash map lookup (average case), stack push/pop. These are the gold standard.
 
-Big-O notation describes how an algorithm's runtime or memory usage grows relative to input size. It gives us a language to compare algorithms independent of hardware. When someone says "binary search is O(log n)," they are saying the number of steps grows logarithmically with the input — doubling the input adds just one more step.
+**O(log n) — Logarithmic:** halving the search space each step. Binary search, balanced BST operations. Extremely efficient even for massive inputs — log2(1 billion) is only about 30.
 
-## Common Complexities
+**O(n) — Linear:** process each element once. Linear search, finding max/min, single-pass array algorithms. The baseline for problems that require examining all data.
 
-### O(1) — Constant
-Runtime does not depend on input size. Array access by index, hash map lookup (average case), stack push/pop. These are the gold standard.
+**O(n log n) — Linearithmic:** divide-and-conquer algorithms. Merge sort, heap sort, quicksort (average case). This is the theoretical lower bound for comparison-based sorting.
 
-### O(log n) — Logarithmic
-Halving the search space each step. Binary search, balanced BST operations. Extremely efficient even for massive inputs — log2(1 billion) is only about 30.
+**O(n²) — Quadratic:** nested loops over the input. Bubble sort, selection sort, brute-force pair comparisons. Acceptable for n < 10,000, problematic beyond that.
 
-### O(n) — Linear
-Process each element once. Linear search, finding max/min, single-pass array algorithms. The baseline for problems that require examining all data.
+**O(2^n) — Exponential:** brute-force search of all subsets. Naive recursive Fibonacci, power set generation. Quickly becomes impractical — 2^30 is already over a billion.
 
-### O(n log n) — Linearithmic
-Divide-and-conquer algorithms. Merge sort, heap sort, quicksort (average case). This is the theoretical lower bound for comparison-based sorting.
+To analyze an algorithm: identify the dominant operation (comparison, assignment, recursive call), count how many times it executes as a function of n, drop constants and lower-order terms, then consider best, average, and worst cases separately.
 
-### O(n²) — Quadratic
-Nested loops over the input. Bubble sort, selection sort, brute-force pair comparisons. Acceptable for n < 10,000, problematic beyond that.
+Do not forget space complexity. An algorithm that runs in O(n) time but uses O(n²) space may be impractical. In-place algorithms (O(1) extra space) are often preferred. Recursive algorithms use O(depth) space on the call stack.
 
-### O(2^n) — Exponential
-Brute-force search of all subsets. Naive recursive Fibonacci, power set generation. Quickly becomes impractical — 2^30 is already over a billion.
-
-## How to Analyze
-
-1. Identify the dominant operation (comparison, assignment, recursive call)
-2. Count how many times it executes as a function of n
-3. Drop constants and lower-order terms
-4. Consider best, average, and worst cases separately
-
-## Space Complexity
-
-Do not forget space. An algorithm that runs in O(n) time but uses O(n²) space may be impractical. In-place algorithms (O(1) extra space) are often preferred. Recursive algorithms use O(depth) space on the call stack.
-
-## Amortized Analysis
-
-Some operations are expensive occasionally but cheap on average. Dynamic array resizing: most insertions are O(1), but occasionally the array doubles and copies all elements O(n). Amortized over n insertions, each insertion is O(1). Three methods: aggregate, accounting, and potential.`,
+Amortized analysis handles operations that are expensive occasionally but cheap on average. Dynamic array resizing is the classic example: most insertions are O(1), but occasionally the array doubles and copies all elements (O(n)). Amortized over n insertions, each insertion is O(1). Three analysis methods: aggregate, accounting, and potential.`,
     },
     {
       title: 'Sorting Algorithms Comparison',
       tags: ['algorithms', 'sorting'],
       subject: 'CS 211',
-      content: `# Sorting Algorithms Comparison
+      content: `Sorting is one of the most fundamental operations in computer science. Different algorithms make different trade-offs between time complexity, space usage, stability, and cache performance. Choosing the right sort depends on data characteristics and constraints.
 
-## Overview
+**Merge Sort:** O(n log n) time in all cases, O(n) auxiliary space, stable. Approach: divide the array in half, recursively sort each half, merge the sorted halves. Strengths: guaranteed O(n log n) and good for linked lists. Weaknesses: needs extra space, not in-place.
 
-Sorting is one of the most fundamental operations in computer science. Different algorithms make different trade-offs between time complexity, space usage, stability, and cache performance. Choosing the right sort depends on data characteristics and constraints.
+**Quick Sort:** O(n log n) average, O(n²) worst case, O(log n) stack space, not stable. Approach: choose a pivot, partition around it, recurse on each side. Strengths: excellent cache locality, fast in practice, in-place. Weaknesses: O(n²) worst case with bad pivots, mitigated by random pivot selection or median-of-three.
 
-## Comparison-Based Sorts
+**Heap Sort:** O(n log n) in all cases, O(1) space, not stable. Approach: build a max-heap, then repeatedly extract the maximum. Strengths: in-place with guaranteed O(n log n). Weaknesses: poor cache locality and higher constant factors than quicksort in practice.
 
-### Merge Sort
-- Time: O(n log n) — all cases
-- Space: O(n) auxiliary
-- Stable: Yes
-- Approach: divide array in half, recursively sort each half, merge sorted halves
-- Strengths: guaranteed O(n log n), stable, good for linked lists
-- Weaknesses: O(n) extra space, not in-place
+**Insertion Sort:** O(n²) worst case, O(n) best case on nearly sorted data, O(1) space, stable. Approach: insert each element into its correct position in the already-sorted portion. Excellent for small arrays and nearly sorted data. Used as the base case in hybrid sorts — Timsort uses insertion sort for small runs.
 
-### Quick Sort
-- Time: O(n log n) average, O(n²) worst case
-- Space: O(log n) for call stack
-- Stable: No
-- Approach: choose pivot, partition around pivot, recurse on each side
-- Strengths: excellent cache locality, fast in practice, in-place
-- Weaknesses: O(n²) with bad pivots (mitigated by random pivot or median-of-three)
+Non-comparison sorts can beat the O(n log n) lower bound when the data has special properties. **Counting Sort** runs in O(n + k) time and space where k is the range of values — stable and works only for integers in a known range. **Radix Sort** runs in O(d * (n + k)) where d is the number of digits, processing from least significant to most significant digit using a stable sort at each level.
 
-### Heap Sort
-- Time: O(n log n) — all cases
-- Space: O(1)
-- Stable: No
-- Approach: build max-heap, repeatedly extract maximum
-- Strengths: in-place, guaranteed O(n log n)
-- Weaknesses: poor cache locality, higher constant factors than quicksort
-
-### Insertion Sort
-- Time: O(n²) worst, O(n) best (nearly sorted data)
-- Space: O(1)
-- Stable: Yes
-- Approach: insert each element into its correct position in the sorted portion
-- Strengths: excellent for small arrays and nearly sorted data, simple to implement
-- Used as base case in hybrid sorts (Timsort uses it for small runs)
-
-## Non-Comparison Sorts
-
-### Counting Sort
-O(n + k) time and space where k is the range of values. Stable. Works only for integers in a known range.
-
-### Radix Sort
-O(d * (n + k)) where d is the number of digits. Processes digits from least significant to most significant using a stable sort (counting sort) at each level.
-
-## Practical Considerations
-
-Most language standard libraries use hybrid algorithms: Timsort (Python, Java) combines merge sort and insertion sort. C++ std::sort uses Introsort (quicksort + heapsort fallback). Choose the algorithm based on your data: nearly sorted? insertion sort. Need stability? merge sort or Timsort. Memory constrained? heap sort.`,
+In practice: Timsort (Python, Java) combines merge sort and insertion sort. C++ std::sort uses Introsort (quicksort with a heapsort fallback to prevent worst-case). The choice depends on your data: nearly sorted data favors insertion sort, need stability requires merge sort or Timsort, memory constraints point to heap sort.`,
     },
     {
       title: 'Binary Search Trees Deep Dive',
       tags: ['data-structures', 'trees', 'bst'],
       subject: 'CS 211',
-      content: `# Binary Search Trees Deep Dive
+      content: `A binary search tree (BST) maintains the invariant that for every node, all values in its left subtree are smaller and all values in its right subtree are larger. This enables O(log n) search, insert, and delete — but only if the tree is balanced.
 
-## BST Property
+**Search:** start at the root. If the target equals the current node, found. If smaller, go left. If larger, go right. Repeat until found or you reach a null pointer.
 
-A binary search tree maintains the invariant: for every node, all values in its left subtree are smaller and all values in its right subtree are larger. This enables O(log n) search, insert, and delete — but only if the tree is balanced.
+**Insert:** search for the position where the value would appear if it existed, then create a new leaf node there. Time is O(h) where h is the height.
 
-## Operations
+**Delete** has three cases: (1) leaf node — simply remove it; (2) one child — replace the node with its child; (3) two children — find the in-order successor (smallest node in the right subtree), copy its value to the current node, then delete the successor (which has at most one child).
 
-### Search
-Start at root. If target equals current node, found. If target is smaller, go left. If larger, go right. Repeat until found or reach a null pointer.
+The balance problem: an unbalanced BST can degenerate into a linked list. Inserting sorted data [1, 2, 3, 4, 5] creates a chain where every operation is O(n). This is why self-balancing trees exist.
 
-### Insert
-Search for the insert position (where you would find the value if it existed). Create a new leaf node at that position. Time: O(h) where h is the height.
+**AVL trees** maintain a balance factor (height difference between left and right subtrees) of at most 1 for every node. After each insert or delete, check balance factors up the path to the root and perform rotations to restore balance. The four rotation types are: left rotation, right rotation, left-right (double), and right-left (double). Each rotation takes O(1). AVL trees are strictly balanced, making them slightly faster for lookups than red-black trees, but insertions and deletions may require more rotations.
 
-### Delete
-Three cases:
-1. **Leaf node**: simply remove it
-2. **One child**: replace the node with its child
-3. **Two children**: find the in-order successor (smallest node in right subtree), copy its value to the current node, then delete the successor (which has at most one child)
+**Red-black trees** maintain balance through coloring rules: every node is red or black, the root is black, no two consecutive red nodes, and every path from root to null has the same number of black nodes. Insertions require at most 2 rotations and deletions at most 3. This makes red-black trees preferred for workloads with frequent insertions and deletions. Java TreeMap and C++ std::map both use red-black trees.
 
-## The Balance Problem
-
-An unbalanced BST can degenerate into a linked list. Inserting sorted data [1, 2, 3, 4, 5] creates a chain where every operation is O(n). This is why self-balancing trees exist.
-
-## AVL Trees
-
-AVL trees maintain a balance factor (height difference between left and right subtrees) of at most 1 for every node. After each insert or delete, check balance factors up the path to the root and perform rotations to restore balance.
-
-Rotations: Left rotation, right rotation, left-right (double), right-left (double). Each takes O(1). Total rebalancing per operation: O(log n) in the worst case.
-
-AVL trees are strictly balanced, making them slightly faster for lookups than red-black trees, but insertions and deletions may require more rotations.
-
-## Red-Black Trees
-
-Red-black trees maintain balance through coloring rules: every node is red or black, the root is black, no two consecutive red nodes, and every path from root to null has the same number of black nodes.
-
-Insertions require at most 2 rotations. Deletions require at most 3 rotations. This makes red-black trees preferred for workloads with many insertions and deletions. Java TreeMap and C++ std::map use red-black trees.
-
-## B-Trees and B+ Trees
-
-B-trees generalize BSTs to have multiple keys per node and multiple children. B+ trees store all values in leaf nodes. Both are used extensively in database indexing and file systems because their high branching factor minimizes disk I/O.`,
+**B-trees and B+ trees** generalize BSTs to have multiple keys per node and multiple children. B+ trees store all values in leaf nodes with linked leaf nodes for range queries. Both are used extensively in database indexing and file systems because their high branching factor (100-200 typically) minimizes disk I/O.`,
     },
     {
       title: 'Recursion Patterns',
       tags: ['algorithms', 'recursion'],
       subject: 'CS 211',
-      content: `# Recursion Patterns
+      content: `Recursion solves problems by breaking them into smaller instances of the same problem. Every recursive solution needs two things: a base case (when to stop) and a recursive case (how to reduce). The trick is trusting that the recursive call handles the subproblem correctly — you only need to think about one level at a time.
 
-## Thinking Recursively
+**Pattern 1: Linear recursion.** Process one element and recurse on the rest. Classic examples: factorial, sum of an array, string reversal. Factorial is n * factorial(n-1) with base case factorial(0) = 1. Each call does O(1) work, depth is O(n), total time O(n). Can always be converted to a loop (tail recursion optimization).
 
-Recursion solves problems by breaking them into smaller instances of the same problem. Every recursive solution needs two things: a base case (when to stop) and a recursive case (how to reduce). The trick is trusting that the recursive call handles the subproblem correctly — you only need to think about one level at a time.
+**Pattern 2: Divide and conquer.** Split the problem in half, solve each half recursively, combine results. Examples: merge sort, binary search, maximum subarray. Merge sort is merge(mergeSort(left), mergeSort(right)) with base case of length 0 or 1. Time complexity follows the Master Theorem: T(n) = aT(n/b) + O(n^d). For merge sort a=2, b=2, d=1, giving T(n) = O(n log n).
 
-## Pattern 1: Linear Recursion
+**Pattern 3: Tree recursion.** Make multiple recursive calls at each step, creating a tree-shaped call graph. Examples: naive Fibonacci, generating permutations, parsing expressions. Tree recursion leads to exponential time when subproblems overlap (Fibonacci). The fix: memoization converts tree recursion to linear recursion by caching results.
 
-Process one element and recurse on the rest. Classic examples: factorial, sum of array, string reversal.
+**Pattern 4: Backtracking.** Explore choices incrementally, abandoning a choice as soon as it violates constraints. Examples: N-queens, Sudoku solver, generating all subsets. The template: if the current state is a solution, record it; otherwise for each choice, if the choice is valid, make it, recurse on the new state, then undo it (backtrack). Backtracking prunes the search space compared to brute force — the earlier you can detect invalid states, the more efficient the pruning.
 
-\`\`\`
-factorial(n) = n * factorial(n-1)
-base case: factorial(0) = 1
-\`\`\`
+**Pattern 5: Accumulator pattern.** Pass an accumulator parameter that builds up the result. For summing an array: pass index i and accumulator acc, return acc when i reaches the end, otherwise recurse with i+1 and acc + arr[i]. This enables tail recursion, which compilers can optimize into iteration.
 
-Each call does O(1) work, depth is O(n), total time O(n). Can always be converted to a simple loop (tail recursion optimization).
-
-## Pattern 2: Divide and Conquer
-
-Split the problem in half, solve each half recursively, combine results. Examples: merge sort, binary search, maximum subarray.
-
-\`\`\`
-mergeSort(arr) = merge(mergeSort(left), mergeSort(right))
-base case: array of length 0 or 1
-\`\`\`
-
-Time complexity follows the Master Theorem: T(n) = aT(n/b) + O(n^d). For merge sort: a=2, b=2, d=1, so T(n) = O(n log n).
-
-## Pattern 3: Tree Recursion
-
-Make multiple recursive calls at each step, creating a tree-shaped call graph. Examples: Fibonacci (naive), generating permutations, parsing expressions.
-
-Tree recursion often leads to exponential time if subproblems overlap (Fibonacci). The fix: memoization converts tree recursion to linear recursion by caching results.
-
-## Pattern 4: Backtracking
-
-Explore choices incrementally, abandoning (backtracking) a choice as soon as it violates constraints. Examples: N-queens, Sudoku solver, generating all subsets.
-
-\`\`\`
-backtrack(state):
-  if state is a solution: record it
-  for each choice:
-    if choice is valid:
-      make choice
-      backtrack(new state)
-      undo choice  // backtrack
-\`\`\`
-
-Backtracking prunes the search space compared to brute force. The earlier you can detect invalid states, the more efficient the pruning.
-
-## Pattern 5: Accumulator Pattern
-
-Pass an accumulator parameter that builds up the result. Enables tail recursion, which compilers can optimize into iteration.
-
-\`\`\`
-sum(arr, i, acc):
-  if i == arr.length: return acc
-  return sum(arr, i+1, acc + arr[i])
-\`\`\`
-
-## Common Mistakes
-- Forgetting the base case (infinite recursion, stack overflow)
-- Not reducing the problem size (infinite recursion)
-- Duplicating work (use memoization for overlapping subproblems)
-- Using recursion when iteration is simpler and more efficient`,
+Common mistakes: forgetting the base case (infinite recursion, stack overflow), not reducing the problem size (infinite recursion), duplicating work without memoization, and using recursion when iteration is simpler and more efficient.`,
     },
     {
       title: 'C++ vs Java for Interviews',
       tags: ['interviews', 'c++', 'java'],
       subject: 'Career',
-      content: `# C++ vs Java for Interviews
+      content: `Both C++ and Java are widely accepted in technical interviews. The right choice depends on your comfort level and the specific strengths of each language for algorithm problems.
 
-## The Choice
+**C++ advantages:** The Standard Template Library is exceptionally powerful — vectors, deques, and lists for sequences; set and map (red-black tree based, ordered); unordered_set and unordered_map (hash-based); priority_queue, stack, and queue; sort, binary_search, lower_bound, upper_bound; and next_permutation for permutation problems. C++ is also faster than Java, which matters for tight time limits. Code tends to be shorter for algorithm problems, and memory management is explicit but controllable.
 
-Both C++ and Java are widely accepted in technical interviews. The right choice depends on your comfort level and the specific strengths of each language for competitive programming and interview problems.
+**Java advantages:** No pointer arithmetic, no segfaults, no undefined behavior. Garbage collection handles memory so you spend less time debugging crashes. The Collections Framework is well-designed: ArrayList and LinkedList, HashMap, TreeMap (sorted), and LinkedHashMap (insertion order), HashSet and TreeSet, PriorityQueue (min-heap by default), and Collections.sort / Arrays.sort. Java has built-in BigInteger for arbitrary precision arithmetic — C++ requires external libraries or manual implementation. String handling is excellent: immutable strings with good built-in methods, and StringBuilder for efficient concatenation.
 
-## C++ Advantages
+Interview-specific tips for C++: use auto to reduce verbosity, prefer emplace_back over push_back, pass large objects by const reference, and use pair and tuple for multi-value returns.
 
-### Standard Template Library (STL)
-C++ STL is exceptionally powerful for competitive programming:
-- \`vector\`, \`deque\`, \`list\` for sequences
-- \`set\`, \`map\` (red-black tree based, ordered)
-- \`unordered_set\`, \`unordered_map\` (hash-based)
-- \`priority_queue\`, \`stack\`, \`queue\`
-- \`sort\`, \`binary_search\`, \`lower_bound\`, \`upper_bound\`
-- \`next_permutation\` for permutation problems
+Interview-specific tips for Java: always use StringBuilder in loops (string concatenation creates new objects), Arrays.sort uses dual-pivot quicksort for primitives and Timsort for objects, Comparator.comparingInt makes custom sorting clean, and Map.getOrDefault eliminates null checks.
 
-### Performance
-C++ is faster than Java. For problems with tight time limits, C++ gives you more room. Memory management is more explicit but also more controllable.
-
-### Brevity
-C++ code tends to be shorter for algorithm problems. Macros and typedefs (though discouraged in production) can speed up contest coding.
-
-## Java Advantages
-
-### Safety
-No pointer arithmetic, no segfaults, no undefined behavior. Garbage collection handles memory. You spend less time debugging crashes and more time thinking about the algorithm.
-
-### Rich Collections
-Java Collections Framework is well-designed:
-- \`ArrayList\`, \`LinkedList\`
-- \`HashMap\`, \`TreeMap\` (sorted), \`LinkedHashMap\` (insertion order)
-- \`HashSet\`, \`TreeSet\`
-- \`PriorityQueue\` (min-heap by default)
-- \`Collections.sort\`, \`Arrays.sort\`
-
-### BigInteger
-Java has built-in BigInteger for arbitrary precision arithmetic. C++ requires external libraries or manual implementation.
-
-### String Handling
-Java strings are immutable with excellent built-in methods. StringBuilder for efficient concatenation. C++ string manipulation requires more care.
-
-## Interview-Specific Tips
-
-### C++
-- Use \`auto\` to reduce verbosity
-- \`emplace_back\` over \`push_back\` for efficiency
-- Pass large objects by const reference
-- Use \`pair\` and \`tuple\` for multi-value returns
-
-### Java
-- Always use \`StringBuilder\` in loops (not string concatenation)
-- \`Arrays.sort\` uses dual-pivot quicksort for primitives, Timsort for objects
-- \`Comparator.comparingInt\` for clean custom sorting
-- \`Map.getOrDefault\` eliminates null checks
-
-## My Recommendation
-
-Use whichever language you can write quickly and debug confidently. For pure algorithm problems, C++ has a slight edge. For system design code, Java is often cleaner. I use C++ for competitive programming and Java for longer interview coding sessions.`,
+Use whichever language you can write quickly and debug confidently. For pure algorithm problems, C++ has a slight edge on speed and brevity. For longer interview sessions where safety matters more, Java is often cleaner. I use C++ for competitive programming and Java for longer interview coding sessions.`,
     },
   ],
 
@@ -2369,338 +1085,81 @@ Use whichever language you can write quickly and debug confidently. For pure alg
       title: 'Pandas & NumPy Cheat Sheet',
       tags: ['python', 'pandas', 'numpy'],
       subject: 'Data Science Tools',
-      content: `# Pandas & NumPy Cheat Sheet
+      content: `NumPy is the foundation of the Python data science stack. Its core object is the ndarray — a fixed-type, contiguous-memory array that enables vectorized operations orders of magnitude faster than Python lists. For array creation: np.array([1, 2, 3]) from a list, np.zeros((3, 4)) for a zero matrix, np.ones((2, 3)), np.arange(0, 10, 0.5) for evenly spaced values, np.linspace(0, 1, 100) for 100 points between 0 and 1, np.random.randn(3, 3) for standard normal random values, and np.eye(4) for an identity matrix.
 
-## NumPy Essentials
+Key NumPy operations: arr.shape, arr.dtype, and arr.ndim for inspection. arr.reshape(3, -1) to reshape (infer one dimension). arr.T for transpose. np.dot(A, B) or A @ B for matrix multiplication. arr[arr > 0] for boolean indexing. np.where(condition, x, y) for conditional selection. Broadcasting automatically expands dimensions to match shapes — a (3,1) array can be added to a (1,4) array to produce a (3,4) result. Understanding broadcasting rules is essential for efficient vectorized code.
 
-NumPy is the foundation of the Python data science stack. Its core object is the ndarray — a fixed-type, contiguous-memory array that enables vectorized operations orders of magnitude faster than Python lists.
+Pandas builds on NumPy with DataFrames (2D labeled data) and Series (1D labeled data). It is the workhorse for data loading, cleaning, transformation, and analysis. Load data with pd.read_csv, pd.read_json, or pd.read_sql.
 
-### Array Creation
-\`\`\`python
-np.array([1, 2, 3])           # from list
-np.zeros((3, 4))              # 3x4 matrix of zeros
-np.ones((2, 3))               # 2x3 matrix of ones
-np.arange(0, 10, 0.5)         # evenly spaced values
-np.linspace(0, 1, 100)        # 100 points between 0 and 1
-np.random.randn(3, 3)         # 3x3 standard normal random
-np.eye(4)                     # 4x4 identity matrix
-\`\`\`
+Exploration methods: df.head(), df.tail(), df.info(), df.describe() for a quick overview. df.isnull().sum() counts missing values per column. df.value_counts('column') gives frequency counts.
 
-### Key Operations
-\`\`\`python
-arr.shape, arr.dtype, arr.ndim
-arr.reshape(3, -1)            # reshape (infer one dimension)
-arr.T                         # transpose
-np.dot(A, B) or A @ B         # matrix multiplication
-arr[arr > 0]                  # boolean indexing
-np.where(condition, x, y)     # conditional selection
-\`\`\`
+Selection and filtering: df['col'] selects a column as a Series, df[['col1', 'col2']] selects multiple columns as a DataFrame. df.loc[row_label, col_label] for label-based selection, df.iloc[row_idx, col_idx] for integer-based selection. df[df['age'] > 25] for boolean filtering. df.query('age > 25 and city == "NYC"') uses query syntax.
 
-### Broadcasting
-NumPy automatically expands dimensions to match shapes during operations. A (3,1) array can be added to a (1,4) array to produce a (3,4) result. Understanding broadcasting rules is essential for writing efficient vectorized code.
+GroupBy and aggregation: df.groupby('category')['sales'].mean() groups and aggregates. For multiple aggregations: df.groupby(['year', 'month']).agg({'sales': 'sum', 'customers': 'count'}). df.pivot_table creates cross-tab summaries.
 
-## Pandas Essentials
-
-Pandas builds on NumPy with DataFrames (2D labeled data) and Series (1D labeled data). It is the workhorse for data loading, cleaning, transformation, and analysis.
-
-### Data Loading
-\`\`\`python
-df = pd.read_csv('data.csv')
-df = pd.read_json('data.json')
-df = pd.read_sql(query, connection)
-\`\`\`
-
-### Exploration
-\`\`\`python
-df.head(), df.tail(), df.info(), df.describe()
-df.shape, df.columns, df.dtypes
-df.isnull().sum()             # count missing values per column
-df.value_counts('column')     # frequency counts
-\`\`\`
-
-### Selection and Filtering
-\`\`\`python
-df['col']                     # select column (Series)
-df[['col1', 'col2']]          # select multiple columns
-df.loc[row_label, col_label]  # label-based selection
-df.iloc[row_idx, col_idx]     # integer-based selection
-df[df['age'] > 25]            # boolean filtering
-df.query('age > 25 and city == "NYC"')  # query syntax
-\`\`\`
-
-### GroupBy and Aggregation
-\`\`\`python
-df.groupby('category')['sales'].mean()
-df.groupby(['year', 'month']).agg({'sales': 'sum', 'customers': 'count'})
-df.pivot_table(values='sales', index='region', columns='quarter', aggfunc='sum')
-\`\`\`
-
-### Common Cleaning Operations
-\`\`\`python
-df.dropna()                   # drop rows with missing values
-df.fillna(0)                  # fill missing values
-df.drop_duplicates()          # remove duplicate rows
-df['col'].astype(float)       # type conversion
-df.rename(columns={'old': 'new'})
-\`\`\`
-
-Pro tip: chain operations with method chaining for readable data pipelines. Use \`.pipe()\` for custom functions in the chain.`,
+Common cleaning operations: df.dropna() drops rows with missing values, df.fillna(0) fills them, df.drop_duplicates() removes duplicates, df['col'].astype(float) converts types, df.rename(columns={'old': 'new'}) renames. Chain operations with method chaining for readable pipelines, and use .pipe() for custom functions in the chain.`,
     },
     {
       title: 'Statistics for ML',
       tags: ['statistics', 'machine-learning'],
       subject: 'Data Science',
-      content: `# Statistics for Machine Learning
+      content: `Machine learning is applied statistics. Every ML model makes assumptions about data distributions, and understanding these assumptions is crucial for choosing the right model, interpreting results, and avoiding common pitfalls.
 
-## Why Statistics Matters for ML
+**Descriptive statistics:** Central tendency — mean is the arithmetic average (sensitive to outliers), median is the middle value (robust to outliers, preferred for skewed distributions), and mode is the most frequent value (useful for categorical data). Dispersion — variance is the average squared deviation from the mean, standard deviation is its square root in original units, and IQR (Q3 - Q1) is a robust spread measure. Distribution shape — skewness describes asymmetry (positive = right tail, negative = left tail) and kurtosis describes tail heaviness relative to a normal distribution.
 
-Machine learning is applied statistics. Every ML model makes assumptions about data distributions, and understanding these assumptions is crucial for choosing the right model, interpreting results, and avoiding common pitfalls.
+**Probability distributions:** Normal (Gaussian) is bell-shaped and defined by mean μ and standard deviation σ. The central limit theorem says sample means approach normality as sample size grows, regardless of the population distribution — this is why many ML algorithms assume normality. Bernoulli models a single trial with probability p; binomial models n independent Bernoulli trials. These are the foundation of logistic regression. Poisson models the count of events in a fixed interval with independent, constant-rate events — used for rare event modeling.
 
-## Descriptive Statistics
+**Hypothesis testing framework:** state H0 (null) and H1 (alternative), choose significance level α (typically 0.05), compute the test statistic and p-value, reject H0 if p-value < α. Common tests: t-test (compare means — one-sample, two-sample, or paired), chi-squared (independence of categorical variables), and ANOVA (compare means across 3+ groups). Critical p-value misunderstanding: the p-value is NOT the probability that H0 is true. It is the probability of observing data as extreme as ours if H0 were true. A low p-value means the data is unlikely under H0, not that H1 is proven.
 
-### Central Tendency
-- **Mean**: arithmetic average — sensitive to outliers
-- **Median**: middle value — robust to outliers, preferred for skewed distributions
-- **Mode**: most frequent value — useful for categorical data
+**Bayesian statistics:** Bayes' theorem says P(A|B) = P(B|A) × P(A) / P(B). Bayesian thinking updates prior beliefs with observed data to produce posterior beliefs. It is the foundation of Naive Bayes classifiers, Bayesian optimization, and probabilistic programming.
 
-### Dispersion
-- **Variance**: average squared deviation from mean
-- **Standard Deviation**: square root of variance, in original units
-- **IQR** (Interquartile Range): Q3 - Q1, robust measure of spread
-
-### Distribution Shape
-- **Skewness**: asymmetry (positive = right tail, negative = left tail)
-- **Kurtosis**: tail heaviness relative to normal distribution
-
-## Probability Distributions
-
-### Normal (Gaussian)
-Bell-shaped, defined by mean μ and standard deviation σ. Central limit theorem: sample means approach normality as sample size increases, regardless of the population distribution. Many ML algorithms assume normally distributed features or residuals.
-
-### Bernoulli and Binomial
-Bernoulli: single trial with probability p. Binomial: n independent Bernoulli trials. Foundation of logistic regression and classification.
-
-### Poisson
-Models count of events in a fixed interval. Assumption: events are independent and occur at a constant rate. Used for rare event modeling.
-
-## Hypothesis Testing
-
-### Framework
-1. State null hypothesis H0 and alternative H1
-2. Choose significance level α (typically 0.05)
-3. Compute test statistic and p-value
-4. Reject H0 if p-value < α
-
-### Common Tests
-- **t-test**: compare means (one-sample, two-sample, paired)
-- **Chi-squared test**: test independence of categorical variables
-- **ANOVA**: compare means across 3+ groups
-
-### p-value Misunderstandings
-The p-value is NOT the probability that H0 is true. It is the probability of observing data as extreme as ours if H0 were true. A low p-value means the data is unlikely under H0, not that H1 is proven.
-
-## Bayesian Statistics
-
-Bayes' theorem: P(A|B) = P(B|A) * P(A) / P(B)
-
-Bayesian thinking updates prior beliefs with observed data to produce posterior beliefs. It is the foundation of Naive Bayes classifiers, Bayesian optimization, and probabilistic programming.
-
-## Key Concepts for ML
-- **Bias-Variance Tradeoff**: simple models underfit (high bias), complex models overfit (high variance)
-- **Cross-Validation**: k-fold CV gives unbiased estimate of model performance
-- **Regularization**: L1 (Lasso) promotes sparsity, L2 (Ridge) reduces coefficient magnitudes
-- **Feature scaling**: standardization (z-score) or normalization (min-max) — critical for distance-based algorithms`,
+Key concepts for ML: **Bias-Variance Tradeoff** — simple models underfit (high bias), complex models overfit (high variance). **Cross-validation** — k-fold CV gives an unbiased estimate of model performance. **Regularization** — L1 (Lasso) promotes sparsity, L2 (Ridge) reduces coefficient magnitudes. **Feature scaling** — standardization (z-score) or normalization (min-max) is critical for distance-based algorithms like k-NN and SVM.`,
     },
     {
       title: 'Data Visualization Best Practices',
       tags: ['visualization', 'data-science'],
       subject: 'Data Science',
-      content: `# Data Visualization Best Practices
+      content: `"The greatest value of a picture is when it forces us to notice what we never expected to see." — John Tukey. Visualization is not just about making pretty charts. It is about communicating data insights clearly and honestly. A good visualization reveals patterns, trends, and outliers that tables of numbers cannot.
 
-## Why Visualization Matters
+**Choosing the right chart:** For comparisons, use a bar chart (horizontal bars for many categories), grouped bar chart (compare categories across groups), or dot plot (cleaner alternative for many categories). For distributions, use a histogram (choose bin size carefully), box plot (shows median, quartiles, outliers — great for comparisons), violin plot (combines box plot with density estimate), or KDE (smooth version of histogram). For relationships, use a scatter plot (two continuous variables, add color/size for more dimensions), heatmap (correlation matrices), or pair plot (scatter matrix for multi-variable exploration). For trends over time, use a line chart or stacked area chart. For proportions — almost never use a pie chart. Humans are bad at comparing angles. Use a bar chart instead.
 
-"The greatest value of a picture is when it forces us to notice what we never expected to see." — John Tukey. Visualization is not just about making pretty charts. It is about communicating data insights clearly and honestly. A good visualization reveals patterns, trends, and outliers that tables of numbers cannot.
+**Design principles:** Edward Tufte's data-ink ratio says maximize the share of ink used to present data. Remove chartjunk: unnecessary gridlines, 3D effects, and decorative elements — every pixel should serve a purpose. For color: use colorblind-friendly palettes like viridis or ColorBrewer. Sequential palettes work for ordered data (light to dark), diverging palettes for data with a meaningful center (red-white-blue), and categorical palettes for unordered groups (max 7-8 distinct colors). Always label axes with units, add a clear descriptive title, include the data source, annotate key points or anomalies, and use consistent scales when comparing across panels.
 
-## Choosing the Right Chart
+**Python libraries:** Matplotlib is the foundation with maximum control but verbose syntax. Seaborn builds on Matplotlib with beautiful defaults designed for statistical visualization. Plotly creates interactive plots great for dashboards and web. Altair uses a declarative grammar of graphics with concise syntax.
 
-### For Comparisons
-- **Bar chart**: compare categories (horizontal bars for many categories)
-- **Grouped bar chart**: compare categories across groups
-- **Dot plot**: cleaner alternative to bar chart for many categories
-
-### For Distributions
-- **Histogram**: show frequency distribution (choose bin size carefully)
-- **Box plot**: show median, quartiles, and outliers (great for comparisons)
-- **Violin plot**: combines box plot with density estimate (shows shape)
-- **KDE (Kernel Density Estimate)**: smooth version of histogram
-
-### For Relationships
-- **Scatter plot**: two continuous variables (add color/size for more dimensions)
-- **Heatmap**: correlation matrices, 2D distributions
-- **Pair plot**: scatter matrix for exploring multi-variable relationships
-
-### For Trends Over Time
-- **Line chart**: time series data (one or multiple series)
-- **Area chart**: stacked areas show composition over time
-
-### For Proportions
-- **Pie chart**: almost never. Humans are bad at comparing angles. Use a bar chart instead.
-- **Stacked bar chart**: better for part-to-whole comparisons
-
-## Design Principles
-
-### Data-Ink Ratio
-Edward Tufte's principle: maximize the share of ink used to present data. Remove chartjunk: unnecessary gridlines, 3D effects, decorative elements. Every pixel should serve a purpose.
-
-### Color
-- Use colorblind-friendly palettes (viridis, ColorBrewer)
-- Sequential palette for ordered data (light to dark)
-- Diverging palette for data with a meaningful center (red-white-blue)
-- Categorical palette for unordered groups (max 7-8 distinct colors)
-
-### Labels and Context
-- Always label axes with units
-- Add a clear, descriptive title
-- Include data source
-- Annotate key points or anomalies
-- Use consistent scales when comparing across panels
-
-## Python Libraries
-
-- **Matplotlib**: foundation, maximum control, verbose syntax
-- **Seaborn**: statistical visualization, beautiful defaults, built on matplotlib
-- **Plotly**: interactive plots, great for dashboards and web
-- **Altair**: declarative grammar of graphics, concise syntax
-
-## Common Mistakes
-
-- Truncated y-axes that exaggerate differences
-- Dual y-axes that mislead about correlation
-- Using 3D when 2D suffices (3D adds visual complexity without information)
-- Cherry-picking date ranges to support a narrative
-- Ignoring confounding variables in scatter plots`,
+Common mistakes to avoid: truncated y-axes that exaggerate differences, dual y-axes that mislead about correlation, using 3D when 2D suffices, cherry-picking date ranges to support a narrative, and ignoring confounding variables in scatter plots.`,
     },
     {
       title: 'Linear Regression Explained',
       tags: ['statistics', 'regression', 'ml'],
       subject: 'Data Science',
-      content: `# Linear Regression Explained
+      content: `Linear regression models the relationship between a dependent variable (target) and one or more independent variables (features) by fitting a linear equation. It is the simplest and most interpretable supervised learning algorithm, and understanding it deeply matters because many advanced methods are extensions of it.
 
-## What Is Linear Regression?
+For one feature the equation is y = β₀ + β₁x + ε, where β₀ is the intercept, β₁ is the slope, and ε is the error term. The goal is finding β₀ and β₁ that minimize the sum of squared residuals: Σ(yᵢ - ŷᵢ)². The closed-form ordinary least squares (OLS) solution is β₁ = Cov(x,y) / Var(x) and β₀ = ȳ - β₁x̄. For multiple features: y = β₀ + β₁x₁ + ... + βₚxₚ + ε, or in matrix form y = Xβ + ε, with OLS solution β = (XᵀX)⁻¹Xᵀy.
 
-Linear regression models the relationship between a dependent variable (target) and one or more independent variables (features) by fitting a linear equation. It is the simplest and most interpretable supervised learning algorithm, and understanding it deeply is essential because many advanced methods are extensions of it.
+Linear regression assumes: (1) **linearity** — the relationship between features and target is linear; (2) **independence** — observations are independent; (3) **homoscedasticity** — constant variance of residuals; (4) **normality** — residuals are normally distributed; (5) **no multicollinearity** — features are not highly correlated with each other. Violating these assumptions leads to biased or inefficient estimates. Always check residual plots and use VIF (Variance Inflation Factor) to detect multicollinearity.
 
-## Simple Linear Regression
+Evaluation metrics: **R² (Coefficient of Determination)** is the proportion of variance explained — R² = 1 - SSR/SST, ranging from 0 (no explanatory power) to 1 (perfect fit). Adjusted R² penalizes for adding irrelevant features. **MSE / RMSE** is mean/root mean squared error in target units. **MAE** is mean absolute error, which is less sensitive to outliers than MSE.
 
-For one feature: y = β₀ + β₁x + ε, where β₀ is the intercept, β₁ is the slope, and ε is the error term.
+When features are many or correlated, OLS overfits and regularization helps by adding a penalty to the loss function. **Ridge (L2)** adds λΣβⱼ² — shrinks coefficients toward zero but keeps all features. **Lasso (L1)** adds λΣ|βⱼ| — drives some coefficients to exactly zero, performing feature selection. **Elastic Net** combines both penalties. The hyperparameter λ controls regularization strength: higher λ means simpler model, higher bias, lower variance.
 
-The goal: find β₀ and β₁ that minimize the sum of squared residuals (SSR):
-SSR = Σ(yᵢ - ŷᵢ)² = Σ(yᵢ - β₀ - β₁xᵢ)²
-
-The closed-form solution (ordinary least squares, OLS): β₁ = Cov(x,y) / Var(x) and β₀ = ȳ - β₁x̄.
-
-## Multiple Linear Regression
-
-For p features: y = β₀ + β₁x₁ + β₂x₂ + ... + βₚxₚ + ε. In matrix form: y = Xβ + ε. The OLS solution: β = (XᵀX)⁻¹Xᵀy.
-
-## Assumptions
-
-Linear regression assumes:
-1. **Linearity**: relationship between features and target is linear
-2. **Independence**: observations are independent of each other
-3. **Homoscedasticity**: constant variance of residuals
-4. **Normality**: residuals are normally distributed
-5. **No multicollinearity**: features are not highly correlated with each other
-
-Violating these assumptions can lead to biased or inefficient estimates. Always check residual plots and VIF (Variance Inflation Factor) for multicollinearity.
-
-## Evaluation Metrics
-
-- **R² (Coefficient of Determination)**: proportion of variance explained. R² = 1 - SSR/SST. Ranges from 0 (no explanatory power) to 1 (perfect fit). Adjusted R² penalizes for adding irrelevant features.
-- **MSE / RMSE**: mean squared error, root mean squared error — in target units
-- **MAE**: mean absolute error — less sensitive to outliers than MSE
-
-## Regularization
-
-When features are many or correlated, OLS overfits. Regularization adds a penalty to the loss function:
-- **Ridge (L2)**: adds λΣβⱼ² — shrinks coefficients toward zero, keeps all features
-- **Lasso (L1)**: adds λΣ|βⱼ| — drives some coefficients to exactly zero (feature selection)
-- **Elastic Net**: combines L1 and L2 penalties
-
-The hyperparameter λ controls regularization strength. Higher λ means more regularization (simpler model, higher bias, lower variance).
-
-## Practical Tips
-
-- Always standardize features before regularized regression
-- Use cross-validation to select λ
-- Check for outliers and influential points (Cook's distance)
-- Consider polynomial features for non-linear relationships
-- If assumptions are violated, consider generalized linear models (GLMs)`,
+Practical tips: always standardize features before regularized regression, use cross-validation to select λ, check for outliers and influential points using Cook's distance, consider polynomial features for non-linear relationships, and if assumptions are violated consider generalized linear models (GLMs).`,
     },
     {
       title: 'Python for Data Analysis',
       tags: ['python', 'data-analysis'],
       subject: 'Data Science',
-      content: `# Python for Data Analysis
+      content: `Python has become the dominant language for data analysis. The key libraries form a cohesive ecosystem: NumPy for numerical computing, pandas for data manipulation, matplotlib/seaborn for visualization, scikit-learn for machine learning, and Jupyter notebooks for interactive exploration.
 
-## The Python Data Science Stack
+Jupyter is the de facto environment for data analysis — each notebook has cells that can be code, markdown, or raw text. Key shortcuts: Shift+Enter to run and move to next cell, Ctrl+Enter to run and stay, B to insert below, A to insert above, DD to delete a cell, and Z to undo delete. Notebooks are great for exploration but poor for production code. For larger projects, refactor analysis code into .py modules and use notebooks only for visualization and reporting.
 
-Python has become the dominant language for data analysis. The key libraries form a cohesive ecosystem: NumPy for numerical computing, pandas for data manipulation, matplotlib/seaborn for visualization, scikit-learn for machine learning, and Jupyter notebooks for interactive exploration.
+**Data loading:** pd.read_csv('data.csv', parse_dates=['date'], index_col='id', na_values=['N/A', '']) loads a CSV with custom settings. For multiple files, use glob.glob('data/*.csv') to get file paths and pd.concat with a list comprehension to combine them. For a SQL database, create a SQLAlchemy engine and use pd.read_sql with a query and the engine.
 
-## Jupyter Notebooks
+**Data cleaning pipeline:** every dataset is dirty. The typical pipeline: (1) inspect shape, dtypes, null counts, unique values per column; (2) handle missing data by dropping, filling (mean/median/mode), or interpolating — document your choice; (3) fix types so dates are datetime and low-cardinality strings use category dtype (saves memory); (4) handle outliers using the IQR method (Q1 - 1.5×IQR, Q3 + 1.5×IQR), z-score, or domain knowledge; (5) deduplicate by key columns; (6) validate value ranges, referential integrity, and business rules.
 
-Jupyter is the de facto environment for data analysis. Each notebook contains cells that can be code, markdown, or raw text. Key shortcuts:
-- Shift+Enter: run cell and move to next
-- Ctrl+Enter: run cell and stay
-- B: insert cell below, A: insert cell above
-- DD: delete cell, Z: undo delete
+**Feature engineering:** transform raw data into features that improve model performance. Binning converts continuous to categorical (age ranges, price tiers). Log transform reduces skewness and handles multiplicative relationships. One-hot encoding converts categorical to binary columns. Interaction features multiply features that have combined effects. Date features extract year, month, day of week, and is_weekend indicators.
 
-Notebooks are great for exploration but poor for production code. For larger projects, refactor analysis code into .py modules and use notebooks for visualization and reporting only.
-
-## Data Loading Patterns
-
-\`\`\`python
-# CSV with custom settings
-df = pd.read_csv('data.csv', parse_dates=['date'], index_col='id', na_values=['N/A', ''])
-
-# Multiple files
-import glob
-files = glob.glob('data/*.csv')
-df = pd.concat([pd.read_csv(f) for f in files], ignore_index=True)
-
-# SQL database
-from sqlalchemy import create_engine
-engine = create_engine('postgresql://user:pass@host:5432/db')
-df = pd.read_sql('SELECT * FROM table WHERE date > %s', engine, params=['2025-01-01'])
-\`\`\`
-
-## Data Cleaning Pipeline
-
-Every dataset is dirty. A typical cleaning pipeline:
-
-1. **Inspect**: shape, dtypes, null counts, unique values per column
-2. **Handle missing data**: drop, fill (mean/median/mode), or interpolate. Document your choice and reasoning.
-3. **Fix types**: dates as datetime, categories as category dtype (saves memory)
-4. **Handle outliers**: IQR method (Q1 - 1.5*IQR, Q3 + 1.5*IQR), z-score, or domain knowledge
-5. **Deduplicate**: identify duplicates by key columns, keep first/last/neither
-6. **Validate**: check value ranges, referential integrity, business rules
-
-## Feature Engineering
-
-Transform raw data into features that improve model performance:
-- **Binning**: convert continuous to categorical (age ranges, price tiers)
-- **Log transform**: reduce skewness, handle multiplicative relationships
-- **One-hot encoding**: convert categorical to binary columns
-- **Interaction features**: multiply features that have combined effects
-- **Date features**: extract year, month, day of week, is_weekend
-
-## Performance Tips
-
-- Use vectorized pandas operations instead of loops (100x faster)
-- Use categorical dtype for string columns with few unique values (saves 90% memory)
-- Use chunked reading for large files: pd.read_csv(file, chunksize=10000)
-- Profile with %timeit and memory_profiler
-- Consider Polars for large datasets — it is faster than pandas for many operations`,
+**Performance tips:** use vectorized pandas operations instead of loops (100x faster). Use categorical dtype for string columns with few unique values (saves up to 90% memory). Use chunked reading for large files with chunksize=10000. Profile with %timeit and memory_profiler. Consider Polars for very large datasets — it is significantly faster than pandas for many operations.`,
     },
   ],
 
@@ -2709,320 +1168,89 @@ Transform raw data into features that improve model performance:
       title: 'Digital Logic & Circuit Design',
       tags: ['digital-logic', 'circuits', 'hardware'],
       subject: 'Computer Engineering',
-      content: `# Digital Logic & Circuit Design
+      content: `Digital circuits operate on binary values (0 and 1). Boolean algebra provides the mathematical foundation for designing and analyzing these circuits.
 
-## Boolean Algebra Fundamentals
+**Basic gates:** AND outputs 1 only if all inputs are 1 (A · B). OR outputs 1 if any input is 1 (A + B). NOT inverts the input. NAND is NOT-AND — output is 0 only if all inputs are 1, and it is a universal gate (can build any logic from NAND alone). NOR is NOT-OR — also universal. XOR outputs 1 if inputs differ — essential for arithmetic. Key laws: De Morgan's says (A · B)' = A' + B' and (A + B)' = A' · B'. Distributive: A · (B + C) = A·B + A·C. Absorption: A + A·B = A. Complement: A + A' = 1, A · A' = 0.
 
-Digital circuits operate on binary values (0 and 1). Boolean algebra provides the mathematical foundation for designing and analyzing these circuits.
+**Combinational circuits** produce outputs that depend only on current inputs — no memory. They are designed using truth tables and Karnaugh maps for minimization. A **multiplexer (MUX)** selects one of multiple inputs based on select lines — a 4:1 MUX uses 2 select bits to choose among 4 data inputs. A **decoder** converts an n-bit binary input to 2^n output lines with exactly one active. A **half adder** adds two bits and produces a sum and carry. A **full adder** adds three bits (including carry-in) and produces sum and carry-out. A **ripple carry adder** chains full adders — simple but slow because carry propagates through every stage. A **carry lookahead adder** computes carries in parallel — faster but requires more gates.
 
-### Basic Gates
-- **AND**: output is 1 only if all inputs are 1. Symbol: A · B
-- **OR**: output is 1 if any input is 1. Symbol: A + B
-- **NOT**: inverts the input. Symbol: A̅ or ¬A
-- **NAND**: NOT-AND — output is 0 only if all inputs are 1. Universal gate.
-- **NOR**: NOT-OR — output is 0 if any input is 1. Universal gate.
-- **XOR**: output is 1 if inputs differ. Essential for arithmetic.
+**Sequential circuits** produce outputs that depend on both current inputs and stored state (memory). They are built from flip-flops. The **SR flip-flop** has set/reset inputs with an invalid state when both are 1. The **D flip-flop** stores its input on a clock edge — the most common in modern designs. The **JK flip-flop** is like SR but toggles when both inputs are 1. The **T flip-flop** toggles on each clock edge and is used in counters. **Finite State Machines (FSMs)** model sequential behavior with states, transitions, inputs, and outputs. Moore machines produce output based on state only; Mealy machines produce output based on both state and current input.
 
-### Key Laws
-- De Morgan's: (A · B)' = A' + B' and (A + B)' = A' · B'
-- Distributive: A · (B + C) = A·B + A·C
-- Absorption: A + A·B = A
-- Complement: A + A' = 1, A · A' = 0
-
-## Combinational Circuits
-
-Outputs depend only on current inputs (no memory). Designed using truth tables and Karnaugh maps for minimization.
-
-### Multiplexer (MUX)
-Selects one of multiple inputs based on select lines. A 4:1 MUX uses 2 select bits to choose among 4 data inputs. MUXes can implement any boolean function.
-
-### Decoder
-Converts n-bit binary input to 2^n output lines, exactly one active. Used in memory addressing and instruction decoding.
-
-### Adder
-- **Half adder**: adds two bits, produces sum and carry
-- **Full adder**: adds three bits (including carry-in), produces sum and carry-out
-- **Ripple carry adder**: chain full adders; simple but slow (carry propagates through all stages)
-- **Carry lookahead adder**: computes carries in parallel; faster but more gates
-
-## Sequential Circuits
-
-Outputs depend on current inputs AND stored state (memory). Built from flip-flops.
-
-### Flip-Flops
-- **SR flip-flop**: set/reset, invalid state when both are 1
-- **D flip-flop**: stores input on clock edge — most common in modern designs
-- **JK flip-flop**: like SR but toggles when both inputs are 1
-- **T flip-flop**: toggles state on each clock edge — used in counters
-
-### Finite State Machines (FSMs)
-FSMs model sequential behavior with states, transitions, inputs, and outputs. Moore machines produce output based on state only. Mealy machines produce output based on state and current input.
-
-## FPGA vs ASIC
-
-FPGAs (Field-Programmable Gate Arrays) are reconfigurable — you can reprogram the circuit. Slower and less power-efficient than ASICs (Application-Specific Integrated Circuits), which are custom-manufactured. FPGAs are used for prototyping, low-volume production, and applications needing updates.`,
+**FPGAs vs ASICs:** FPGAs (Field-Programmable Gate Arrays) are reconfigurable — you can reprogram the circuit after manufacturing. They are slower and less power-efficient than ASICs (Application-Specific Integrated Circuits), which are custom-manufactured for a specific function. FPGAs are used for prototyping, low-volume production, and applications that need updates.`,
     },
     {
       title: 'Embedded Systems with Arduino',
       tags: ['embedded', 'arduino', 'hardware'],
       subject: 'Computer Engineering',
-      content: `# Embedded Systems with Arduino
+      content: `An embedded system is a computer designed for a specific function within a larger system. Unlike general-purpose computers, embedded systems have real constraints: limited memory, processing power, and power budget. They are everywhere — your car has dozens, your microwave has one, your phone has several.
 
-## What Are Embedded Systems?
+**Arduino** is an open-source electronics platform built around the ATmega328P microcontroller. It has digital and analog I/O pins and a simple IDE that abstracts away most bare-metal complexity, making it a great learning platform.
 
-An embedded system is a computer designed for a specific function within a larger system. Unlike general-purpose computers, embedded systems have constraints: limited memory, processing power, and power budget. They are everywhere — your car has dozens, your microwave has one, and your phone has several.
+The board has three types of pins. **Digital pins (0-13)** read or write HIGH (5V) or LOW (0V). **PWM pins** (marked with ~, typically 3, 5, 6, 9, 10, 11) simulate analog output using pulse-width modulation — varying the duty cycle to control things like LED brightness or motor speed. **Analog pins (A0-A5)** read voltages from 0-5V and convert them to 0-1023 using the built-in 10-bit ADC.
 
-## Arduino Platform
+Core functions: pinMode configures a pin as input or output. digitalWrite and digitalRead handle digital I/O. analogWrite sends PWM output (0-255 duty cycle). analogRead samples an analog pin. delay pauses execution for a given number of milliseconds. millis returns the time elapsed since the program started — important for non-blocking timing.
 
-Arduino is an open-source electronics platform with a microcontroller (typically ATmega328P), digital and analog I/O pins, and a simple IDE. It is an excellent learning platform because it abstracts away much of the complexity of bare-metal embedded programming.
+Common sensors include the DHT11/22 for temperature and humidity (digital output), HC-SR04 ultrasonic sensor for distance (2-400cm via sound waves), PIR motion detectors (detect infrared changes from movement), and photoresistors (resistance varies with light intensity). Common actuators: LEDs, servo motors for precise angular control (0-180 degrees), DC motors via an H-bridge driver like the L298N, and buzzers driven by PWM.
 
-### Pin Types
-- **Digital pins (0-13)**: read or write HIGH (5V) or LOW (0V)
-- **PWM pins (~3, 5, 6, 9, 10, 11)**: simulate analog output using pulse-width modulation
-- **Analog pins (A0-A5)**: read analog voltages (0-5V), 10-bit ADC (0-1023)
+Three communication protocols come up constantly. **UART** is point-to-point and asynchronous — TX and RX pins, simple, good for GPS modules and Serial debugging. **I2C** uses two wires (SDA and SCL) and supports up to 127 devices on a single bus with unique addresses — good for sensors and displays, but slower than SPI. **SPI** uses four wires (MOSI, MISO, SCK, SS) and is the fastest option, used for SD cards and high-speed sensors — each device needs its own slave select line.
 
-### Core Functions
-\`\`\`cpp
-pinMode(pin, INPUT/OUTPUT)     // configure pin direction
-digitalWrite(pin, HIGH/LOW)    // set digital output
-digitalRead(pin)               // read digital input
-analogWrite(pin, 0-255)        // PWM output (duty cycle)
-analogRead(pin)                // read analog input (0-1023)
-delay(ms)                      // pause execution
-millis()                       // time since program start
-\`\`\`
-
-## Common Peripherals
-
-### Sensors
-- **Temperature (DHT11/22)**: digital output, measures temp and humidity
-- **Ultrasonic (HC-SR04)**: measures distance using sound waves (2-400cm)
-- **PIR motion detector**: detects infrared radiation changes (movement)
-- **Photoresistor (LDR)**: resistance changes with light intensity
-
-### Actuators
-- **LEDs**: digital output, PWM for dimming
-- **Servo motors**: precise angular positioning (0-180 degrees)
-- **DC motors**: continuous rotation, controlled via H-bridge (L298N)
-- **Buzzers**: tone generation using PWM
-
-## Communication Protocols
-
-### UART (Serial)
-Point-to-point, asynchronous. TX and RX pins. Simple but only connects two devices. Used for debugging (Serial.print) and GPS modules.
-
-### I²C
-Two-wire (SDA, SCL), supports multiple devices on one bus. Each device has a unique address. Good for sensors and displays. Up to 127 devices, but slower than SPI.
-
-### SPI
-Four-wire (MOSI, MISO, SCK, SS), faster than I2C. Full-duplex. Each device needs its own slave select line, so more wires for more devices. Used for SD cards, displays, and high-speed sensors.
-
-## Best Practices
-- Use interrupts instead of polling for time-critical events
-- Avoid delay() in complex programs — use millis() for non-blocking timing
-- Debounce button inputs (hardware RC filter or software timer)
-- Use watchdog timer to recover from crashes
-- Keep ISRs (interrupt service routines) short and fast`,
+A few best practices that matter: use interrupts instead of polling for time-critical events. Avoid delay() in complex programs — use millis() instead for non-blocking timing. Debounce button inputs either with a hardware RC filter or a software timer. Use the watchdog timer to recover from crashes. Keep interrupt service routines short.`,
     },
     {
       title: 'Memory Hierarchy and Caching',
       tags: ['memory', 'caching', 'architecture'],
       subject: 'Computer Engineering',
-      content: `# Memory Hierarchy and Caching
+      content: `Processors are fast. Memory is slow. The gap has widened every decade. A modern CPU can execute an instruction in under 1 nanosecond, but accessing DRAM takes 50-100 nanoseconds. Without caching, the CPU spends most of its time waiting for data — caching exists to bridge that gap.
 
-## The Memory Problem
+The hierarchy runs from fastest and smallest to slowest and largest. Registers are SRAM-based, around 1 KB, with sub-nanosecond access — the fastest storage in the system. L1 cache is 32-64 KB with 1-2 ns latency. L2 is 256 KB to 1 MB at 3-10 ns. L3 is 4-32 MB at 10-30 ns. Main memory (DRAM) is 8-64 GB but costs 50-100 ns. SSDs are 25-100 microseconds. Hard drives are 3-10 milliseconds. Each level is larger, slower, and cheaper than the one above it. The goal is always to keep frequently used data in the fastest levels.
 
-Processors are fast. Memory is slow. The gap between CPU speed and main memory access time has widened every decade. A modern CPU can execute an instruction in less than 1 nanosecond, but accessing DRAM takes 50-100 nanoseconds. Without caching, the CPU would spend most of its time waiting for data.
+Caching works because programs exhibit **locality**. Temporal locality means recently accessed data is likely to be accessed again soon — so keep it in cache. Spatial locality means data near recently accessed data is likely to be needed soon — so cache load whole blocks, not just individual bytes.
 
-## The Hierarchy
+A cache is divided into sets, each holding one or more lines (blocks). A memory address maps to a specific set, and data occupies a line in that set. **Direct-mapped** caches assign each memory block to exactly one cache line — simple but prone to conflict misses. **Set-associative** caches (4-way, 8-way) let a block go in any of N lines in its set, reducing conflicts. **Fully associative** caches let a block go anywhere, eliminating conflict misses but requiring expensive parallel search to find data.
 
-| Level | Technology | Size | Latency | Cost/GB |
-|-------|-----------|------|---------|---------|
-| Registers | SRAM | ~1 KB | <1 ns | Highest |
-| L1 Cache | SRAM | 32-64 KB | 1-2 ns | Very high |
-| L2 Cache | SRAM | 256 KB-1 MB | 3-10 ns | High |
-| L3 Cache | SRAM | 4-32 MB | 10-30 ns | Medium |
-| Main Memory | DRAM | 8-64 GB | 50-100 ns | Low |
-| SSD | Flash | 256 GB-4 TB | 25-100 μs | Very low |
-| HDD | Magnetic | 1-20 TB | 3-10 ms | Lowest |
+Cache misses fall into three categories. **Compulsory misses** (cold misses) happen on the first access to any block — unavoidable. **Capacity misses** happen when the cache is simply too small to hold the working set. **Conflict misses** happen when too many blocks map to the same set. Replacement policies decide which line to evict when a set is full: **LRU** evicts the least recently used line (best general-purpose policy), **random** is surprisingly effective and cheap to implement in hardware, **FIFO** evicts the oldest line but can suffer Belady's anomaly.
 
-Each level is larger, slower, and cheaper than the level above it. The goal: keep frequently used data in the fastest levels.
+**Write-through** means every write goes to cache and main memory simultaneously — simple and consistent but slow. **Write-back** means writes go to cache only, with dirty lines written back to memory on eviction — faster for repeated writes but requires tracking dirty state and a write-back buffer.
 
-## Cache Fundamentals
-
-### Locality
-Caching works because programs exhibit locality:
-- **Temporal locality**: recently accessed data is likely to be accessed again soon
-- **Spatial locality**: data near recently accessed data is likely to be accessed soon
-
-### Cache Organization
-A cache is divided into sets, each containing one or more lines (blocks). A memory address maps to a specific set, and the data occupies a line within that set.
-
-**Direct-mapped**: each memory block maps to exactly one cache line. Simple but suffers from conflict misses.
-
-**Set-associative**: each block maps to a set of N lines (N-way). Reduces conflict misses. 4-way and 8-way are common.
-
-**Fully associative**: a block can go in any cache line. No conflict misses but expensive to search.
-
-### Cache Miss Types (The Three Cs)
-- **Compulsory**: first access to a block (cold miss) — unavoidable
-- **Capacity**: cache is too small to hold all needed data
-- **Conflict**: multiple blocks map to the same set (direct-mapped and set-associative)
-
-### Replacement Policies
-When a cache set is full, which line do we evict?
-- **LRU** (Least Recently Used): evict the line accessed longest ago. Best general-purpose policy.
-- **Random**: surprisingly effective and simple to implement in hardware.
-- **FIFO**: evict the oldest line. Simpler than LRU but can suffer from Belady's anomaly.
-
-## Write Policies
-
-**Write-through**: every write goes to cache AND main memory. Simple, consistent, but slow.
-
-**Write-back**: writes go to cache only; dirty lines are written to memory on eviction. Faster for repeated writes but adds complexity (dirty bits, write-back buffer).
-
-## Virtual Memory
-
-Virtual memory extends the memory hierarchy to disk. Each process has its own virtual address space, mapped to physical memory by the OS and hardware (MMU + page tables). Pages not in physical memory are stored on disk (swap). The TLB (Translation Lookaside Buffer) caches recent virtual-to-physical translations.`,
+Virtual memory extends the hierarchy to disk. Each process gets its own virtual address space, mapped to physical memory by the OS and MMU using page tables. Pages not in physical memory sit on disk (swap). The TLB caches recent virtual-to-physical translations so the OS does not have to walk the page table on every memory access.`,
     },
     {
       title: 'ARM Assembly Basics',
       tags: ['assembly', 'arm', 'low-level'],
       subject: 'Computer Engineering',
-      content: `# ARM Assembly Basics
+      content: `Assembly language gives you direct control over the hardware. Understanding it helps you write better high-level code, debug optimization issues, and appreciate what compilers do. ARM is the most widely used ISA by volume — billions of ARM chips ship annually in phones, tablets, and embedded devices.
 
-## Why Learn Assembly?
+ARM (Advanced RISC Machines) is a **load-store architecture**, meaning arithmetic operates only on registers, and separate load/store instructions move data between registers and memory. It has 16 general-purpose 32-bit registers (R0-R15). R0-R3 hold function arguments and the return value. R4-R11 are callee-saved, meaning a function must restore them before returning. R12 is a scratch register, R13 is the stack pointer (SP), R14 is the link register (LR, stores the return address on function calls), and R15 is the program counter (PC).
 
-Assembly language gives you direct control over the hardware. Understanding assembly helps you write better high-level code, debug optimization issues, reverse engineer binaries, and appreciate what compilers do. ARM is the most widely used ISA by volume — billions of ARM chips ship annually in phones, tablets, and embedded devices.
+The CPSR (Current Program Status Register) holds condition flags: N (negative), Z (zero), C (carry), V (overflow). These are set by comparison instructions like CMP and by suffixed arithmetic instructions like ADDS and SUBS.
 
-## ARM Architecture Overview
+Data processing instructions: MOV loads a value into a register, ADD and SUB do arithmetic, MUL multiplies, AND/ORR/EOR do bitwise operations, and CMP compares two values by subtracting them and updating flags without storing the result.
 
-ARM (Advanced RISC Machines) is a load-store architecture: arithmetic operates only on registers, and separate load/store instructions move data between registers and memory.
+Memory instructions: LDR loads a word from a memory address into a register, STR stores a register value to memory. You can use offsets (LDR R0, [R1, #4] loads from address R1+4), pre-indexed addressing (the base register updates before the load), or post-indexed addressing (the base register updates after the load).
 
-### Registers
-ARM has 16 general-purpose 32-bit registers (R0-R15):
-- R0-R3: function arguments and return value (R0)
-- R4-R11: callee-saved (preserved across function calls)
-- R12 (IP): intra-procedure scratch register
-- R13 (SP): stack pointer
-- R14 (LR): link register (return address)
-- R15 (PC): program counter
+Branch instructions: B for an unconditional jump, BEQ/BNE for conditional branches based on flags, BL for function calls (stores the return address in LR), and BX LR to return from a function.
 
-### Condition Codes (CPSR)
-N (Negative), Z (Zero), C (Carry), V (Overflow). Updated by comparison instructions and suffixed instructions (ADDS, SUBS).
+ARM's most distinctive feature is **conditional execution** — almost any instruction can be conditionally executed by adding a condition suffix like EQ or NE. This avoids branch misprediction penalties for simple if-else logic.
 
-## Instruction Categories
+The calling convention (AAPCS): pass arguments in R0-R3, return value in R0, callee saves and restores R4-R11. A typical function starts with PUSH to save R4-R11 and LR onto the stack, does its work, then ends with POP restoring those registers and loading LR into PC to return.
 
-### Data Processing
-\`\`\`asm
-MOV R0, #42         @ R0 = 42
-ADD R0, R1, R2      @ R0 = R1 + R2
-SUB R3, R3, #1      @ R3 = R3 - 1
-MUL R0, R1, R2      @ R0 = R1 * R2
-AND R0, R1, R2      @ bitwise AND
-ORR R0, R1, R2      @ bitwise OR
-EOR R0, R1, R2      @ bitwise XOR
-CMP R0, R1          @ compare (sets flags, no result stored)
-\`\`\`
-
-### Memory Access
-\`\`\`asm
-LDR R0, [R1]        @ load word from address in R1
-STR R0, [R1]        @ store word to address in R1
-LDR R0, [R1, #4]    @ load from R1 + 4 (offset)
-LDR R0, [R1, #4]!   @ pre-indexed: R1 += 4, then load
-LDR R0, [R1], #4    @ post-indexed: load, then R1 += 4
-\`\`\`
-
-### Branch
-\`\`\`asm
-B label              @ unconditional branch
-BEQ label            @ branch if equal (Z flag set)
-BNE label            @ branch if not equal
-BL function          @ branch with link (function call, saves return addr in LR)
-BX LR                @ return from function
-\`\`\`
-
-### Conditional Execution
-ARM's unique feature: almost any instruction can be conditionally executed by adding a condition suffix. This avoids branch penalties.
-\`\`\`asm
-CMP R0, #0
-MOVEQ R1, #1        @ R1 = 1 if R0 == 0
-MOVNE R1, #0        @ R1 = 0 if R0 != 0
-\`\`\`
-
-## Stack and Function Calls
-
-ARM calling convention (AAPCS): arguments in R0-R3, return value in R0, callee saves R4-R11.
-
-\`\`\`asm
-function:
-    PUSH {R4-R6, LR}    @ save callee-saved registers and return address
-    @ ... function body ...
-    POP {R4-R6, PC}      @ restore registers and return (pop LR into PC)
-\`\`\`
-
-## ARM vs x86
-
-ARM is RISC (fewer, simpler instructions, fixed-length), x86 is CISC (complex instructions, variable-length). ARM prioritizes power efficiency (mobile, embedded), x86 prioritizes raw performance (desktops, servers). Apple Silicon (M-series) has shown that ARM can match x86 performance while using less power.`,
+ARM vs x86: ARM is RISC (fewer, simpler instructions, fixed-length encoding), x86 is CISC (complex instructions, variable-length). ARM prioritizes power efficiency, which is why it dominates mobile and embedded. x86 dominates desktops and servers. Apple Silicon (M-series) has shown that ARM can match x86 performance while using significantly less power.`,
     },
     {
       title: 'Hardware vs Software Tradeoffs',
       tags: ['career', 'engineering', 'hardware'],
       subject: 'Career',
-      content: `# Hardware vs Software Tradeoffs
+      content: `After four years studying both hardware and software, I have been thinking through where to focus my career. This is my current thinking — not a final answer, but a framework for making the decision.
 
-## My Perspective as a Senior in Computer Engineering
+**Hardware engineering** means designing physical systems: digital circuits, PCBs, embedded firmware, ASIC/FPGA design, or semiconductor devices. The work is tangible and deeply constrained by physics, which makes it intellectually satisfying in a different way than software. Specialization creates high barriers to entry and strong job security. Compensation is competitive, especially at semiconductor companies like Nvidia, AMD, Intel, and Qualcomm. The industry has longer product cycles, so there is less churn. The downsides are real though: mistakes are expensive because you cannot patch a chip after fabrication. Iteration cycles are slow — weeks or months for hardware prototypes versus seconds for software. There are fewer companies to work for. EDA tools, oscilloscopes, and logic analyzers are expensive. Remote work is rare.
 
-After four years studying both hardware and software, I have been thinking deeply about where to focus my career. This note captures my current thinking, not as a definitive answer but as a framework for making the decision.
+**Software engineering** spans web development, systems programming, cloud infrastructure, mobile apps, ML/AI, and more. The work is abstract but has massive reach. Market demand is enormous. You can write, test, and deploy in hours. Mistakes are usually fixable with a patch or rollback. Remote work is standard. You can start with just a laptop. Career optionality is broader — it is easier to switch specializations than in hardware. The challenges: higher competition for entry-level roles, tech stack churn (new frameworks constantly), and some of the work can feel less intellectually engaging if you end up building CRUD apps.
 
-## The Hardware Path
+Where I find myself gravitating is the middle ground: **embedded systems and systems programming**. Embedded systems sit at the intersection — you write software that runs on hardware you understand deeply. Systems programming (OS kernels, drivers, firmware, compilers) operates right at the hardware-software boundary. Companies like Apple, Tesla, SpaceX, and Nvidia need engineers who can think across the full stack. That combination of hardware knowledge and software skill is rare and valuable.
 
-### What It Looks Like
-Hardware engineering means designing physical systems: digital circuits, PCBs, embedded firmware, ASIC/FPGA design, or semiconductor devices. The work is tangible — you can hold what you built.
+My current lean: software engineering for my first role, specifically infrastructure or systems work. The faster iteration cycles and broader job market make it the practical first step. But I want to keep hardware skills sharp and eventually move toward embedded systems or hardware-software co-design.
 
-### Strengths
-- Deep specialization creates high barriers to entry and strong job security
-- Problems are deeply constrained by physics, which makes them intellectually satisfying
-- The industry has longer product cycles, meaning less churn and more stability
-- Competitive compensation, especially in semiconductor companies (Nvidia, AMD, Intel, Qualcomm)
-
-### Challenges
-- Mistakes are expensive — you cannot patch a chip after fabrication
-- Iteration cycles are slow (weeks to months for hardware prototypes vs seconds for software)
-- Fewer companies to work for compared to software
-- Requires expensive tools and equipment (EDA tools, oscilloscopes, logic analyzers)
-- Less flexibility in working remotely
-
-## The Software Path
-
-### What It Looks Like
-Software engineering spans web development, systems programming, cloud infrastructure, mobile apps, ML/AI, and more. The work is abstract but has massive reach.
-
-### Strengths
-- Enormous market demand and job availability
-- Fast iteration cycles (write, test, deploy in hours)
-- Mistakes are usually fixable (deploy a patch, roll back)
-- Remote work is standard in many companies
-- Lower barrier to entry — a laptop and internet are enough to start
-- Broader career optionality (switch between specializations more easily)
-
-### Challenges
-- Higher competition for entry-level positions
-- Tech stack churn can be exhausting (new frameworks every year)
-- Some problems feel less tangible (another CRUD app vs designing a processor)
-
-## The Middle Ground: Embedded Systems and Systems Programming
-
-This is where I find myself gravitating. Embedded systems sit at the intersection: you write software that runs on hardware you understand deeply. Systems programming (OS kernels, drivers, firmware, compilers) operates at the hardware-software boundary.
-
-Companies like Apple, Tesla, SpaceX, and Nvidia need engineers who can think across the stack. Understanding both hardware constraints and software architecture is a rare and valuable combination.
-
-## My Decision
-
-I am leaning toward software engineering for my first role, specifically infrastructure or systems engineering. The faster iteration cycles and broader job market make it a practical first step. But I want to keep my hardware skills sharp and eventually move toward embedded systems or hardware-software co-design.
-
-The engineering fundamentals transfer. What matters most early in your career is working on hard problems with good mentors. The specific domain matters less than the depth of the work.`,
+The fundamental insight is that the engineering skills transfer. What matters most early in your career is working on hard problems with good mentors — the specific domain matters less than the depth of the work.`,
     },
   ],
 
@@ -3031,285 +1259,81 @@ The engineering fundamentals transfer. What matters most early in your career is
       title: 'Organic Chemistry Reaction Mechanisms',
       tags: ['organic-chemistry', 'reactions'],
       subject: 'Chemistry',
-      content: `# Organic Chemistry Reaction Mechanisms
+      content: `Organic chemistry is not about memorizing hundreds of reactions. It is about understanding a handful of fundamental mechanisms and applying them to predict new reactions. If you understand how electrons move, you can figure out almost any reaction.
 
-## Why Mechanisms Matter
+**SN1** (Substitution, Nucleophilic, Unimolecular) is a two-step process: the leaving group departs first, forming a carbocation intermediate, and then the nucleophile attacks. The rate depends only on the substrate concentration (rate = k[substrate]). Favored by tertiary substrates (stable carbocations), weak nucleophiles, and polar protic solvents. Product is a racemic mixture because the nucleophile can attack from either face.
 
-Organic chemistry is not about memorizing hundreds of reactions. It is about understanding a handful of fundamental mechanisms and applying them to predict new reactions. If you understand how electrons move, you can figure out almost any reaction.
+**SN2** (Substitution, Nucleophilic, Bimolecular) is one concerted step: the nucleophile attacks from the back as the leaving group departs simultaneously (backside attack). Rate = k[substrate][nucleophile]. Favored by primary substrates (less steric hindrance), strong nucleophiles, and polar aprotic solvents. Product has inverted configuration (Walden inversion).
 
-## The Four Fundamental Mechanisms
+**E1** (Elimination, Unimolecular) competes with SN1 and follows the same first step — the leaving group departs to form a carbocation. Then a base removes a proton from an adjacent carbon, forming a double bond. Favored by tertiary substrates, weak bases, and high temperature.
 
-### SN1 (Substitution, Nucleophilic, Unimolecular)
-1. The leaving group departs, forming a carbocation intermediate
-2. The nucleophile attacks the carbocation
+**E2** (Elimination, Bimolecular) is concerted: base removes the proton as the leaving group departs, directly forming the double bond. Requires anti-periplanar geometry — the proton and leaving group must be on opposite sides of the molecule. Favored by strong bulky bases, primary or secondary substrates, and high temperature.
 
-Rate = k[substrate]. Only depends on substrate concentration. Favored by: tertiary substrates (stable carbocations), weak nucleophiles, polar protic solvents. Product: racemic mixture (nucleophile can attack from either side).
+Predicting which mechanism applies: primary substrates with a strong nucleophile almost always go SN2; with a bulky base, E2. Secondary substrates are context-dependent — strong nucleophile/base gives SN2 or E2 depending on base size. Tertiary substrates with a strong base go E2; with a weak nucleophile they go SN1 or E1. Temperature breaks the tie between substitution and elimination — higher temperature favors elimination. Solvent matters too: polar protic solvents stabilize the carbocation intermediate and favor SN1/E1; polar aprotic solvents favor SN2/E2.
 
-### SN2 (Substitution, Nucleophilic, Bimolecular)
-One concerted step: nucleophile attacks from the back as the leaving group departs. Rate = k[substrate][nucleophile]. Favored by: primary substrates (less steric hindrance), strong nucleophiles, polar aprotic solvents. Product: inversion of configuration (Walden inversion).
-
-### E1 (Elimination, Unimolecular)
-1. Leaving group departs, forming carbocation
-2. Base removes a proton from the adjacent carbon, forming a double bond
-
-Often competes with SN1. Favored by: tertiary substrates, weak bases, high temperature.
-
-### E2 (Elimination, Bimolecular)
-One concerted step: base removes proton as leaving group departs, forming double bond. Requires anti-periplanar geometry (proton and leaving group on opposite sides). Favored by: strong, bulky bases, primary or secondary substrates, high temperature.
-
-## How to Predict Which Mechanism
-
-| Substrate | Strong Nucleophile/Base | Weak Nucleophile/Base |
-|-----------|------------------------|----------------------|
-| Primary | SN2 (or E2 if bulky base) | SN2 (slow) |
-| Secondary | SN2 or E2 (depends on base size) | SN1 or E1 |
-| Tertiary | E2 | SN1 or E1 |
-
-Temperature: higher temperature favors elimination over substitution.
-Solvent: polar protic favors SN1/E1; polar aprotic favors SN2/E2.
-
-## Functional Group Transformations
-
-Understanding these four mechanisms lets you predict transformations across functional groups: alcohols, alkyl halides, ethers, epoxides, and more. The electrons always move from nucleophile (electron-rich) to electrophile (electron-poor). Follow the electrons and the mechanism follows.`,
+These four mechanisms cover transformations across all the major functional groups: alcohols, alkyl halides, ethers, epoxides, and more. The principle is always the same — electrons move from nucleophile (electron-rich) to electrophile (electron-poor). Follow the electrons.`,
     },
     {
       title: 'MCAT Study Strategy',
       tags: ['mcat', 'pre-med', 'study-tips'],
       subject: 'Pre-Med',
-      content: `# MCAT Study Strategy
+      content: `The MCAT is a 7.5-hour exam with four sections: Chemical and Physical Foundations (Chem/Phys), Critical Analysis and Reasoning Skills (CARS), Biological and Biochemical Foundations (Bio/Biochem), and Psychological, Social, and Biological Foundations (Psych/Soc). Target score is 515+ for competitive MD programs.
 
-## Overview
+My study plan is structured in three phases. The first six weeks are content review: weeks 1-2 cover biology and biochemistry (amino acids, metabolism, molecular biology), weeks 3-4 cover general and organic chemistry (stoichiometry, acids/bases, mechanisms), week 5 covers physics (mechanics, electricity, optics, fluids), and week 6 covers psychology and sociology (learning theories, social structures, research design). I use Kaplan or Princeton Review books for the content structure and supplement with Khan Academy videos for the harder topics. The key is taking notes in my own words — reformulating builds deeper understanding than re-reading.
 
-The MCAT (Medical College Admission Test) is a 7.5-hour exam covering four sections: Chemical and Physical Foundations (Chem/Phys), Critical Analysis and Reasoning Skills (CARS), Biological and Biochemical Foundations (Bio/Biochem), and Psychological, Social, and Biological Foundations (Psych/Soc). Target score: 515+ for competitive MD programs.
+The next four weeks shift to practice and application. Daily CARS passages are non-negotiable — this section only improves with consistent, deliberate practice. Every other day I work through AAMC section bank passages. Once a week I do a full-length practice exam and spend the next day reviewing every missed question in detail. Throughout all of this, Anki flashcards run continuously for terms and pathways.
 
-## Timeline (Summer 2026 Prep)
+The final two weeks are all AAMC full-length exams. I take four of them, review every missed question, do targeted review of weak areas, and taper study intensity two days before the real exam. The MCAT is a marathon — stamina matters as much as knowledge.
 
-### Phase 1: Content Review (6 weeks)
-- Week 1-2: Biology and biochemistry (amino acids, metabolism, molecular biology)
-- Week 3-4: General and organic chemistry (stoichiometry, acids/bases, mechanisms)
-- Week 5: Physics (mechanics, electricity, optics, fluids)
-- Week 6: Psychology and sociology (learning theories, social structures, research design)
+The techniques that actually work: **active recall** over re-reading (close the book and try to retrieve the material), **spaced repetition** with Anki (start early so cards are mature by exam day — the spacing intervals of 1, 3, 7, 14 days are built into the algorithm), **simulated exam conditions** every practice test (no phone, correct break times, same start time as the real thing), and for CARS specifically, 2-3 passages daily for at least 8 weeks — read actively to find the main idea and author's tone, answer from the passage not memory, and eliminate wrong answers before picking the best one.
 
-Use Kaplan or Princeton Review books for content. Supplement with Khan Academy videos for difficult topics. Take notes in your own words — the act of reformulating builds understanding.
-
-### Phase 2: Practice and Application (4 weeks)
-- Daily: 2-3 CARS passages (this section needs consistent practice)
-- Every other day: section bank passages (AAMC official)
-- Weekly: one full-length practice exam (review in detail the next day)
-- Continuously: Anki flashcards for terms and pathways
-
-### Phase 3: Full-Length Exams and Review (2 weeks)
-- 4 full-length AAMC practice exams
-- Detailed review of every missed question
-- Identify weak areas and do targeted review
-- Taper study intensity 2 days before the real exam
-
-## Study Techniques
-
-### Active Recall
-Do not just re-read notes. Close the book and try to recall the material. Flashcards (Anki with spaced repetition) are the most efficient tool for memorization-heavy content.
-
-### Spaced Repetition
-Review material at increasing intervals: 1 day, 3 days, 7 days, 14 days. Anki automates this. Start Anki cards early so they are mature by exam day.
-
-### Practice Under Exam Conditions
-Every practice exam should simulate real conditions: no phone, no breaks outside the scheduled ones, same start time. The MCAT is a marathon — stamina is as important as knowledge.
-
-### CARS Strategy
-CARS is the hardest section to improve. My approach:
-1. Read the passage actively (3-4 minutes) — identify main idea, author's tone, argument structure
-2. Answer questions by referring back to the passage (do not rely on memory)
-3. Eliminate wrong answers before selecting the best one
-4. Practice 2-3 passages daily for at least 8 weeks
-
-## Resources
-- AAMC official materials (section banks, practice exams) — most representative
-- Kaplan/Princeton Review for content review books
-- Anki (premed community decks: Miledown, JackSparrow)
-- Khan Academy MCAT collection (free, excellent for Psych/Soc)
-- UWorld MCAT (excellent for practice questions with detailed explanations)`,
+Resources worth using: AAMC official materials are the most representative of the real exam. Kaplan/Princeton Review for content books. Anki with community decks (Miledown and JackSparrow are the best premed decks). Khan Academy's MCAT collection is free and excellent for Psych/Soc. UWorld MCAT has the best practice question explanations.`,
     },
     {
       title: 'Biochemistry: Enzyme Kinetics',
       tags: ['biochemistry', 'enzymes'],
       subject: 'Biochemistry',
-      content: `# Biochemistry: Enzyme Kinetics
+      content: `Enzymes are biological catalysts — proteins that speed up chemical reactions by lowering the activation energy without being consumed. Without enzymes, most biochemical reactions would be too slow to sustain life.
 
-## What Are Enzymes?
+The **Michaelis-Menten model** describes the kinetics of a simple enzyme reaction: E + S ⇌ ES → E + P. The equation is v = (Vmax × [S]) / (Km + [S]), where v is the reaction velocity, Vmax is the maximum velocity when all enzyme is saturated, Km is the substrate concentration at half-Vmax (the Michaelis constant), and [S] is the substrate concentration. Low Km means high affinity — the enzyme reaches half-Vmax at low substrate concentrations. High Km means low affinity. The **Lineweaver-Burk plot** is the double reciprocal: 1/v vs 1/[S]. It turns the hyperbolic curve into a straight line with y-intercept = 1/Vmax, x-intercept = -1/Km, and slope = Km/Vmax. It is useful for distinguishing inhibition types visually.
 
-Enzymes are biological catalysts — proteins that speed up chemical reactions by lowering the activation energy without being consumed. They are essential for life: without enzymes, most biochemical reactions would be too slow to sustain a living organism.
+There are four types of inhibition. **Competitive** inhibition: the inhibitor binds to the active site and competes with substrate. It increases the apparent Km but leaves Vmax unchanged — you can overcome it with excess substrate. On a Lineweaver-Burk plot, lines intersect on the y-axis. **Uncompetitive** inhibition: the inhibitor binds only to the ES complex, not the free enzyme. Both Km and Vmax decrease by the same factor. Lineweaver-Burk lines are parallel. **Noncompetitive** inhibition: the inhibitor binds to a site other than the active site, reducing catalytic efficiency regardless of whether substrate is bound. Vmax decreases, Km stays the same. Lines intersect on the x-axis. **Mixed** inhibition: the inhibitor binds both free enzyme and ES complex with different affinities, changing both Km and Vmax.
 
-## Michaelis-Menten Kinetics
+**Allosteric enzymes** have regulatory sites separate from the active site. Binding an activator or inhibitor at the allosteric site changes the enzyme's conformation, affecting activity. They often show sigmoidal kinetics (cooperative binding) rather than hyperbolic. Key allosteric enzymes in metabolism: **phosphofructokinase (PFK-1)** is the rate-limiting enzyme of glycolysis, activated by AMP and inhibited by ATP and citrate. **Pyruvate kinase** is activated by fructose-1,6-bisphosphate (feedforward activation). **Acetyl-CoA carboxylase** is the rate-limiting enzyme in fatty acid synthesis, activated by citrate and inhibited by palmitoyl-CoA.
 
-The foundational model for enzyme kinetics. For a simple enzyme-catalyzed reaction:
-
-E + S ⇌ ES → E + P
-
-The Michaelis-Menten equation:
-v = (Vmax × [S]) / (Km + [S])
-
-Where:
-- **v** = reaction velocity
-- **Vmax** = maximum velocity (when all enzyme is saturated with substrate)
-- **Km** = Michaelis constant (substrate concentration at half-Vmax)
-- **[S]** = substrate concentration
-
-### Interpreting Km
-Low Km means high affinity — the enzyme reaches half-Vmax at low substrate concentrations. High Km means low affinity — you need lots of substrate to get the enzyme working at half speed.
-
-### Lineweaver-Burk Plot
-Double reciprocal plot: 1/v vs 1/[S]. Transforms the hyperbolic curve into a straight line. Y-intercept = 1/Vmax, X-intercept = -1/Km, slope = Km/Vmax. Useful for distinguishing inhibition types.
-
-## Enzyme Inhibition
-
-### Competitive Inhibition
-Inhibitor binds to the active site, competing with substrate. Effect: increases apparent Km (need more substrate to overcome), Vmax unchanged (can be overcome with excess substrate). Lineweaver-Burk: lines intersect on y-axis.
-
-### Uncompetitive Inhibition
-Inhibitor binds only to the ES complex (not free enzyme). Effect: both Km and Vmax decrease. Lineweaver-Burk: parallel lines.
-
-### Noncompetitive Inhibition
-Inhibitor binds to enzyme at a site other than the active site, reducing catalytic efficiency regardless of substrate binding. Effect: Vmax decreases, Km unchanged. Lineweaver-Burk: lines intersect on x-axis.
-
-### Mixed Inhibition
-Inhibitor binds to both free enzyme and ES complex with different affinities. Changes both Km and Vmax.
-
-## Allosteric Regulation
-
-Allosteric enzymes have regulatory sites separate from the active site. Binding of an allosteric activator or inhibitor changes enzyme conformation, affecting activity. These enzymes often show sigmoidal kinetics rather than hyperbolic (cooperative binding).
-
-Key allosteric enzymes in metabolism:
-- **Phosphofructokinase (PFK-1)**: rate-limiting enzyme of glycolysis, activated by AMP, inhibited by ATP and citrate
-- **Pyruvate kinase**: activated by fructose-1,6-bisphosphate (feedforward activation)
-- **Acetyl-CoA carboxylase**: rate-limiting in fatty acid synthesis, activated by citrate, inhibited by palmitoyl-CoA
-
-## Clinical Relevance
-
-Many drugs work by inhibiting specific enzymes. Statins inhibit HMG-CoA reductase (cholesterol synthesis). ACE inhibitors block angiotensin-converting enzyme (blood pressure). Understanding kinetics helps predict drug dosing, side effects, and interactions.`,
+Clinical relevance: many drugs are enzyme inhibitors. Statins inhibit HMG-CoA reductase to lower cholesterol. ACE inhibitors block angiotensin-converting enzyme to reduce blood pressure. Understanding kinetics tells you how to dose them, what happens when you add more substrate, and how they interact with other drugs.`,
     },
     {
       title: 'Research Methods in Biology',
       tags: ['research-methods', 'biology'],
       subject: 'Biology',
-      content: `# Research Methods in Biology
+      content: `At its core, biological research follows the scientific method: observation, question, hypothesis, experiment, analysis, conclusion. In practice it is messier and more iterative, but the structure provides a framework for producing reliable knowledge.
 
-## The Scientific Method
+Good experimental design starts with defining variables clearly. The **independent variable** is what the researcher manipulates. The **dependent variable** is what gets measured. **Controlled variables** are kept constant to isolate the effect. **Confounding variables** are uncontrolled factors that could influence the result and invalidate the conclusions. Controls are equally important: a **negative control** has no treatment and establishes the baseline, a **positive control** uses a known treatment to confirm the experimental system is working, and the experimental group gets the actual treatment being tested. Every experiment needs sufficient replication — statistical power analysis determines the minimum sample size to detect a real effect with confidence. Underpowered studies produce unreliable results and waste resources.
 
-At its core, biological research follows the scientific method: observation, question, hypothesis, experiment, analysis, conclusion. But in practice, research is messy, iterative, and full of unexpected results. The method provides structure, not a rigid recipe.
+Common techniques in molecular biology: **PCR** (Polymerase Chain Reaction) amplifies specific DNA sequences exponentially using thermocycling — essential for cloning, diagnostics, and forensics. **Gel electrophoresis** separates DNA, RNA, or proteins by size in an electric field — smaller molecules travel faster through the gel matrix. **Western blot** detects specific proteins using antibodies — you lyse cells, separate by gel electrophoresis, transfer to a membrane, and probe with a primary and secondary antibody. **CRISPR-Cas9** is the revolutionary genome editing tool — guide RNA directs the Cas9 protein to cut at a specific DNA sequence, enabling gene knockout, knock-in, and functional studies.
 
-## Experimental Design
+For microscopy: **light microscopy** goes up to about 1000x magnification and uses staining to reveal cellular structures. **Fluorescence microscopy** uses fluorescent dyes or GFP-tagged proteins to illuminate specific structures with high specificity. **Electron microscopy** (TEM and SEM) gives nanometer resolution and reveals ultrastructure, but requires fixed and dead specimens.
 
-### Variables
-- **Independent variable**: what the researcher manipulates
-- **Dependent variable**: what is measured
-- **Controlled variables**: kept constant to isolate the effect
-- **Confounding variables**: uncontrolled factors that could influence the dependent variable
+**Cell culture** grows cells in controlled conditions outside the organism. Primary cells come directly from tissue and behave more naturally but have limited lifespans. Cell lines are immortalized and can be passaged indefinitely. Aseptic technique is critical — contamination ruins experiments.
 
-### Controls
-- **Negative control**: no treatment, establishes baseline
-- **Positive control**: known treatment that should produce a known result, validates the experimental system
-- **Experimental group**: receives the treatment being tested
+Statistical tools used in biology: t-test compares means of two groups, ANOVA compares three or more, chi-squared tests independence of categorical variables, and Pearson's r measures linear correlation. The conventional significance threshold is p < 0.05, but effect size matters more than p-value alone.
 
-### Replication and Sample Size
-Experiments must be replicated to ensure results are reproducible and not due to chance. Statistical power analysis determines the minimum sample size needed to detect a meaningful effect. Underpowered studies waste resources and produce unreliable results.
-
-## Common Techniques
-
-### Microscopy
-- **Light microscopy**: up to 1000x magnification, staining reveals cellular structures
-- **Fluorescence microscopy**: fluorescent dyes or GFP-tagged proteins illuminate specific structures
-- **Electron microscopy (TEM/SEM)**: nanometer resolution, reveals ultrastructure but requires fixed, dead specimens
-
-### Molecular Biology
-- **PCR** (Polymerase Chain Reaction): amplifies specific DNA sequences exponentially. Essential for cloning, diagnostics, forensics.
-- **Gel electrophoresis**: separates DNA/RNA/proteins by size in an electric field. Smaller molecules travel faster through the gel matrix.
-- **Western blot**: detect specific proteins using antibodies. Lyse cells, separate by gel electrophoresis, transfer to membrane, probe with antibody.
-- **CRISPR-Cas9**: genome editing tool. Guide RNA directs Cas9 to cut specific DNA sequences. Revolutionary for gene knockout, knock-in, and functional studies.
-
-### Cell Culture
-Growing cells in controlled conditions outside the organism. Primary cells (directly from tissue) vs cell lines (immortalized, indefinite passage). Aseptic technique is critical to prevent contamination.
-
-## Statistical Analysis
-
-- **t-test**: compare means of two groups
-- **ANOVA**: compare means of three or more groups
-- **Chi-squared**: test categorical data independence
-- **Correlation**: measure strength of linear relationship (Pearson's r)
-- **p-value < 0.05**: conventional threshold for statistical significance
-
-## Reading Scientific Papers
-
-Structure: Abstract, Introduction, Methods, Results, Discussion. Read in this order: Abstract (overview), Figures/Tables (key data), Discussion (interpretation), Methods (details). A good researcher reads critically: what are the limitations? Are the controls adequate? Do the conclusions follow from the data?`,
+When reading a paper, go in this order: Abstract for overview, then Figures and Tables to see the actual data, then Discussion for interpretation, then Methods for details. Always ask: are the controls adequate? Are the sample sizes sufficient? Do the conclusions actually follow from the data?`,
     },
     {
       title: 'Medical School Application Timeline',
       tags: ['med-school', 'applications'],
       subject: 'Pre-Med',
-      content: `# Medical School Application Timeline
+      content: `Applying to medical school is a multi-year process. Starting early reduces stress and improves outcomes. This is my working timeline from sophomore year through submission.
 
-## Overview
+**Sophomore year (2025-2026):** Academically, I need to maintain 3.7+ GPA in both science and cumulative courses. Prerequisites to complete: Gen Chem I/II, Organic Chem I/II, Biology I/II, Physics I/II, Biochemistry, English. Taking upper-level sciences that genuinely interest me (immunology, genetics, neuroscience) helps both GPA and application narrative. For clinical experience, I am volunteering at a hospital targeting 100+ hours by application time, shadowing physicians across 3-4 specialties (40+ hours total), and considering an EMT certification or medical scribe role for deeper exposure. In research, I joined a lab aiming for 150+ hours and am working toward a poster presentation — the PI relationship is also critical for a strong recommendation letter. Extracurriculars: leadership in a health-related student organization, community service (non-clinical — tutoring, food bank, mentoring), and continuing meaningful activities I already have rather than scrambling to start new ones.
 
-Applying to medical school is a multi-year process. This timeline covers the major milestones from sophomore year through application submission. Starting early reduces stress and improves outcomes.
+**Junior year (2026-2027):** Fall is MCAT prep season — content review 3-4 months before the test date, plus requesting letters of recommendation early and starting the personal statement draft. Spring is for taking the MCAT (ideally January-March for June submission), targeting 515+ for competitive MD programs or 510+ for DO. Also the time to research schools and build a balanced list of 15-25 schools (reach, target, safety). The summer before senior year is when AMCAS opens (May) and submissions should go in June. Secondary essays should be pre-written for common prompts. Interview season runs August through March.
 
-## Sophomore Year (Current — 2025-2026)
+Target metrics for competitive applications: 3.7+ cumulative and science GPA, 515+ MCAT, 200+ clinical hours, 300+ research hours, 40+ shadowing hours, 150+ volunteer hours. These are targets not minimums — strong essays and letters can compensate for a metric slightly below, but being meaningfully below in multiple areas is difficult to overcome.
 
-### Academics
-- Maintain 3.7+ GPA (science and cumulative)
-- Complete prerequisites: Gen Chem I/II, Organic Chem I/II, Biology I/II, Physics I/II, Biochemistry, English
-- Take upper-level sciences that interest you (immunology, genetics, neuroscience)
-
-### Clinical Experience
-- Begin volunteering at a hospital or clinic (target 100+ hours by application)
-- Shadow physicians in different specialties (target 3-4 specialties, 40+ hours total)
-- Consider becoming an EMT or medical scribe for deeper clinical exposure
-
-### Research
-- Join a research lab (aim for 150+ hours by application)
-- Work on a project that could lead to a publication or poster presentation
-- Build a relationship with PI for a strong letter of recommendation
-
-### Extracurriculars
-- Leadership in a student organization (preferably health-related)
-- Community service (non-clinical — tutoring, food bank, mentoring)
-- Continue meaningful activities from high school rather than starting many new ones
-
-## Junior Year (2026-2027)
-
-### Fall Semester
-- Begin MCAT content review (3-4 months before test date)
-- Request letters of recommendation from professors, research PI, and physician you shadowed
-- Finalize your personal statement topic — start brainstorming and drafting
-
-### Spring Semester
-- Take the MCAT (ideally January-March for June application submission)
-- Target score: 515+ for competitive MD programs, 510+ for DO programs
-- Research schools: create a balanced list of reach, target, and safety schools (15-25 schools)
-- Finalize personal statement draft
-
-### Summer Before Senior Year
-- AMCAS primary application opens in May, submit in June
-- Write secondary essays (pre-write common prompts)
-- Interview season begins in August and runs through March
-- Continue clinical experience and research
-
-## Key Metrics for Competitive Applications
-
-| Component | Target |
-|-----------|--------|
-| GPA (cumulative) | 3.7+ |
-| GPA (science) | 3.7+ |
-| MCAT | 515+ |
-| Clinical hours | 200+ |
-| Research hours | 300+ |
-| Shadowing hours | 40+ |
-| Volunteer hours | 150+ |
-
-## Personal Statement Tips
-- Tell a specific story that reveals your motivation for medicine
-- Show, do not tell — use concrete experiences, not generic statements
-- Connect your unique background to your vision for your medical career
-- Have 3-4 people review it (advisor, writing center, physician mentor, friend outside medicine)
-- Revise at least 5 times before submitting`,
+Personal statement advice I keep coming back to: tell a specific story that reveals your motivation for medicine — not a generic "I want to help people" statement. Show, don't tell. Connect your unique background to your vision for your career. Get 3-4 reviewers from different perspectives (advisor, writing center, physician mentor, someone outside medicine). Plan to revise at least five times before submitting.`,
     },
   ],
 
@@ -3318,352 +1342,85 @@ Applying to medical school is a multi-year process. This timeline covers the maj
       title: 'Investment Banking Recruiting Guide',
       tags: ['finance', 'recruiting', 'ib'],
       subject: 'Finance',
-      content: `# Investment Banking Recruiting Guide
+      content: `Investment banking recruiting is notoriously early and structured. For summer analyst positions — the primary entry point — the timeline has shifted earlier every year.
 
-## The IB Recruiting Timeline
+**Freshman year:** Join finance clubs (Investment Club, Financial Analysts Society). Learn basic financial concepts: DCF, trading multiples, how the three financial statements work. Start networking with upperclassmen who have interned.
 
-Investment banking recruiting is notoriously early and structured. For summer analyst positions (the primary entry point), the timeline has shifted earlier each year.
+**Sophomore year (current):** Fall is networking season — attend info sessions, reach out to alumni on LinkedIn, practice your story until it sounds natural. Winter is when applications open for summer analyst programs at bulge brackets, usually January-February. Spring is first-round interviews (behavioral plus technical screens). Summer is superday season — multiple back-to-back interviews at the bank in a single day.
 
-### Freshman Year
-- Join finance clubs (Investment Club, Financial Analysts Society)
-- Learn basic financial concepts (DCF, multiples, financial statements)
-- Start networking with upperclassmen who interned in IB
+**Junior year:** The summer analyst internship is 10 weeks and is the real evaluation. Perform well and you receive a full-time return offer. Most banks convert 70-90% of summer analysts.
 
-### Sophomore Year (Current)
-- **Fall**: Networking season begins. Attend info sessions, reach out to alumni, practice your story
-- **Winter**: Applications open for summer analyst programs (January-February for bulge brackets)
-- **Spring**: First-round interviews (behavioral + technical screens)
-- **Summer**: Superday interviews (multiple back-to-back interviews at the bank)
+Cold emailing works if done right. Keep it under five sentences: one line about who you are, how you found them, a specific thoughtful question about their experience, and a request for a 15-minute call. Follow up once after 5-7 days. If still no response, move on. On the call, listen more than you talk — ask about their path, what they like about the role, what advice they would give. Take notes. Send a thank-you email within 24 hours.
 
-### Junior Year
-- Summer analyst internship (10 weeks, the real evaluation)
-- Perform well → receive full-time return offer
-- Most banks convert 70-90% of their summer analysts to full-time
+For technical preparation, you need to know the three financial statements cold. The income statement runs from revenue through COGS, operating expenses, interest, taxes, to net income. The balance sheet shows assets = liabilities + equity at a point in time. The cash flow statement starts with net income and adjusts for non-cash items and working capital changes. The key connection: net income flows from the income statement into retained earnings on the balance sheet, and also starts the cash flow statement. You need to know the three valuation methods: **DCF** (project free cash flows, discount using WACC), **comparable companies** (apply EV/EBITDA or P/E multiples from similar public companies), and **precedent transactions** (apply multiples from past M&A deals, which include a control premium).
 
-## Networking (The Most Important Skill)
+Common technical questions to practice: walk me through a DCF, how does depreciation affect all three statements, what happens to each statement when inventory increases by $10, and why might a company with positive net income go bankrupt.
 
-Cold emailing works if done right. Template:
-1. One line about who you are
-2. How you found them (school alumni database, LinkedIn)
-3. A specific, thoughtful question about their experience
-4. Request for a 15-minute call (not coffee — they are busy)
-5. Keep it under 5 sentences
-
-Follow up once after 5-7 days. If no response, move on. Do not be pushy.
-
-On the call: listen more than you talk. Ask about their path, what they like about the role, and what advice they would give. Take notes. Send a thank-you email within 24 hours.
-
-## Technical Preparation
-
-### The Three Statements
-- Income statement: revenue, COGS, operating expenses, net income
-- Balance sheet: assets = liabilities + equity
-- Cash flow statement: operating, investing, financing activities
-- How they connect: net income flows to retained earnings (BS) and starts cash flow (CFS)
-
-### Valuation Methods
-- **DCF** (Discounted Cash Flow): project free cash flows, discount to present value using WACC
-- **Comparable Companies**: apply trading multiples (EV/EBITDA, P/E) from similar companies
-- **Precedent Transactions**: apply multiples from similar M&A deals
-
-### Key Questions
-- Walk me through a DCF
-- How does depreciation affect the three statements?
-- What happens to each statement when inventory increases by $10?
-- Why might a company with positive net income go bankrupt?
-
-## Behavioral Preparation
-
-IB interviews are as much about "fit" as technical knowledge. They want people who can work 80-hour weeks, handle pressure, and represent the bank professionally.
-
-Key stories to prepare: why IB, why this bank, a leadership example, a teamwork example, a time you dealt with conflict.`,
+Behavioral prep matters as much as technical. IB interviews are about fit — they want to know you can handle 80-hour weeks, stay composed under pressure, and represent the bank professionally. Prepare stories for: why IB, why this bank specifically, a leadership example, a teamwork example, and a time you navigated conflict.`,
     },
     {
       title: 'Financial Modeling Basics',
       tags: ['finance', 'modeling', 'excel'],
       subject: 'Finance',
-      content: `# Financial Modeling Basics
+      content: `A financial model is a spreadsheet-based representation of a company's financial performance, used to forecast future results and value the business. Three-statement models are the foundation — everything else is built on top of them.
 
-## What Is Financial Modeling?
+The **income statement** starts with revenue and works down. Revenue assumptions are typically a growth rate, a per-unit model, or a segment build. COGS is modeled as a percentage of revenue (gross margin assumption). Operating expenses are split into fixed and variable components. Depreciation flows from the PP&E schedule. Interest expense is driven by the debt balance and interest rate. Tax is applied as an effective rate to pre-tax income.
 
-A financial model is a spreadsheet-based representation of a company's financial performance, used to forecast future results and value the business. Models are the core deliverable of investment banking analysts, private equity associates, and corporate finance professionals.
+The **balance sheet** is driven by operating ratios. Accounts receivable = days sales outstanding (DSO) × daily revenue. Inventory = days inventory on hand (DIO) × daily COGS. Accounts payable = days payable outstanding (DPO) × daily COGS. PP&E = prior balance + capex - depreciation. Debt changes based on scheduled repayments and new issuances.
 
-## The Three-Statement Model
+The **cash flow statement** starts with net income, adds back non-cash charges (depreciation and amortization), subtracts changes in working capital, subtracts capital expenditures, and adjusts for financing activities (debt raised or repaid, equity issuances, dividends). Ending cash feeds back into the balance sheet as the cash balance. If all three statements are connected correctly, the model balances automatically.
 
-The foundation: build an integrated model linking the income statement, balance sheet, and cash flow statement.
+For **DCF valuation**, free cash flow to firm (FCFF) = EBIT × (1 - tax rate) + D&A - CapEx - change in working capital. Discount it back to present value using WACC. WACC = (equity weight × cost of equity) + (debt weight × cost of debt × (1 - tax rate)). Cost of equity is estimated with CAPM: risk-free rate + beta × market risk premium. At the end of the projection period (typically 5-10 years), you calculate terminal value either as a perpetuity (FCF × (1+g) / (WACC - g) using a 2-3% long-term growth rate) or an exit multiple (terminal EBITDA × EV/EBITDA). Enterprise value is the sum of all discounted cash flows plus discounted terminal value. Equity value = enterprise value minus net debt. Per share value = equity value divided by shares outstanding.
 
-### Income Statement Drivers
-- Revenue: grow by percentage, per-unit, or segment-based assumptions
-- COGS: as a percentage of revenue (gross margin assumption)
-- Operating expenses: fixed vs variable components, grow with revenue or independently
-- Depreciation: based on PP&E balance and useful life assumptions
-- Interest expense: based on debt balance and interest rate
-- Tax: apply effective tax rate to pre-tax income
-
-### Balance Sheet Drivers
-- Accounts receivable: days sales outstanding (DSO) × daily revenue
-- Inventory: days inventory on hand (DIO) × daily COGS
-- Accounts payable: days payable outstanding (DPO) × daily COGS
-- PP&E: prior balance + capex - depreciation
-- Debt: scheduled repayments, new issuances
-
-### Cash Flow Statement
-- Start with net income
-- Add back non-cash charges (depreciation, amortization)
-- Subtract changes in working capital
-- Subtract capital expenditures
-- Adjust for financing activities (debt, equity, dividends)
-- Ending cash = beginning cash + net cash flow
-
-## DCF Valuation
-
-### Free Cash Flow to Firm (FCFF)
-FCFF = EBIT × (1 - tax rate) + D&A - CapEx - change in working capital
-
-### WACC (Weighted Average Cost of Capital)
-WACC = (E/V × Re) + (D/V × Rd × (1-t))
-- E/V: equity weight, D/V: debt weight
-- Re: cost of equity (CAPM: Rf + β × market risk premium)
-- Rd: cost of debt, t: tax rate
-
-### Terminal Value
-At the end of the projection period (typically 5-10 years), calculate terminal value:
-- **Gordon Growth**: TV = FCF × (1+g) / (WACC - g), where g is long-term growth rate (2-3%)
-- **Exit Multiple**: TV = terminal year EBITDA × exit EV/EBITDA multiple
-
-### Enterprise Value
-Sum of PV of projected FCFs + PV of terminal value = Enterprise Value
-Equity Value = Enterprise Value - Net Debt
-Per Share Value = Equity Value / Shares Outstanding
-
-## Best Practices
-
-- Use blue font for hardcoded inputs, black for formulas (industry convention)
-- One row per line item, formulas reference left or above
-- Never hardcode numbers in formulas — always reference a cell
-- Build error checks (does the balance sheet balance? does cash flow reconcile?)
-- Use scenarios: base case, upside, downside with toggle switches`,
+Modeling best practices: blue font for hardcoded inputs, black for formulas (universal convention). One row per line item, formulas reference left or above. Never hardcode numbers inside formulas — always reference an input cell so assumptions are easy to change. Build error checks: does the balance sheet balance? Does the cash flow statement reconcile to the balance sheet? Use scenario toggles (base, upside, downside) so you can stress-test assumptions quickly.`,
     },
     {
       title: 'Valuation Methods (DCF, Comps, Precedents)',
       tags: ['valuation', 'dcf', 'finance'],
       subject: 'Finance',
-      content: `# Valuation Methods: DCF, Comps, and Precedents
+      content: `No single valuation method is perfect. Each has different assumptions and limitations. Using all three creates a valuation range that triangulates the company's value — in practice, investment bankers present them in a "football field" chart showing the overlapping ranges side by side.
 
-## Why Multiple Methods?
+**DCF (Discounted Cash Flow)** values a company as the present value of all its future free cash flows. The steps: project free cash flows for 5-10 years, calculate a terminal value at the end of the projection period (using perpetuity growth or an exit multiple), and discount everything back to present value using WACC. Sum them and you have enterprise value. DCF is theoretically rigorous because it values the business based on its intrinsic ability to generate cash — not what the market currently thinks. The weakness is sensitivity: small changes in the discount rate or terminal growth rate move the output dramatically. It is also useless for companies without positive cash flows.
 
-No single valuation method is perfect. Each has assumptions and limitations. Using multiple methods creates a "valuation range" that triangulates the company's value. In practice, investment bankers present all three methods in a "football field" chart showing overlapping ranges.
+**Comparable Companies (Comps)** values a company by comparison to similar publicly traded businesses. The steps: select a peer group with similar industry, size, and growth profile; calculate multiples for each peer (EV/EBITDA, EV/Revenue, P/E, P/B); apply the median multiple to the target company's metrics. EV/EBITDA is the most common because it is capital-structure neutral — it does not matter how the company is financed. EV/Revenue is used for unprofitable companies or high-growth SaaS. P/E is simple but affected by capital structure and tax differences. P/B is used for banks. Comps reflect current investor sentiment and are quick to calculate, but they assume the peer group is correctly valued — if the entire sector is overvalued, your comps-based valuation will be too.
 
-## Discounted Cash Flow (DCF)
+**Precedent Transactions** values a company based on what acquirers have actually paid for similar businesses in past M&A deals. The steps: find relevant transactions (same industry, recent, similar size), calculate the acquisition multiples, and apply them to the target. The critical difference from comps: transaction multiples include a control premium, typically 20-40% above trading multiples, because acquirers pay extra to gain ownership control. This makes precedent multiples systematically higher than comps. The weakness: past deals may not reflect current market conditions, and data on niche industries can be limited.
 
-### Concept
-The value of a company is the present value of all its future free cash flows. DCF is the most theoretically rigorous method because it values the business based on its intrinsic ability to generate cash.
-
-### Steps
-1. Project free cash flows for 5-10 years
-2. Calculate terminal value (perpetuity growth or exit multiple)
-3. Discount all cash flows to present value using WACC
-4. Sum = Enterprise Value
-
-### Strengths
-- Based on fundamentals, not market sentiment
-- Flexible: can model any business scenario
-- Forces you to think about the business's drivers
-
-### Weaknesses
-- Highly sensitive to assumptions (WACC, growth rate, terminal value)
-- Small changes in discount rate dramatically change output
-- Garbage in, garbage out: bad assumptions = bad valuation
-- Not useful for companies without positive cash flows (early-stage startups)
-
-## Comparable Companies Analysis (Comps)
-
-### Concept
-Value a company by comparing it to similar publicly traded companies using valuation multiples.
-
-### Steps
-1. Select peer group (same industry, size, growth profile)
-2. Calculate multiples for each peer: EV/EBITDA, EV/Revenue, P/E, P/B
-3. Apply the median or mean multiple to the target company's metrics
-4. Implied Enterprise Value = Target EBITDA × Peer Median EV/EBITDA
-
-### Key Multiples
-- **EV/EBITDA**: most common, capital-structure neutral
-- **EV/Revenue**: for unprofitable companies or high-growth SaaS
-- **P/E**: simple but affected by capital structure and tax differences
-- **P/B**: for banks and financial institutions
-
-### Strengths
-- Market-based: reflects current investor sentiment
-- Quick to calculate with publicly available data
-- Easy to explain and defend
-
-### Weaknesses
-- Assumes peers are correctly valued (what if the whole sector is overvalued?)
-- Hard to find truly comparable companies
-- Does not account for company-specific factors
-
-## Precedent Transactions
-
-### Concept
-Value a company based on what acquirers have paid for similar companies in past M&A transactions.
-
-### Steps
-1. Identify relevant transactions (same industry, recent, similar size)
-2. Calculate transaction multiples: EV/EBITDA, EV/Revenue at acquisition
-3. Apply to target company's metrics
-
-### Key Difference from Comps
-Precedent transaction multiples typically include a "control premium" (20-40%) because acquirers pay extra for ownership control. This makes precedent multiples higher than comps multiples.
-
-### Strengths
-- Reflects what real buyers actually paid
-- Includes control premium
-- Relevant for M&A advisory engagements
-
-### Weaknesses
-- Past deals may not reflect current market conditions
-- Limited data availability for niche industries
-- Deal terms and synergies vary widely
-
-## Putting It Together
-
-In practice, bankers present all three methods side by side. DCF provides the intrinsic value anchor. Comps show the market's current view. Precedents show what acquirers have actually paid. The overlap of all three ranges provides the most defensible valuation range.`,
+In practice, the overlap of all three ranges is the most defensible valuation. DCF provides the intrinsic value anchor. Comps show what the market currently pays. Precedents show what real buyers have paid. If all three converge on a range, that is your number. If they diverge significantly, that is a signal to dig deeper into your assumptions.`,
     },
     {
       title: 'Excel Shortcuts for Finance',
       tags: ['excel', 'productivity', 'finance'],
       subject: 'Finance',
-      content: `# Excel Shortcuts for Finance
+      content: `In investment banking, you spend 60-80 hours a week in Excel. The difference between a fast analyst and a slow one comes down almost entirely to keyboard shortcuts — a fast analyst finishes models in half the time, leaving more room for actual analysis.
 
-## Why Speed Matters
+**Navigation:** Ctrl+Arrow jumps to the edge of a data region. Ctrl+Home goes to cell A1, Ctrl+End goes to the last used cell. Ctrl+G (or F5) opens Go To for jumping to a specific cell or range. Ctrl+Page Up/Down switches between sheets. Alt+Page Up/Down scrolls left and right one screen.
 
-In investment banking, you will spend 60-80 hours per week in Excel. The difference between a fast analyst and a slow one comes down to keyboard shortcuts. A fast analyst completes models in half the time, leaving more time for analysis and less time fighting the tool.
+**Selection:** Ctrl+Shift+Arrow selects from the current cell to the edge of the data region — essential for selecting whole columns of data quickly. Ctrl+Space selects an entire column, Shift+Space selects an entire row. Ctrl+A selects all (or the current region if you are inside a table). Ctrl+Shift+End selects from the current cell to the last used cell.
 
-## Navigation
+**Editing:** F2 enters edit mode on a cell. Ctrl+D fills down, Ctrl+R fills right. Ctrl+; inserts today's date, Ctrl+Shift+; inserts the current time. Alt+Enter creates a new line within a cell. Ctrl+1 opens the Format Cells dialog.
 
-| Shortcut | Action |
-|----------|--------|
-| Ctrl+Arrow | Jump to edge of data region |
-| Ctrl+Home | Go to cell A1 |
-| Ctrl+End | Go to last used cell |
-| Ctrl+G (F5) | Go to specific cell or range |
-| Ctrl+Page Up/Down | Switch between sheets |
-| Alt+Page Up/Down | Scroll left/right one screen |
+**Formatting:** Ctrl+B/I/U for bold, italic, underline. Ctrl+Shift+$ applies currency format. Ctrl+Shift+% applies percentage format. Ctrl+Shift+# applies date format. Ctrl+\` (backtick) toggles formula view — the most important auditing shortcut.
 
-## Selection
+**Essential formulas for finance:** INDEX/MATCH is better than VLOOKUP — it handles any column order and is faster on large datasets. IFERROR wraps around formulas to handle #DIV/0! and #N/A errors gracefully. SUMPRODUCT handles weighted calculations without an array formula. XNPV and XIRR handle NPV and IRR with irregular date intervals (critical for real deal timelines). OFFSET creates dynamic ranges for charts and rolling windows. CHOOSE is the cleanest way to build scenario toggles.
 
-| Shortcut | Action |
-|----------|--------|
-| Ctrl+Shift+Arrow | Select to edge of data region |
-| Ctrl+Space | Select entire column |
-| Shift+Space | Select entire row |
-| Ctrl+Shift+End | Select from current cell to last used cell |
-| Ctrl+A | Select all (or current region) |
-
-## Editing
-
-| Shortcut | Action |
-|----------|--------|
-| F2 | Edit cell (enter edit mode) |
-| Ctrl+D | Fill down |
-| Ctrl+R | Fill right |
-| Ctrl+; | Insert current date |
-| Ctrl+Shift+; | Insert current time |
-| Alt+Enter | New line within cell |
-| Ctrl+1 | Format cells dialog |
-
-## Formatting
-
-| Shortcut | Action |
-|----------|--------|
-| Ctrl+B/I/U | Bold, italic, underline |
-| Ctrl+Shift+$ | Currency format |
-| Ctrl+Shift+% | Percentage format |
-| Ctrl+Shift+# | Date format |
-| Ctrl+Shift+~ | General format (show formulas) |
-
-## Formulas (Most Used in Finance)
-
-\`\`\`
-=SUMPRODUCT(range1, range2)    # weighted calculations
-=INDEX(range, MATCH(value, range, 0))  # better than VLOOKUP
-=IFERROR(formula, fallback)    # handle #DIV/0!, #N/A
-=XNPV(rate, cashflows, dates)  # NPV with irregular dates
-=XIRR(cashflows, dates)        # IRR with irregular dates
-=OFFSET(ref, rows, cols, height, width)  # dynamic ranges
-=CHOOSE(index, val1, val2...)  # scenario switching
-\`\`\`
-
-## Pro Tips
-
-- Never use the mouse for what a shortcut can do
-- Learn Alt key ribbon shortcuts (Alt+H+O+I for auto-fit column width)
-- Use named ranges for key assumptions (makes formulas readable)
-- Ctrl+\` (backtick) toggles formula view — essential for auditing models
-- F4 cycles through absolute/relative references ($A$1, A$1, $A1, A1)
-- Master Paste Special (Ctrl+Alt+V): paste values, formats, transpose, operations
-- Use Ctrl+[ to trace precedents (jump to cells referenced in the formula)`,
+Other habits worth building: never use the mouse for anything a shortcut can do. Learn Alt key ribbon shortcuts — Alt+H+O+I auto-fits column width, which you will use hundreds of times. F4 cycles through absolute and relative references ($A$1, A$1, $A1, A1). Ctrl+Alt+V opens Paste Special — paste values only to break formula links, or paste transpose to flip rows and columns. Ctrl+[ traces precedents by jumping to cells referenced in the current formula, which is how you audit someone else's model.`,
     },
     {
       title: 'Networking in Finance',
       tags: ['networking', 'career', 'finance'],
       subject: 'Career',
-      content: `# Networking in Finance
+      content: `In finance, especially investment banking, networking is not optional. A strong resume gets you in the door — networking gets you the interview. But networking done wrong is worse than no networking at all.
 
-## Why Networking Is Non-Negotiable
+**Cold emailing** works if it is done right. Bankers get hundreds of emails, so keep it to five sentences maximum. Start with who you are (name, school, year, major). Note how you found them (alumni database, LinkedIn, a conference). Ask a specific, thoughtful question about their experience — not "can you help me get a job." Request a 15-minute phone call at their convenience. Close with your name and phone number. An example: "Hi [Name], I'm Marcus Johnson, a junior at [University] studying finance. I found your profile through our alumni network and was impressed by your path to [bank]. I'm exploring IB and would love to hear about your experience on the [specific group] team. Would you have 15 minutes for a call? Thank you, Marcus Johnson (555-123-4567)."
 
-In finance, especially investment banking, networking is not optional. It is how you get noticed, get referrals, and ultimately get offers. A strong resume gets you in the door. Networking gets you the interview. But networking done wrong is worse than no networking at all.
+If there is no response in 5-7 business days, send one follow-up — something brief like "following up on my note below, happy to connect by email if a call doesn't work." If still nothing, move on. Never send more than two emails.
 
-## The Cold Email
+**Preparing for the informational interview:** research the person's background on LinkedIn and the bank's website, prepare 5-7 thoughtful questions, know the bank's recent deals, and have your story polished (why finance, why IB, why this bank specifically). On the call, listen more than you talk. Ask open-ended questions about their path and what they have learned. Do not ask about compensation, hours, or exit opportunities — it reads as transactional and tacky. End with "Is there anyone else you would recommend I speak with?" This is the single most effective question for expanding your network. Send a thank-you email within 24 hours that references something specific from the conversation.
 
-### Structure
-Keep it short. Bankers get hundreds of emails. Five sentences maximum.
+The best networking does not feel like networking. It feels like a genuine conversation between two people with shared interests. Be curious, be helpful, offer value when you can — share an article relevant to something they mentioned, congratulate them on a deal close, make an introduction that helps them. The people who get referrals are the ones people remember fondly because they were genuine, prepared, and respectful of time.
 
-1. **Who you are**: one line (name, school, year, major)
-2. **The connection**: how you found them (alumni database, LinkedIn, event)
-3. **The ask**: a specific question about their experience (NOT "can you get me a job")
-4. **The request**: 15-minute phone call at their convenience
-5. **Sign off**: thank you, your name, phone number
-
-### Example
-"Hi [Name], I'm Marcus Johnson, a junior at [University] studying finance. I found your profile through our alumni network and was impressed by your path from [school] to [bank]. I'm exploring investment banking and would love to hear about your experience on the [specific group] team. Would you have 15 minutes for a call at your convenience? Thank you for your time, Marcus Johnson (555-123-4567)."
-
-### Follow-Up
-If no response in 5-7 business days, send one follow-up. Short: "Hi [Name], following up on my note below. I understand you're busy — if a quick call doesn't work, I'd appreciate any advice via email. Best, Marcus." If still no response, move on. Never send more than two emails.
-
-## The Informational Interview
-
-### Preparation
-- Research the person's background (LinkedIn, bank website)
-- Prepare 5-7 thoughtful questions
-- Know the bank's recent deals and news
-- Have your "story" polished (why finance, why IB, why this bank)
-
-### During the Call
-- Thank them for their time
-- Ask open-ended questions about their experience
-- Listen actively — take notes
-- Do not ask about compensation, hours, or exit opportunities (tacky)
-- End with: "Is there anyone else you'd recommend I speak with?"
-
-### After the Call
-- Send a thank-you email within 24 hours
-- Reference something specific from the conversation
-- Add them to your networking tracker spreadsheet
-- Follow up with relevant articles or updates every 4-6 weeks (stay on their radar without being annoying)
-
-## Building Genuine Relationships
-
-The best networking does not feel like networking. It feels like a genuine conversation between two people with shared interests. Do not approach every interaction as transactional. Be curious. Be helpful. Offer value when you can (share an interesting article, make an introduction, congratulate them on a deal).
-
-The people who get referrals are the ones who networkers remember fondly — because they were genuine, prepared, and respectful of time.
-
-## Networking Tracker
-
-I maintain a spreadsheet with columns: name, firm, title, how we connected, date of last contact, notes, and follow-up date. This prevents me from losing track of relationships and ensures I follow up consistently.
-
-The number one networking mistake I see is not following up. One coffee chat is forgettable. Consistent, thoughtful follow-ups over months build the kind of relationship that leads to a referral when a position opens up.`,
+I track all my contacts in a spreadsheet: name, firm, title, how we connected, date of last contact, notes, and next follow-up date. The number one mistake I see is not following up. One call is forgettable. Consistent, thoughtful follow-ups over months build the kind of relationship that leads to a referral when a role opens.`,
     },
   ],
 
@@ -3672,330 +1429,95 @@ The number one networking mistake I see is not following up. One coffee chat is 
       title: 'Cognitive Psychology: Memory & Learning',
       tags: ['cognitive-psych', 'memory', 'learning'],
       subject: 'Psychology',
-      content: `# Cognitive Psychology: Memory & Learning
+      content: `Memory is not a filing cabinet. It is a reconstructive process — we do not retrieve stored recordings but actively rebuild memories from fragments, schemas, and context. Understanding how this works has implications for education, therapy, eyewitness testimony, and everyday decision-making.
 
-## How Memory Works
+**Sensory memory** is the brief buffer for incoming sensory input. Iconic memory (vision) lasts about 500ms; echoic memory (sound) lasts 3-4 seconds. Most of this information decays without being processed further — attention acts as the gate.
 
-Memory is not a filing cabinet. It is a reconstructive process — we do not retrieve stored recordings but actively rebuild memories from fragments, schemas, and context. Understanding how memory works has profound implications for education, therapy, eyewitness testimony, and everyday life.
+**Working memory** is the limited-capacity system for holding and manipulating information in conscious awareness. George Miller described it as "the magical number seven, plus or minus two," though more recent work by Nelson Cowan suggests the true limit is closer to four chunks for complex information. Baddeley's model breaks working memory into four components: the **central executive** (attention controller that coordinates the other systems), the **phonological loop** (handles verbal and acoustic information — inner voice and inner ear), the **visuospatial sketchpad** (handles visual and spatial information, mental imagery), and the **episodic buffer** (integrates information from the other subsystems with long-term memory).
 
-## Memory Systems
+**Long-term memory** has theoretically unlimited capacity and duration. It divides into explicit (declarative) and implicit (non-declarative) memory. Explicit memory includes **episodic** memory (personal experiences with time and place — your 10th birthday) and **semantic** memory (general knowledge — Paris is the capital of France). Implicit memory includes **procedural** memory (motor skills like riding a bike, which persist even with amnesia), **priming** (prior exposure unconsciously influences later responses), and classical conditioning (learned associations from repeated pairings).
 
-### Sensory Memory
-Brief storage of sensory input (iconic memory for vision: ~500ms, echoic memory for sound: ~3-4 seconds). Acts as a buffer before attention selects what to process further. Most sensory information decays without being noticed.
+**Encoding quality** determines retrieval quality. Craik and Lockhart's levels-of-processing framework shows that deeper semantic processing (thinking about meaning and personal relevance) produces stronger memories than shallow processing (noticing font color or letter case). **Elaborative rehearsal** — connecting new information to existing knowledge — creates more retrieval pathways, making recall easier.
 
-### Working Memory (Short-Term)
-Limited capacity system for holding and manipulating information in conscious awareness. George Miller's "magical number seven, plus or minus two" — though more recent research suggests 4 chunks for complex information.
+**Spaced practice** consistently outperforms massed practice (cramming). Distributing study sessions over time with increasing intervals is one of the most robust findings in cognitive psychology. **The testing effect** is equally important: actively retrieving information strengthens the memory trace far more than re-reading the same material. The effort of retrieval is what creates the benefit, not the exposure.
 
-Baddeley's model of working memory has four components:
-- **Central executive**: attention controller, coordinates the subsystems
-- **Phonological loop**: verbal/acoustic information (inner voice, inner ear)
-- **Visuospatial sketchpad**: visual/spatial information (mental imagery)
-- **Episodic buffer**: integrates information from subsystems and long-term memory
+**Forgetting** follows Ebbinghaus's forgetting curve: rapid initial decay (50% forgotten within an hour, 70% within 24 hours), then leveling off. Spaced repetition counters this by timing reviews to happen just as forgetting begins. **Interference** also causes forgetting: proactive interference means old memories interfere with new learning; retroactive interference means new learning degrades older memories. **Retrieval failure** occurs when the information is stored but inaccessible — recall improves when retrieval cues match encoding cues (the encoding specificity principle).
 
-### Long-Term Memory
-Theoretically unlimited capacity and duration. Two major types:
-- **Explicit (declarative)**: conscious recall
-  - Episodic: personal experiences (your 10th birthday)
-  - Semantic: general knowledge (Paris is the capital of France)
-- **Implicit (non-declarative)**: unconscious
-  - Procedural: motor skills (riding a bike)
-  - Priming: prior exposure influences response
-  - Classical conditioning: learned associations
-
-## Encoding Strategies
-
-### Levels of Processing (Craik & Lockhart)
-Deeper processing leads to better memory. Shallow processing (font color, letter case) produces weaker memories than deep processing (meaning, personal relevance).
-
-### Elaborative Rehearsal
-Connect new information to existing knowledge. The more connections, the more retrieval paths. Example: learning that mitochondria are the "powerhouse of the cell" creates a metaphorical link that aids recall.
-
-### Spaced Practice
-Distributed study sessions produce stronger memories than massed practice (cramming). The spacing effect is one of the most robust findings in psychology. Optimal spacing increases over time.
-
-### Testing Effect
-Actively retrieving information strengthens memory more than re-reading or re-studying. This is why flashcards and practice tests are so effective. The effort of retrieval is what creates the benefit.
-
-## Forgetting
-
-### Ebbinghaus Forgetting Curve
-Memory decays rapidly at first, then levels off. Without review, we forget about 50% within an hour and 70% within 24 hours. Spaced repetition counteracts this curve by strategically timing reviews.
-
-### Interference
-- **Proactive**: old memories interfere with new learning
-- **Retroactive**: new learning interferes with old memories
-
-### Retrieval Failure
-The information is stored but cannot be accessed. Context-dependent memory (encoding specificity principle): recall is better when the retrieval context matches the encoding context. This is why studying in the same environment where you will be tested can help.
-
-## Applications for Studying
-
-Based on the research, the most effective study strategies are:
-1. Spaced practice (not cramming)
-2. Active retrieval (testing yourself, not re-reading)
-3. Elaboration (explain concepts in your own words)
-4. Interleaving (mix different topics within a study session)
-5. Concrete examples (connect abstract concepts to specific instances)`,
+Five study strategies with the strongest research support: spaced practice, active retrieval (flashcards and practice tests, not re-reading), elaboration (explain concepts in your own words), interleaving (mix different topics in a session rather than blocking), and concrete examples (link abstract concepts to specific instances).`,
     },
     {
       title: 'Research Design and Statistics',
       tags: ['research', 'statistics', 'psychology'],
       subject: 'Psychology',
-      content: `# Research Design and Statistics for Psychology
+      content: `Research in psychology takes four main forms. **Experimental research** manipulates an independent variable (IV) and measures its effect on a dependent variable (DV) while controlling confounds. Random assignment to conditions is what allows causal inference — it is the gold standard for establishing that X causes Y. **Correlational research** measures the relationship between variables without manipulating anything. It cannot establish causation because of the third variable problem: some unmeasured variable might explain the observed relationship. **Quasi-experimental research** looks experimental but lacks random assignment — used when random assignment is impossible or unethical, such as comparing trauma survivors to controls. Internal validity is weaker than true experiments. **Observational research** involves systematically watching behavior in natural or controlled settings. Ecological validity is high (behavior is real), but control is low.
 
-## Types of Research
+Three types of validity matter. **Internal validity** is the degree to which a study can establish a causal relationship — the main threats are confounding variables, selection bias, maturation (participants changing over time), history effects (outside events influencing results), and attrition (participants dropping out). **External validity** is the degree to which findings generalize beyond the study — threats include WEIRD samples (Western, Educated, Industrialized, Rich, Democratic), lab settings that do not reflect real-world behavior, and populations that are too specific. **Construct validity** is whether the measure actually measures what it claims to measure — does a creativity test measure creativity, or just verbal fluency?
 
-### Experimental
-The researcher manipulates an independent variable and measures its effect on a dependent variable while controlling confounds. Random assignment to conditions allows causal inference. The gold standard for establishing cause and effect.
+**Descriptive statistics** summarize data: mean, median, and mode for central tendency; standard deviation for spread; skewness and kurtosis for distribution shape. **Effect size** is the magnitude of an effect independent of sample size — Cohen's d of 0.2 is small, 0.5 is medium, 0.8 is large. r² tells you the proportion of variance explained.
 
-### Correlational
-Measures the relationship between two or more variables without manipulation. Cannot establish causation (correlation ≠ causation). Third variable problem: an unmeasured variable may explain the observed relationship.
+**Null hypothesis significance testing (NHST):** state H0 (no effect) and H1 (there is an effect), choose an alpha level (typically 0.05), compute the test statistic, and reject H0 if p < alpha. Common tests: independent t-test compares means of two unrelated groups; paired t-test compares matched or repeated measures; one-way ANOVA compares three or more groups; factorial ANOVA tests multiple IVs and their interaction; chi-squared tests independence of categorical variables; Pearson's r measures correlation strength and direction; multiple regression predicts a DV from multiple IVs simultaneously.
 
-### Quasi-Experimental
-Similar to experimental but without random assignment. Used when random assignment is impossible or unethical (e.g., comparing outcomes for people who experienced trauma vs those who did not). Internal validity is weaker than true experiments.
+Error types: a **Type I error** (false positive) is rejecting H0 when it is actually true — probability equals alpha. A **Type II error** (false negative) is failing to reject H0 when it is actually false — probability is beta. Statistical **power** = 1 - beta, the probability of detecting a real effect. You increase power by increasing sample size, increasing the true effect size, or raising alpha (which also raises Type I error risk).
 
-### Observational
-Systematic observation of behavior in natural or controlled settings. Can be participant observation (researcher is part of the group) or non-participant. Ecological validity is high but control is low.
-
-## Validity
-
-### Internal Validity
-The extent to which a study demonstrates a causal relationship between IV and DV. Threats: confounding variables, selection bias, maturation, history effects, attrition.
-
-### External Validity
-The extent to which findings generalize beyond the study. Threats: WEIRD samples (Western, Educated, Industrialized, Rich, Democratic), lab settings that do not reflect real life, specific population characteristics.
-
-### Construct Validity
-Whether the measures actually assess what they claim to measure. Example: does a "creativity" test actually measure creativity, or just verbal fluency?
-
-## Descriptive Statistics
-
-- **Mean, median, mode**: measures of central tendency
-- **Standard deviation**: spread of data around the mean
-- **Skewness and kurtosis**: distribution shape
-- **Effect size**: magnitude of the effect, independent of sample size
-  - Cohen's d: small (0.2), medium (0.5), large (0.8)
-  - r²: proportion of variance explained
-
-## Inferential Statistics
-
-### Null Hypothesis Significance Testing (NHST)
-1. State H0 (no effect) and H1 (there is an effect)
-2. Choose alpha level (typically 0.05)
-3. Compute test statistic
-4. If p < alpha, reject H0
-
-### Common Tests
-- **Independent t-test**: compare means of two unrelated groups
-- **Paired t-test**: compare means of matched/repeated measures
-- **One-way ANOVA**: compare means of 3+ groups
-- **Factorial ANOVA**: test effects of 2+ IVs and their interaction
-- **Chi-squared**: test independence of categorical variables
-- **Correlation (Pearson's r)**: strength and direction of linear relationship
-- **Multiple regression**: predict DV from multiple IVs
-
-### Common Errors
-- **Type I error (false positive)**: rejecting H0 when it is true (probability = alpha)
-- **Type II error (false negative)**: failing to reject H0 when it is false (probability = beta)
-- **Power** = 1 - beta: probability of detecting a real effect. Increase power by increasing sample size, effect size, or alpha.
-
-## Ethics in Research
-
-- Informed consent: participants must understand what they are agreeing to
-- Right to withdraw: participants can leave at any time without penalty
-- Debriefing: explain the study's purpose afterward (especially if deception was used)
-- Confidentiality: protect participants' identities and data
-- IRB approval: institutional review board must approve research involving human subjects`,
+Ethical requirements: informed consent (participants must understand what they are agreeing to before participating), right to withdraw (participants can leave at any time without penalty), debriefing after the study (especially when deception was used), confidentiality of participant data, and IRB approval before research begins.`,
     },
     {
       title: 'Abnormal Psychology Overview',
       tags: ['abnormal-psych', 'mental-health'],
       subject: 'Psychology',
-      content: `# Abnormal Psychology Overview
+      content: `There is no single definition of abnormal behavior. The field uses multiple overlapping criteria. **Statistical rarity** captures deviation from the norm, but being exceptionally intelligent is rare and clearly not abnormal. **Deviation from social norms** captures culturally unexpected behavior, but norms vary across cultures and change over time. **Maladaptiveness** captures whether behavior interferes with daily functioning. **Personal distress** captures subjective suffering, but some disorders involve lack of insight — the person does not feel distressed. The most practical working definition combines these: behavior is abnormal when it is maladaptive, causes distress, and is considered deviant in the individual's cultural context.
 
-## Defining Abnormality
+The **DSM-5** (Diagnostic and Statistical Manual of Mental Disorders, 2013) is the standard classification system. Diagnoses are based on clusters of symptoms, duration of symptoms, and degree of functional impairment. Criticisms: the categorical approach (disorder or no disorder) may not capture mental health's dimensional nature; some criteria have cultural bias.
 
-There is no single definition of abnormal behavior. The field uses multiple criteria:
-- **Statistical rarity**: behavior that deviates from the norm (but being exceptionally intelligent is rare and not abnormal)
-- **Deviation from social norms**: behavior that violates cultural expectations (but norms vary across cultures and time)
-- **Maladaptiveness**: behavior that interferes with daily functioning
-- **Personal distress**: the individual experiences suffering (but some disorders involve lack of insight)
+**Anxiety disorders** involve excessive fear or worry that interferes with functioning. Generalized Anxiety Disorder (GAD) is persistent, excessive worry across multiple domains of life. Panic disorder involves recurrent unexpected panic attacks plus persistent fear of future attacks. Social anxiety disorder is intense fear of social situations and negative evaluation. Specific phobias are irrational fears of specific objects or situations.
 
-The most practical definition combines these: behavior is abnormal when it is maladaptive, causes distress, and is considered deviant in the individual's cultural context.
+**Mood disorders** involve disturbances in emotional state. Major Depressive Disorder (MDD) is the most common mental disorder globally — persistent low mood, loss of interest, changes in sleep and appetite, fatigue, concentration problems, and sometimes suicidal ideation. Bipolar I involves full manic episodes (elevated mood, decreased need for sleep, grandiosity, impulsive or risky behavior) alternating with depressive episodes. Bipolar II involves hypomanic episodes (less severe than full mania) alternating with depression.
 
-## Classification: DSM-5
+**PTSD** develops in about 6-8% of people exposed to traumatic events. Symptoms include intrusive memories and flashbacks, avoidance of trauma-related stimuli, negative changes in mood and cognition, and hyperarousal (exaggerated startle response, sleep problems).
 
-The Diagnostic and Statistical Manual of Mental Disorders (DSM-5, published 2013) is the standard classification system. Diagnoses are based on clusters of symptoms, duration, and functional impairment. Criticisms: categorical approach (disorder vs no disorder) may not capture the dimensional nature of mental health; cultural bias in criteria.
+**Schizophrenia** involves positive symptoms (hallucinations, delusions, disorganized speech and thought), negative symptoms (flat affect, anhedonia, avolition), and cognitive deficits. Onset is typically in the late teens to mid-30s.
 
-## Major Categories
+The **biopsychosocial model** explains mental disorders as arising from the interaction of biological factors (genetics, neurotransmitter imbalances, brain structure), psychological factors (cognitive distortions, learned helplessness, attachment patterns), and social factors (poverty, trauma, isolation, cultural pressures). The **diathesis-stress model** refines this: a predisposition (diathesis) interacts with environmental stressors to produce the disorder. Neither alone is typically sufficient.
 
-### Anxiety Disorders
-Excessive fear or worry that interferes with functioning.
-- **Generalized Anxiety Disorder (GAD)**: persistent, excessive worry about multiple domains
-- **Panic Disorder**: recurrent unexpected panic attacks with fear of future attacks
-- **Social Anxiety Disorder**: intense fear of social situations and negative evaluation
-- **Specific Phobias**: irrational fear of specific objects or situations
-
-### Mood Disorders
-Disturbances in emotional state.
-- **Major Depressive Disorder (MDD)**: persistent low mood, loss of interest, changes in sleep/appetite, fatigue, concentration difficulties, suicidal ideation. Most common mental disorder globally.
-- **Bipolar I**: manic episodes (elevated mood, decreased need for sleep, grandiosity, risky behavior) alternating with depressive episodes
-- **Bipolar II**: hypomanic episodes (less severe mania) with depressive episodes
-
-### Trauma and Stressor-Related Disorders
-- **PTSD**: following a traumatic event — intrusive memories, avoidance, negative mood/cognition changes, hyperarousal. Develops in about 6-8% of people exposed to trauma.
-
-### Psychotic Disorders
-- **Schizophrenia**: positive symptoms (hallucinations, delusions, disorganized speech), negative symptoms (flat affect, anhedonia, avolition), cognitive deficits. Onset typically late teens to mid-30s.
-
-## Etiology: The Biopsychosocial Model
-
-Mental disorders arise from the interaction of:
-- **Biological factors**: genetics, neurotransmitter imbalances, brain structure abnormalities
-- **Psychological factors**: cognitive distortions, learned helplessness, attachment patterns
-- **Social factors**: poverty, trauma, social isolation, cultural pressures
-
-The diathesis-stress model: a predisposition (diathesis) interacts with environmental stressors to produce the disorder. Neither alone is sufficient.
-
-## Treatment Approaches
-
-- **Psychotherapy**: CBT (cognitive-behavioral therapy), psychodynamic, humanistic, DBT (dialectical behavior therapy)
-- **Pharmacotherapy**: SSRIs for depression/anxiety, mood stabilizers for bipolar, antipsychotics for schizophrenia
-- **Combined treatment**: often most effective, especially for moderate-to-severe disorders
-- **Community-based**: case management, supported employment, peer support`,
+Treatment: **CBT** is the most evidence-based psychotherapy across anxiety and depression. **DBT** (dialectical behavior therapy) is particularly effective for borderline personality disorder and chronic suicidality. **Pharmacotherapy** — SSRIs for depression and anxiety, mood stabilizers for bipolar, antipsychotics for schizophrenia — is often most effective when combined with psychotherapy rather than used alone.`,
     },
     {
       title: 'Neuroscience Basics',
       tags: ['neuroscience', 'brain', 'psychology'],
       subject: 'Psychology',
-      content: `# Neuroscience Basics
+      content: `The brain contains roughly 86 billion neurons, each connecting to thousands of others through synapses. A single neuron has a **cell body (soma)** housing the nucleus and metabolic machinery, **dendrites** that receive signals from other neurons, an **axon** that transmits signals away from the cell body, a **myelin sheath** that insulates the axon and speeds signal transmission (allowing current to jump between nodes in saltatory conduction), and **axon terminals** that release neurotransmitters into the synapse.
 
-## The Neuron
+The **action potential** is the electrical signal that travels along the axon. At rest, the neuron is polarized at around -70mV. When stimulation pushes the membrane potential above threshold (-55mV), voltage-gated sodium channels open, sodium rushes in, and the membrane rapidly depolarizes. Potassium channels then open, potassium flows out, and the membrane repolarizes. The action potential is all-or-nothing — it either fires fully or not at all — and propagates without degradation.
 
-The brain contains approximately 86 billion neurons, each connecting to thousands of others through synapses. Understanding the neuron is the first step to understanding the brain.
+**Synaptic transmission** follows these steps: the action potential reaches the axon terminal, calcium channels open and Ca²⁺ flows in, synaptic vesicles fuse with the presynaptic membrane releasing neurotransmitters into the synaptic cleft, neurotransmitters bind to receptors on the postsynaptic neuron, ion channels open causing either excitation (EPSP) or inhibition (IPSP), and finally neurotransmitters are removed by reuptake into the presynaptic terminal, enzymatic degradation, or diffusion.
 
-### Structure
-- **Cell body (soma)**: contains the nucleus and metabolic machinery
-- **Dendrites**: receive signals from other neurons (input)
-- **Axon**: transmits signals away from the cell body (output)
-- **Myelin sheath**: insulating layer that speeds signal transmission (saltatory conduction)
-- **Axon terminal**: releases neurotransmitters into the synapse
+Key neurotransmitters: **dopamine** handles reward, motivation, and motor control — too little causes Parkinson's, abnormally high activity in the mesolimbic pathway is associated with schizophrenia. **Serotonin** regulates mood, sleep, and appetite — linked to depression and anxiety. **Norepinephrine** drives alertness and the stress response — implicated in PTSD and ADHD. **GABA** is the primary inhibitory neurotransmitter — low GABA activity is associated with anxiety and epilepsy. **Glutamate** is the primary excitatory neurotransmitter — excess glutamate causes excitotoxicity and is implicated in Alzheimer's. **Acetylcholine** is critical for memory and muscle contraction — loss of cholinergic neurons is the hallmark of Alzheimer's disease.
 
-### Action Potential
-The electrical signal that travels along the axon. At rest, the neuron is polarized (inside is -70mV relative to outside). When stimulation reaches threshold (-55mV), voltage-gated sodium channels open, depolarizing the membrane. Potassium channels then open, repolarizing the membrane. The action potential is all-or-nothing and propagates without degradation.
+**Brain structure:** The cerebral cortex wraps around everything. The frontal lobe handles executive functions, planning, personality (prefrontal cortex), and voluntary movement (motor cortex). The parietal lobe processes somatosensory information (touch, pain, temperature) and spatial awareness. The temporal lobe handles auditory processing and language comprehension (Wernicke's area). The occipital lobe is dedicated to vision. Below the cortex: the **hippocampus** consolidates memory from short-term to long-term storage. The **amygdala** processes emotion, especially fear and threat detection. The **basal ganglia** control motor sequences, habit learning, and reward processing. The **thalamus** is the relay station for almost all sensory information (except smell). The **hypothalamus** maintains homeostasis — hunger, thirst, temperature regulation, circadian rhythms, and hormone release. The **brainstem** controls breathing, heart rate, and sleep-wake cycles and contains the reticular formation for arousal.
 
-### Synaptic Transmission
-1. Action potential arrives at axon terminal
-2. Calcium channels open, Ca²⁺ flows in
-3. Synaptic vesicles fuse with membrane, releasing neurotransmitters
-4. Neurotransmitters bind to receptors on the postsynaptic neuron
-5. Ion channels open, causing excitation (EPSP) or inhibition (IPSP)
-6. Neurotransmitters are removed by reuptake, enzymatic degradation, or diffusion
-
-## Key Neurotransmitters
-
-| Neurotransmitter | Function | Related Disorders |
-|-----------------|----------|-------------------|
-| Dopamine | Reward, motivation, motor control | Parkinson's (too little), schizophrenia (too much in mesolimbic pathway) |
-| Serotonin | Mood, sleep, appetite | Depression (low levels), anxiety |
-| Norepinephrine | Alertness, stress response | PTSD, ADHD |
-| GABA | Primary inhibitory NT | Anxiety (low GABA), epilepsy |
-| Glutamate | Primary excitatory NT | Excitotoxicity, Alzheimer's |
-| Acetylcholine | Memory, muscle contraction | Alzheimer's (low ACh), myasthenia gravis |
-
-## Brain Regions
-
-### Cerebral Cortex
-- **Frontal lobe**: executive functions, planning, decision-making, personality (prefrontal cortex), voluntary movement (motor cortex)
-- **Parietal lobe**: somatosensory processing (touch, pain, temperature), spatial awareness
-- **Temporal lobe**: auditory processing, language comprehension (Wernicke's area), memory (hippocampus connection)
-- **Occipital lobe**: visual processing
-
-### Subcortical Structures
-- **Hippocampus**: memory consolidation (transferring short-term to long-term memory)
-- **Amygdala**: emotional processing, especially fear and threat detection
-- **Basal ganglia**: motor control, habit learning, reward processing
-- **Thalamus**: relay station for sensory information (except smell)
-- **Hypothalamus**: homeostasis (hunger, thirst, temperature, circadian rhythms), hormone regulation
-
-### Brainstem
-Controls basic life functions: breathing, heart rate, sleep-wake cycles. Contains the reticular formation (arousal and attention).
-
-## Neuroplasticity
-
-The brain changes throughout life. Synapses strengthen with use (long-term potentiation, LTP) and weaken without use (long-term depression, LTD). This is the neural basis of learning and memory. The brain can also reorganize after injury — adjacent areas can take over functions of damaged regions, especially in younger brains.`,
+**Neuroplasticity** is the brain's ability to change throughout life. Synapses strengthen with use (long-term potentiation, LTP) and weaken without use (long-term depression, LTD) — this is the cellular basis of learning. After injury, adjacent brain regions can sometimes take over functions of damaged areas, especially in younger brains.`,
     },
     {
       title: 'Graduate School Application Tips',
       tags: ['grad-school', 'applications', 'career'],
       subject: 'Career',
-      content: `# Graduate School Application Tips
+      content: `The first decision is PhD vs Master's. A **PhD** (4-7 years) is fully funded in most psychology programs — tuition waiver plus a living stipend — in exchange for research and teaching. It trains you to become an independent researcher and is required for tenure-track faculty positions. Acceptance rates are 5-15% for competitive cognitive and clinical programs. You specialize very deeply in one area. A **Master's** (1-2 years) is usually self-funded, though some funded terminal programs exist. It can serve as a stepping stone if your undergrad research profile is not yet competitive for PhD programs. It is sufficient for careers in school psychology, counseling, and industrial-organizational psychology without needing a doctorate.
 
-## Deciding Between PhD and Master's
+My plan: apply to PhD programs in cognitive science or cognitive neuroscience. Research focus is how cognitive load affects learning and memory, with applications to educational technology.
 
-### PhD (4-7 years)
-- Fully funded (tuition waiver + stipend) in most psychology programs
-- Train to become an independent researcher
-- Required for tenure-track faculty positions
-- Highly competitive (5-15% acceptance rates for clinical/cognitive programs)
-- You specialize deeply in one area
+**Research experience** is the single most important component of a PhD application. Two or more years in a research lab across multiple projects or labs is ideal. A poster presentation at a conference (APS, CogSci) demonstrates that you can communicate research. A published paper or manuscript in preparation is a major differentiator. What faculty are looking for is independent thinking — evidence that you can identify problems, not just execute assigned tasks.
 
-### Master's (1-2 years)
-- Often self-funded (except for funded terminal programs)
-- Can be a stepping stone to a PhD (especially if your undergrad profile is not competitive enough)
-- Sufficient for some careers (school psychology, counseling, industrial-organizational)
-- Shorter time commitment
+For **GPA**, 3.5+ is the floor and 3.7+ is competitive for top programs. Many programs have dropped the GRE, but some still require it. The Psychology Subject GRE can help for borderline applications.
 
-My plan: apply to PhD programs in cognitive science or cognitive neuroscience. Research interests: how cognitive load affects learning and memory, with applications to educational technology.
+**Letters of recommendation** should come from research supervisors who know your work intimately — three letters, ideally. Ask 6-8 weeks before the deadline. Give recommenders your CV, a draft of your personal statement, and a list of the programs you are applying to. The letters that move the needle speak specifically to your research potential, intellectual curiosity, and work ethic — not just "she was a great student in my class."
 
-## Building a Competitive Application
+The **personal statement** should tell a story: how you became interested in your research area, what specifically you want to study and why, and which faculty members at each program do work that aligns with your interests. Tailor it to each program — mention specific labs and explain the fit. Show critical thinking, not just enthusiasm. Generic statements that could apply to any program are immediately detectable.
 
-### Research Experience (Most Important)
-- 2+ years in a research lab (preferably across multiple labs or projects)
-- Poster presentation at a conference (APS, CogSci)
-- Published paper or manuscript in preparation
-- Demonstrate independent thinking, not just following instructions
+**Faculty fit** is the most underrated factor in PhD admissions. Admissions decisions are often made by individual faculty members looking for students who match their lab's direction and funding. Research every faculty member at each program. Read their recent papers. Email 2-3 of them (briefly — a few sentences) to express interest and ask if they are accepting students.
 
-### GPA and GRE
-- GPA: 3.5+ (3.7+ for top programs)
-- Many programs have dropped the GRE, but some still require it
-- Subject GRE (Psychology) can strengthen applications for borderline GPAs
+Timeline: summer before senior year, research programs and narrow to 8-12 schools. September, draft personal statement and request letters from recommenders. October, finalize statement and submit GRE scores if needed. November-December, submit applications (most deadlines fall between December 1 and January 15). January-March, interview invitations arrive (virtual or in-person visit weekends). February-April, decisions come in. April 15 is the national deadline to accept or decline.
 
-### Letters of Recommendation
-- 3 letters, ideally from research supervisors who know your work intimately
-- Ask early (6-8 weeks before deadline)
-- Provide them with your CV, personal statement draft, and a list of programs
-- The best letters speak to your research potential, intellectual curiosity, and work ethic
-
-### Personal Statement
-- Tell a story: how you became interested in your research area
-- Be specific about what you want to study and WHY
-- Mention specific faculty whose work aligns with yours
-- Tailor each statement to the program (do not send the same generic statement to everyone)
-- Show evidence of critical thinking, not just enthusiasm
-
-### Faculty Fit
-This is the most underrated factor. PhD admissions are often driven by individual faculty members looking for students who fit their lab. Research faculty at each program thoroughly. Read their recent papers. Email them (briefly) to express interest and ask if they are accepting students.
-
-## Application Timeline
-
-| When | What |
-|------|------|
-| Summer before senior year | Research programs, narrow list to 8-12 |
-| September | Draft personal statement, request letters |
-| October | Finalize statement, submit GRE if needed |
-| November-December | Submit applications (most deadlines are Dec 1-Jan 15) |
-| January-March | Interview invitations (virtual or in-person) |
-| February-April | Decisions and offers |
-| April 15 | National deadline to accept/decline |
-
-## What I Am Looking For in a Program
-
-1. Strong cognitive science or cognitive neuroscience faculty
-2. Interdisciplinary collaboration (with CS, neuroscience, education)
-3. Good funding package (tuition + living stipend)
-4. Location where I can thrive (I prefer mid-size cities)
-5. Lab culture that values mentorship and work-life balance`,
+What I am looking for in a program: strong cognitive science or cognitive neuroscience faculty, interdisciplinary collaboration with CS and education departments, a good funding package, a mid-size city location, and a lab culture that values mentorship alongside research output.`,
     },
   ],
 };
