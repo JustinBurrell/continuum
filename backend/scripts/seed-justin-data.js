@@ -1400,7 +1400,7 @@ In practice, the overlap of all three ranges is the most defensible valuation. D
 
 **Editing:** F2 enters edit mode on a cell. Ctrl+D fills down, Ctrl+R fills right. Ctrl+; inserts today's date, Ctrl+Shift+; inserts the current time. Alt+Enter creates a new line within a cell. Ctrl+1 opens the Format Cells dialog.
 
-**Formatting:** Ctrl+B/I/U for bold, italic, underline. Ctrl+Shift+$ applies currency format. Ctrl+Shift+% applies percentage format. Ctrl+Shift+# applies date format. Ctrl+` (backtick) toggles formula view — the most important auditing shortcut.
+**Formatting:** Ctrl+B/I/U for bold, italic, underline. Ctrl+Shift+$ applies currency format. Ctrl+Shift+% applies percentage format. Ctrl+Shift+# applies date format. Ctrl+\` (backtick) toggles formula view — the most important auditing shortcut.
 
 **Essential formulas for finance:** INDEX/MATCH is better than VLOOKUP — it handles any column order and is faster on large datasets. IFERROR wraps around formulas to handle #DIV/0! and #N/A errors gracefully. SUMPRODUCT handles weighted calculations without an array formula. XNPV and XIRR handle NPV and IRR with irregular date intervals (critical for real deal timelines). OFFSET creates dynamic ranges for charts and rolling windows. CHOOSE is the cleanest way to build scenario toggles.
 
