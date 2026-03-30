@@ -191,9 +191,8 @@ export default function Landing() {
           <div className="flex" style={{ background: '#f9fafb', height: 400 }}>
             {/* Sidebar */}
             <div className="flex-shrink-0 flex flex-col" style={{ width: 200, background: 'white', borderRight: '1px solid #e5e7eb', padding: 16 }}>
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: 'linear-gradient(135deg, #6b21a8, #a087b0)' }} />
-                <span style={{ fontFamily: 'Georgia, serif', fontSize: 15, color: '#111827', letterSpacing: '0.3px' }}>Continuum</span>
+              <div className="mb-6">
+                <img src="/wordmark.svg" alt="Continuum" style={{ height: 18 }} />
               </div>
 
               <div className="mb-5">

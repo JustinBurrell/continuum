@@ -26,9 +26,7 @@ export default function AppLayout() {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center animate-pulse">
-            <span className="text-primary font-bold text-lg">C</span>
-          </div>
+          <img src="/wordmark.svg" alt="Continuum" style={{ height: 28, opacity: 0.4 }} className="animate-pulse" />
           <p className="text-sm text-secondary">Loading...</p>
         </div>
       </div>
@@ -122,12 +120,7 @@ export default function AppLayout() {
           >
             <Menu size={18} />
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 26, height: 26, borderRadius: 6, background: '#6b21a8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: 'Georgia, serif' }}>C</span>
-            </div>
-            <span style={{ fontFamily: 'Georgia, serif', fontWeight: 600, fontSize: 16, color: '#111827' }}>Continuum</span>
-          </div>
+          <img src="/wordmark.svg" alt="Continuum" style={{ height: 22 }} />
         </div>
 
         <div className="max-w-5xl mx-auto px-4 py-6 md:px-8 md:py-8">

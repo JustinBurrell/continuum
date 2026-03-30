@@ -6,19 +6,8 @@ export default function MarketingFooter() {
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex flex-col md:flex-row justify-between gap-10 mb-10">
           <div className="max-w-xs">
-            <Link to="/" className="flex items-center gap-2.5 no-underline mb-3">
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #6b21a8, #a087b0)' }}
-              >
-                <span className="text-white font-bold text-xs">C</span>
-              </div>
-              <span
-                className="font-bold text-lg tracking-tight"
-                style={{ fontFamily: 'Georgia, serif', color: '#6b21a8' }}
-              >
-                Continuum
-              </span>
+            <Link to="/" className="inline-block no-underline mb-3">
+              <img src="/wordmark.svg" alt="Continuum" style={{ height: 28 }} />
             </Link>
             <p className="text-sm leading-relaxed" style={{ color: '#6b7280' }}>
               Your all-in-one academic and career workspace, built for students.
