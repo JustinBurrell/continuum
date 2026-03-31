@@ -1,0 +1,332 @@
+{
+  "info": {
+    "_postman_id": "i9d0e1f2-a3b4-5678-cdef-678901234008",
+    "name": "Continuum — Session 11",
+    "description": "Comment Replies (Instagram-style threading)\n\nCovers: POST /api/comments with parentId, depth-1 enforcement, GET flat list with replies.\n\nRun order: 1. Login → 2. Setup (notes + top-level comment) → 3. Reply happy path → 4. GET flat list → 5. Error cases.\ntoken, noteId, noteBId, parentCommentId, replyCommentId are auto-set by test scripts.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Login",
+      "item": [
+        {
+          "name": "Login — User A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('token', json.token);",
+                  "    pm.environment.set('userId', json.user._id);",
+                  "    pm.environment.set('refreshToken', json.refreshToken);",
+                  "    pm.test('Login successful', () => pm.expect(json.token).to.be.a('string'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Setup",
+      "item": [
+        {
+          "name": "Create Note A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Created note A', () => pm.expect(pm.response.code).to.equal(201));",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('noteId', json.note._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Reply Test Note A\",\n  \"content\": \"Content for reply threading test.\",\n  \"visibility\": \"private\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/notes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Note B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Created note B', () => pm.expect(pm.response.code).to.equal(201));",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('noteBId', json.note._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Reply Test Note B\",\n  \"content\": \"Second note for cross-target validation.\",\n  \"visibility\": \"private\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/notes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Post Top-Level Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Comment created', () => pm.expect(pm.response.code).to.equal(201));",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('parentCommentId', json.comment._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"note\",\n  \"targetId\": \"{{noteId}}\",\n  \"content\": \"Top level comment for reply testing.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "comments"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Reply Happy Path",
+      "item": [
+        {
+          "name": "Post Reply — valid parentId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Reply created with 201', () => pm.expect(pm.response.code).to.equal(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('parentId is set correctly', () => {",
+                  "    pm.expect(json.comment.parentId).to.equal(pm.environment.get('parentCommentId'));",
+                  "});",
+                  "pm.environment.set('replyCommentId', json.comment._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"note\",\n  \"targetId\": \"{{noteId}}\",\n  \"content\": \"This is a reply to the top-level comment.\",\n  \"parentId\": \"{{parentCommentId}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "comments"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. GET Flat List with Replies",
+      "item": [
+        {
+          "name": "GET Comments — flat list includes replies",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.expect(pm.response.code).to.equal(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('At least 2 comments returned', () => pm.expect(json.comments.length).to.be.at.least(2));",
+                  "const reply = json.comments.find(c => c.parentId !== null);",
+                  "pm.test('Flat list contains a reply with parentId', () => pm.expect(reply).to.exist);",
+                  "pm.test('Reply parentId matches top-level comment', () => {",
+                  "    pm.expect(reply.parentId).to.equal(pm.environment.get('parentCommentId'));",
+                  "});",
+                  "pm.test('Comments sorted oldest first', () => {",
+                  "    const times = json.comments.map(c => new Date(c.createdAt).getTime());",
+                  "    for (let i = 1; i < times.length; i++) {",
+                  "        pm.expect(times[i]).to.be.at.least(times[i - 1]);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/comments/note/{{noteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "comments", "note", "{{noteId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Error Cases",
+      "item": [
+        {
+          "name": "[Error] Reply to wrong target — 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 400 for cross-target parentId', () => pm.expect(pm.response.code).to.equal(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('Error mentions same target', () => pm.expect(json.error).to.include('same target'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"note\",\n  \"targetId\": \"{{noteBId}}\",\n  \"content\": \"Wrong target reply attempt.\",\n  \"parentId\": \"{{parentCommentId}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "comments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Reply to a reply — 400 (depth limit)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 400 for reply-to-reply', () => pm.expect(pm.response.code).to.equal(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('Error mentions depth limit', () => pm.expect(json.error).to.include('Cannot reply to a reply'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"note\",\n  \"targetId\": \"{{noteId}}\",\n  \"content\": \"Nested reply attempt.\",\n  \"parentId\": \"{{replyCommentId}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "comments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Reply to nonexistent parent — 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 404 for nonexistent parent', () => pm.expect(pm.response.code).to.equal(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"note\",\n  \"targetId\": \"{{noteId}}\",\n  \"content\": \"Reply to ghost.\",\n  \"parentId\": \"000000000000000000000001\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "comments"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

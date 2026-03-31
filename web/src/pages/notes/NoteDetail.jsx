@@ -5,26 +5,25 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   Edit3, Trash2, ArrowLeft, Sparkles,
-  MessageCircle, Send, Tag, Clock, Share2, BookOpen, Heart, Trash, Download,
+  Tag, Clock, Share2, BookOpen, Download,
 } from 'lucide-react';
+import CommentThread from '@/components/comments/CommentThread';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Skeleton from '@/components/ui/Skeleton';
-import Avatar from '@/components/ui/Avatar';
 import Modal from '@/components/ui/Modal';
 import ShareModal from '@/components/ui/ShareModal';
 import { useAuth } from '@/context/AuthContext';
-import { formatDate, formatRelative } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 
 export default function NoteDetail() {
   const { state } = useLocation();
   const id = state?.id;
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [comment, setComment] = useState('');
   const [aiSummary, setAiSummary] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
 
@@ -49,24 +48,11 @@ export default function NoteDetail() {
   }, []);
 
 
-  const { data: commentsData, refetch: refetchComments } = useQuery({
-    queryKey: ['note-comments', id],
-    queryFn: () => api.get(`/comments/note/${id}`).then(r => r.data),
-  });
-
   const deleteMutation = useMutation({
     mutationFn: () => api.delete(`/notes/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       navigate('/notes');
-    },
-  });
-
-  const commentMutation = useMutation({
-    mutationFn: (content) => api.post('/comments', { targetType: 'note', targetId: id, content }),
-    onSuccess: () => {
-      setComment('');
-      refetchComments();
     },
   });
 
@@ -91,16 +77,6 @@ export default function NoteDetail() {
     onError: (err) => {
       setFlashcardMsg(err.response?.data?.error || 'Failed to generate flashcards.');
     },
-  });
-
-  const deleteCommentMutation = useMutation({
-    mutationFn: (commentId) => api.delete(`/comments/${commentId}`),
-    onSuccess: () => refetchComments(),
-  });
-
-  const likeCommentMutation = useMutation({
-    mutationFn: (commentId) => api.post(`/comments/${commentId}/like`),
-    onSuccess: () => refetchComments(),
   });
 
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -136,13 +112,7 @@ export default function NoteDetail() {
     }
   };
 
-  // Comments: backend stores author info in comment.userSnapshot { username, firstName, lastName, avatarUrl }
-  const getCommentAuthor = (c) => c.userSnapshot || {};
-  const fullName = (u) =>
-    [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'Unknown';
-
   const note = data?.note || data?.data;
-  const comments = commentsData?.comments || commentsData?.data || [];
   // note.userId is a populated object after getNoteById populate — use ._id for comparison
   const creatorId = note?.userId?._id ?? note?.userId;
   const isOwner = note && String(creatorId) === String(user?._id);
@@ -412,129 +382,7 @@ export default function NoteDetail() {
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '24px 28px',
       }}>
-        <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '0.9375rem', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-          <MessageCircle size={16} style={{ color: '#6b21a8' }} /> Comments ({comments.length})
-        </h3>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>
-          {comments.length === 0 ? (
-            <p style={{ fontSize: '0.875rem', color: '#a087b0' }}>No comments yet. Be the first to comment.</p>
-          ) : (
-            comments.map(c => {
-              const author = getCommentAuthor(c);
-              const isOwn = c.userId === user?._id || c.userId?._id === user?._id;
-              const isLiked = c.likes?.includes(user?._id);
-              const likeCount = c.likes?.length || 0;
-              return (
-                <div key={c._id} className="group" style={{ display: 'flex', gap: 12 }}>
-                  <Link to="/users/view" state={{ id: c.userId?._id ?? c.userId }} style={{ flexShrink: 0 }}>
-                    <Avatar name={fullName(author)} src={author.avatarUrl} size="sm" />
-                  </Link>
-                  <div style={{
-                    flex: 1,
-                    background: '#fef7ff',
-                    borderRadius: 12,
-                    padding: '10px 14px',
-                    border: '1px solid #ede9fe',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <Link to="/users/view" state={{ id: c.userId?._id ?? c.userId }}
-                        style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827', textDecoration: 'none' }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
-                        onMouseLeave={e => e.currentTarget.style.color = '#111827'}
-                      >
-                        {fullName(author)}
-                      </Link>
-                      <span style={{ fontSize: '0.75rem', color: '#a087b0' }}>{formatRelative(c.createdAt)}</span>
-                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <button
-                          onClick={() => likeCommentMutation.mutate(c._id)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            fontSize: '0.75rem',
-                            padding: '3px 8px',
-                            borderRadius: 8,
-                            border: 'none',
-                            cursor: 'pointer',
-                            background: isLiked ? '#fef2f2' : 'transparent',
-                            color: isLiked ? '#ef4444' : '#a087b0',
-                            transition: 'all 0.12s',
-                          }}
-                        >
-                          <Heart size={12} style={{ fill: isLiked ? '#ef4444' : 'none' }} />
-                          {likeCount > 0 && <span>{likeCount}</span>}
-                        </button>
-                        {isOwn && !user?.isDemo && (
-                          <button
-                            onClick={() => deleteCommentMutation.mutate(c._id)}
-                            className="opacity-0 group-hover:opacity-100"
-                            style={{
-                              padding: '3px',
-                              borderRadius: 6,
-                              border: 'none',
-                              background: 'transparent',
-                              color: '#a087b0',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              transition: 'all 0.12s',
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
-                          >
-                            <Trash size={12} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <p style={{ fontSize: '0.875rem', color: '#1f2937', lineHeight: 1.5 }}>{c.content}</p>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Comment input */}
-        {!user?.isDemo && (
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <Avatar name={user?.name || user?.username} src={user?.avatarUrl} size="sm" />
-            <div style={{ flex: 1, display: 'flex', gap: 8 }}>
-              <input
-                type="text"
-                placeholder="Write a comment..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey && comment.trim()) {
-                    e.preventDefault();
-                    commentMutation.mutate(comment.trim());
-                  }
-                }}
-                style={{
-                  flex: 1,
-                  background: 'white',
-                  border: '1px solid #ede9fe',
-                  borderRadius: 12,
-                  padding: '9px 14px',
-                  fontSize: '0.875rem',
-                  color: '#111827',
-                  outline: 'none',
-                }}
-              />
-              <Button
-                size="sm"
-                onClick={() => comment.trim() && commentMutation.mutate(comment.trim())}
-                loading={commentMutation.isPending}
-                disabled={!comment.trim()}
-              >
-                <Send size={14} />
-              </Button>
-            </div>
-          </div>
-        )}
+        <CommentThread targetType="note" targetId={id} user={user} isDemo={user?.isDemo} />
       </div>
 
       <ConfirmModal

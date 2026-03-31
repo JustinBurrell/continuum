@@ -249,3 +249,110 @@ describe('DELETE /api/comments/:id', () => {
     expect(res.statusCode).toBe(404);
   });
 });
+
+// ─── Reply threading ──────────────────────────────────────────────────────────
+
+describe('Comment replies (parentId)', () => {
+  it('POST with valid parentId → 201, reply linked to parent', async () => {
+    const { token } = await registerAndLogin();
+    const noteId = await createNote(token);
+
+    const parentRes = await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetId: noteId, targetType: 'note', content: 'Top level' });
+
+    const parentCommentId = parentRes.body.comment._id;
+
+    const res = await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetId: noteId, targetType: 'note', content: 'This is a reply', parentId: parentCommentId });
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.comment.parentId).toBe(parentCommentId);
+    expect(res.body.comment.targetId).toBe(noteId);
+  });
+
+  it('POST with parentId belonging to a different target → 400', async () => {
+    const { token } = await registerAndLogin();
+    const noteAId = await createNote(token, 'Note A');
+    const noteBId = await createNote(token, 'Note B');
+
+    const parentRes = await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetId: noteAId, targetType: 'note', content: 'Comment on A' });
+
+    const parentCommentId = parentRes.body.comment._id;
+
+    const res = await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetId: noteBId, targetType: 'note', content: 'Wrong target reply', parentId: parentCommentId });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error).toMatch(/same target/);
+  });
+
+  it('POST replying to a reply → 400 (max depth 1)', async () => {
+    const { token } = await registerAndLogin();
+    const noteId = await createNote(token);
+
+    const topRes = await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetId: noteId, targetType: 'note', content: 'Top level' });
+
+    const topId = topRes.body.comment._id;
+
+    const replyRes = await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetId: noteId, targetType: 'note', content: 'Reply', parentId: topId });
+
+    const replyId = replyRes.body.comment._id;
+
+    const res = await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetId: noteId, targetType: 'note', content: 'Reply to reply', parentId: replyId });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error).toMatch(/Cannot reply to a reply/);
+  });
+
+  it('GET returns flat list including replies with parentId, sorted ascending', async () => {
+    const { token } = await registerAndLogin();
+    const noteId = await createNote(token);
+
+    const topRes = await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetId: noteId, targetType: 'note', content: 'Top level' });
+
+    const topId = topRes.body.comment._id;
+
+    await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetId: noteId, targetType: 'note', content: 'Reply', parentId: topId });
+
+    const res = await request(app)
+      .get(`/api/comments/note/${noteId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.comments).toHaveLength(2);
+
+    const reply = res.body.comments.find(c => c.parentId !== null);
+    expect(reply).toBeDefined();
+    expect(reply.parentId).toBe(topId);
+
+    const [first, second] = res.body.comments;
+    expect(new Date(first.createdAt).getTime()).toBeLessThanOrEqual(new Date(second.createdAt).getTime());
+  });
+});
