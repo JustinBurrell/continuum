@@ -24,7 +24,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | API endpoints | ~70 across 16 route groups |
 | Frontend pages | 27 |
 | UI components | 26 |
-| Jest integration tests | 61 |
+| Jest integration tests | 173 |
 | Backend controllers | 15 |
 | Services | 4 (AI, Activity, Share, Account) |
 | Middleware types | 5 (auth, rate limiting, validation, uploads, error handling) |
@@ -40,8 +40,9 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | Mobile | Kotlin, Jetpack Compose, Android SDK (in progress) |
 | AI | Groq API (llama-3.1-8b-instant) — summaries, flashcards, resume feedback |
 | Storage | Cloudinary (images, PDFs) |
-| Email | Resend |
+| Email | Resend — transactional from `noreply@usecontinuum.dev` (custom domain) |
 | Auth | JWT access tokens, httpOnly refresh cookies, Google OAuth 2.0 |
+| Monitoring | Sentry (backend `@sentry/node` + frontend `@sentry/react`) |
 | Deployment | Vercel (frontend) + Render Starter (backend) + Upstash Redis |
 | CI | GitHub Actions — Jest suite blocks merges on failure |
 
@@ -450,7 +451,7 @@ A formal security audit lives at `docs/security/backend_security_audit.md`.
 
 ## Testing
 
-**61 Jest + Supertest integration tests across 7 suites:**
+**173 Jest + Supertest integration tests across 13 suites:**
 
 | Suite | What it covers |
 |-------|----------------|
@@ -461,6 +462,12 @@ A formal security audit lives at `docs/security/backend_security_audit.md`.
 | Applications | Create, read, update status, delete (owner-only) |
 | Messages | Friend flow → conversation → send → read, non-participant blocked, soft delete |
 | Activity | Feed authentication, cursor pagination, `since` param for unseen count |
+| Calendar | Task date filtering, date range queries, month-boundary edge cases |
+| Comments | Create, delete, like, ownership isolation, polymorphic target types |
+| Friends | Request, accept, decline, cancel, remove, duplicate prevention |
+| Profile | View and update own profile, avatar, bio, username uniqueness |
+| Resumes | Upload, AI feedback generation, delete, ownership isolation |
+| Users | Update settings, password change, account deletion grace period |
 
 **No real database needed.** `mongodb-memory-server` spins up a real MongoDB process in RAM. Tests run offline, in CI, with zero Atlas configuration.
 
@@ -523,6 +530,7 @@ Key implementation decisions:
 - **Backend:** Render Starter — `node server.js`, all env vars configured
 - **Redis:** Upstash (`rediss://` TLS) — Socket.io pub/sub + read-through cache
 - **Database:** MongoDB Atlas M0
+- **Monitoring:** Sentry — backend initialized via `instrument.js` before Express loads; frontend initialized in `main.jsx` before React renders. Captures unhandled exceptions and surface-level errors in production.
 
 ---
 
@@ -530,7 +538,7 @@ Key implementation decisions:
 
 1. **Real architectural decisions** — Cursor pagination, Redis pub/sub, httpOnly cookies, encrypted tokens at rest. Not just "I used React and Node." Every decision has a reason you can defend.
 
-2. **Production-quality security** — Formal audit, 4-tier rate limiting, AES-256 encryption, one-time OAuth codes. Most senior projects have none of this.
+2. **Production-quality security and observability** — Formal audit, 4-tier rate limiting, AES-256 encryption, one-time OAuth codes, Sentry error monitoring on both frontend and backend. Most senior projects have none of this.
 
 3. **Horizontal scaling is already wired** — Redis adapter means you add a second backend instance with zero code changes. That's a real system design answer, not a hypothetical.
 
