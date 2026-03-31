@@ -34,4 +34,18 @@ router.use(authMiddleware);
  */
 router.get('/', activityController.getActivityFeed);
 
+/**
+ * @swagger
+ * /api/activity/mark-seen:
+ *   put:
+ *     summary: Mark the activity feed as seen by setting lastViewedActivityAt to now
+ *     tags: [Activity]
+ *     responses:
+ *       200:
+ *         description: lastViewedActivityAt updated successfully
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+router.put('/mark-seen', activityController.markSeen);
+
 module.exports = router;

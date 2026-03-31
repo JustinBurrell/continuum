@@ -141,6 +141,10 @@ const userSchema = new mongoose.Schema({
     lastLoginAt: {
         type: Date,
     },
+    lastViewedActivityAt: {
+        type: Date,
+        default: null,
+    },
     emailVerified: {
         type: Boolean,
         default: false,

@@ -33,7 +33,7 @@ Seed scripts for dev data live in `tests/mongodb/`.
 | Resumes | `resumes.test.js` | List (empty, owner isolation), download URL (owner, 403, 404), get feedback (403, 404, no feedback yet), delete (owner, 403, 404, 400 invalid ID); upload skipped (requires Cloudinary) |
 | Applications | `applications.test.js` | Create, read, update status, delete (owner-only) |
 | Messages | `messages.test.js` | Friend flow → create conversation → send message → read messages, non-participant blocked, message delete (soft, per-user), conversation delete (Instagram-style) |
-| Activity | `activity.test.js` | Feed accessible when authenticated, blocked when not; `since` param returns `total` ≤ full total; `nextCursor` present in response |
+| Activity | `activity.test.js` | Feed accessible when authenticated, blocked when not; `since` param returns `total` ≤ full total; `nextCursor` present in response; `PUT /mark-seen` returns 200 and sets `lastViewedActivityAt` on user; `since` using server-side timestamp returns correct unseen count |
 
 ### How it works
 

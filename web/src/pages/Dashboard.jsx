@@ -572,8 +572,8 @@ export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Read when user last visited /activity — used to show unseen activity count
-  const lastViewedActivityAt = localStorage.getItem('lastViewedActivityAt');
+  // Use server-side lastViewedActivityAt from the authenticated user — device-consistent
+  const lastViewedActivityAt = user?.lastViewedActivityAt ?? null;
 
   const { data: notesData, isLoading: notesLoading } = useQuery({
     queryKey: ['notes', { limit: 3 }],

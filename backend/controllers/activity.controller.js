@@ -104,3 +104,15 @@ exports.getActivityFeed = async (req, res) => {
 
     res.status(200).json({ success: true, ...result, total });
 };
+
+// ----------------------------------------
+// PUT /api/activity/mark-seen
+// Purpose: Set lastViewedActivityAt to now on the authenticated user.
+// Called when the user opens the /activity page so the dashboard unseen count resets.
+// Response: { success: true }
+// ----------------------------------------
+exports.markSeen = async (req, res) => {
+    const User = require('../models/User');
+    await User.findByIdAndUpdate(req.user._id, { lastViewedActivityAt: new Date() });
+    res.status(200).json({ success: true });
+};

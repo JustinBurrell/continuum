@@ -46,6 +46,7 @@
 
   // Metadata
   lastLoginAt: Date,
+  lastViewedActivityAt: Date (default: null), // server-side seen timestamp for activity feed
   emailVerified: Boolean,
   deletedAt: Date (soft delete),
 
