@@ -41,6 +41,8 @@ describe('GET /api/calendar', () => {
   it('includes a task after it is created', async () => {
     const { token } = await registerAndLogin();
     const dueDate = new Date(Date.now() + 86400000).toISOString(); // tomorrow
+    const start = new Date(Date.now() - 86400000).toISOString().split('T')[0]; // yesterday
+    const end = new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0]; // 7 days out
 
     await request(app)
       .post('/api/tasks')
@@ -48,7 +50,7 @@ describe('GET /api/calendar', () => {
       .send({ title: 'Calendar Task', dueDate, status: 'todo' });
 
     const res = await request(app)
-      .get('/api/calendar')
+      .get(`/api/calendar?start=${start}&end=${end}`)
       .set('Authorization', `Bearer ${token}`);
 
     expect(res.statusCode).toBe(200);
@@ -95,6 +97,8 @@ describe('GET /api/calendar', () => {
   it('includes shared tasks from friends', async () => {
     const { alice, bob } = await makeFriends();
     const dueDate = new Date(Date.now() + 86400000).toISOString();
+    const start = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const end = new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0];
 
     // Alice creates a task with Bob as participant
     await request(app)
@@ -103,7 +107,7 @@ describe('GET /api/calendar', () => {
       .send({ title: 'Shared Calendar Task', dueDate, status: 'todo', isShared: true, participants: [{ userId: bob.userId }] });
 
     const res = await request(app)
-      .get('/api/calendar')
+      .get(`/api/calendar?start=${start}&end=${end}`)
       .set('Authorization', `Bearer ${bob.token}`);
 
     expect(res.statusCode).toBe(200);
