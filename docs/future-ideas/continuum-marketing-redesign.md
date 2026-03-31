@@ -17,7 +17,8 @@ This redesign covers **only** the following routes. Do not touch anything else.
 | `/terms` | Terms of Service |
 | `/login` | Sign In page |
 | `/register` | Sign Up page |
-| `/forgot-password` | Reset Password page |
+| `/forgot-password` | Forgot Password page (enter email, request reset link) |
+| `/reset-password` | Reset Password page (set new password after clicking email link) |
 
 **DO NOT touch any of the following under any circumstances:**
 - Any authenticated/dashboard routes: `/dashboard`, `/notes`, `/flashcards`, `/tasks`, `/calendar`, `/social`, `/career`, `/settings`, `/messages`, or any sub-route thereof
@@ -46,7 +47,7 @@ Read the entire spec. Then produce a written plan that covers:
 2. **Font setup plan** — list the exact steps you will take to download, place, and configure Fraunces and Plus Jakarta Sans locally. State the exact directory path you will use for font files. State the exact Tailwind config change you will make. Ask if you are unsure about the project's directory structure before assuming.
 3. **File inventory** — list every file you plan to modify or create, mapped to the route it serves. Flag any file that might be shared with the authenticated app and state how you will handle it (create a marketing-specific copy rather than editing the shared file).
 4. **Global pass plan** — list every banned color and every instance of italic serif font styling you find across the in-scope files.
-5. **Page order** — confirm the order you will implement pages: Landing → Product → About → Sign In → Sign Up → Reset Password → Terms → Privacy.
+5. **Page order** — confirm the order you will implement pages: Landing → Product → About → Sign In → Sign Up → Forgot Password → Reset Password → Terms → Privacy.
 6. **Questions** — if anything in the spec is ambiguous given the actual codebase structure, ask those questions now. Keep them minimal and specific.
 
 Do not write any code during Phase 1. Wait for explicit approval of the plan before proceeding.
@@ -989,31 +990,55 @@ Legal text: `font-size: 0.75rem color: #9CA3AF text-align: center margin-top: 16
 Bottom link: `font-size: 0.875rem color: #6B7280 text-align: center margin-top: 20px`
 "Already have an account? " + `color: #6B21A8 font-weight: 600` "Sign in"
 
-### Reset Password Page — Specific Changes
+### Reset Password Page (`/reset-password`) — Specific Changes
 
-Headline: `font-size: 1.875rem font-weight: 700 color: #111827` — "Reset your password"
-**Remove all italic and serif styling.**
-Subtext: `font-size: 0.9375rem color: #6B7280 margin-bottom: 28px` — "Enter your email and we'll send you a reset link"
+This is the page the user lands on after clicking the reset link in their email. It is distinct from `/forgot-password` (which only collects their email). This page collects and sets the new password.
 
-Single field: Email
+Uses the same split panel layout as all other auth pages. Left panel content is identical.
 
-"Send reset link" button: apply auth-btn-primary styles
+Headline: `font-size: 1.875rem font-weight: 700 color: #111827` — "Set new password"
+**Remove the purple italic serif styling** — same fix as all other auth headlines.
+Subtext: `font-size: 0.9375rem color: #6B7280 margin-bottom: 28px` — "Choose a strong password for your account"
 
-Bottom link: `font-size: 0.875rem color: #6B21A8 text-align: center margin-top: 20px hover:underline` — "Back to sign in"
+Fields:
+- "New password" — apply auth-input styles, add eye icon toggle (same as Sign Up password field)
+- **Remove "Confirm new password" field** — same reasoning as Sign Up: use the eye icon toggle instead. Remove the red asterisk from the label.
 
-**Add success state (currently missing — must be implemented):**
-After form submit success, replace form content with:
+"Reset password" button: apply `auth-btn-primary` styles. Specifically fix the border-radius — currently pill-shaped (`border-radius: 999px`), change to `border-radius: 8px` to match all other auth buttons and inputs.
+
+"Back to sign in" link: `font-size: 0.875rem color: #6B21A8 font-weight: 500 text-align: center display: block margin-top: 16px` — hover underline.
+
+**Success and error states — check before implementing:**
+Before adding these states, inspect the current `/reset-password` component and check whether a success state (password updated confirmation) and an expired/invalid token error state already exist in the code. If they do, apply the visual styling below to the existing states rather than rewriting the logic. If they do not exist, implement them in full.
+
+Success state styling (apply to existing or implement new):
 ```jsx
 <div style={{ textAlign: 'center', padding: '20px 0' }}>
   {/* Checkmark icon, color: #059669, size: 48px, margin-bottom: 20px */}
   <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>
-    Check your email
+    Password updated
   </h2>
   <p style={{ fontSize: '0.9375rem', color: '#6B7280', marginBottom: '24px' }}>
-    We sent a reset link to {email}. It expires in 1 hour.
+    Your password has been reset successfully.
   </p>
-  <a href="/sign-in" style={{ fontSize: '0.9375rem', color: '#6B21A8', fontWeight: 500 }}>
-    Back to sign in
+  <a href="/login" style={{ fontSize: '0.9375rem', color: '#6B21A8', fontWeight: 500 }}>
+    Sign in to your account
+  </a>
+</div>
+```
+
+Expired/invalid token error state styling (apply to existing or implement new):
+```jsx
+<div style={{ textAlign: 'center', padding: '20px 0' }}>
+  {/* X/error icon, color: #DC2626, size: 48px, margin-bottom: 20px */}
+  <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>
+    Link expired
+  </h2>
+  <p style={{ fontSize: '0.9375rem', color: '#6B7280', marginBottom: '24px' }}>
+    This reset link has expired or already been used. Request a new one.
+  </p>
+  <a href="/forgot-password" style={{ fontSize: '0.9375rem', color: '#6B21A8', fontWeight: 500 }}>
+    Request a new link
   </a>
 </div>
 ```
