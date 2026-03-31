@@ -20,7 +20,7 @@ The app requests three scopes: `profile`, `email`, and `https://www.googleapis.c
 | Domain verified in Google Search Console | ✅ Done | Verified by owner |
 | Google Sign-In button follows branding guidelines | ✅ Done | Button uses Google colors and logo |
 | App demo video showing OAuth consent screen + drive scope usage | ❌ Missing | Required for sensitive scope |
-| Justification for `drive.readonly` scope | ❌ Missing | Must explain why narrower scope won't work |
+| Justification for `drive.readonly` scope | ✅ Done | Submitted in Google Cloud Console OAuth consent screen |
 | Project contact info up to date in GCP | ✅ Done | Confirmed in Google Cloud Console |
 
 ### Action items
@@ -100,27 +100,15 @@ Redis is optional — the app gracefully degrades without it. However without Re
 - Server-side query caching is disabled
 - Daily AI rate limit counter uses in-memory fallback (resets on redeploy)
 
-**If using Upstash:** Upstash is the Redis provider — just ensure the `REDIS_URL` env var on the Render backend service is set to your Upstash connection string. No separate Render Redis instance needed. If `REDIS_URL` is already set on Render, this item is done.
+**Status: ✅ Done** — `REDIS_URL` is set on Render pointing to Upstash. Socket.io adapter, caching, and AI rate limiting are all active.
 
 ---
 
-## 6. Error Monitoring
+## 6. Error Monitoring ✅ Done
 
-No error monitoring is configured. Unhandled exceptions in prod are only visible in Render logs, which don't alert anyone.
+`@sentry/node` initialized in `backend/instrument.js`, loaded at the top of `server.js`. `Sentry.setupExpressErrorHandler(app)` wired into `backend/app.js` before the global error handler.
 
-**Recommended:** Add [Sentry](https://sentry.io) — free tier covers MVP usage.
-
-**Backend (`backend/app.js`):**
-```js
-const Sentry = require('@sentry/node');
-Sentry.init({ dsn: process.env.SENTRY_DSN, environment: process.env.NODE_ENV });
-```
-
-**Frontend (`web/src/main.jsx`):**
-```js
-import * as Sentry from '@sentry/react';
-Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN });
-```
+`@sentry/react` initialized in `web/src/main.jsx`. Both are guarded — Sentry only activates when the DSN env var is present, so local dev is unaffected.
 
 Add `SENTRY_DSN` to backend env vars and `VITE_SENTRY_DSN` to frontend env vars on Render.
 
@@ -154,124 +142,28 @@ Verify all the following are set on the Render backend service:
 
 ---
 
-## 8. Favicon & Browser Tab Logo
+## 8. Favicon & Browser Tab Logo ✅ Done
 
-The favicon is what appears in the browser tab, bookmarks, and on mobile when a user adds the site to their home screen. Without it, the browser shows a blank page icon.
-
-**What to add in `web/public/`:**
-
-| File | Purpose |
-|---|---|
-| `favicon.ico` | Classic browser tab icon (32x32) |
-| `favicon.svg` | Modern scalable version (preferred by Chrome/Firefox) |
-| `apple-touch-icon.png` | iOS home screen icon (180x180) |
-| `favicon-192.png` | Android home screen (192x192) |
-| `favicon-512.png` | Android splash screen (512x512) |
-
-Use the Continuum "C" logo mark. A free tool like [realfavicongenerator.net](https://realfavicongenerator.net) generates all sizes from one source image.
-
-**Update `web/index.html`:**
-
-```html
-<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-<link rel="icon" href="/favicon.ico" sizes="any" />
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-```
-
-**Also add Open Graph meta tags** (controls how the link looks when shared on iMessage, Twitter, Slack, etc.):
-
-```html
-<meta property="og:title" content="Continuum" />
-<meta property="og:description" content="The all-in-one workspace for students." />
-<meta property="og:image" content="https://yourcontinuumdomain.com/og-image.png" />
-<meta property="og:url" content="https://yourcontinuumdomain.com" />
-<meta name="twitter:card" content="summary_large_image" />
-```
-
-Create a 1200x630px `og-image.png` (the preview image that appears when the link is shared) and place it in `web/public/`.
+`web/public/favicon.svg` - purple square with infinity symbol placeholder (to be replaced with final icon mark)
+`web/public/wordmark.svg` - full brand wordmark, used across all layouts
+`web/public/og-image.png` - 1200x630 OG image for social link previews
+`web/index.html` - favicon link tags added, OG image wired up
 
 ---
 
-## 9. SEO
+## 9. SEO ✅ Done
 
-Without SEO basics, the landing page, product page, and about page won't appear in Google search results even after the domain is verified.
+- `web/index.html` - base title, meta description, canonical URL, full OG and Twitter card block added
+- `web/src/components/TitleManager.jsx` - per-page titles (`Continuum | Page` format), descriptions, og:title, og:description, og:url, and canonical updated on every route change
+- All public pages covered: `/`, `/product`, `/about`, `/privacy`, `/terms`, `/login`, `/register`
 
-### `web/index.html` — base meta tags
-
-```html
-<title>Continuum — The Student Workspace</title>
-<meta name="description" content="Continuum is the all-in-one workspace for students — notes, flashcards, tasks, job applications, and more." />
-<meta name="keywords" content="student productivity, notes app, flashcards, task manager, job application tracker" />
-<link rel="canonical" href="https://yourcontinuumdomain.com" />
-```
-
-### Per-page titles and descriptions
-
-React Router doesn't update `<title>` automatically. Use a small utility or the `react-helmet-async` package to set unique titles and descriptions per page:
-
-| Page | Title | Description |
-|---|---|---|
-| Landing `/` | Continuum — Student Workspace | The all-in-one workspace built for students |
-| Product `/product` | Features — Continuum | Notes, flashcards, tasks, and career tools in one place |
-| About `/about` | About — Continuum | Learn about the team behind Continuum |
-| Privacy `/privacy` | Privacy Policy — Continuum | How Continuum handles your data |
-| Terms `/terms` | Terms of Service — Continuum | Terms governing use of Continuum |
-| Login `/login` | Sign In — Continuum | — |
-| Register `/register` | Create Account — Continuum | — |
-
-### Sitemap
-
-Create `web/public/sitemap.xml` listing all public routes so Google can discover and index them:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://yourcontinuumdomain.com/</loc></url>
-  <url><loc>https://yourcontinuumdomain.com/product</loc></url>
-  <url><loc>https://yourcontinuumdomain.com/about</loc></url>
-  <url><loc>https://yourcontinuumdomain.com/login</loc></url>
-  <url><loc>https://yourcontinuumdomain.com/register</loc></url>
-  <url><loc>https://yourcontinuumdomain.com/privacy</loc></url>
-  <url><loc>https://yourcontinuumdomain.com/terms</loc></url>
-</urlset>
-```
-
-Reference the sitemap in `robots.txt`:
-```
-Sitemap: https://yourcontinuumdomain.com/sitemap.xml
-```
-
-### Submit to Google Search Console
-
-After domain verification, go to Google Search Console → Sitemaps → submit `https://yourcontinuumdomain.com/sitemap.xml`. This tells Google to crawl and index the site immediately rather than waiting for organic discovery.
+**Pending (post-deploy):** Submit sitemap to Google Search Console at `https://usecontinuum.dev/sitemap.xml`
 
 ---
 
-## 10. robots.txt
+## 10. robots.txt ✅ Done
 
-Without a `robots.txt`, crawlers index everything including `/login`, `/dashboard`, and API routes.
-
-Add `web/public/robots.txt`:
-
-```
-User-agent: *
-Disallow: /dashboard
-Disallow: /notes
-Disallow: /tasks
-Disallow: /flashcards
-Disallow: /applications
-Disallow: /messages
-Disallow: /friends
-Disallow: /profile
-Disallow: /calendar
-Allow: /
-Allow: /about
-Allow: /product
-Allow: /login
-Allow: /register
-Allow: /privacy
-Allow: /terms
-```
+`web/public/robots.txt` created. Disallows all authenticated app routes, allows all public marketing/auth routes, references sitemap at `https://usecontinuum.dev/sitemap.xml`.
 
 ---
 
@@ -326,39 +218,24 @@ These are production-ready and don't need changes:
 
 ---
 
-## 12. Logo Replacement (Assets Pending)
+## 12. Logo Replacement ✅ Done
 
-Every place the word "Continuum" or the placeholder "C" mark appears as text needs to be replaced with the real logo assets once provided.
-
-**Locations to update:**
-
-| Location | File | Current |
-|---|---|---|
-| Sidebar header | `web/src/components/layout/Sidebar.jsx` | "C" box + "Continuum" text |
-| Mobile app header | `web/src/components/layout/AppLayout.jsx` | "C" box + "Continuum" text |
-| Auth pages (Login, Register, etc.) | `web/src/pages/auth/` | "C" logo mark + "Continuum" heading |
-| Browser tab title | `web/index.html` | `<title>Continuum</title>` — keep as text, add favicon |
-| Landing / product / about pages | marketing pages | wherever "Continuum" wordmark appears |
-| Open Graph image | `web/public/og-image.png` | needs logo embedded in the image |
-
-**What to provide:**
-- Full wordmark (logo + "Continuum" text) — SVG preferred, PNG fallback
-- Logo mark only (the "C" icon) — SVG preferred, for favicon and compact use
-- Dark and light variants if applicable
-
-Once assets are received, do a codebase-wide search for the placeholder `C` mark and "Continuum" text renders and swap them in.
+All placeholder "C" marks and "Continuum" text renders replaced with `/wordmark.svg` across:
+- `Sidebar.jsx`, `AppLayout.jsx` (loading state + mobile header), `AuthLayout.jsx`, `MarketingNav.jsx`, `MarketingFooter.jsx`, `Landing.jsx` mockup
+- Tagline removed from auth layout
+- `favicon.svg` uses standalone infinity mark (separate from wordmark)
 
 ---
 
 ## 15. Priority Order for MVP Launch
 
-1. **Logo assets (user to provide)** — replace all "C" placeholders and "Continuum" text renders site-wide
-2. **Favicon + browser tab logo** — depends on logo asset being finalized
+1. ~~**Logo assets**~~ ✅ Done — wordmark, logo mark, and OG image added; all layouts updated
+2. ~~**Favicon + browser tab logo**~~ ✅ Done — favicon.svg placeholder in place, wired to index.html
 3. ~~**Privacy Policy page**~~ ✅ Done — built at `/privacy`, linked in footer and Register form
 4. ~~**Terms of Service page**~~ ✅ Done — built at `/terms`, linked in footer and Register form
-5. **SEO meta tags + sitemap** — get the public pages indexed by Google
-6. **Custom email domain in Resend** — emails currently send from `onboarding@resend.dev`
-7. **Confirm `REDIS_URL` is set on Render** — points to Upstash instance
-8. **`robots.txt` + sitemap reference** — tell crawlers what to index
-9. **Sentry** — know when things break in prod without checking logs manually
-10. **Google OAuth verification** — enter Privacy Policy URL in Google Cloud Console, verify domain in Search Console, then submit
+5. ~~**SEO meta tags + sitemap**~~ ✅ Done — TitleManager extended, robots.txt and sitemap.xml created
+6. ~~**`robots.txt` + sitemap reference**~~ ✅ Done — see above
+7. **Custom email domain in Resend** — emails currently send from `onboarding@resend.dev`
+8. ~~**Confirm `REDIS_URL` is set on Render**~~ ✅ Done — Upstash connection string confirmed in Render env vars
+9. ~~**Sentry**~~ ✅ Done — `@sentry/node` on backend, `@sentry/react` on frontend; guarded by `SENTRY_DSN` / `VITE_SENTRY_DSN`
+10. **Google OAuth verification** — demo video still needed; justification submitted

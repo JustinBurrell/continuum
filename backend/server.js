@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./instrument');
 const http = require('http');
 const logger = require('./lib/logger');
 const connectDB = require('./config/database');
