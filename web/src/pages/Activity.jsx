@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
 import { Activity as ActivityIcon, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/lib/api';
@@ -124,10 +125,17 @@ const PAGE_SIZE = 20;
 
 export default function Activity() {
   const [actSearch, setActSearch] = useState('');
+  const { updateUser } = useAuth();
+  const queryClient = useQueryClient();
 
-  // Mark activities as seen — dashboard unseen count resets on next visit
+  // Mark activities as seen — persists server-side so count resets on any device
   useEffect(() => {
-    localStorage.setItem('lastViewedActivityAt', new Date().toISOString());
+    api.put('/activity/mark-seen').then(() => {
+      const now = new Date().toISOString();
+      updateUser({ lastViewedActivityAt: now });
+      // Invalidate Dashboard's activity query so it refetches with count = 0
+      queryClient.invalidateQueries({ queryKey: ['activity'] });
+    }).catch(() => {});
   }, []);
 
   const {

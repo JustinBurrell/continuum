@@ -1,8 +1,9 @@
 /**
  * activity.test.js
  *
- * Tests the Activity feed endpoint:
- *   GET /api/activity   → { success, ... }
+ * Tests the Activity feed endpoints:
+ *   GET /api/activity          → { success, feed, nextCursor, total }
+ *   PUT /api/activity/mark-seen → { success: true }
  *
  * Activity is read-only — events are created automatically by other
  * actions (creating notes, tasks, etc.). We just verify the endpoint
@@ -82,5 +83,59 @@ describe('GET /api/activity', () => {
     expect(res.body.feed).toBeDefined();
     // nextCursor is null when there are no items or only one item returned
     expect(res.body).toHaveProperty('nextCursor');
+  });
+});
+
+describe('PUT /api/activity/mark-seen', () => {
+  it('returns 401 without token', async () => {
+    const res = await request(app).put('/api/activity/mark-seen');
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('returns 200 and updates lastViewedActivityAt on the user', async () => {
+    const { token } = await registerAndLogin();
+
+    const before = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`);
+    expect(before.body.user.lastViewedActivityAt).toBeNull();
+
+    const res = await request(app)
+      .put('/api/activity/mark-seen')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+
+    const after = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`);
+    expect(after.body.user.lastViewedActivityAt).not.toBeNull();
+  });
+
+  it('since using lastViewedActivityAt is accepted by the feed endpoint', async () => {
+    const { token } = await registerAndLogin();
+
+    // Mark seen — sets lastViewedActivityAt to now
+    await request(app)
+      .put('/api/activity/mark-seen')
+      .set('Authorization', `Bearer ${token}`);
+
+    // Read back the server-side timestamp
+    const meRes = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`);
+    const since = meRes.body.user.lastViewedActivityAt;
+    expect(since).not.toBeNull();
+
+    // The timestamp should work as a valid `since` param — no new activities, so total = 0
+    const feedRes = await request(app)
+      .get(`/api/activity?since=${since}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(feedRes.statusCode).toBe(200);
+    expect(feedRes.body.success).toBe(true);
+    // No activities created after mark-seen, so unseen count is 0
+    expect(feedRes.body.total).toBe(0);
   });
 });

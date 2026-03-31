@@ -56,7 +56,7 @@ async function getOrSet(key, ttlSeconds, fetchFn) {
 }
 
 /**
- * Delete one or more cache keys.
+ * Delete one or more cache keys by exact name.
  * No-op if Redis is unavailable.
  *
  * @param {...string} keys
@@ -67,6 +67,29 @@ async function invalidate(...keys) {
     if (!c) return;
     try {
         await Promise.all(keys.map(k => c.del(k)));
+    } catch (_) {}
+}
+
+/**
+ * Delete all keys whose names start with the given prefix.
+ * Uses SCAN to avoid blocking Redis on large keyspaces.
+ * No-op if Redis is unavailable.
+ *
+ * @param {string} prefix — e.g. 'activity:abc123:first'
+ */
+async function invalidatePattern(prefix) {
+    if (!prefix) return;
+    const c = await getClient();
+    if (!c) return;
+    try {
+        let cursor = 0;
+        do {
+            const reply = await c.scan(cursor, { MATCH: `${prefix}*`, COUNT: 100 });
+            cursor = reply.cursor;
+            if (reply.keys.length > 0) {
+                await Promise.all(reply.keys.map(k => c.del(k)));
+            }
+        } while (cursor !== 0);
     } catch (_) {}
 }
 
@@ -93,4 +116,4 @@ async function checkAiLimit(userId, limit, type) {
     }
 }
 
-module.exports = { getOrSet, invalidate, checkAiLimit };
+module.exports = { getOrSet, invalidate, invalidatePattern, checkAiLimit };

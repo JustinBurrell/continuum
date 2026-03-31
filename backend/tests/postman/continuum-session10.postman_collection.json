@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "h8c9d0e1-f2a3-4567-bcde-567890123007",
     "name": "Continuum — Session 10",
-    "description": "API-30: Change Username | API-31: Change Password — new settings endpoints added in the settings revamp.\n\nCovers: PATCH /api/auth/me/username, PATCH /api/auth/me/password.\n\nRun order: 1. Login → 2. Change Username → 3. Change Password.\ntoken and userId are auto-set by the Login request.",
+    "description": "API-30: Change Username | API-31: Change Password | API-32: Mark Activity Seen\n\nCovers: PATCH /api/auth/me/username, PATCH /api/auth/me/password, PUT /api/activity/mark-seen.\n\nRun order: 1. Login → 2. Change Username → 3. Change Password → 4. Mark Activity Seen.\ntoken and userId are auto-set by the Login request.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -457,6 +457,117 @@
               "raw": "{{baseUrl}}/api/auth/me/password",
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "me", "password"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Mark Activity Seen (API-32)",
+      "item": [
+        {
+          "name": "Mark Activity Seen",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns success', () => pm.expect(json.success).to.equal(true));",
+                  "pm.environment.set('lastViewedActivityAt', new Date().toISOString());"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity/mark-seen",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity", "mark-seen"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify lastViewedActivityAt updated (GET /me)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('lastViewedActivityAt is set', () => pm.expect(json.user.lastViewedActivityAt).to.not.equal(null));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Activity Feed — unseen count using lastViewedActivityAt",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns feed', () => pm.expect(json.feed).to.be.an('array'));",
+                  "pm.test('Total is a number', () => pm.expect(json.total).to.be.a('number'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity?since={{lastViewedActivityAt}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity"],
+              "query": [{ "key": "since", "value": "{{lastViewedActivityAt}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Error] Mark Activity Seen — no token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activity/mark-seen",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity", "mark-seen"]
             }
           },
           "response": []

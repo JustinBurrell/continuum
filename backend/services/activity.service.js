@@ -2,7 +2,7 @@ const Activity = require('../models/Activity');
 const Friendship = require('../models/Friendship');
 const User = require('../models/User');
 const { getIO } = require('../lib/socket');
-const { invalidate } = require('../lib/cache');
+const { invalidatePattern } = require('../lib/cache');
 
 // Emit activity_updated to all users who can see the activity except the actor
 // Also invalidate their cached activity feeds
@@ -15,10 +15,12 @@ function notifyActivityAudience(visibleTo, actorId) {
             }
         });
     } catch (_) {}
-    // Bust the first-page activity cache for all visible users (including actor).
-    // Only the first page needs invalidation — cursor pages are stable and don't change.
-    const keys = visibleTo.map(uid => `activity:${uid}:first`);
-    invalidate(...keys).catch(() => {});
+    // Bust all first-page activity cache variants for visible users.
+    // The stored key includes the limit (e.g. activity:uid:first:20), so we use prefix
+    // pattern matching to catch all limit variants. Cursor pages are stable — skip them.
+    visibleTo.forEach(uid => {
+        invalidatePattern(`activity:${uid}:first`).catch(() => {});
+    });
 }
 
 // ============================================================

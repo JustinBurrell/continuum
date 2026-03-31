@@ -773,7 +773,7 @@ Run folders top to bottom. Folder 0 must run first.
 
 # Postman Testing — Session 10
 
-API-30: Change Username | API-31: Change Password — new settings endpoints added in the settings revamp.
+API-30: Change Username | API-31: Change Password | API-32: Mark Activity Seen — settings revamp and server-side activity seen tracking.
 
 ---
 
@@ -781,7 +781,7 @@ API-30: Change Username | API-31: Change Password — new settings endpoints add
 
 ### 1. Import the collection
 - Open Postman → **Collections** tab → **Import** → select `continuum-session10.postman_collection.json`
-- Environment: `continuum-local.postman_environment.json` (no new variables needed)
+- Environment: `continuum-local.postman_environment.json` — `lastViewedActivityAt` is set automatically by the mark-seen request
 
 ### 2. Select the environment
 - Top-right corner of Postman — switch to **Continuum — Local**
@@ -803,12 +803,11 @@ cd backend && npm run dev
 
 ## Environment Variables
 
-No new variables — Session 10 reuses existing ones.
-
-| Variable   | Set by     |
-|------------|------------|
-| `token`    | Login User A |
-| `userId`   | Login User A |
+| Variable               | Set by                        |
+|------------------------|-------------------------------|
+| `token`                | Login User A                  |
+| `userId`               | Login User A                  |
+| `lastViewedActivityAt` | Mark Activity Seen (auto-set) |
 
 ---
 
@@ -846,6 +845,16 @@ Run folders top to bottom. Folder 1 must run first.
 | [Error] Missing newPassword field | `{ currentPassword }` | `400` | |
 | [Error] No token | full body | `401` | |
 
+### 4. Mark Activity Seen (API-32)
+*(Stores the seen timestamp server-side on User so count resets on any device)*
+
+| Request | Body Input | Expected | Tested |
+|---------|------------|----------|--------|
+| Mark Activity Seen | none | `200` — `{ success: true }`; sets `lastViewedActivityAt` env var | |
+| Verify lastViewedActivityAt updated (GET /me) | none | `200` — `user.lastViewedActivityAt` is not null | |
+| Get Activity Feed — unseen count using `lastViewedActivityAt` | query: `?since={{lastViewedActivityAt}}` | `200` — `total` reflects only activities after mark-seen | |
+| [Error] No token | none | `401` | |
+
 ---
 
 ## Tips
@@ -854,3 +863,4 @@ Run folders top to bottom. Folder 1 must run first.
 - The "restore original" requests are intentionally included so test data stays clean after the session runs
 - Username validation: 3–30 chars, letters/numbers/underscores/hyphens only — spaces, dots, and special chars are rejected with 400
 - Google-only users (no password set) receive a `400` with message "No password set — use Forgot Password to create one first" if they attempt the change-password endpoint
+- `mark-seen` auto-sets `lastViewedActivityAt` in the Postman environment — the unseen count request uses it via `{{lastViewedActivityAt}}`
