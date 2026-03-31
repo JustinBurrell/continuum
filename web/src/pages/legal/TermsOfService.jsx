@@ -27,7 +27,7 @@ const sections = [
     title: '3. Your Account',
     content: (
       <>
-        <p>You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. You agree to notify us immediately at <a href="mailto:privacy@continuumapp.dev">privacy@continuumapp.dev</a> if you become aware of any unauthorized use of your account.</p>
+        <p>You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. You agree to notify us immediately at <a href="mailto:support@usecontinuum.dev">support@usecontinuum.dev</a> if you become aware of any unauthorized use of your account.</p>
         <p>You may not create an account on behalf of someone else or transfer your account to another person. Each account is for a single individual user.</p>
         <p>You agree to provide accurate, complete, and current information when registering and to keep your account information up to date.</p>
       </>
@@ -129,7 +129,7 @@ const sections = [
     content: (
       <>
         <p>If you have questions about these Terms, please contact us at:</p>
-        <p><strong>Email:</strong> <a href="mailto:privacy@continuumapp.dev">privacy@continuumapp.dev</a></p>
+        <p><strong>Email:</strong> <a href="mailto:support@usecontinuum.dev">support@usecontinuum.dev</a></p>
       </>
     ),
   },

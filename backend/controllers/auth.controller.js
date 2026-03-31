@@ -14,6 +14,30 @@ const { hardDeleteUser } = require('../services/account.service');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+function emailTemplate(content) {
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body style="margin:0;padding:0;background:#fef7ff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef7ff;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;padding:40px;max-width:560px;">
+        <tr><td>
+          ${content}
+          <hr style="border:none;border-top:1px solid #e9e3f0;margin:32px 0;" />
+          <p style="color:#a087b0;font-size:13px;margin:0 0 16px;">Team Continuum</p>
+          <img src="https://usecontinuum.dev/wordmark.svg" alt="Continuum" height="22" style="display:block;" />
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 // ============================================================
 // AUTH CONTROLLER
 // Purpose: Handle business logic for all authentication endpoints
@@ -86,13 +110,15 @@ exports.register = async (req, res) => {
         });
         const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`;
         await resend.emails.send({
-            from: 'Continuum <onboarding@resend.dev>',
+            from: 'Continuum <noreply@usecontinuum.dev>',
             to: user.email,
             subject: 'Verify your Continuum email',
-            html: `<p>Hi ${user.firstName},</p>
-                   <p>Welcome to Continuum! Click the link below to verify your email address. It expires in 24 hours.</p>
-                   <a href="${verifyUrl}">${verifyUrl}</a>
-                   <p>If you didn't create a Continuum account, you can ignore this email.</p>`,
+            html: emailTemplate(`
+                <p style="color:#1a1a1a;font-size:16px;margin:0 0 12px;">Hi ${user.firstName},</p>
+                <p style="color:#3d3d3d;font-size:15px;margin:0 0 24px;">Welcome to Continuum! Click the button below to verify your email address. This link expires in 24 hours.</p>
+                <a href="${verifyUrl}" style="display:inline-block;background:#6b21a8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:500;">Verify Email</a>
+                <p style="color:#a087b0;font-size:13px;margin:24px 0 0;">If you didn't create a Continuum account, you can safely ignore this email.</p>
+            `),
         });
     } catch (_) { /* non-blocking */ }
 
@@ -185,11 +211,15 @@ exports.forgotPassword = async (req, res) => {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
 
     await resend.emails.send({
-        from: 'Continuum <onboarding@resend.dev>',
+        from: 'Continuum <noreply@usecontinuum.dev>',
         to: user.email,
         subject: 'Reset your Continuum password',
-        html: `<p>Click the link below to reset your password. It expires in 1 hour.</p>
-               <a href="${resetUrl}">${resetUrl}</a>`,
+        html: emailTemplate(`
+            <p style="color:#1a1a1a;font-size:16px;margin:0 0 12px;">Reset your password</p>
+            <p style="color:#3d3d3d;font-size:15px;margin:0 0 24px;">Click the button below to set a new password. This link expires in 1 hour.</p>
+            <a href="${resetUrl}" style="display:inline-block;background:#6b21a8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:500;">Reset Password</a>
+            <p style="color:#a087b0;font-size:13px;margin:24px 0 0;">If you didn't request a password reset, you can safely ignore this email.</p>
+        `),
     });
 
     res.status(200).json({ success: true, message: 'If that email exists, a reset link was sent' });
@@ -501,13 +531,15 @@ exports.sendVerificationEmail = async (req, res) => {
     const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`;
 
     await resend.emails.send({
-        from: 'Continuum <onboarding@resend.dev>',
+        from: 'Continuum <noreply@usecontinuum.dev>',
         to: req.user.email,
         subject: 'Verify your Continuum email',
-        html: `<p>Hi ${req.user.firstName},</p>
-               <p>Click the link below to verify your email address. It expires in 24 hours.</p>
-               <a href="${verifyUrl}">${verifyUrl}</a>
-               <p>If you didn't request this, you can ignore this email.</p>`,
+        html: emailTemplate(`
+            <p style="color:#1a1a1a;font-size:16px;margin:0 0 12px;">Hi ${req.user.firstName},</p>
+            <p style="color:#3d3d3d;font-size:15px;margin:0 0 24px;">Click the button below to verify your email address. This link expires in 24 hours.</p>
+            <a href="${verifyUrl}" style="display:inline-block;background:#6b21a8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:500;">Verify Email</a>
+            <p style="color:#a087b0;font-size:13px;margin:24px 0 0;">If you didn't request this, you can safely ignore this email.</p>
+        `),
     });
 
     res.status(200).json({ success: true, message: 'Verification email sent' });
@@ -643,14 +675,15 @@ exports.deleteAccount = async (req, res) => {
     try {
         const restoreDeadline = scheduledDeletionAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         await resend.emails.send({
-            from: 'Continuum <onboarding@resend.dev>',
+            from: 'Continuum <noreply@usecontinuum.dev>',
             to: user.email,
             subject: 'Your Continuum account has been scheduled for deletion',
-            html: `<p>Hi ${user.firstName},</p>
-                   <p>Your account has been scheduled for deletion. <strong>All your data — notes, tasks, flashcards, messages, and more — will be permanently deleted on ${restoreDeadline}.</strong></p>
-                   <p>Changed your mind? Simply log in before ${restoreDeadline} and your account will be fully restored.</p>
-                   <p>If you did not request this, log in immediately to restore your account.</p>
-                   <p>— The Continuum Team</p>`,
+            html: emailTemplate(`
+                <p style="color:#1a1a1a;font-size:16px;margin:0 0 12px;">Hi ${user.firstName},</p>
+                <p style="color:#3d3d3d;font-size:15px;margin:0 0 12px;">Your account has been scheduled for deletion. <strong>All your data (notes, tasks, flashcards, messages, and more) will be permanently deleted on ${restoreDeadline}.</strong></p>
+                <p style="color:#3d3d3d;font-size:15px;margin:0 0 24px;">Changed your mind? Simply log in before ${restoreDeadline} and your account will be fully restored.</p>
+                <p style="color:#a087b0;font-size:13px;margin:0;">If you did not request this, log in immediately to restore your account.</p>
+            `),
         });
     } catch (_) { /* non-blocking */ }
 
