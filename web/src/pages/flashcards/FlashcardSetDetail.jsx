@@ -114,6 +114,8 @@ export default function FlashcardSetDetail() {
     setEditCard({ front: card.front, back: card.back });
   };
 
+  const fullName = (u) => [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'Unknown';
+
   const set = data?.set || data?.data;
 
   if (isLoading) {
