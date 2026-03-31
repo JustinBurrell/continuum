@@ -47,7 +47,7 @@ backend/
 | `/api/calendar`       | Calendar events                                      |
 | `/api/friends`        | Friend requests, accept/decline, remove              |
 | `/api/users`          | Profile reads, avatar upload, account settings       |
-| `/api/comments`       | Comments on notes                                    |
+| `/api/comments`       | Threaded comments and replies on notes, flashcard sets, and tasks |
 | `/api/applications`   | Job application CRUD with status pipeline            |
 | `/api/resumes`        | PDF upload, text extraction, AI feedback             |
 | `/api/conversations`  | Direct message threads between users                 |
@@ -56,6 +56,36 @@ backend/
 | `/api/sync`           | Offline sync queue (mobile)                          |
 
 All responses follow `{ success: boolean, data? }` or `{ success: false, error: string }`.
+
+---
+
+## Comments API
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/comments` | POST | Add a comment or reply |
+| `/api/comments/:targetType/:targetId` | GET | Get all comments (flat list, oldest first) |
+| `/api/comments/:id/like` | POST | Toggle like on a comment or reply |
+| `/api/comments/:id` | DELETE | Soft-delete a comment (author only) |
+
+**Reply threading**
+
+Replies are created via the same `POST /api/comments` endpoint by including `parentId`:
+
+```json
+{
+  "targetType": "note",
+  "targetId": "<ObjectId>",
+  "content": "This is a reply.",
+  "parentId": "<ObjectId of parent comment>"
+}
+```
+
+Rules:
+- `parentId` must refer to a comment on the same `targetId`/`targetType` — returns 400 otherwise
+- Max nesting depth is 1 — replying to a reply returns 400 with `"Cannot reply to a reply"`
+- `GET` returns all non-deleted comments (top-level + replies) as a flat list sorted oldest first; clients group by `parentId`
+- Soft-deleting a parent leaves its replies in the database; the frontend shows a `[Comment deleted]` placeholder when a reply's `parentId` is absent from the list
 
 ---
 

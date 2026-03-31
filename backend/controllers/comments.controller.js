@@ -97,6 +97,9 @@ exports.addComment = async (req, res) => {
         if (parent.targetId.toString() !== targetId || parent.targetType !== targetType) {
             return res.status(400).json({ success: false, error: 'parentId must belong to the same target' });
         }
+        if (parent.parentId !== null) {
+            return res.status(400).json({ success: false, error: 'Cannot reply to a reply' });
+        }
     }
 
     // pre-save hook auto-sets userSnapshot from the User collection
@@ -142,9 +145,8 @@ exports.addComment = async (req, res) => {
 
 // ----------------------------------------
 // GET /api/comments/:targetType/:targetId
-// Purpose: Get all top-level comments on a target, sorted newest first
-// Note: Returns top-level comments only (parentId: null)
-//       Replies are nested under each comment via the replies virtual
+// Purpose: Get all non-deleted comments on a target (top-level + replies), sorted oldest first
+// Note: Returns a flat list. Each comment includes parentId so the frontend can build the thread.
 // ----------------------------------------
 exports.getComments = async (req, res) => {
     const { targetType, targetId } = req.params;
@@ -217,7 +219,7 @@ exports.getComments = async (req, res) => {
         targetType,
         targetId,
         deletedAt: null,
-    }).sort({ createdAt: -1 });
+    }).sort({ createdAt: 1 });
 
     res.status(200).json({ success: true, comments });
 };
