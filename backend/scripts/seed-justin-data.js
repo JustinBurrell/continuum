@@ -2385,6 +2385,53 @@ const flashcardSetComments = [
   { setOwner: 'sofiarod', setIndex: 2, username: 'justin', content: 'Neuroscience basics cards on LTP and dopamine pathways connect to learning in ways I had not considered. The brain is the original neural network.' },
 ];
 
+// ─── SECTION 11: Reply Content ────────────────────────────────────────────────
+// Each entry targets a top-level comment by { noteIndex, commenterUsername } or
+// { setOwner, setIndex, commenterUsername } and adds a reply from replierUsername.
+// Depth is 1 — replies to replies are not supported.
+
+// Replies on Justin's shared notes
+const noteCommentReplies = [
+  // Note 0 (DP): alexchen_cs comment → Justin replies
+  { noteIndex: 0, commenterUsername: 'alexchen_cs', replierUsername: 'justin', content: 'Glad the memoization table clicked! The Fibonacci tree is honestly the best way I found to build that intuition before jumping to tabulation.' },
+  // Note 0 (DP): mayapatel_ds comment → Justin replies
+  { noteIndex: 0, commenterUsername: 'mayapatel_ds', replierUsername: 'justin', content: 'Yes — I recommend LeetCode 322 (Coin Change) and 416 (Partition Equal Subset Sum) as the first two. They cover both approaches really well.' },
+  // Note 1 (OS scheduling): jordanwilliams comment → mayapatel_ds replies
+  { noteIndex: 1, commenterUsername: 'jordanwilliams', replierUsername: 'mayapatel_ds', content: 'I did not know embedded systems used modified round robin! Does the priority level change dynamically based on deadline proximity?' },
+  // Note 1 (OS scheduling): priyasharma comment → Justin replies
+  { noteIndex: 1, commenterUsername: 'priyasharma', replierUsername: 'justin', content: 'That analogy is genuinely better than anything in my textbook. The ER triage framing makes the whole priority queue section make sense.' },
+  // Note 2 (Networking): alexchen_cs comment → jordanwilliams replies
+  { noteIndex: 2, commenterUsername: 'alexchen_cs', replierUsername: 'jordanwilliams', content: 'Binary framing is such an underrated idea. Once you see why text-based framing caused the original head-of-line blocking issue it all clicks.' },
+  // Note 5 (ML/Neural nets): mayapatel_ds comment → alexchen_cs replies
+  { noteIndex: 5, commenterUsername: 'mayapatel_ds', replierUsername: 'alexchen_cs', content: 'The backprop section is where I keep getting lost too. The chain rule visualized as a computation graph finally made it stick for me.' },
+  // Note 6 (Distributed systems): alexchen_cs comment → marcusjohnson replies
+  { noteIndex: 6, commenterUsername: 'alexchen_cs', replierUsername: 'marcusjohnson', content: 'The finance angle is real. Our risk systems literally have to choose between availability and consistency on every tick. We default to AP with eventual reconciliation.' },
+  // Note 10 (Interview prep): marcusjohnson comment → sofiarod replies
+  { noteIndex: 10, commenterUsername: 'marcusjohnson', replierUsername: 'sofiarod', content: 'The STAR method is just applied cognitive framing — presenting information in a schema the interviewer can pattern-match. Works for any high-stakes communication.' },
+  // Note 13 (System design): jordanwilliams comment → Justin replies
+  { noteIndex: 13, commenterUsername: 'jordanwilliams', replierUsername: 'justin', content: 'Adding a sharding section is on my list! Consistent hashing is the key insight — I want to build out the virtual nodes explanation first.' },
+  // Note 13 (System design): alexchen_cs comment → Justin replies
+  { noteIndex: 13, commenterUsername: 'alexchen_cs', replierUsername: 'justin', content: 'Good call on caching — adding cache-aside vs write-through vs write-behind to the next revision. Write-behind is the tricky one that most guides skip.' },
+];
+
+// Replies on flashcard set comments
+const flashcardSetCommentReplies = [
+  // Justin's set 0 (DP): alexchen_cs comment → Justin replies
+  { setOwner: 'justin', setIndex: 0, commenterUsername: 'alexchen_cs', replierUsername: 'justin', content: 'Nice! Coin change is the gateway drug for DP. Once that clicks, the knapsack variants all feel like the same pattern.' },
+  // Justin's set 1 (OS scheduling): jordanwilliams comment → Justin replies
+  { setOwner: 'justin', setIndex: 1, commenterUsername: 'jordanwilliams', replierUsername: 'justin', content: 'Adding that card now — cooperative vs preemptive is a classic exam question and I totally left it out. Good catch.' },
+  // Justin's set 2 (ML): mayapatel_ds comment → sofiarod replies
+  { setOwner: 'justin', setIndex: 2, commenterUsername: 'mayapatel_ds', replierUsername: 'sofiarod', content: 'The Adam optimizer card is useful from a psych angle too — the momentum term is basically how habit formation reinforces neural pathways over time.' },
+  // Justin's set 3 (Distributed): alexchen_cs comment → jordanwilliams replies
+  { setOwner: 'justin', setIndex: 3, commenterUsername: 'alexchen_cs', replierUsername: 'jordanwilliams', content: 'Same — we review these before every sprint planning meeting now. The partition tolerance framing helps when we debate consistency guarantees for our service.' },
+  // Justin's set 10 (DS quick ref): marcusjohnson comment → alexchen_cs replies
+  { setOwner: 'justin', setIndex: 10, commenterUsername: 'marcusjohnson', replierUsername: 'alexchen_cs', content: 'The hash map complexity card is the one I always blank on under pressure. Amortized O(1) for insert trips people up every time.' },
+  // Friends' sets
+  { setOwner: 'alexchen_cs', setIndex: 0, commenterUsername: 'justin', replierUsername: 'alexchen_cs', content: 'Timsort is criminally underrepresented in interview prep material. It is literally what Python and Java use under the hood.' },
+  { setOwner: 'mayapatel_ds', setIndex: 0, commenterUsername: 'justin', replierUsername: 'mayapatel_ds', content: 'Bias-variance is one of those concepts that only clicks after seeing it from multiple angles. Glad the card format helps.' },
+  { setOwner: 'sofiarod', setIndex: 1, commenterUsername: 'justin', replierUsername: 'sofiarod', content: 'The spacing effect and testing effect are the two most empirically supported learning interventions we know of. Everything else is downstream of those.' },
+];
+
 module.exports = {
   justinNotes,
   noteSummaryFallbacks,
@@ -2396,4 +2443,6 @@ module.exports = {
   justinNoteComments,
   friendNoteComments,
   flashcardSetComments,
+  noteCommentReplies,
+  flashcardSetCommentReplies,
 };

@@ -1128,6 +1128,97 @@ async function seedComments(justin, friends, justinNotes, friendNoteMap, justinS
   return allComments;
 }
 
+// ─── SECTION 10a: Replies ────────────────────────────────────────────────────
+
+async function seedReplies(justin, friends, justinNotes, justinSets, friendSetMap, topLevelComments) {
+  console.log('Seeding comment replies...');
+  const friendMap = {};
+  for (const f of friends) friendMap[f.username] = f;
+  const allIds = [justin._id, ...friends.map(f => f._id)];
+
+  const resolveUser = (username) => username === 'justin' ? justin : friendMap[username];
+
+  // Build lookup: `${targetId}:${userId}` → Comment _id
+  const commentLookup = new Map();
+  for (const c of topLevelComments) {
+    const key = `${c.targetId.toString()}:${c.userId.toString()}`;
+    if (!commentLookup.has(key)) commentLookup.set(key, c._id);
+  }
+
+  let count = 0;
+
+  // Replies on Justin's shared notes
+  for (const r of seedData.noteCommentReplies) {
+    const note = justinNotes[r.noteIndex];
+    if (!note) continue;
+    const commenter = resolveUser(r.commenterUsername);
+    if (!commenter) continue;
+    const replier = resolveUser(r.replierUsername);
+    if (!replier) continue;
+
+    const key = `${note._id.toString()}:${commenter._id.toString()}`;
+    const parentId = commentLookup.get(key);
+    if (!parentId) continue;
+
+    const reply = await Comment.create({
+      targetId: note._id,
+      targetType: 'note',
+      userId: replier._id,
+      content: r.content,
+      parentId,
+    });
+
+    const likers = allIds
+      .filter(id => !id.equals(replier._id))
+      .sort(() => Math.random() - 0.5)
+      .slice(0, Math.floor(Math.random() * 2) + 1);
+    if (likers.length > 0) {
+      await Comment.updateOne({ _id: reply._id }, { $push: { likes: { $each: likers } } });
+    }
+    count++;
+  }
+
+  // Replies on flashcard set comments
+  for (const r of seedData.flashcardSetCommentReplies) {
+    let targetSet;
+    if (r.setOwner === 'justin') {
+      targetSet = justinSets[r.setIndex];
+    } else {
+      const ownerSets = friendSetMap[r.setOwner];
+      if (ownerSets) targetSet = ownerSets[r.setIndex];
+    }
+    if (!targetSet) continue;
+
+    const commenter = resolveUser(r.commenterUsername);
+    if (!commenter) continue;
+    const replier = resolveUser(r.replierUsername);
+    if (!replier) continue;
+
+    const key = `${targetSet._id.toString()}:${commenter._id.toString()}`;
+    const parentId = commentLookup.get(key);
+    if (!parentId) continue;
+
+    const reply = await Comment.create({
+      targetId: targetSet._id,
+      targetType: 'flashcardSet',
+      userId: replier._id,
+      content: r.content,
+      parentId,
+    });
+
+    const likers = allIds
+      .filter(id => !id.equals(replier._id))
+      .sort(() => Math.random() - 0.5)
+      .slice(0, Math.floor(Math.random() * 2) + 1);
+    if (likers.length > 0) {
+      await Comment.updateOne({ _id: reply._id }, { $push: { likes: { $each: likers } } });
+    }
+    count++;
+  }
+
+  console.log(`  Created ${count} replies.`);
+}
+
 // ─── SECTION 10b: Extra Comments — ensures every visible piece of content ────
 // has at least some engagement (comments from Justin and/or friends)
 
@@ -1611,6 +1702,7 @@ async function main() {
 
     // 9. Seed comments and activities
     const comments = await seedComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks);
+    await seedReplies(justin, friends, justinNotes, justinSets, friendSetMap, comments);
     await seedExtraComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks);
     await seedActivities(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks, comments);
 
