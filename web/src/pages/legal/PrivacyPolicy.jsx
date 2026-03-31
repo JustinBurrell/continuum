@@ -123,7 +123,7 @@ const sections = [
     content: (
       <>
         <p>If you have questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact us at:</p>
-        <p><strong>Email:</strong> <a href="mailto:privacy@continuumapp.dev">privacy@continuumapp.dev</a></p>
+        <p><strong>Email:</strong> <a href="mailto:support@usecontinuum.dev">support@usecontinuum.dev</a></p>
         <p>We will respond to privacy-related inquiries within 30 days.</p>
       </>
     ),

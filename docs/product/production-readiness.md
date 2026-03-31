@@ -82,14 +82,26 @@ Links appear:
 
 ---
 
-## 3. Email Sending — Custom Domain
+## 3. Email Sending — Custom Domain ✅ Done
 
-Currently using `onboarding@resend.dev` as the sender address. All verification and password reset emails show this address, which looks unofficial.
+All transactional emails now send from `noreply@usecontinuum.dev`. Email templates upgraded to styled HTML with brand colors and the wordmark in the footer.
 
-**Fix:** Configure a custom sending domain in Resend.
-1. Add your domain in Resend dashboard → Domains
-2. Add the DNS records Resend provides (SPF, DKIM, DMARC)
-3. Update `auth.controller.js` from address to `noreply@yourcontinuumdomain.com`
+**Resend setup (still required in dashboard):**
+1. Add `usecontinuum.dev` in Resend dashboard → Domains
+2. Add the DNS records Resend provides (SPF, DKIM, DMARC) in Cloudflare
+3. Verify the domain in Resend before deploying
+
+**Email addresses in use:**
+- `noreply@usecontinuum.dev` — all transactional emails (verification, password reset, deletion notice)
+- `support@usecontinuum.dev` — contact address on legal pages
+- `hello@usecontinuum.dev` — general inquiries / outreach
+
+**Cloudflare inbound routing** (dashboard task, no code):
+1. Cloudflare → `usecontinuum.dev` → Email → Email Routing → enable
+2. Add your personal email as a destination address and verify it
+3. Create routing rules: `hello@`, `support@`, `noreply@` → your personal email
+4. Optional: enable catch-all rule
+5. Cloudflare auto-adds MX records — no manual DNS entry needed
 
 ---
 
@@ -235,7 +247,7 @@ All placeholder "C" marks and "Continuum" text renders replaced with `/wordmark.
 4. ~~**Terms of Service page**~~ ✅ Done — built at `/terms`, linked in footer and Register form
 5. ~~**SEO meta tags + sitemap**~~ ✅ Done — TitleManager extended, robots.txt and sitemap.xml created
 6. ~~**`robots.txt` + sitemap reference**~~ ✅ Done — see above
-7. **Custom email domain in Resend** — emails currently send from `onboarding@resend.dev`
+7. ~~**Custom email domain in Resend**~~ ✅ Done — `noreply@usecontinuum.dev`, styled templates, Cloudflare routing steps documented
 8. ~~**Confirm `REDIS_URL` is set on Render**~~ ✅ Done — Upstash connection string confirmed in Render env vars
 9. ~~**Sentry**~~ ✅ Done — `@sentry/node` on backend, `@sentry/react` on frontend; guarded by `SENTRY_DSN` / `VITE_SENTRY_DSN`
 10. **Google OAuth verification** — demo video still needed; justification submitted
