@@ -156,4 +156,23 @@ describe('GET /api/users/:id', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.user).toHaveProperty('roles');
   });
+
+  it('includes linkedinUrl and instagramHandle in public profile', async () => {
+    const User = require('../../models/User');
+    const alice = await registerAndLogin({ username: 'alicesocial' });
+    const bob = await registerAndLogin();
+
+    await User.findByIdAndUpdate(alice.userId, {
+      linkedinUrl: 'https://linkedin.com/in/alice',
+      instagramHandle: 'alice.gram',
+    });
+
+    const res = await request(app)
+      .get(`/api/users/${alice.userId}`)
+      .set('Authorization', `Bearer ${bob.token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.user).toHaveProperty('linkedinUrl', 'https://linkedin.com/in/alice');
+    expect(res.body.user).toHaveProperty('instagramHandle', 'alice.gram');
+  });
 });

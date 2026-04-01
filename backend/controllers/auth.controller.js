@@ -448,6 +448,28 @@ exports.updateProfile = async (req, res) => {
         updates['settings.activityVisibility'] = req.body['settings.activityVisibility'];
     }
 
+    // Social links — validated separately (not in whitelist loop)
+    if (req.body.linkedinUrl !== undefined) {
+        const url = req.body.linkedinUrl.trim();
+        if (url === '') {
+            updates.linkedinUrl = null;
+        } else if (!/^https:\/\/(www\.)?linkedin\.com\/in\//.test(url)) {
+            return res.status(400).json({ success: false, error: 'Invalid LinkedIn URL' });
+        } else {
+            updates.linkedinUrl = url;
+        }
+    }
+    if (req.body.instagramHandle !== undefined) {
+        const handle = req.body.instagramHandle.trim().replace(/^@/, '');
+        if (handle === '') {
+            updates.instagramHandle = null;
+        } else if (!/^[a-zA-Z0-9._]{1,30}$/.test(handle)) {
+            return res.status(400).json({ success: false, error: 'Invalid Instagram handle' });
+        } else {
+            updates.instagramHandle = handle;
+        }
+    }
+
     // Avatar upload — if a file was attached, upload to Cloudinary and set avatarUrl
     if (req.file) {
         const userId = req.user._id.toString();

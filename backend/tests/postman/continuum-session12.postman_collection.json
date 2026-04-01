@@ -1,0 +1,266 @@
+{
+  "info": {
+    "_postman_id": "j1e2f3a4-b5c6-7890-defa-789012345009",
+    "name": "Continuum — Session 12",
+    "description": "Social Links on Profiles\n\nCovers: PATCH /api/auth/me/profile with linkedinUrl and instagramHandle, GET /api/users/:id returning social fields.\n\nRun order: 1. Login → 2. Happy path (set/clear social links) → 3. Public profile returns social fields → 4. Error cases.\ntoken and userId are auto-set by the Login test script.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Login",
+      "item": [
+        {
+          "name": "Login — User A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('token', json.token);",
+                  "    pm.environment.set('userId', json.user._id);",
+                  "    pm.environment.set('refreshToken', json.refreshToken);",
+                  "    pm.test('Login successful', () => pm.expect(json.token).to.be.a('string'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Happy path — set social links",
+      "item": [
+        {
+          "name": "Set LinkedIn URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 and linkedinUrl saved', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.user.linkedinUrl).to.equal('https://linkedin.com/in/testuser');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"linkedinUrl\": \"https://linkedin.com/in/testuser\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set Instagram handle (strips @)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 and @ stripped from instagramHandle', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.user.instagramHandle).to.equal('test.user');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instagramHandle\": \"@test.user\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clear LinkedIn URL (empty string → null)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 and linkedinUrl is null after clearing', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.user.linkedinUrl).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"linkedinUrl\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Public profile returns social fields",
+      "item": [
+        {
+          "name": "GET public profile — social fields present",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 and response includes social link fields', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.user).to.have.property('linkedinUrl');",
+                  "    pm.expect(json.user).to.have.property('instagramHandle');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Error cases",
+      "item": [
+        {
+          "name": "Reject bad LinkedIn URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 for non-LinkedIn URL', () => {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"linkedinUrl\": \"https://twitter.com/me\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reject invalid Instagram handle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 for invalid Instagram handle', () => {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instagramHandle\": \"a handle with spaces!!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

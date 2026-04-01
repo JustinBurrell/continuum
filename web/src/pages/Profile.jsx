@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '@/lib/api';
+import queryClient from '@/lib/queryClient';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
@@ -21,6 +22,7 @@ import { useToast } from '@/components/ui/Toast';
 import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
+import SocialLinks from '@/components/ui/SocialLinks';
 
 const card = {
   background: '#fff',
@@ -396,6 +398,8 @@ export default function Profile() {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
       bio: user?.bio || '',
+      linkedinUrl: user?.linkedinUrl || '',
+      instagramHandle: user?.instagramHandle || '',
       'settings.activityVisibility': user?.settings?.activityVisibility || 'friends',
     },
   });
@@ -430,6 +434,8 @@ export default function Profile() {
         firstName: fresh.firstName || '',
         lastName: fresh.lastName || '',
         bio: fresh.bio || '',
+        linkedinUrl: fresh.linkedinUrl || '',
+        instagramHandle: fresh.instagramHandle || '',
         'settings.activityVisibility': fresh.settings?.activityVisibility || 'friends',
       });
       notifForm.reset({
@@ -682,6 +688,7 @@ export default function Profile() {
                   </span>
                 </div>
                 {me?.bio && <p style={{ fontSize: 13, color: '#374151', marginTop: 8, marginBottom: 0 }}>{me.bio}</p>}
+                <SocialLinks user={me} style={{ marginTop: 8 }} />
               </div>
               <Button size="sm" variant="outline" onClick={() => setActiveTab('profile')}>
                 <Edit3 size={13} /> Edit
@@ -821,6 +828,36 @@ export default function Profile() {
                   onFocus={e => e.target.style.borderColor = '#6b21a8'}
                   onBlur={e => e.target.style.borderColor = '#ede9fe'}
                   {...regProfile('bio')}
+                />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <FieldInput
+                  label="LinkedIn URL"
+                  placeholder="https://linkedin.com/in/yourprofile"
+                  disabled={!!user?.isDemo}
+                  error={pErrors.linkedinUrl?.message}
+                  {...regProfile('linkedinUrl', {
+                    validate: (v) => {
+                      if (!v) return true;
+                      return /^https:\/\/(www\.)?linkedin\.com\/in\//.test(v.trim())
+                        || 'Must start with https://linkedin.com/in/';
+                    },
+                  })}
+                />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <FieldInput
+                  label="Instagram handle"
+                  placeholder="yourhandle"
+                  disabled={!!user?.isDemo}
+                  error={pErrors.instagramHandle?.message}
+                  {...regProfile('instagramHandle', {
+                    validate: (v) => {
+                      if (!v) return true;
+                      return /^@?[a-zA-Z0-9._]{1,30}$/.test(v.trim())
+                        || 'Handle must be 1-30 chars: letters, numbers, periods, underscores';
+                    },
+                  })}
                 />
               </div>
               <div style={{ marginBottom: 16 }}>

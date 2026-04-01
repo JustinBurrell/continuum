@@ -86,6 +86,42 @@ describe('PATCH /api/auth/me/profile', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.user.roles).toEqual([]);
   });
+
+  it('saves a valid linkedinUrl', async () => {
+    const { token } = await registerAndLogin();
+
+    const res = await request(app)
+      .patch('/api/auth/me/profile')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ linkedinUrl: 'https://linkedin.com/in/jdoe' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.user.linkedinUrl).toBe('https://linkedin.com/in/jdoe');
+  });
+
+  it('rejects an invalid linkedinUrl', async () => {
+    const { token } = await registerAndLogin();
+
+    const res = await request(app)
+      .patch('/api/auth/me/profile')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ linkedinUrl: 'https://twitter.com/jdoe' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('strips leading @ and saves instagramHandle', async () => {
+    const { token } = await registerAndLogin();
+
+    const res = await request(app)
+      .patch('/api/auth/me/profile')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ instagramHandle: '@jdoe.photo' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.user.instagramHandle).toBe('jdoe.photo');
+  });
 });
 
 // ─── Change password ─────────────────────────────────────────────────────────

@@ -65,6 +65,16 @@ const userSchema = new mongoose.Schema({
     bio: {
         type: String,
     },
+    linkedinUrl: {
+        type: String,
+        trim: true,
+        default: null,
+    },
+    instagramHandle: {
+        type: String,
+        trim: true,
+        default: null,
+    },
 
     /**
      * Google OAuth

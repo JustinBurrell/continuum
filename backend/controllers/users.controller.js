@@ -23,7 +23,7 @@ const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 exports.getUserProfile = async (req, res) => {
     try {
         const user = await User.findOne({ _id: req.params.id, deletedAt: null })
-            .select('username firstName lastName avatarUrl bio createdAt roles');
+            .select('username firstName lastName avatarUrl bio createdAt roles linkedinUrl instagramHandle');
 
         if (!user) {
             return res.status(404).json({ success: false, error: 'User not found' });
