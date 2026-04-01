@@ -47,7 +47,7 @@ router.get('/search', usersController.searchUsers);
  *         schema: { type: string }
  *     responses:
  *       200:
- *         description: Returns public profile (name, username, avatar, bio, joinedAt)
+ *         description: Returns public profile (name, username, avatar, bio, joinedAt, linkedinUrl, instagramHandle)
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  *       404:
