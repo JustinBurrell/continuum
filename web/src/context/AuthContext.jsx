@@ -61,6 +61,12 @@ function registerSocketEvents(socket) {
     queryClient.invalidateQueries({ queryKey: ['activity'] });
   });
 
+  // Study session completed — refresh streak and history in any open tab
+  socket.on('study:session-complete', () => {
+    queryClient.invalidateQueries({ queryKey: ['study-streak'] });
+    queryClient.invalidateQueries({ queryKey: ['study-sessions-all'] });
+  });
+
 }
 
 export function AuthProvider({ children }) {

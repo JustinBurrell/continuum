@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, CheckCircle2, X } from 'lucide-react';
 import api from '@/lib/api';
 import Button from '@/components/ui/Button';
@@ -9,10 +9,18 @@ import Skeleton from '@/components/ui/Skeleton';
 export default function StudyMode() {
   const { state } = useLocation();
   const id = state?.id;
+  const queryClient = useQueryClient();
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [known, setKnown] = useState(new Set());
   const [done, setDone] = useState(false);
+  const [sessionStreak, setSessionStreak] = useState(null);
+
+  // Track session start time and accumulated card results via refs
+  // (refs are synchronous — no React batching issue when reading at submit time)
+  const startTimeRef = useRef(Date.now());
+  const cardResultsRef = useRef([]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['flashcard-set', id],
@@ -22,9 +30,25 @@ export default function StudyMode() {
   const set = data?.set || data?.data;
   const cards = set?.flashcards || [];
 
-  const trackProgress = useCallback((cardId, correct) => {
-    api.put(`/flashcard-sets/${id}/cards/${cardId}/progress`, { correct }).catch(() => {});
-  }, [id]);
+  const submitMutation = useMutation({
+    mutationFn: (payload) => api.post('/study-sessions', payload),
+    onSuccess: (res) => {
+      setSessionStreak(res.data?.streak ?? null);
+      queryClient.invalidateQueries({ queryKey: ['study-streak'] });
+      queryClient.invalidateQueries({ queryKey: ['study-sessions', id] });
+    },
+  });
+
+  // Submit session when done, but only if the user marked at least one card
+  useEffect(() => {
+    if (!done || cardResultsRef.current.length === 0 || !id) return;
+    submitMutation.mutate({
+      setId: id,
+      durationSeconds: Math.round((Date.now() - startTimeRef.current) / 1000),
+      cardResults: cardResultsRef.current,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done]);
 
   const goNext = useCallback(() => {
     setIsFlipped(false);
@@ -45,14 +69,18 @@ export default function StudyMode() {
 
   const markKnown = () => {
     const card = cards[currentIndex];
+    if (card?._id) {
+      cardResultsRef.current = [...cardResultsRef.current, { cardId: card._id, correct: true }];
+    }
     setKnown(prev => new Set([...prev, currentIndex]));
-    if (card?._id) trackProgress(card._id, true);
     goNext();
   };
 
   const markUnknown = () => {
     const card = cards[currentIndex];
-    if (card?._id) trackProgress(card._id, false);
+    if (card?._id) {
+      cardResultsRef.current = [...cardResultsRef.current, { cardId: card._id, correct: false }];
+    }
     goNext();
   };
 
@@ -61,6 +89,9 @@ export default function StudyMode() {
     setIsFlipped(false);
     setKnown(new Set());
     setDone(false);
+    setSessionStreak(null);
+    startTimeRef.current = Date.now();
+    cardResultsRef.current = [];
   };
 
   // Keyboard navigation
@@ -144,9 +175,28 @@ export default function StudyMode() {
         <p style={{ color: '#374151', fontSize: '0.9375rem', marginBottom: 4 }}>
           You knew {known.size} of {cards.length} cards
         </p>
-        <p style={{ color: '#a087b0', fontSize: '0.875rem', marginBottom: 32 }}>
+        <p style={{ color: '#a087b0', fontSize: '0.875rem', marginBottom: sessionStreak >= 2 ? 16 : 32 }}>
           {pct >= 70 ? 'Great work! Keep it up.' : 'Keep studying to improve your score.'}
         </p>
+
+        {/* Streak badge */}
+        {sessionStreak >= 2 && (
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: sessionStreak >= 7 ? '#fef9c3' : '#f5f0ff',
+            border: `1px solid ${sessionStreak >= 7 ? '#fde047' : '#ede9fe'}`,
+            borderRadius: 24,
+            padding: '8px 18px',
+            marginBottom: 32,
+          }}>
+            <span style={{ fontSize: '1.125rem' }}>{sessionStreak >= 7 ? '🔥' : '⚡'}</span>
+            <span style={{ fontWeight: 600, fontSize: '0.875rem', color: '#111827' }}>
+              {sessionStreak} day streak!
+            </span>
+          </div>
+        )}
 
         <div style={{ display: 'flex', gap: 12 }}>
           <button

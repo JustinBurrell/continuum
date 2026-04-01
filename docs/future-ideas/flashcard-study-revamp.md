@@ -1,6 +1,6 @@
 # Feature: Flashcard Study Revamp (Streaks + Session History)
 
-**Status:** Planned
+**Status:** Implemented
 **Priority:** Medium
 **Type:** Enhancement
 

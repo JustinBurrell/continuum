@@ -344,6 +344,8 @@ exports.updateCard = async (req, res) => {
 //   - confidence: optional — only updated if explicitly passed
 //   - lastStudied: always updated to now
 // Uses $set on the matched userProgress subdoc or $push if no entry exists yet
+// @deprecated Use POST /api/study-sessions to submit a full session instead.
+//             bulkUpdateCardProgress (below) handles all card progress in bulk.
 // ----------------------------------------
 exports.updateProgress = async (req, res) => {
     const { correct, confidence } = req.body;
@@ -610,3 +612,66 @@ exports.deleteCard = async (req, res) => {
 
     res.status(200).json({ success: true, message: 'Flashcard deleted' });
 };
+
+// ============================================================
+// INTERNAL HELPER — bulkUpdateCardProgress
+// Purpose: Apply per-card correct/incorrect results for a user in bulk via bulkWrite.
+//          Called by studySessions.controller when a session is submitted.
+//          Not exposed as a route handler.
+// Params:
+//   setId      — ObjectId string of the parent set
+//   userId     — ObjectId string of the studying user
+//   cardResults — [{ cardId: string, correct: boolean }]
+// ============================================================
+async function bulkUpdateCardProgress(setId, userId, cardResults) {
+    if (!cardResults || !cardResults.length) return;
+
+    const now = new Date();
+
+    // Two operation batches per card:
+    // 1. $push — for cards where this user has no userProgress entry yet
+    // 2. $inc  — for cards where this user already has an entry
+    // ordered:false lets both sets run independently (no entry matches one op, not the other)
+    const pushOps = cardResults.map(({ cardId, correct }) => ({
+        updateOne: {
+            filter: {
+                _id: cardId,
+                setId,
+                deletedAt: null,
+                'userProgress.userId': { $ne: userId },
+            },
+            update: {
+                $push: {
+                    userProgress: {
+                        userId,
+                        lastStudied: now,
+                        correctCount: correct ? 1 : 0,
+                        incorrectCount: correct ? 0 : 1,
+                    },
+                },
+            },
+        },
+    }));
+
+    const incOps = cardResults.map(({ cardId, correct }) => ({
+        updateOne: {
+            filter: {
+                _id: cardId,
+                setId,
+                deletedAt: null,
+                'userProgress.userId': userId,
+            },
+            update: {
+                $set: { 'userProgress.$.lastStudied': now },
+                $inc: {
+                    'userProgress.$.correctCount': correct ? 1 : 0,
+                    'userProgress.$.incorrectCount': correct ? 0 : 1,
+                },
+            },
+        },
+    }));
+
+    await Flashcard.bulkWrite([...pushOps, ...incOps], { ordered: false });
+}
+
+exports.bulkUpdateCardProgress = bulkUpdateCardProgress;

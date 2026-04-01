@@ -1,0 +1,166 @@
+{
+  "info": {
+    "_postman_id": "k2f3g4b5-c6d7-8901-efab-890123456010",
+    "name": "Continuum — Session 13",
+    "description": "Study Sessions — Streaks & History\n\nCovers: POST /api/study-sessions, GET /api/study-sessions, GET /api/study-sessions/streak, GET /api/study-sessions/set/:setId, GET /api/study-sessions/:id.\n\nPre-req: Ensure {{baseUrl}}, {{token}}, {{setId}}, and {{cardId}} are set in your environment. Run 'Login' first if token is expired.\ntoken and sessionId are auto-saved by the Submit Session test script.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Study Sessions",
+      "item": [
+        {
+          "name": "1. Submit Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 session created', () => pm.expect(pm.response.code).to.equal(201));",
+                  "pm.test('success is true', () => pm.expect(pm.response.json().success).to.be.true);",
+                  "pm.test('session has score', () => pm.expect(pm.response.json().session.score).to.be.a('number'));",
+                  "pm.test('streak is a number', () => pm.expect(pm.response.json().streak).to.be.a('number'));",
+                  "if (pm.response.code === 201) {",
+                  "    pm.environment.set('sessionId', pm.response.json().session._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/study-sessions", "host": ["{{baseUrl}}"], "path": ["api", "study-sessions"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"setId\": \"{{setId}}\",\n  \"durationSeconds\": 120,\n  \"cardResults\": [\n    { \"cardId\": \"{{cardId}}\", \"correct\": true }\n  ]\n}"
+            },
+            "description": "Submit a completed study session. Saves sessionId to environment."
+          }
+        },
+        {
+          "name": "2. Get My Sessions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 and success', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});",
+                  "pm.test('sessions is an array', () => pm.expect(pm.response.json().sessions).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/study-sessions?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "study-sessions"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] },
+            "description": "Paginated session history for the authenticated user. Optional ?setId= filter."
+          }
+        },
+        {
+          "name": "3. Get Sessions by Set",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 and success', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});",
+                  "pm.test('sessions is an array', () => pm.expect(pm.response.json().sessions).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/study-sessions/set/{{setId}}", "host": ["{{baseUrl}}"], "path": ["api", "study-sessions", "set", "{{setId}}"] },
+            "description": "Session history for a specific set, scoped to the current user."
+          }
+        },
+        {
+          "name": "4. Get Session by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 and success', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});",
+                  "pm.test('session has _id', () => pm.expect(pm.response.json().session._id).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/study-sessions/{{sessionId}}", "host": ["{{baseUrl}}"], "path": ["api", "study-sessions", "{{sessionId}}"] },
+            "description": "Fetch a single session by ID. Only accessible by the session owner."
+          }
+        },
+        {
+          "name": "5. Get Streak",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 and success', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});",
+                  "pm.test('streak is a number', () => pm.expect(pm.response.json().streak).to.be.a('number'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/study-sessions/streak", "host": ["{{baseUrl}}"], "path": ["api", "study-sessions", "streak"] },
+            "description": "Returns the authenticated user's current streak (consecutive study days, UTC)."
+          }
+        },
+        {
+          "name": "6. Get Another User's Streak (Public)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 and success', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});",
+                  "pm.test('streak is a number', () => pm.expect(pm.response.json().streak).to.be.a('number'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/users/{{userId}}/streak", "host": ["{{baseUrl}}"], "path": ["api", "users", "{{userId}}", "streak"] },
+            "description": "Public streak for another user's profile. Returns streak count only — no session details."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -29,6 +29,30 @@ const options = {
                         error: { type: 'string', example: 'Error message' },
                     },
                 },
+                StudySession: {
+                    type: 'object',
+                    properties: {
+                        _id:             { type: 'string', example: '64a1f2b3c4d5e6f7a8b9c0d1' },
+                        userId:          { type: 'string', description: 'ID of the user who studied' },
+                        setId:           { type: 'string', description: 'ID of the flashcard set' },
+                        completedAt:     { type: 'string', format: 'date-time' },
+                        durationSeconds: { type: 'integer', minimum: 0, example: 120 },
+                        totalCards:      { type: 'integer', minimum: 1, example: 10 },
+                        correctCount:    { type: 'integer', minimum: 0, example: 7 },
+                        score:           { type: 'integer', minimum: 0, maximum: 100, example: 70, description: 'Math.round(correctCount/totalCards * 100)' },
+                        cardResults: {
+                            type: 'array',
+                            description: 'Per-card results — only included in single-session detail responses',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    cardId:  { type: 'string' },
+                                    correct: { type: 'boolean' },
+                                },
+                            },
+                        },
+                    },
+                },
             },
             responses: {
                 Unauthorized: {
@@ -75,6 +99,7 @@ const options = {
             { name: 'Notes', description: 'Note creation, editing, sharing, and AI features' },
             { name: 'Tasks', description: 'Task management and collaboration' },
             { name: 'Flashcards', description: 'Flashcard sets, cards, and AI generation' },
+            { name: 'StudySessions', description: 'Study session tracking, history, and streaks' },
             { name: 'Friends', description: 'Friend requests and social connections' },
             { name: 'Messages', description: 'Direct messages and conversations' },
             { name: 'Applications', description: 'Job application tracker' },

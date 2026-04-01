@@ -36,6 +36,34 @@ router.get('/search', usersController.searchUsers);
 
 /**
  * @swagger
+ * /api/users/{id}/streak:
+ *   get:
+ *     summary: Get another user's current study streak
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Returns current streak count (integer)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 streak:  { type: integer }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ */
+router.get('/:id/streak', usersController.getUserStreak);
+
+/**
+ * @swagger
  * /api/users/{id}:
  *   get:
  *     summary: Get a user's public profile

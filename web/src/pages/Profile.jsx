@@ -593,6 +593,13 @@ export default function Profile() {
   const notes = notesData?.notes || notesData?.data || [];
   const tasks = tasksData?.tasks || tasksData?.data || [];
   const flashcardSets = flashcardsData?.sets || [];
+
+  const { data: streakData } = useQuery({
+    queryKey: ['study-streak'],
+    queryFn: () => api.get('/study-sessions/streak').then(r => r.data),
+    staleTime: 300_000,
+  });
+  const streak = streakData?.streak ?? 0;
   const applications = appsData?.applications || appsData?.data || [];
   const resumes = resumesData?.resumes || resumesData?.data || [];
 
@@ -698,6 +705,26 @@ export default function Profile() {
               </Button>
             </div>
           </div>
+
+          {/* Study streak card */}
+          {streak >= 1 && (
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: streak >= 7 ? '#fef9c3' : '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '0.875rem' }}>{streak >= 7 ? '🔥' : '⚡'}</span>
+                  </div>
+                  <div>
+                    <span style={{ fontWeight: 700, fontSize: 20, color: '#111827', lineHeight: 1 }}>{streak}</span>
+                    <span style={{ fontSize: 13, color: '#a087b0', marginLeft: 6 }}>day study streak</span>
+                  </div>
+                </div>
+                <Link to="/flashcards" style={{ fontSize: 12, color: '#6b21a8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 2 }}>
+                  Study now <ChevronRight size={12} />
+                </Link>
+              </div>
+            </div>
+          )}
 
           {/* Content overview sections */}
           {[
