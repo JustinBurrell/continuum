@@ -184,6 +184,21 @@ const userSchema = new mongoose.Schema({
         default: false,
         index: true,
     },
+
+    /**
+     * Roles
+     * Purpose: Designates special accounts — founders, team members, and future admins.
+     *          Stored as an array so a user can hold multiple roles simultaneously (e.g. founder + team).
+     *          Auto-assigned at registration based on FOUNDER_EMAILS / TEAM_EMAILS env vars.
+     *          Read-only — cannot be set via profile update. Assign via migration script or
+     *          future admin tooling.
+     * Values: Array of 'founder' | 'team' | 'admin'
+     */
+    roles: {
+        type: [String],
+        enum: ['admin', 'founder', 'team'],
+        default: [],
+    },
 }, {
     timestamps: true, // auto-creates createdAt and updatedAt on every document
 });

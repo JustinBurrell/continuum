@@ -9,22 +9,25 @@ import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import ActivitySkeleton from '@/components/skeletons/ActivitySkeleton';
 import { formatRelative } from '@/lib/utils';
+import VerifiedBadge from '@/components/ui/VerifiedBadge';
 
 function fullName(u) {
   return [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'Someone';
 }
 
 const nameLink = (u) => (
-  <Link
-    key={u._id}
-    to="/users/view"
-    state={{ id: u._id }}
-    style={{ color: '#6b21a8', fontWeight: 600, textDecoration: 'none' }}
-    onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
-    onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
-  >
-    {[u.firstName, u.lastName].filter(Boolean).join(' ') || 'Someone'}
-  </Link>
+  <span key={u._id} style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+    <Link
+      to="/users/view"
+      state={{ id: u._id }}
+      style={{ color: '#6b21a8', fontWeight: 600, textDecoration: 'none' }}
+      onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+      onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+    >
+      {[u.firstName, u.lastName].filter(Boolean).join(' ') || 'Someone'}
+    </Link>
+    <VerifiedBadge roles={u.roles} />
+  </span>
 );
 
 function renderNames(names) {
@@ -45,9 +48,12 @@ function getActivitySentence(item, actor) {
   const m = item.metadata || {};
   const name = fullName(actor);
   const bold = (
-    <Link to="/users/view" state={{ id: actor?._id }} style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}>
-      {name}
-    </Link>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+      <Link to="/users/view" state={{ id: actor?._id }} style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}>
+        {name}
+      </Link>
+      <VerifiedBadge roles={actor?.roles} />
+    </span>
   );
   const suffix = shareSuffix(m);
 

@@ -98,6 +98,14 @@ exports.register = async (req, res) => {
     // Create user — pre-save hook in User.js automatically hashes the password
     const user = await User.create({ email, username, password, firstName, lastName });
 
+    // Auto-assign roles based on env var email lists — read at request time so tests can override
+    const founderEmails = (process.env.FOUNDER_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    const teamEmails    = (process.env.TEAM_EMAILS    || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    const assignedRoles = [];
+    if (founderEmails.includes(email.toLowerCase())) assignedRoles.push('founder');
+    if (teamEmails.includes(email.toLowerCase())) assignedRoles.push('team');
+    if (assignedRoles.length) await User.updateOne({ _id: user._id }, { roles: assignedRoles });
+
     const token = signToken(user._id);
     const refreshToken = await generateRefreshToken(user._id, deviceId);
 
@@ -124,6 +132,7 @@ exports.register = async (req, res) => {
 
     const userObj = user.toObject();
     delete userObj.password;
+    if (assignedRoles.length) userObj.roles = assignedRoles; // reflect the updateOne above since user was created before roles were set
     setRefreshCookie(res, refreshToken);
     res.status(201).json({ success: true, token, user: userObj });
 };

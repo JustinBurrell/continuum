@@ -28,6 +28,7 @@ erDiagram
         Date lastViewedActivityAt "null until user first visits /activity"
         Boolean pendingDeletion "soft-mark for 30-day grace period deletion"
         Date scheduledDeletionAt "hard delete runs when this date passes"
+        Array roles "[] by default — values: founder|team|admin — auto-assigned via FOUNDER_EMAILS/TEAM_EMAILS env vars, supports multiple simultaneously"
         Date deletedAt
         Date createdAt
         Date updatedAt

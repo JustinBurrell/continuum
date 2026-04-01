@@ -96,6 +96,7 @@ Rules:
 - `POST /api/auth/refresh` reads the refresh token from the `refreshToken` cookie (not the request body). The browser sends the cookie automatically; no client-side token management needed.
 - Google OAuth uses Passport.js (passport-google-oauth20). On callback, a one-time code (OAuthCode, 60s TTL) is issued and the frontend exchanges it via `POST /api/auth/google/exchange` — the JWT never appears in browser history or server logs.
 - Passwords are hashed with bcryptjs (cost factor 12).
+- Founder and team roles are stored as an array (`roles`) on each user, supporting multiple roles simultaneously. Auto-assigned at registration based on the `FOUNDER_EMAILS` and `TEAM_EMAILS` environment variables (comma-separated email lists). To add someone: update the env var in Render, then run `node scripts/assign-special-tags.js` to backfill existing accounts.
 
 ---
 
@@ -131,7 +132,7 @@ Model: `llama-3.1-8b-instant`. Chosen for free-tier rate limits viable for multi
 
 | Model          | Key fields                                                          |
 | -------------- | ------------------------------------------------------------------- |
-| `User`         | email, passwordHash, googleId, avatar, friends, refreshTokens       |
+| `User`         | email, passwordHash, googleId, avatar, roles (`['founder'\|'team'\|'admin']` array, multiple allowed), friends, refreshTokens |
 | `Note`         | owner, title, content, aiSummary, tags, collaborators               |
 | `FlashcardSet` | owner, cards `[{ front, back }]`, source (manual/AI/PDF)            |
 | `Task`         | owner, title, status (todo/in-progress/done), dueDate               |
