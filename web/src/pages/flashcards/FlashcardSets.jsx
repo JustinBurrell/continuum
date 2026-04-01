@@ -88,34 +88,32 @@ export default function FlashcardSets() {
         )}
       </div>
 
-      {/* Streak banner */}
-      {streak >= 1 && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: streak >= 7 ? '#fef9c3' : '#f5f0ff',
-          border: `1px solid ${streak >= 7 ? '#fde047' : '#ede9fe'}`,
-          borderRadius: 14,
-          padding: '12px 18px',
-          marginBottom: 20,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: '1.375rem' }}>{streak >= 7 ? '🔥' : '⚡'}</span>
-            <div>
-              <p style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem', margin: 0 }}>
-                {streak} day{streak !== 1 ? 's' : ''} in a row!
-              </p>
-              <p style={{ fontSize: '0.75rem', color: '#a087b0', margin: '2px 0 0' }}>
-                {streak >= 7 ? "You're on fire. Keep going!" : 'Study today to keep your streak alive.'}
-              </p>
-            </div>
+      {/* Streak banner — always visible */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        background: streak >= 7 ? '#fef9c3' : streak >= 1 ? '#f5f0ff' : 'white',
+        border: `1px solid ${streak >= 7 ? '#fde047' : '#ede9fe'}`,
+        borderRadius: 14,
+        padding: '12px 18px',
+        marginBottom: 20,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontSize: '1.375rem' }}>{streak >= 7 ? '🔥' : streak >= 1 ? '⚡' : '📖'}</span>
+          <div>
+            <p style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem', margin: 0 }}>
+              {streak >= 1 ? `${streak} day${streak !== 1 ? 's' : ''} in a row!` : 'Start your streak today'}
+            </p>
+            <p style={{ fontSize: '0.75rem', color: '#a087b0', margin: '2px 0 0' }}>
+              {streak >= 7 ? "You're on fire. Keep going!" : streak >= 1 ? 'Study today to keep your streak alive.' : 'Complete a study session to begin.'}
+            </p>
           </div>
-          <Link to="/flashcards/history" style={{ fontSize: '0.8125rem', color: '#6b21a8', fontWeight: 500, textDecoration: 'none', flexShrink: 0 }}>
-            History
-          </Link>
         </div>
-      )}
+        <Link to="/flashcards/history" style={{ fontSize: '0.8125rem', color: '#6b21a8', fontWeight: 500, textDecoration: 'none', flexShrink: 0 }}>
+          History
+        </Link>
+      </div>
 
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: 16 }}>

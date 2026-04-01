@@ -194,7 +194,9 @@ exports.getSessionsBySet = async (req, res) => {
 //          Only the session owner can access it.
 // ----------------------------------------
 exports.getSessionById = async (req, res) => {
-    const session = await StudySession.findById(req.params.id).lean();
+    const session = await StudySession.findById(req.params.id)
+        .populate('cardResults.cardId', 'front back')
+        .lean();
     if (!session) {
         return res.status(404).json({ success: false, error: 'Session not found' });
     }

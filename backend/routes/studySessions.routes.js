@@ -144,7 +144,7 @@ router.get('/set/:setId', studySessionsController.getSessionsBySet);
  *         schema: { type: string }
  *     responses:
  *       200:
- *         description: Full session document including cardResults
+ *         description: Full session document. cardResults[].cardId is populated with { front, back } for the card detail view.
  *         content:
  *           application/json:
  *             schema:

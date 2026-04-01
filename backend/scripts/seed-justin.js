@@ -12,7 +12,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const {
   User, Note, FlashcardSet, Flashcard, Task, Application,
-  Friendship, Conversation, Message, Comment, Activity,
+  Friendship, Conversation, Message, Comment, Activity, StudySession,
 } = require('../models');
 const { generateSummary, generateFlashcards } = require('../services/groq.service');
 const { sendShareMessage } = require('../services/share.service');
@@ -243,6 +243,7 @@ async function cleanSeedData(justinId) {
   if (existingSetIds.length === 0) {
     await Flashcard.deleteMany({});
   }
+  await StudySession.deleteMany({ userId: { $in: allIds } });
   await Task.deleteMany({ userId: justinId });
   await Application.deleteMany({ userId: justinId });
   await Comment.deleteMany({ userId: { $in: allIds } });
@@ -1649,6 +1650,68 @@ async function seedShareMessages(justin, friends, justinNotes, justinSets, tasks
   console.log(`  Created ${count} share messages.`);
 }
 
+// ─── SECTION 13: Study Sessions ─────────────────────────────────────────────
+
+async function seedStudySessions(justin, justinSets) {
+  console.log('Seeding study sessions...');
+
+  // Seed sessions over the last 7 days to create a visible streak
+  // Today = 2026-04-01, go back 6 days for a 7-day streak
+  const today = new Date('2026-04-01T20:00:00Z');
+  const sessionDays = [];
+  for (let daysAgo = 6; daysAgo >= 0; daysAgo--) {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - daysAgo);
+    d.setUTCHours(18 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 60), 0, 0);
+    sessionDays.push(d);
+  }
+
+  let created = 0;
+  for (let i = 0; i < sessionDays.length; i++) {
+    const completedAt = sessionDays[i];
+    // Rotate through the first 3 sets
+    const set = justinSets[i % Math.min(3, justinSets.length)];
+    if (!set) continue;
+
+    // Fetch cards for this set
+    const cards = await Flashcard.find({ setId: set._id, deletedAt: null }).lean();
+    if (!cards.length) continue;
+
+    // Build card results — slightly improving performance over days
+    const correctRate = 0.5 + (i / sessionDays.length) * 0.4; // 50% → 90%
+    const cardResults = cards.slice(0, Math.min(cards.length, 8)).map(card => ({
+      cardId: card._id,
+      correct: Math.random() < correctRate,
+    }));
+
+    const totalCards = cardResults.length;
+    const correctCount = cardResults.filter(r => r.correct).length;
+    const score = Math.round((correctCount / totalCards) * 100);
+    const durationSeconds = 60 + Math.floor(Math.random() * 180); // 1-4 min
+
+    await StudySession.create({
+      userId: justin._id,
+      setId: set._id,
+      completedAt,
+      durationSeconds,
+      totalCards,
+      correctCount,
+      score,
+      cardResults,
+    });
+
+    // Keep FlashcardSet counters consistent
+    await FlashcardSet.findByIdAndUpdate(set._id, {
+      lastStudiedAt: completedAt,
+      $inc: { studySessionCount: 1 },
+    });
+
+    created++;
+  }
+
+  console.log(`  Created ${created} study sessions (7-day streak)`);
+}
+
 async function main() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
@@ -1689,6 +1752,9 @@ async function main() {
     // 6. Seed flashcard sets
     const justinSets = await seedJustinFlashcardSets(justin, justinNotes);
     const friendSetMap = await seedFriendFlashcardSets(friends);
+
+    // 6.5. Seed study sessions (requires justinSets + their cards to exist)
+    await seedStudySessions(justin, justinSets);
 
     // 7. Seed tasks and applications
     const tasks = await seedTasks(justin, friends);

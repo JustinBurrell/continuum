@@ -103,7 +103,12 @@
                   "    pm.expect(pm.response.code).to.equal(200);",
                   "    pm.expect(pm.response.json().success).to.be.true;",
                   "});",
-                  "pm.test('session has _id', () => pm.expect(pm.response.json().session._id).to.be.a('string'));"
+                  "pm.test('session has _id', () => pm.expect(pm.response.json().session._id).to.be.a('string'));",
+                  "pm.test('cardResults is an array', () => pm.expect(pm.response.json().session.cardResults).to.be.an('array'));",
+                  "pm.test('first card result has correct field', () => {",
+                  "    const results = pm.response.json().session.cardResults;",
+                  "    if (results.length > 0) pm.expect(results[0].correct).to.be.a('boolean');",
+                  "});"
                 ]
               }
             }

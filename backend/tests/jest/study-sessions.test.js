@@ -389,7 +389,7 @@ describe('GET /api/study-sessions/set/:setId', () => {
 // ─── GET /api/study-sessions/:id ─────────────────────────────────────────────
 
 describe('GET /api/study-sessions/:id', () => {
-  it('returns session by ID for the owner', async () => {
+  it('returns session by ID for the owner with populated card front/back', async () => {
     const { token } = await registerAndLogin();
     const set = await createSet(token);
     const card = await addCard(token, set._id);
@@ -403,6 +403,12 @@ describe('GET /api/study-sessions/:id', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.session._id).toBe(sessionId);
+    expect(Array.isArray(res.body.session.cardResults)).toBe(true);
+    // cardId should be populated with card content
+    const cardResult = res.body.session.cardResults[0];
+    expect(cardResult.cardId).toHaveProperty('front', 'Q');
+    expect(cardResult.cardId).toHaveProperty('back', 'A');
+    expect(typeof cardResult.correct).toBe('boolean');
   });
 
   it('returns 403 when another user tries to read the session', async () => {
