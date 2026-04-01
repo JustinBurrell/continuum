@@ -214,7 +214,7 @@ router.get('/me', authMiddleware, authController.me);
  * @swagger
  * /api/auth/me/profile:
  *   patch:
- *     summary: Update profile — firstName, lastName, bio, activityVisibility, avatar image
+ *     summary: Update profile — firstName, lastName, bio, activityVisibility, linkedinUrl, instagramHandle, avatar image
  *     tags: [Auth]
  *     requestBody:
  *       content:
@@ -226,6 +226,8 @@ router.get('/me', authMiddleware, authController.me);
  *               lastName:           { type: string }
  *               bio:                { type: string }
  *               activityVisibility: { type: string, enum: [public, friends, private] }
+ *               linkedinUrl:        { type: string, example: 'https://linkedin.com/in/yourname' }
+ *               instagramHandle:    { type: string, example: 'yourhandle' }
  *               avatar:             { type: string, format: binary }
  *     responses:
  *       200:

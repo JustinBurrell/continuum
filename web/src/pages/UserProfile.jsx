@@ -15,6 +15,7 @@ import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
+import SocialLinks from '@/components/ui/SocialLinks';
 import { formatDate, formatRelative } from '@/lib/utils';
 
 const fullName = (u) =>
@@ -361,6 +362,7 @@ export default function UserProfile() {
             {profile.bio}
           </p>
         )}
+        <SocialLinks user={profile} style={{ marginTop: 12 }} />
       </div>
 
       {/* Friend-only content */}
