@@ -20,6 +20,7 @@ import { formatDate } from '@/lib/utils';
 import { useToast } from '@/components/ui/Toast';
 import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import VerifiedBadge from '@/components/ui/VerifiedBadge';
 
 const card = {
   background: '#fff',
@@ -577,7 +578,7 @@ export default function Profile() {
     passwordMutation.mutate({ currentPassword: vals.currentPassword, newPassword: vals.newPassword });
   };
 
-  const me = user || data?.user || data?.data;
+  const me = data?.user || data?.data || user;
   const fullName = [me?.firstName, me?.lastName].filter(Boolean).join(' ') || me?.username;
   const friendships = friendsData?.friendships || friendsData?.data || [];
   const notes = notesData?.notes || notesData?.data || [];
@@ -667,7 +668,10 @@ export default function Profile() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
               <Avatar name={fullName} src={me?.avatarUrl} size="xl" />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 800, fontSize: 18, color: '#111827', margin: 0 }}>{fullName}</p>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>{fullName}</span>
+                  <VerifiedBadge roles={me?.roles} expanded />
+                </span>
                 <p style={{ fontSize: 13, color: '#a087b0', margin: '2px 0 6px' }}>@{me?.username}</p>
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>

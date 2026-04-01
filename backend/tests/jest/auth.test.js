@@ -71,6 +71,28 @@ describe('POST /api/auth/register', () => {
     expect(res.statusCode).toBe(400);
     expect(res.body.success).toBe(false);
   });
+
+  it('assigns role: founder when registering with a founder email', async () => {
+    const original = process.env.FOUNDER_EMAILS;
+    process.env.FOUNDER_EMAILS = 'founder@continuum.test';
+    try {
+      const res = await request(app).post('/api/auth/register').send({
+        ...validUser,
+        email: 'founder@continuum.test',
+        username: 'foundertest',
+      });
+      expect(res.statusCode).toBe(201);
+      expect(res.body.user.roles).toContain('founder');
+    } finally {
+      process.env.FOUNDER_EMAILS = original;
+    }
+  });
+
+  it('assigns role: null for a non-special email', async () => {
+    const res = await request(app).post('/api/auth/register').send(validUser);
+    expect(res.statusCode).toBe(201);
+    expect(res.body.user.roles).toEqual([]);
+  });
 });
 
 // ─── Login ─────────────────────────────────────────────────────────────────
@@ -155,6 +177,18 @@ describe('GET /api/auth/me', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.user.email).toBe(validUser.email);
+  });
+
+  it('response includes role field', async () => {
+    const reg = await request(app).post('/api/auth/register').send(validUser);
+    const token = reg.body.token;
+
+    const res = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.user).toHaveProperty('roles');
   });
 
   it('returns 401 without a token', async () => {

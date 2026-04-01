@@ -46,7 +46,7 @@ exports.startConversation = async (req, res) => {
         participants: { $all: participants },
         deletedAt: null,
         deletedFor: { $ne: userId },
-    }).populate('participants', 'username firstName lastName avatarUrl');
+    }).populate('participants', 'username firstName lastName avatarUrl roles');
 
     if (existing) {
         return res.status(200).json({ success: true, conversation: existing });
@@ -61,7 +61,7 @@ exports.startConversation = async (req, res) => {
         ],
     });
 
-    await conversation.populate('participants', 'username firstName lastName avatarUrl');
+    await conversation.populate('participants', 'username firstName lastName avatarUrl roles');
 
     res.status(201).json({ success: true, conversation });
 };
@@ -88,7 +88,7 @@ exports.getConversations = async (req, res) => {
     }
 
     const conversations = await Conversation.find(filter)
-        .populate('participants', 'username firstName lastName avatarUrl')
+        .populate('participants', 'username firstName lastName avatarUrl roles')
         .sort({ 'lastMessage.sentAt': -1, createdAt: -1 });
 
     res.status(200).json({ success: true, conversations });
@@ -185,7 +185,7 @@ exports.sendMessage = async (req, res) => {
 
     await conversation.save();
 
-    await message.populate('senderId', 'username firstName lastName avatarUrl');
+    await message.populate('senderId', 'username firstName lastName avatarUrl roles');
 
     // Notify the recipient in real-time
     if (otherParticipantId) {
@@ -241,7 +241,7 @@ exports.getMessages = async (req, res) => {
     if (search) msgFilter.content = { $regex: search, $options: 'i' };
 
     const messages = await Message.find(msgFilter)
-        .populate('senderId', 'username firstName lastName avatarUrl')
+        .populate('senderId', 'username firstName lastName avatarUrl roles')
         .sort({ createdAt: -1 })
         .limit(limit + 1);
 

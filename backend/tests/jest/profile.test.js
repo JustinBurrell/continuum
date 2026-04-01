@@ -74,6 +74,18 @@ describe('PATCH /api/auth/me/profile', () => {
 
     expect(res.statusCode).toBe(401);
   });
+
+  it('ignores role in profile update body', async () => {
+    const { token } = await registerAndLogin();
+
+    const res = await request(app)
+      .patch('/api/auth/me/profile')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ bio: 'test', role: 'founder' }); // bio is a valid field; role should be silently ignored
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.user.roles).toEqual([]);
+  });
 });
 
 // ─── Change password ─────────────────────────────────────────────────────────

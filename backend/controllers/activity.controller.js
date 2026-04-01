@@ -77,7 +77,7 @@ exports.getActivityFeed = async (req, res) => {
         const feedRaw = await Activity.find(pagedFilter)
             .sort({ createdAt: -1, _id: -1 })
             .limit(limit + 1)
-            .populate('userId', 'firstName lastName username avatarUrl');
+            .populate('userId', 'firstName lastName username avatarUrl roles');
 
         const hasMore = feedRaw.length > limit;
         const items = hasMore ? feedRaw.slice(0, limit) : feedRaw;

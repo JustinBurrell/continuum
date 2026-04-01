@@ -74,7 +74,7 @@ const commentSchema = new mongoose.Schema({
     /**
      * Denormalized User Info
      * Purpose: Cache author info at comment creation time for display performance
-     * Fields: userSnapshot.username, firstName, lastName, avatarUrl
+     * Fields: userSnapshot.username, firstName, lastName, avatarUrl, roles
      * Note: Pre-save hook populates this on creation to avoid N+1 queries
      *       when displaying comment threads
      */
@@ -90,6 +90,10 @@ const commentSchema = new mongoose.Schema({
         },
         avatarUrl: {
             type: String,
+        },
+        roles: {
+            type: [String],
+            default: [],
         },
     },
 
@@ -121,7 +125,7 @@ commentSchema.pre('save', async function () {
 
     // Look up the author's current info from the User collection
     const User = mongoose.model('User');
-    const user = await User.findById(this.userId).select('username firstName lastName avatarUrl');
+    const user = await User.findById(this.userId).select('username firstName lastName avatarUrl roles');
 
     // Cache the author's info directly on the comment document
     if (user) {
@@ -130,6 +134,7 @@ commentSchema.pre('save', async function () {
             firstName: user.firstName,
             lastName: user.lastName,
             avatarUrl: user.avatarUrl,
+            roles: user.roles || [],
         };
     }
 });

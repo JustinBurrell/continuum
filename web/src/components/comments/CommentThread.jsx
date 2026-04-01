@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import { formatRelative } from '@/lib/utils';
+import VerifiedBadge from '@/components/ui/VerifiedBadge';
 
 const getAuthor = (c) => c.userSnapshot || {};
 const fullName = (u) =>
@@ -102,15 +103,18 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
           border: '1px solid #ede9fe',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <Link
-              to="/users/view"
-              state={{ id: c.userId?._id ?? c.userId }}
-              style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827', textDecoration: 'none' }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#6b21a8'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = '#111827'; }}
-            >
-              {fullName(author)}
-            </Link>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+              <Link
+                to="/users/view"
+                state={{ id: c.userId?._id ?? c.userId }}
+                style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827', textDecoration: 'none' }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#6b21a8'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#111827'; }}
+              >
+                {fullName(author)}
+              </Link>
+              <VerifiedBadge roles={c.userSnapshot?.roles} />
+            </span>
             <span style={{ fontSize: '0.75rem', color: '#a087b0' }}>{formatRelative(c.createdAt)}</span>
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
               <button

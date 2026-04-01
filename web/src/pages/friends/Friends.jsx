@@ -10,6 +10,7 @@ import Avatar from '@/components/ui/Avatar';
 import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import FriendsSkeleton from '@/components/skeletons/FriendsSkeleton';
+import VerifiedBadge from '@/components/ui/VerifiedBadge';
 
 export default function Friends() {
   const [tab, setTab] = useState('friends');
@@ -222,7 +223,9 @@ export default function Friends() {
                     <Link to="/users/view" state={{ id: friendUser._id }} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
                       <Avatar name={fullName(friendUser)} src={friendUser.avatarUrl} size="md" />
                       <div style={{ minWidth: 0 }}>
-                        <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>{fullName(friendUser)}</p>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 700, color: '#111827', fontSize: 14 }}>
+                          {fullName(friendUser)}<VerifiedBadge roles={friendUser.roles} />
+                        </span>
                         <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>@{friendUser.username}</p>
                       </div>
                     </Link>
@@ -296,7 +299,9 @@ export default function Friends() {
                     </Link>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Link to="/users/view" state={{ id: requester?._id }} style={{ textDecoration: 'none' }}>
-                        <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>{fullName(requester)}</p>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 700, color: '#111827', fontSize: 14 }}>
+                          {fullName(requester)}<VerifiedBadge roles={requester?.roles} />
+                        </span>
                       </Link>
                       <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>@{requester?.username} wants to connect</p>
                     </div>
@@ -416,7 +421,9 @@ export default function Friends() {
                     </Link>
                     <div style={{ flex: 1 }}>
                       <Link to="/users/view" state={{ id: u._id }} style={{ textDecoration: 'none' }}>
-                        <p style={{ fontWeight: 600, fontSize: 13, color: '#111827', margin: 0 }}>{fullName(u)}</p>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 600, fontSize: 13, color: '#111827' }}>
+                          {fullName(u)}<VerifiedBadge roles={u.roles} />
+                        </span>
                       </Link>
                       <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>@{u.username}</p>
                     </div>

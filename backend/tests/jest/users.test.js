@@ -144,4 +144,16 @@ describe('GET /api/users/:id', () => {
 
     expect(res.statusCode).toBe(400);
   });
+
+  it('includes role in public profile response', async () => {
+    const alice = await registerAndLogin({ username: 'aliceprofile' });
+    const bob = await registerAndLogin();
+
+    const res = await request(app)
+      .get(`/api/users/${alice.userId}`)
+      .set('Authorization', `Bearer ${bob.token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.user).toHaveProperty('roles');
+  });
 });

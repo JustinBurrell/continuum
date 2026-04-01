@@ -14,6 +14,7 @@ import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import VerifiedBadge from '@/components/ui/VerifiedBadge';
 import { formatDate, formatRelative } from '@/lib/utils';
 
 const fullName = (u) =>
@@ -270,9 +271,12 @@ export default function UserProfile() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <div>
-                <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.25rem', fontWeight: 800, color: '#111827', margin: 0, lineHeight: 1.2 }}>
-                  {name}
-                </h1>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.25rem', fontWeight: 800, color: '#111827', margin: 0, lineHeight: 1.2 }}>
+                    {name}
+                  </h1>
+                  <VerifiedBadge roles={profile.roles} expanded />
+                </span>
                 <p style={{ fontSize: 13, color: '#a087b0', display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
                   <AtSign size={12} />{profile.username}
                 </p>

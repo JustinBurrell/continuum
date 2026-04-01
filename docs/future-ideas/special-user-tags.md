@@ -1,6 +1,6 @@
 # Feature: Special User Tags (Founder, Team Continuum)
 
-**Status:** Planned
+**Status:** Implemented
 **Priority:** Low
 **Type:** Enhancement
 

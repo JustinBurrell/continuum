@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelative } from '@/lib/utils';
+import VerifiedBadge from '@/components/ui/VerifiedBadge';
 
 // Verified backend shape:
 // GET /conversations/:id/messages -> { messages[], hasMore }
@@ -172,9 +173,9 @@ export default function Conversation({ conversationId }) {
             >
               <Avatar name={fullName(other)} src={other?.avatarUrl || null} size="sm" />
               <div>
-                <p style={{ fontWeight: 700, fontSize: 14, color: '#111827', margin: 0, lineHeight: 1.2 }}>
-                  {fullName(other)}
-                </p>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 700, fontSize: 14, color: '#111827', lineHeight: 1.2 }}>
+                  {fullName(other)}<VerifiedBadge roles={other?.roles} />
+                </span>
                 <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>@{other.username}</p>
               </div>
             </Link>
@@ -334,15 +335,18 @@ export default function Conversation({ conversationId }) {
 
                 <div className="group" style={{ display: 'flex', flexDirection: 'column', alignItems: isOwn ? 'flex-end' : 'flex-start', maxWidth: '68%' }}>
                   {!isOwn && isFirstInGroup && (
-                    <Link
-                      to="/users/view"
-                      state={{ id: msg.senderId?._id ?? msg.senderId }}
-                      style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', marginBottom: 4, marginLeft: 4, textDecoration: 'none', display: 'block' }}
-                      onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
-                      onMouseLeave={e => e.currentTarget.style.color = '#a087b0'}
-                    >
-                      {senderName}
-                    </Link>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginBottom: 4, marginLeft: 4 }}>
+                      <Link
+                        to="/users/view"
+                        state={{ id: msg.senderId?._id ?? msg.senderId }}
+                        style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', textDecoration: 'none' }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#a087b0'}
+                      >
+                        {senderName}
+                      </Link>
+                      <VerifiedBadge roles={msg.senderId?.roles} />
+                    </span>
                   )}
 
                   {(() => {
