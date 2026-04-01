@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import Skeleton from '@/components/ui/Skeleton';
 import DashboardSkeleton from '@/components/skeletons/DashboardSkeleton';
 import { formatRelative, truncate, stripHtml } from '@/lib/utils';
+import VerifiedBadge from '@/components/ui/VerifiedBadge';
 
 // Verified backend response shapes:
 // GET /notes → { notes[], pagination: { total } }
@@ -434,9 +435,12 @@ function getFeedSentence(item, actor) {
   const m = item.metadata || {};
   const name = fullName(actor);
   const bold = (
-    <Link to="/users/view" state={{ id: actor?._id }} style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}>
-      {name}
-    </Link>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+      <Link to="/users/view" state={{ id: actor?._id }} style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}>
+        {name}
+      </Link>
+      <VerifiedBadge roles={actor?.roles} />
+    </span>
   );
   const suffix = feedShareSuffix(m);
 
