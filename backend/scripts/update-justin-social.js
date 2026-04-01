@@ -9,6 +9,7 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const { User } = require('../models');
+const { invalidate } = require('../lib/cache');
 
 async function main() {
   try {
@@ -26,9 +27,12 @@ async function main() {
       instagramHandle: 'thejustinburrell',
     });
 
+    await invalidate(`user:${justin._id}`);
+
     console.log(`Updated social links for Justin (${justin._id})`);
     console.log('  LinkedIn:  https://www.linkedin.com/in/thejustinburrell/');
     console.log('  Instagram: thejustinburrell');
+    console.log('  Redis cache invalidated');
   } catch (err) {
     console.error(err);
     process.exit(1);
