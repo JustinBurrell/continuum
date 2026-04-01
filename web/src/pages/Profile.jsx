@@ -454,7 +454,10 @@ export default function Profile() {
     },
     onSuccess: (res) => {
       const updated = res.data.user || res.data.data;
-      if (updated) updateUser(updated);
+      if (updated) {
+        updateUser(updated);
+        queryClient.setQueryData(['me'], (old) => old ? { ...old, user: updated } : old);
+      }
       toast({ type: 'success', message: 'Profile updated' });
     },
     onError: () => toast({ type: 'error', message: 'Failed to save profile' }),
