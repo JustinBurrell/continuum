@@ -632,7 +632,9 @@ async function bulkUpdateCardProgress(setId, userId, cardResults) {
     // 1. $push — for cards where this user has no userProgress entry yet
     // 2. $inc  — for cards where this user already has an entry
     // ordered:false lets both sets run independently (no entry matches one op, not the other)
-    const pushOps = cardResults.map(({ cardId, correct }) => ({
+    // Step 1: create a zero-value entry for any card where this user has no entry yet.
+    // Using 0 initial counts so that Step 2 always provides the authoritative increment.
+    const pushOps = cardResults.map(({ cardId }) => ({
         updateOne: {
             filter: {
                 _id: cardId,
@@ -645,14 +647,15 @@ async function bulkUpdateCardProgress(setId, userId, cardResults) {
                     userProgress: {
                         userId,
                         lastStudied: now,
-                        correctCount: correct ? 1 : 0,
-                        incorrectCount: correct ? 0 : 1,
+                        correctCount: 0,
+                        incorrectCount: 0,
                     },
                 },
             },
         },
     }));
 
+    // Step 2: increment on all cards — after Step 1 every card now has an entry for this user.
     const incOps = cardResults.map(({ cardId, correct }) => ({
         updateOne: {
             filter: {
@@ -671,7 +674,8 @@ async function bulkUpdateCardProgress(setId, userId, cardResults) {
         },
     }));
 
-    await Flashcard.bulkWrite([...pushOps, ...incOps], { ordered: false });
+    await Flashcard.bulkWrite(pushOps, { ordered: false });
+    await Flashcard.bulkWrite(incOps, { ordered: false });
 }
 
 exports.bulkUpdateCardProgress = bulkUpdateCardProgress;
