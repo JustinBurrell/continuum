@@ -28,6 +28,7 @@ import NoteEditor from '@/pages/notes/NoteEditor';
 import FlashcardSets from '@/pages/flashcards/FlashcardSets';
 import FlashcardSetDetail from '@/pages/flashcards/FlashcardSetDetail';
 import StudyMode from '@/pages/flashcards/StudyMode';
+import FlashcardHistory from '@/pages/flashcards/FlashcardHistory';
 import Tasks from '@/pages/tasks/Tasks';
 import Calendar from '@/pages/Calendar';
 import Friends from '@/pages/friends/Friends';
@@ -75,6 +76,7 @@ export default function App() {
               <Route path="/flashcards" element={<FlashcardSets />} />
               <Route path="/flashcards/view" element={<FlashcardSetDetail />} />
               <Route path="/flashcards/study" element={<StudyMode />} />
+              <Route path="/flashcards/history" element={<FlashcardHistory />} />
               <Route path="/tasks" element={<Tasks />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/friends" element={<Friends />} />

@@ -15,7 +15,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const {
   User, Note, FlashcardSet, Flashcard, Task, Application,
-  Friendship, Conversation, Message, Comment, Activity,
+  Friendship, Conversation, Message, Comment, Activity, StudySession,
 } = require('../models');
 const Resume = require('../models/Resume');
 const { sendShareMessage } = require('../services/share.service');
@@ -91,6 +91,9 @@ async function cleanJaneData(janeId) {
       { targetId: { $in: janeNoteIds } },
     ],
   });
+
+  // Study sessions
+  await StudySession.deleteMany({ userId: janeId });
 
   // Activities
   await Activity.deleteMany({ userId: janeId });
@@ -934,6 +937,63 @@ async function seedFriendContent(jane, friends) {
   console.log(`  Friends: ${noteCount} notes, ${setCount} flashcard sets, ${taskCount} shared tasks, ${janeCommentCount} Jane comments`);
 }
 
+// ─── SECTION 13: Study Sessions ──────────────────────────────────────────────
+
+async function seedStudySessions(jane, janeSets) {
+  console.log("Seeding Jane's study sessions...");
+
+  // Seed sessions over the last 5 days to create a visible streak
+  const today = new Date('2026-04-01T20:00:00Z');
+  const sessionDays = [];
+  for (let daysAgo = 4; daysAgo >= 0; daysAgo--) {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - daysAgo);
+    d.setUTCHours(19 + Math.floor(Math.random() * 3), Math.floor(Math.random() * 60), 0, 0);
+    sessionDays.push(d);
+  }
+
+  let created = 0;
+  for (let i = 0; i < sessionDays.length; i++) {
+    const completedAt = sessionDays[i];
+    const set = janeSets[i % Math.min(3, janeSets.length)];
+    if (!set) continue;
+
+    const cards = await Flashcard.find({ setId: set._id, deletedAt: null }).lean();
+    if (!cards.length) continue;
+
+    const correctRate = 0.55 + (i / sessionDays.length) * 0.35; // 55% → 90%
+    const cardResults = cards.slice(0, Math.min(cards.length, 8)).map(card => ({
+      cardId: card._id,
+      correct: Math.random() < correctRate,
+    }));
+
+    const totalCards = cardResults.length;
+    const correctCount = cardResults.filter(r => r.correct).length;
+    const score = Math.round((correctCount / totalCards) * 100);
+    const durationSeconds = 60 + Math.floor(Math.random() * 180);
+
+    await StudySession.create({
+      userId: jane._id,
+      setId: set._id,
+      completedAt,
+      durationSeconds,
+      totalCards,
+      correctCount,
+      score,
+      cardResults,
+    });
+
+    await FlashcardSet.findByIdAndUpdate(set._id, {
+      lastStudiedAt: completedAt,
+      $inc: { studySessionCount: 1 },
+    });
+
+    created++;
+  }
+
+  console.log(`  Created ${created} study sessions (5-day streak)`);
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -970,6 +1030,9 @@ async function main() {
 
     // 4. Flashcard sets
     const allSets = await seedFlashcardSets(jane, sharedNotes);
+
+    // 4.5. Study sessions
+    await seedStudySessions(jane, allSets);
 
     // 5. Tasks
     const allTasks = await seedTasks(jane, friends);

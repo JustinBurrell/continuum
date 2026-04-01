@@ -221,7 +221,46 @@
 
 ---
 
-#### 5. Task Model
+#### 5. StudySession Model
+**File**: `src/models/StudySession.js`
+**Purpose**: Track completed flashcard study sessions for streak calculation and history
+
+```javascript
+{
+  userId: ObjectId (ref: 'User', required, indexed),
+  setId: ObjectId (ref: 'FlashcardSet', required, indexed),
+
+  // Session Outcome
+  completedAt: Date (default: Date.now),
+  durationSeconds: Number (required, min: 0),
+  totalCards: Number (required),
+  correctCount: Number (required),
+  score: Number (0–100, Math.round(correctCount/totalCards * 100)),
+
+  // Per-Card Results (optional — only needed for detail view)
+  cardResults: [{
+    cardId: ObjectId (ref: 'Flashcard'),
+    correct: Boolean
+  }],
+
+  timestamps: true
+}
+```
+
+**Indexes**:
+```javascript
+{ userId: 1, completedAt: -1 }           // streak + global history queries
+{ setId: 1, completedAt: -1 }            // per-set history queries
+{ userId: 1, setId: 1, completedAt: -1 } // per-user per-set queries
+```
+
+**Why Separate from FlashcardSet?**: Session history is unbounded — a user can complete hundreds of sessions per set. Embedding would make FlashcardSet documents grow without bound. Sessions are also queried independently for streak calculation and history pages.
+
+**Streak Computation**: Walk all sessions for the user, deduplicate into a `Set` of UTC date strings (`YYYY-MM-DD`), count consecutive calendar days backwards from today. Cached in Redis (`study-streak:<userId>`, 30 min TTL) and invalidated on every new session.
+
+---
+
+#### 6. Task Model
 **File**: `src/models/Task.js`
 **Purpose**: Task management, calendar integration, group tasks
 
@@ -644,17 +683,18 @@
 | 2 | Note | `src/models/Note.js` | Notes (summary embedded) | Yes |
 | 3 | FlashcardSet | `src/models/FlashcardSet.js` | Learning | Yes |
 | 4 | Flashcard | `src/models/Flashcard.js` | Learning | Yes |
-| 5 | Task | `src/models/Task.js` | Tasks | Yes |
-| 6 | Friendship | `src/models/Friendship.js` | Social | Yes |
-| 7 | Comment | `src/models/Comment.js` | Social | Yes |
-| 8 | Resume | `src/models/Resume.js` | Career (feedback embedded) | Yes |
-| 9 | Application | `src/models/Application.js` | Career | Yes |
-| 10 | Conversation | `src/models/Conversation.js` | Stretch: DMs | No |
-| 11 | Message | `src/models/Message.js` | Stretch: DMs | No |
-| 12 | SyncQueue | `src/models/SyncQueue.js` | Stretch: Offline | No |
-| 13 | Activity | `src/models/Activity.js` | Stretch: Feed | No |
+| 5 | StudySession | `src/models/StudySession.js` | Learning — study streak + session history | Yes |
+| 6 | Task | `src/models/Task.js` | Tasks | Yes |
+| 7 | Friendship | `src/models/Friendship.js` | Social | Yes |
+| 8 | Comment | `src/models/Comment.js` | Social | Yes |
+| 9 | Resume | `src/models/Resume.js` | Career (feedback embedded) | Yes |
+| 10 | Application | `src/models/Application.js` | Career | Yes |
+| 11 | Conversation | `src/models/Conversation.js` | Stretch: DMs | No |
+| 12 | Message | `src/models/Message.js` | Stretch: DMs | No |
+| 13 | SyncQueue | `src/models/SyncQueue.js` | Stretch: Offline | No |
+| 14 | Activity | `src/models/Activity.js` | Stretch: Feed | No |
 
-**9 must-ship models** (down from 11 — consolidated NoteSummary into Note, ResumeFeedback into Resume)
+**10 must-ship models** (down from 11 — consolidated NoteSummary into Note, ResumeFeedback into Resume; added StudySession)
 
 ---
 
@@ -817,6 +857,6 @@ const note = await Note.findById(noteId)
 
 ---
 
-**Last Updated**: February 19 2026
-**Total Models**: 13 (9 must-ship + 4 stretch) — all implemented
+**Last Updated**: April 1 2026
+**Total Models**: 14 (10 must-ship + 4 stretch) — all implemented
 **Implementation Timeline**: Phase 1 (Sessions 1-2) — complete

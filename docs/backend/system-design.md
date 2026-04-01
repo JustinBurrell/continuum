@@ -16,7 +16,7 @@ flowchart TB
 
     subgraph BACKEND["Backend — Node.js + Express (Render Starter)"]
         direction TB
-        ROUTER["Express Router\n16 route groups"]
+        ROUTER["Express Router\n17 route groups"]
 
         subgraph MIDDLEWARE["Middleware"]
             AUTH_MW["Auth Middleware\nJWT verify\ngetOrSet user:id 5min"]
@@ -43,8 +43,8 @@ flowchart TB
     end
 
     subgraph DATA["Data Layer"]
-        MONGO[("MongoDB Atlas\nUser · Note · Task\nFlashcardSet · Flashcard\nConversation · Message\nFriendship · Activity\nComment · Application\nResume · RefreshToken\nOAuthCode · SyncQueue")]
-        REDIS[("Upstash Redis (TLS)\nuser:id — 5 min\nactivity:<userId>:<cursor> — 5 min\nshared-notes:id — 60s\nshared-sets:id — 60s\nshared-tasks:id — 60s\nai:<type>:<userId>:<date> — daily cap")]
+        MONGO[("MongoDB Atlas\nUser · Note · Task\nFlashcardSet · Flashcard · StudySession\nConversation · Message\nFriendship · Activity\nComment · Application\nResume · RefreshToken\nOAuthCode · SyncQueue")]
+        REDIS[("Upstash Redis (TLS)\nuser:id — 5 min\nactivity:<userId>:<cursor> — 5 min\nshared-notes:id — 60s\nshared-sets:id — 60s\nshared-tasks:id — 60s\nstudy-streak:<userId> — 30 min\nai:<type>:<userId>:<date> — daily cap")]
     end
 
     subgraph EXTERNAL["External Services"]
@@ -70,7 +70,7 @@ flowchart TB
     CC -- "invalidate keys" --> REDIS_LIB
 
     %% Socket pushes to client
-    IO -- "new_message\nfriend_request\ntask_updated\nnote_shared\nactivity_updated\nflashcard_shared\ncomment_added" --> SC
+    IO -- "new_message\nfriend_request\ntask_updated\nnote_shared\nactivity_updated\nflashcard_shared\ncomment_added\nstudy:session-complete" --> SC
 
     %% Client reacts
     SC -- "invalidateQueries" --> RQ

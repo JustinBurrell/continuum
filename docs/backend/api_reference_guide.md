@@ -76,9 +76,18 @@ Summary is stored as an embedded field on the Note document for the owner. When 
 - `PATCH /api/flashcard-sets/:setId` - Update set title and/or description. Owner-only. Body: `{ title?, description? }` — at least one required; title cannot be empty.
 - `POST /api/flashcard-sets/:setId/cards` - Add card to set
 - `PUT /api/flashcard-sets/:setId/cards/:cardId` - Edit flashcard front and back content
-- `PUT /api/flashcard-sets/:setId/cards/:cardId/progress` - Update study progress (correct/incorrect)
+- `PUT /api/flashcard-sets/:setId/cards/:cardId/progress` - Update study progress (correct/incorrect) — **deprecated**: use `POST /api/study-sessions` which applies all card progress in bulk
 - `DELETE /api/flashcard-sets/:setId` - Soft delete flashcard set
 - `POST /api/flashcard-sets/:setId/duplicate` - Create a personal copy of an accessible set owned by the requesting user. Copies all cards; does not copy per-card `userProgress`. Access: owner or any user with read access (sharedWith or friends visibility).
+
+### **Study Sessions**
+- `POST /api/study-sessions` - Submit a completed study session. Body: `{ setId, durationSeconds, cardResults: [{ cardId, correct }] }`. Applies bulk card progress, updates `FlashcardSet.studySessionCount` and `lastStudiedAt`, invalidates streak cache, emits `study:session-complete` socket event. Response: `{ session, streak }`.
+- `GET /api/study-sessions` - Paginated session history for the authenticated user. Query params: `page`, `limit` (default 20), `setId` (optional filter). Response: `{ sessions, total, page, limit }`.
+- `GET /api/study-sessions/streak` - Current user's streak (consecutive calendar days with at least one session). Response: `{ success, streak }`. Cached in Redis 30 min.
+- `GET /api/study-sessions/set/:setId` - Session history scoped to one flashcard set. Access: owner or users with read access to the set. Response: `{ sessions, total, page, limit }`.
+- `GET /api/study-sessions/:id` - Single session by ID including full `cardResults`. Owner-only.
+
+Streak is computed from UTC calendar dates — a streak stays alive if the user studied yesterday but not yet today. It resets only when a full calendar day is missed.
 
 ---
 
@@ -108,6 +117,7 @@ Summary is stored as an embedded field on the Note document for the owner. When 
 ### **Friend Management**
 - `GET /api/users/search` - Search users by username or email
 - `GET /api/users/:id` - Get a user's public profile (returns `{ _id, username, firstName, lastName, avatarUrl, bio, createdAt }`; no email, tokens, or settings)
+- `GET /api/users/:id/streak` - Get another user's public study streak (returns `{ success, streak }` — count only, no session details)
 - `POST /api/friends/request` - Send friend request
 - `PUT /api/friends/request/:requestId` - Accept or reject friend request
 - `GET /api/friends` - List current friends. Supports `?search=` for accepted friends: two-step lookup — matches users by firstName/lastName/username, then filters friendships to those involving the matched users.
@@ -248,6 +258,7 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp) except `DE
 | Notes | 9 | Yes |
 | AI Summary | 1 | Yes |
 | Flashcards | 9 | Yes |
+| Study Sessions | 5 | Yes |
 | Tasks | 5 | Yes |
 | Calendar | 1 | Yes |
 | Social (Friends) | 6 | Yes |
@@ -261,4 +272,4 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp) except `DE
 | Activity Feed | 2 | Stretch |
 | Offline Sync | 1 | Stretch |
 | Health | 1 | Yes |
-| **Total** | **79** | **74** |
+| **Total** | **85** | **80** |

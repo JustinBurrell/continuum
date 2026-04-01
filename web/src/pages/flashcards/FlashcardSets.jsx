@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, BookOpen, Trash2, Play, Edit3, Search } from 'lucide-react';
 import api from '@/lib/api';
-import queryClient from '@/lib/queryClient';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -16,6 +15,7 @@ import { formatRelative } from '@/lib/utils';
 
 export default function FlashcardSets() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [deleteConfirm, setDeleteConfirm] = useState(null); // set._id to delete
   const [showCreate, setShowCreate] = useState(false);
   const [newSet, setNewSet] = useState({ title: '', description: '', subject: '' });
@@ -45,6 +45,13 @@ export default function FlashcardSets() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] }),
   });
 
+  const { data: streakData } = useQuery({
+    queryKey: ['study-streak'],
+    queryFn: () => api.get('/study-sessions/streak').then(r => r.data),
+    staleTime: 300_000,
+  });
+
+  const streak = streakData?.streak ?? 0;
   const sets = data?.sets || data?.data || [];
 
   return (
@@ -79,6 +86,33 @@ export default function FlashcardSets() {
             <Plus size={15} /> New set
           </button>
         )}
+      </div>
+
+      {/* Streak banner — always visible */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        background: streak >= 7 ? '#fef9c3' : streak >= 1 ? '#f5f0ff' : 'white',
+        border: `1px solid ${streak >= 7 ? '#fde047' : '#ede9fe'}`,
+        borderRadius: 14,
+        padding: '12px 18px',
+        marginBottom: 20,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontSize: '1.375rem' }}>{streak >= 7 ? '🔥' : streak >= 1 ? '⚡' : '📖'}</span>
+          <div>
+            <p style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem', margin: 0 }}>
+              {streak >= 1 ? `${streak} day${streak !== 1 ? 's' : ''} in a row!` : 'Start your streak today'}
+            </p>
+            <p style={{ fontSize: '0.75rem', color: '#a087b0', margin: '2px 0 0' }}>
+              {streak >= 7 ? "You're on fire. Keep going!" : streak >= 1 ? 'Study today to keep your streak alive.' : 'Complete a study session to begin.'}
+            </p>
+          </div>
+        </div>
+        <Link to="/flashcards/history" style={{ fontSize: '0.8125rem', color: '#6b21a8', fontWeight: 500, textDecoration: 'none', flexShrink: 0 }}>
+          History
+        </Link>
       </div>
 
       {/* Search */}

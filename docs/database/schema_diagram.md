@@ -242,6 +242,21 @@ erDiagram
         Date createdAt
     }
 
+    %% ===== LEARNING: STUDY SESSIONS =====
+    StudySession {
+        ObjectId _id PK
+        ObjectId userId FK
+        ObjectId setId FK
+        Date completedAt
+        Number durationSeconds
+        Number totalCards
+        Number correctCount
+        Number score "0–100"
+        Array cardResults "cardId + correct per card"
+        Date createdAt
+        Date updatedAt
+    }
+
     %% ===== STRETCH: ACTIVITY FEED =====
     Activity {
         ObjectId _id PK
@@ -277,6 +292,10 @@ erDiagram
     %% Flashcard relationships
     FlashcardSet ||--o{ Flashcard : "contains"
     FlashcardSet ||--o{ Comment : "receives"
+    FlashcardSet ||--o{ StudySession : "tracked by"
+
+    %% StudySession relationships
+    User ||--o{ StudySession : "completes"
 
     %% Task relationships
     Task ||--o{ Comment : "receives"
@@ -304,7 +323,7 @@ erDiagram
 |----------|-------------|-----------|
 | Auth | User, RefreshToken, OAuthCode | Yes |
 | Notes | Note (summary embedded) | Yes |
-| Learning | FlashcardSet, Flashcard | Yes |
+| Learning | FlashcardSet, Flashcard, StudySession | Yes |
 | Tasks | Task | Yes |
 | Social | Friendship, Comment | Yes |
 | Career | Resume (feedback embedded), Application | Yes |
@@ -312,7 +331,7 @@ erDiagram
 | Offline | SyncQueue | Stretch |
 | Feed | Activity | Stretch |
 
-**Total: 15 collections (11 must-ship + 4 stretch)**
+**Total: 16 collections (12 must-ship + 4 stretch)**
 
 ### What Changed (Consolidation)
 

@@ -35,14 +35,15 @@ backend/
 
 ## API surface
 
-16 route groups, ~70 endpoints total.
+17 route groups, ~75 endpoints total.
 
 | Route group           | Description                                          |
 | --------------------- | ---------------------------------------------------- |
 | `/api/auth`           | Register, login, logout, token refresh, password reset |
 | `/api/google`         | Google OAuth initiation, callback, account link/unlink |
 | `/api/notes`          | CRUD, AI summary generation, flashcard extraction    |
-| `/api/flashcard-sets` | CRUD, add/remove cards, PDF-to-flashcard import      |
+| `/api/flashcard-sets`  | CRUD, add/remove cards, PDF-to-flashcard import      |
+| `/api/study-sessions`  | Submit sessions, session history, streak (current + cached) |
 | `/api/tasks`          | Kanban tasks with status and due date                |
 | `/api/calendar`       | Calendar events                                      |
 | `/api/friends`        | Friend requests, accept/decline, remove              |
@@ -134,7 +135,8 @@ Model: `llama-3.1-8b-instant`. Chosen for free-tier rate limits viable for multi
 | -------------- | ------------------------------------------------------------------- |
 | `User`         | email, passwordHash, googleId, avatar, roles (`['founder'\|'team'\|'admin']` array, multiple allowed), friends, refreshTokens |
 | `Note`         | owner, title, content, aiSummary, tags, collaborators               |
-| `FlashcardSet` | owner, cards `[{ front, back }]`, source (manual/AI/PDF)            |
+| `FlashcardSet`  | owner, cards `[{ front, back }]`, source (manual/AI/PDF)            |
+| `StudySession`  | userId, setId, completedAt, durationSeconds, totalCards, correctCount, score (0–100), cardResults[] |
 | `Task`         | owner, title, status (todo/in-progress/done), dueDate               |
 | `Application`  | owner, company, role, status, notes, appliedAt                      |
 | `Resume`       | owner, cloudinaryUrl, extractedText, aiFeedback                     |

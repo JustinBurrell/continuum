@@ -92,7 +92,7 @@ await Comment.updateMany(
 
 ---
 
-## Model Overview (14 total)
+## Model Overview (16 total)
 
 | # | Model | Collection | Category | Must-Ship |
 |---|-------|-----------|----------|-----------|
@@ -102,17 +102,18 @@ await Comment.updateMany(
 | 4 | Note | notes | Notes (includes embedded summary) | Yes |
 | 5 | FlashcardSet | flashcardsets | Learning | Yes |
 | 6 | Flashcard | flashcards | Learning | Yes |
-| 7 | Task | tasks | Tasks | Yes |
-| 8 | Friendship | friendships | Social | Yes |
-| 9 | Comment | comments | Social | Yes |
-| 10 | Resume | resumes | Career (includes embedded feedback) | Yes |
-| 11 | Application | applications | Career | Yes |
-| 12 | Conversation | conversations | Stretch: DMs | No |
-| 13 | Message | messages | Stretch: DMs | No |
-| 14 | SyncQueue | syncqueues | Stretch: Offline | No |
-| 15 | Activity | activities | Stretch: Feed | No |
+| 7 | StudySession | studysessions | Learning — study streak + session history | Yes |
+| 8 | Task | tasks | Tasks | Yes |
+| 9 | Friendship | friendships | Social | Yes |
+| 10 | Comment | comments | Social | Yes |
+| 11 | Resume | resumes | Career (includes embedded feedback) | Yes |
+| 12 | Application | applications | Career | Yes |
+| 13 | Conversation | conversations | Stretch: DMs | No |
+| 14 | Message | messages | Stretch: DMs | No |
+| 15 | SyncQueue | syncqueues | Stretch: Offline | No |
+| 16 | Activity | activities | Stretch: Feed | No |
 
-**11 must-ship models** + 4 stretch models
+**12 must-ship models** + 4 stretch models
 
 ---
 
@@ -316,12 +317,14 @@ const note = await Note.findOne({
    └─> FlashcardSet + Flashcard.find({ setId }).sort({ order: 1 })
    └─> Client displays flip interface
 
-3. User marks card correct/incorrect
-   └─> PUT /api/flashcard-sets/:setId/cards/:cardId/progress
-   └─> Flashcard.findOneAndUpdate(
-       { _id: cardId, 'userProgress.userId': userId },
-       { $inc: { 'userProgress.$.correctCount': 1 } }
-     )
+3. User completes study session
+   └─> POST /api/study-sessions { setId, durationSeconds, cardResults[] }
+   └─> StudySession.create({ userId, setId, durationSeconds, totalCards, correctCount, score, cardResults })
+   └─> Flashcard.bulkWrite — upsert userProgress for each card answered (replaces per-card calls)
+   └─> FlashcardSet.findByIdAndUpdate — increment studySessionCount, set lastStudiedAt
+   └─> Invalidate study-streak:<userId> Redis cache
+   └─> Emit study:session-complete via Socket.io to user:<userId> room
+   └─> Returns { session, streak } — streak is computed from all session completedAt dates
 ```
 
 **Shared Flashcard Study**:

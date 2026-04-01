@@ -28,4 +28,7 @@ module.exports = {
   Message: require('./Message'),
   SyncQueue: require('./SyncQueue'),
   Activity: require('./Activity'),
+
+  // Study
+  StudySession: require('./StudySession'),
 };

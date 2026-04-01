@@ -113,6 +113,15 @@ export default function UserProfile() {
     f.user1?._id?.toString() === id || f.user2?._id?.toString() === id
   );
 
+  // Study streak (public)
+  const { data: streakData } = useQuery({
+    queryKey: ['user-streak', id],
+    queryFn: () => api.get(`/users/${id}/streak`).then(r => r.data),
+    enabled: !!id,
+    staleTime: 300_000,
+  });
+  const streak = streakData?.streak ?? 0;
+
   // Shared notes (friend only)
   const { data: sharedNotesData } = useQuery({
     queryKey: ['shared-notes'],
@@ -363,6 +372,25 @@ export default function UserProfile() {
           </p>
         )}
         <SocialLinks user={profile} style={{ marginTop: 12 }} />
+
+        {/* Streak widget */}
+        {streak >= 1 && (
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: streak >= 7 ? '#fef9c3' : '#f5f0ff',
+            border: `1px solid ${streak >= 7 ? '#fde047' : '#ede9fe'}`,
+            borderRadius: 24,
+            padding: '7px 16px',
+            marginTop: 14,
+          }}>
+            <span style={{ fontSize: '1rem' }}>{streak >= 7 ? '🔥' : '⚡'}</span>
+            <span style={{ fontWeight: 600, fontSize: '0.8125rem', color: '#111827' }}>
+              {streak} day study streak
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Friend-only content */}

@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { getCachedStreak } = require('../services/studyStreak.service');
 
 // ============================================================
 // USERS CONTROLLER
@@ -36,6 +37,20 @@ exports.getUserProfile = async (req, res) => {
         }
         throw err;
     }
+};
+
+// ----------------------------------------
+// GET /api/users/:id/streak
+// Purpose: Return another user's current study streak (public, numbers only).
+//          Does not expose lastStudiedAt or session details.
+// ----------------------------------------
+exports.getUserStreak = async (req, res) => {
+    const user = await User.findOne({ _id: req.params.id, deletedAt: null }).select('_id');
+    if (!user) {
+        return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    const streak = await getCachedStreak(req.params.id);
+    res.status(200).json({ success: true, streak });
 };
 
 exports.searchUsers = async (req, res) => {

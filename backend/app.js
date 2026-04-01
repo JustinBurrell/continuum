@@ -54,6 +54,7 @@ app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/notes', require('./routes/notes.routes'));
 app.use('/api/google', require('./routes/google.routes'));
 app.use('/api/flashcard-sets', require('./routes/flashcardSets.routes'));
+app.use('/api/study-sessions', require('./routes/studySessions.routes'));
 app.use('/api/tasks', require('./routes/tasks.routes'));
 app.use('/api/calendar', require('./routes/calendar.routes'));
 app.use('/api/friends', require('./routes/friends.routes'));

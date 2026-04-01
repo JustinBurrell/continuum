@@ -24,6 +24,7 @@ backend/
 │   ├── Note.js
 │   ├── FlashcardSet.js
 │   ├── Flashcard.js
+│   ├── StudySession.js           # Study streak + session history
 │   ├── Task.js
 │   ├── Friendship.js
 │   ├── Comment.js
@@ -37,6 +38,7 @@ backend/
 │   ├── auth.controller.js
 │   ├── notes.controller.js
 │   ├── flashcardSets.controller.js
+│   ├── studySessions.controller.js # Study session submit, history, streak
 │   ├── tasks.controller.js
 │   ├── calendar.controller.js
 │   ├── users.controller.js
@@ -54,6 +56,7 @@ backend/
 │   ├── notes.routes.js           # /api/notes/*
 │   ├── google.routes.js          # /api/google/*
 │   ├── flashcardSets.routes.js   # /api/flashcard-sets/*
+│   ├── studySessions.routes.js   # /api/study-sessions/*
 │   ├── tasks.routes.js           # /api/tasks/*
 │   ├── calendar.routes.js        # /api/calendar
 │   ├── friends.routes.js         # /api/friends/*
@@ -68,9 +71,10 @@ backend/
 ├── services/
 │   ├── groq.service.js           # Groq API client + prompt templates
 │   ├── google.service.js         # Google Drive/Docs API client
-│   └── cloudinary.service.js     # Cloudinary upload helper
+│   ├── cloudinary.service.js     # Cloudinary upload helper
+│   └── studyStreak.service.js    # computeStreak / getCachedStreak / invalidateStreakCache
 ├── tests/
-│   ├── jest/                     # Jest + Supertest integration tests (47 tests, 7 suites)
+│   ├── jest/                     # Jest + Supertest integration tests (8 suites)
 │   │   ├── setup.js              # Env vars + skip flags loaded before every suite
 │   │   ├── testDb.js             # mongodb-memory-server connect/clear/close helpers
 │   │   ├── testHelpers.js        # registerAndLogin() — creates user, returns token
@@ -78,6 +82,7 @@ backend/
 │   │   ├── notes.test.js
 │   │   ├── tasks.test.js
 │   │   ├── flashcards.test.js
+│   │   ├── study-sessions.test.js
 │   │   ├── applications.test.js
 │   │   ├── messages.test.js
 │   │   └── activity.test.js

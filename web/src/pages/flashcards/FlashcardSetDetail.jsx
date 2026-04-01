@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { ArrowLeft, Plus, Sparkles, Play, Trash2, Pencil, Share2, Copy } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, Plus, Sparkles, Play, Trash2, Pencil, Share2, Copy, ChevronDown, ChevronUp, CheckCircle, XCircle } from 'lucide-react';
 import CommentThread from '@/components/comments/CommentThread';
 import api from '@/lib/api';
-import queryClient from '@/lib/queryClient';
+import { formatRelative } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
@@ -17,6 +17,8 @@ export default function FlashcardSetDetail() {
   const { state } = useLocation();
   const id = state?.id;
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState('cards'); // 'cards' | 'history'
   const [showAddCard, setShowAddCard] = useState(false);
   const [newCard, setNewCard] = useState({ front: '', back: '' });
   // Edit card state
@@ -40,6 +42,13 @@ export default function FlashcardSetDetail() {
     queryKey: ['flashcard-set', id],
     queryFn: () => api.get(`/flashcard-sets/${id}`).then(r => r.data),
     enabled: !!id,
+  });
+
+  const { data: historyData, isLoading: historyLoading } = useQuery({
+    queryKey: ['study-sessions', id],
+    queryFn: () => api.get(`/study-sessions/set/${id}`).then(r => r.data),
+    enabled: activeTab === 'history' && !!id,
+    staleTime: 60_000,
   });
 
   const addCardMutation = useMutation({
@@ -363,105 +372,153 @@ export default function FlashcardSetDetail() {
         )}
       </div>
 
-      {/* Cards grid */}
-      {cardCount === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 0' }}>
-          <div style={{
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
-            background: '#f5f0ff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 14px',
-          }}>
-            <Sparkles size={22} style={{ color: '#6b21a8' }} />
-          </div>
-          <p style={{ color: '#a087b0', fontSize: '0.875rem' }}>
-            No cards yet. Add your first card to get started.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {set.flashcards?.map((card, i) => (
-            <div
-              key={card._id || i}
-              className="group"
-              style={{
-                background: 'white',
-                border: '1px solid #ede9fe',
-                borderRadius: 16,
-                boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
-                padding: '18px 20px',
-                position: 'relative',
-                transition: 'border-color 0.15s, box-shadow 0.15s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.borderColor = '#6b21a8';
-                e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.12)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.borderColor = '#ede9fe';
-                e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
-              }}
-            >
-              {/* Actions — owner only */}
-              {isOwner && !user?.isDemo && (
-                <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 4, opacity: 0.4 }} className="group-hover:opacity-100">
-                  <button
-                    onClick={() => openEditCard(card)}
-                    style={{
-                      padding: 4,
-                      borderRadius: 6,
-                      border: 'none',
-                      background: 'transparent',
-                      color: '#a087b0',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
-                  >
-                    <Pencil size={12} />
-                  </button>
-                  <button
-                    onClick={() => deleteCardMutation.mutate(card._id)}
-                    style={{
-                      padding: 4,
-                      borderRadius: 6,
-                      border: 'none',
-                      background: 'transparent',
-                      color: '#a087b0',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
-              )}
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+        {['cards', 'history'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              padding: '7px 18px',
+              borderRadius: 20,
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              border: 'none',
+              cursor: 'pointer',
+              background: activeTab === tab ? '#6b21a8' : '#f5f0ff',
+              color: activeTab === tab ? 'white' : '#6b21a8',
+              textTransform: 'capitalize',
+              transition: 'all 0.15s',
+            }}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
 
-              {/* Front */}
-              <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #ede9fe' }}>
-                <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#6b21a8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
-                  Front
-                </p>
-                <p style={{ fontSize: '0.9rem', fontWeight: 600, color: '#111827', lineHeight: 1.45 }}>{card.front}</p>
-              </div>
-
-              {/* Back */}
-              <div>
-                <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
-                  Back
-                </p>
-                <p style={{ fontSize: '0.875rem', color: '#374151', lineHeight: 1.5 }}>{card.back}</p>
-              </div>
+      {/* Cards tab */}
+      {activeTab === 'cards' && (
+        cardCount === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px 0' }}>
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: '#f5f0ff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 14px',
+            }}>
+              <Sparkles size={22} style={{ color: '#6b21a8' }} />
             </div>
+            <p style={{ color: '#a087b0', fontSize: '0.875rem' }}>
+              No cards yet. Add your first card to get started.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {set.flashcards?.map((card, i) => (
+              <div
+                key={card._id || i}
+                className="group"
+                style={{
+                  background: 'white',
+                  border: '1px solid #ede9fe',
+                  borderRadius: 16,
+                  boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
+                  padding: '18px 20px',
+                  position: 'relative',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = '#6b21a8';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.12)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = '#ede9fe';
+                  e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
+                }}
+              >
+                {/* Actions — owner only */}
+                {isOwner && !user?.isDemo && (
+                  <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 4, opacity: 0.4 }} className="group-hover:opacity-100">
+                    <button
+                      onClick={() => openEditCard(card)}
+                      style={{
+                        padding: 4,
+                        borderRadius: 6,
+                        border: 'none',
+                        background: 'transparent',
+                        color: '#a087b0',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+                    >
+                      <Pencil size={12} />
+                    </button>
+                    <button
+                      onClick={() => deleteCardMutation.mutate(card._id)}
+                      style={{
+                        padding: 4,
+                        borderRadius: 6,
+                        border: 'none',
+                        background: 'transparent',
+                        color: '#a087b0',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Front */}
+                <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #ede9fe' }}>
+                  <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#6b21a8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
+                    Front
+                  </p>
+                  <p style={{ fontSize: '0.9rem', fontWeight: 600, color: '#111827', lineHeight: 1.45 }}>{card.front}</p>
+                </div>
+
+                {/* Back */}
+                <div>
+                  <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
+                    Back
+                  </p>
+                  <p style={{ fontSize: '0.875rem', color: '#374151', lineHeight: 1.5 }}>{card.back}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      )}
+
+      {/* History tab */}
+      {activeTab === 'history' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {historyLoading && (
+            <>
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </>
+          )}
+          {!historyLoading && !historyData?.sessions?.length && (
+            <div style={{ textAlign: 'center', padding: '48px 0' }}>
+              <p style={{ color: '#a087b0', fontSize: '0.875rem' }}>
+                No study sessions yet. Hit Study to start!
+              </p>
+            </div>
+          )}
+          {historyData?.sessions?.map(session => (
+            <SessionRow key={session._id} session={session} />
           ))}
         </div>
       )}
@@ -642,6 +699,119 @@ export default function FlashcardSetDetail() {
           </div>
         </div>
       </Modal>
+    </div>
+  );
+}
+
+function SessionRow({ session }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const { data: detailData, isLoading: detailLoading } = useQuery({
+    queryKey: ['study-session-detail', session._id],
+    queryFn: () => api.get(`/study-sessions/${session._id}`).then(r => r.data),
+    enabled: expanded,
+    staleTime: Infinity,
+  });
+
+  const scoreColor = session.score >= 70 ? '#16a34a' : session.score >= 40 ? '#d97706' : '#dc2626';
+  const scoreBg = session.score >= 70 ? '#f0fdf4' : session.score >= 40 ? '#fffbeb' : '#fef2f2';
+  const mins = Math.floor(session.durationSeconds / 60);
+  const secs = session.durationSeconds % 60;
+  const duration = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+  return (
+    <div style={{
+      background: 'white',
+      border: `1px solid ${expanded ? '#6b21a8' : '#ede9fe'}`,
+      borderRadius: 14,
+      boxShadow: '0 1px 4px rgba(107,33,168,0.04)',
+      overflow: 'hidden',
+      transition: 'border-color 0.15s',
+    }}>
+      <div
+        style={{
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          gap: 12,
+        }}
+        onClick={() => setExpanded(v => !v)}
+      >
+        <div>
+          <p style={{ fontWeight: 600, fontSize: '0.875rem', color: '#111827', margin: 0 }}>
+            {session.correctCount}/{session.totalCards} correct
+          </p>
+          <p style={{ fontSize: '0.75rem', color: '#a087b0', margin: '3px 0 0' }}>
+            {formatRelative(session.completedAt)} &middot; {duration}
+          </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{
+            fontWeight: 700,
+            fontSize: '0.9375rem',
+            color: scoreColor,
+            background: scoreBg,
+            padding: '4px 12px',
+            borderRadius: 20,
+            border: `1px solid ${scoreColor}22`,
+          }}>
+            {session.score}%
+          </span>
+          <span style={{ color: '#a087b0', display: 'flex', alignItems: 'center' }}>
+            {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </span>
+        </div>
+      </div>
+
+      {expanded && (
+        <div style={{ borderTop: '1px solid #ede9fe', padding: '12px 18px 16px', background: '#faf8ff' }}>
+          {detailLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
+          ) : detailData?.session?.cardResults?.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {detailData.session.cardResults.map((result, i) => {
+                const card = result.cardId;
+                const front = card?.front || `Card ${i + 1}`;
+                const back = card?.back;
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 10,
+                      padding: '10px 12px',
+                      borderRadius: 10,
+                      background: result.correct ? '#f0fdf4' : '#fef2f2',
+                      border: `1px solid ${result.correct ? '#bbf7d0' : '#fecaca'}`,
+                    }}
+                  >
+                    <div style={{ flexShrink: 0, marginTop: 1 }}>
+                      {result.correct
+                        ? <CheckCircle size={16} style={{ color: '#16a34a' }} />
+                        : <XCircle size={16} style={{ color: '#dc2626' }} />}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontWeight: 500, fontSize: '0.8125rem', color: '#111827', margin: 0 }}>{front}</p>
+                      {back && (
+                        <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '2px 0 0' }}>{back}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p style={{ fontSize: '0.8125rem', color: '#a087b0', margin: 0 }}>No card detail available for this session.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
