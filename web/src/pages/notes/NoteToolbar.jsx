@@ -3,68 +3,30 @@ import {
   Quote, Code, Undo2, Redo2,
 } from 'lucide-react';
 
-const btnBase = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: 30,
-  height: 28,
-  border: 'none',
-  borderRadius: 6,
-  background: 'transparent',
-  color: '#6b7280',
-  cursor: 'pointer',
-  fontSize: '0.8125rem',
-  fontWeight: 700,
-  transition: 'background 0.1s, color 0.1s',
-};
-
-const btnActive = {
-  background: '#f5f0ff',
-  color: '#6b21a8',
-};
-
-const btnDisabled = {
-  opacity: 0.35,
-  cursor: 'default',
-};
-
 const divider = (
-  <span style={{ width: 1, height: 18, background: '#ede9fe', display: 'inline-block', margin: '0 4px' }} />
+  <span style={{ width: 1, height: 18, background: '#ede9fe', display: 'inline-block', margin: '0 4px', flexShrink: 0 }} />
 );
 
-function ToolBtn({ onClick, isActive, isDisabled, title, children }) {
+function ToolBtn({ onClick, isActive, disabled, title, children }) {
   return (
     <button
       onMouseDown={(e) => {
         e.preventDefault();
-        if (!isDisabled) onClick();
+        if (!disabled) onClick();
       }}
       title={title}
-      style={{
-        ...btnBase,
-        ...(isActive ? btnActive : {}),
-        ...(isDisabled ? btnDisabled : {}),
-      }}
-      onMouseEnter={(e) => {
-        if (!isDisabled && !isActive) {
-          e.currentTarget.style.background = '#f9f7ff';
-          e.currentTarget.style.color = '#111827';
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isDisabled && !isActive) {
-          e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = '#6b7280';
-        }
-      }}
+      disabled={disabled}
+      className={`toolbar-btn${isActive ? ' is-active' : ''}`}
     >
       {children}
     </button>
   );
 }
 
-export default function NoteToolbar({ editor }) {
+// editorTick is intentionally unused — it exists solely to force a re-render
+// whenever the editor state changes (selection or content), keeping isActive
+// and can().undo() / can().redo() in sync with the actual editor state.
+export default function NoteToolbar({ editor, editorTick: _ }) {
   if (!editor) return null;
 
   return (
@@ -166,14 +128,14 @@ export default function NoteToolbar({ editor }) {
       {/* History */}
       <ToolBtn
         onClick={() => editor.chain().focus().undo().run()}
-        isDisabled={!editor.can().undo()}
+        disabled={!editor.can().undo()}
         title="Undo (Ctrl+Z)"
       >
         <Undo2 size={14} />
       </ToolBtn>
       <ToolBtn
         onClick={() => editor.chain().focus().redo().run()}
-        isDisabled={!editor.can().redo()}
+        disabled={!editor.can().redo()}
         title="Redo (Ctrl+Shift+Z)"
       >
         <Redo2 size={14} />

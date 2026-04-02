@@ -353,6 +353,39 @@
 }
 .note-content pre code { background: transparent; padding: 0; }
 
+/* ---- NoteToolbar buttons ---- */
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  transition: background 0.1s, color 0.1s;
+}
+.toolbar-btn:hover:not(:disabled) {
+  background: #f9f7ff;
+  color: #111827;
+}
+.toolbar-btn.is-active {
+  background: #f5f0ff;
+  color: #6b21a8;
+}
+.toolbar-btn.is-active:hover {
+  background: #ede9fe;
+  color: #6b21a8;
+}
+.toolbar-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 /* ---- Tiptap editor cursor + selection ---- */
 .ProseMirror { outline: none; }
 .ProseMirror p.is-editor-empty:first-child::before {
@@ -361,4 +394,26 @@
   pointer-events: none;
   float: left;
   height: 0;
+}
+
+/* ---- Tiptap editor content styles (Tailwind preflight resets these) ---- */
+.ProseMirror h1 { font-size: 1.5rem; font-weight: 700; color: #111827; margin: 1em 0 0.4em; }
+.ProseMirror h2 { font-size: 1.25rem; font-weight: 700; color: #111827; margin: 1em 0 0.4em; }
+.ProseMirror h3 { font-size: 1.1rem; font-weight: 600; color: #111827; margin: 0.9em 0 0.35em; }
+.ProseMirror p  { margin-bottom: 12px; }
+.ProseMirror ul { list-style-type: disc; padding-left: 20px; margin-bottom: 12px; }
+.ProseMirror ol { list-style-type: decimal; padding-left: 20px; margin-bottom: 12px; }
+.ProseMirror li { margin-bottom: 4px; }
+.ProseMirror blockquote {
+  border-left: 3px solid #a087b0;
+  padding-left: 12px;
+  color: #6b7280;
+  margin: 0 0 12px;
+}
+.ProseMirror code {
+  font-family: monospace;
+  background: #f5f0ff;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.875em;
 }

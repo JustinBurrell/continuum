@@ -3,7 +3,6 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
 import { marked } from 'marked';
 import { ArrowLeft, Save, X } from 'lucide-react';
 import api from '@/lib/api';
@@ -27,9 +26,13 @@ export default function NoteEditor() {
     isPublic: false,
   });
 
+  const [editorTick, setEditorTick] = useState(0);
+
   const editor = useEditor({
-    extensions: [StarterKit, Underline],
+    extensions: [StarterKit],
     content: '',
+    onUpdate: () => setEditorTick(t => t + 1),
+    onSelectionUpdate: () => setEditorTick(t => t + 1),
     editorProps: {
       attributes: {
         style: 'min-height:400px; padding:14px 16px; outline:none; font-size:0.9rem; line-height:1.7; color:#111827; font-family:inherit;',
@@ -267,7 +270,7 @@ export default function NoteEditor() {
             onFocusCapture={e => e.currentTarget.style.borderColor = '#6b21a8'}
             onBlurCapture={e => e.currentTarget.style.borderColor = '#ede9fe'}
           >
-            <NoteToolbar editor={editor} />
+            <NoteToolbar editor={editor} editorTick={editorTick} />
             <EditorContent editor={editor} />
           </div>
         </div>
