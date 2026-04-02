@@ -159,6 +159,42 @@ describe('PUT /api/notes/:id', () => {
   });
 });
 
+// ─── HTML content type ──────────────────────────────────────────────────────
+
+describe('HTML contentType', () => {
+  it('creates a note with contentType html and stores HTML content', async () => {
+    const { token } = await registerAndLogin();
+
+    const res = await request(app)
+      .post('/api/notes')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ title: 'Rich Note', content: '<p><strong>Bold</strong> text</p>', contentType: 'html' });
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.note.contentType).toBe('html');
+    expect(res.body.note.content).toContain('Bold');
+  });
+
+  it('updates a note to html contentType', async () => {
+    const { token } = await registerAndLogin();
+
+    const create = await request(app)
+      .post('/api/notes')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ title: 'Plain Note', content: 'plain text' });
+
+    const noteId = create.body.note._id;
+
+    const res = await request(app)
+      .put(`/api/notes/${noteId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ content: '<p><em>italic</em></p>', contentType: 'html' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.note.contentType).toBe('html');
+  });
+});
+
 // ─── Delete ─────────────────────────────────────────────────────────────────
 
 describe('DELETE /api/notes/:id', () => {

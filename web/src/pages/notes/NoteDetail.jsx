@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
+import DOMPurify from 'dompurify';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
@@ -273,36 +273,11 @@ export default function NoteDetail() {
         )}
 
         {/* Content */}
-        <div style={{ color: '#1f2937', lineHeight: 1.7, fontSize: '0.9375rem' }}>
-          <ReactMarkdown
-            components={{
-              h1: ({ children }) => <p style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 8 }}>{children}</p>,
-              h2: ({ children }) => <p style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 8 }}>{children}</p>,
-              h3: ({ children }) => <p style={{ fontWeight: 600, marginBottom: 6 }}>{children}</p>,
-              h4: ({ children }) => <p style={{ fontWeight: 600, marginBottom: 6 }}>{children}</p>,
-              h5: ({ children }) => <p style={{ fontWeight: 600, marginBottom: 4 }}>{children}</p>,
-              h6: ({ children }) => <p style={{ fontWeight: 600, marginBottom: 4 }}>{children}</p>,
-              p: ({ children }) => <p style={{ marginBottom: 12 }}>{children}</p>,
-              ul: ({ children }) => <ul style={{ paddingLeft: 20, marginBottom: 12 }}>{children}</ul>,
-              ol: ({ children }) => <ol style={{ paddingLeft: 20, marginBottom: 12 }}>{children}</ol>,
-              li: ({ children }) => <li style={{ marginBottom: 4 }}>{children}</li>,
-              strong: ({ children }) => <strong style={{ fontWeight: 600, color: '#111827' }}>{children}</strong>,
-              em: ({ children }) => <em>{children}</em>,
-              code: ({ children }) => <code style={{ fontFamily: 'monospace', background: '#f5f0ff', padding: '1px 5px', borderRadius: 4, fontSize: '0.875em' }}>{children}</code>,
-              pre: ({ children }) => <pre style={{ background: '#f5f0ff', borderRadius: 8, padding: '12px 16px', overflow: 'auto', marginBottom: 12, fontSize: '0.875rem' }}>{children}</pre>,
-              table: () => null,
-              thead: () => null,
-              tbody: () => null,
-              tr: () => null,
-              td: () => null,
-              th: () => null,
-              hr: () => <hr style={{ border: 'none', borderTop: '1px solid #ede9fe', margin: '16px 0' }} />,
-              blockquote: ({ children }) => <blockquote style={{ borderLeft: '3px solid #a087b0', paddingLeft: 12, color: '#6b7280', marginBottom: 12 }}>{children}</blockquote>,
-            }}
-          >
-            {note.content}
-          </ReactMarkdown>
-        </div>
+        <div
+          className="note-content"
+          style={{ color: '#1f2937', lineHeight: 1.7, fontSize: '0.9375rem' }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(note.content || '') }}
+        />
       </div>
 
       {/* AI Summary card */}

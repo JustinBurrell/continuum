@@ -82,9 +82,9 @@ export default function Friends() {
     },
   });
 
-  const friendships = friendsData?.friendships || friendsData?.data || [];
-  const requests = requestsData?.friendships || requestsData?.data || [];
-  const sentRequests = sentData?.friendships || sentData?.data || [];
+  const friendships = friendsData?.friends || [];
+  const requests = requestsData?.friends || [];
+  const sentRequests = sentData?.friends || [];
   const searchResults = searchData?.users || searchData?.data || [];
 
   // Backend populates user1 and user2 with { username, firstName, lastName }

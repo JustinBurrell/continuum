@@ -96,9 +96,9 @@ export default function UserProfile() {
 
   const profile = profileData?.user;
 
-  const friendships = friendsData?.friendships || friendsData?.data || [];
-  const pendingRequests = pendingData?.friendships || pendingData?.data || [];
-  const sentRequests = sentData?.friendships || sentData?.data || [];
+  const friendships = friendsData?.friends || [];
+  const pendingRequests = pendingData?.friends || [];
+  const sentRequests = sentData?.friends || [];
 
   const isFriendEntry = friendships.find(f =>
     f.user1?._id === id || f.user2?._id === id ||

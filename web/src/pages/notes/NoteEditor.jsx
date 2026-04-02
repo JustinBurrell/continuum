@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { marked } from 'marked';
 import { ArrowLeft, Save, X } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import NoteToolbar from './NoteToolbar';
 
 const NOTE_TYPES = ['general', 'lecture', 'research', 'todo', 'journal'];
 
@@ -17,10 +21,23 @@ export default function NoteEditor() {
 
   const [form, setForm] = useState({
     title: '',
-    content: '',
     type: 'general',
     tags: '',
     isPublic: false,
+  });
+
+  const [editorTick, setEditorTick] = useState(0);
+
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: '',
+    onUpdate: () => setEditorTick(t => t + 1),
+    onSelectionUpdate: () => setEditorTick(t => t + 1),
+    editorProps: {
+      attributes: {
+        style: 'min-height:400px; padding:14px 16px; outline:none; font-size:0.9rem; line-height:1.7; color:#111827; font-family:inherit;',
+      },
+    },
   });
 
   const { data } = useQuery({
@@ -31,16 +48,21 @@ export default function NoteEditor() {
 
   useEffect(() => {
     const note = data?.note || data?.data;
-    if (note) {
+    if (note && editor) {
       setForm({
         title: note.title || '',
-        content: note.content || '',
         type: note.type || 'general',
         tags: note.tags?.join(', ') || '',
         isPublic: note.isPublic || false,
       });
+
+      let htmlContent = note.content || '';
+      if (note.contentType !== 'html' && htmlContent) {
+        htmlContent = marked.parse(htmlContent);
+      }
+      editor.commands.setContent(htmlContent);
     }
-  }, [data]);
+  }, [data, editor]);
 
   const saveMutation = useMutation({
     mutationFn: (payload) =>
@@ -55,9 +77,11 @@ export default function NoteEditor() {
   });
 
   const handleSave = () => {
+    if (!form.title.trim() || !editor) return;
     const payload = {
       title: form.title.trim(),
-      content: form.content,
+      content: editor.getHTML(),
+      contentType: 'html',
       type: form.type,
       tags: form.tags
         .split(',')
@@ -65,7 +89,6 @@ export default function NoteEditor() {
         .filter(Boolean),
       isPublic: form.isPublic,
     };
-    if (!payload.title) return;
     saveMutation.mutate(payload);
   };
 
@@ -231,37 +254,25 @@ export default function NoteEditor() {
           </div>
         </div>
 
-        {/* Content textarea */}
+        {/* Rich text editor */}
         <div>
           <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#a087b0', marginBottom: 8 }}>
             Content
           </label>
-          <textarea
-            placeholder="Start writing your note..."
-            value={form.content}
-            onChange={(e) => setForm(f => ({ ...f, content: e.target.value }))}
+          <div
             style={{
-              width: '100%',
-              minHeight: 400,
-              resize: 'vertical',
-              background: '#fef7ff',
               border: '1px solid #ede9fe',
               borderRadius: 12,
-              padding: '14px 16px',
-              fontSize: '0.9rem',
-              fontFamily: 'inherit',
-              lineHeight: 1.7,
-              color: '#111827',
-              outline: 'none',
-              boxSizing: 'border-box',
+              background: '#fef7ff',
+              overflow: 'hidden',
               transition: 'border-color 0.15s',
             }}
-            onFocus={e => e.currentTarget.style.borderColor = '#6b21a8'}
-            onBlur={e => e.currentTarget.style.borderColor = '#ede9fe'}
-          />
-          <p style={{ fontSize: '0.75rem', color: '#a087b0', marginTop: 6 }}>
-            Supports plain text. HTML tags are not rendered.
-          </p>
+            onFocusCapture={e => e.currentTarget.style.borderColor = '#6b21a8'}
+            onBlurCapture={e => e.currentTarget.style.borderColor = '#ede9fe'}
+          >
+            <NoteToolbar editor={editor} editorTick={editorTick} />
+            <EditorContent editor={editor} />
+          </div>
         </div>
 
         {saveMutation.isError && (
