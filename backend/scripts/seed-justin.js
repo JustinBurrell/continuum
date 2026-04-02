@@ -222,6 +222,15 @@ const SEED_STRANGERS = [
 
 const SEED_STRANGER_USERNAMES = SEED_STRANGERS.map(s => s.username);
 
+// Jane's seed friends share usernames with Justin's strangers list.
+// Exclude them from deletion so seed-jane data stays intact when seed-justin --clean runs.
+const JANE_FRIEND_USERNAMES = [
+  'carolinehall', 'chrisnguyen', 'connorflynn', 'dianachen', 'ethancooper',
+  'evawong', 'graciecallahan', 'isabellachang', 'jadewashington', 'jasonmendez',
+  'kevinzhang', 'kiananderson', 'logancarter', 'michaelrobbins', 'noahcoleman',
+  'rachelmontgomery', 'ryanfoster', 'taylormorgan', 'trevornash', 'zoeanderson',
+];
+
 // ─── Clean Function ─────────────────────────────────────────────────────────
 
 async function cleanSeedData(justinId) {
@@ -257,8 +266,10 @@ async function cleanSeedData(justinId) {
     ],
   });
 
-  // Delete the seed friend users and stranger users (NOT Justin)
-  await User.deleteMany({ username: { $in: [...SEED_USERNAMES, ...SEED_STRANGER_USERNAMES] } });
+  // Delete the seed friend users and stranger users (NOT Justin, NOT Jane's friends)
+  await User.deleteMany({
+    username: { $in: [...SEED_USERNAMES, ...SEED_STRANGER_USERNAMES], $nin: JANE_FRIEND_USERNAMES },
+  });
 
   console.log('Clean complete.');
 }
@@ -398,7 +409,7 @@ async function seedJustinNotes(justin, friends) {
       userId: justin._id,
       title: noteData.title,
       content: noteData.content,
-      contentType: 'markdown',
+      contentType: noteData.contentType || 'html',
       type: noteData.type,
       tags: noteData.tags,
       subject: noteData.subject,
@@ -470,7 +481,7 @@ async function seedFriendNotes(friends) {
         userId: friend._id,
         title: nd.title,
         content: nd.content,
-        contentType: 'markdown',
+        contentType: nd.contentType || 'html',
         type: 'general',
         tags: nd.tags,
         subject: nd.subject || '',
