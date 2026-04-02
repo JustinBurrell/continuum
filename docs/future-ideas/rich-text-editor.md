@@ -1,6 +1,6 @@
 # Rich Text Editor for Notes
 
-**Status:** Future idea — not scheduled
+**Status:** Implemented — April 2026 (`feat/rich-text-editor`)
 **Scope:** Frontend only (NoteEditor + NoteDetail)
 **Replaces:** Plain textarea + react-markdown rendering
 

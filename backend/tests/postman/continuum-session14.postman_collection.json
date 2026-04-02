@@ -1,0 +1,104 @@
+{
+  "info": {
+    "_postman_id": "m3g4h5i6-d7e8-9012-fabc-901234567011",
+    "name": "Continuum — Session 14",
+    "description": "Rich Text Editor — HTML contentType\n\nCovers: POST /api/notes (html), PUT /api/notes/:id (html), GET /api/notes/:id (verify contentType).\n\nPre-req: Ensure {{baseUrl}} and {{token}} are set in your environment. Run 'Login' first if token is expired.\nnoteId is auto-saved by the Create HTML Note test script.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Notes — Rich Text",
+      "item": [
+        {
+          "name": "1. Create HTML Note",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 note created', () => pm.expect(pm.response.code).to.equal(201));",
+                  "pm.test('success is true', () => pm.expect(pm.response.json().success).to.be.true);",
+                  "pm.test('contentType is html', () => pm.expect(pm.response.json().note.contentType).to.equal('html'));",
+                  "pm.test('content contains HTML tags', () => pm.expect(pm.response.json().note.content).to.include('<'));",
+                  "if (pm.response.code === 201) {",
+                  "    pm.environment.set('noteId', pm.response.json().note._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/notes", "host": ["{{baseUrl}}"], "path": ["api", "notes"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Rich Text Demo\",\n  \"content\": \"<h1>Introduction</h1><p>This note was created with the <strong>Tiptap</strong> rich text editor.</p><ul><li>Bold text</li><li><em>Italic text</em></li><li><u>Underlined text</u></li></ul><blockquote>Blockquotes look like this.</blockquote><p>Inline <code>code</code> is also supported.</p>\",\n  \"contentType\": \"html\",\n  \"type\": \"general\",\n  \"tags\": [\"demo\", \"rich-text\"]\n}"
+            },
+            "description": "Create a note with HTML content and contentType: 'html'. Saves noteId to environment."
+          }
+        },
+        {
+          "name": "2. Get HTML Note",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 and success', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});",
+                  "pm.test('contentType is html', () => pm.expect(pm.response.json().note.contentType).to.equal('html'));",
+                  "pm.test('content is a non-empty string', () => pm.expect(pm.response.json().note.content).to.be.a('string').and.not.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/notes/{{noteId}}", "host": ["{{baseUrl}}"], "path": ["api", "notes", "{{noteId}}"] },
+            "description": "Fetch the note created in step 1. Verify contentType and content are persisted correctly."
+          }
+        },
+        {
+          "name": "3. Update Note to HTML",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 and success', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});",
+                  "pm.test('contentType is html', () => pm.expect(pm.response.json().note.contentType).to.equal('html'));",
+                  "pm.test('title updated', () => pm.expect(pm.response.json().note.title).to.equal('Rich Text Demo — Updated'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/notes/{{noteId}}", "host": ["{{baseUrl}}"], "path": ["api", "notes", "{{noteId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Rich Text Demo — Updated\",\n  \"content\": \"<h2>Updated Content</h2><p>This note was <strong>updated</strong> through the rich text editor.</p><ol><li>First item</li><li>Second item</li></ol>\",\n  \"contentType\": \"html\"\n}"
+            },
+            "description": "Update the note with new HTML content. Verifies that contentType remains 'html' after update."
+          }
+        }
+      ]
+    }
+  ]
+}
