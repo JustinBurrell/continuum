@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema({
         },
         select: false,
     },
+    // Incremented by logoutAll — embedded in JWT so middleware can reject stale tokens immediately
+    tokenVersion: {
+        type: Number,
+        default: 0,
+    },
 
     /**
      * Profile

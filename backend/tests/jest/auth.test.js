@@ -16,6 +16,7 @@ const request = require('supertest');
 const app = require('../../app');
 const { connectTestDb, clearTestDb, closeTestDb } = require('./testDb');
 const User = require('../../models/User');
+const RefreshToken = require('../../models/RefreshToken');
 
 beforeAll(connectTestDb);
 afterEach(clearTestDb);
@@ -332,5 +333,126 @@ describe('POST /api/auth/reset-password', () => {
     // Empty string hashes to a value that won't match any user → 400
     expect(res.statusCode).toBe(400);
     expect(res.body.success).toBe(false);
+  });
+});
+
+// ─── Logout All — immediate access token invalidation ──────────────────────
+
+describe('POST /api/auth/logout-all — access token invalidation', () => {
+  it('rejects a still-valid JWT from another session after logoutAll', async () => {
+    // Session A: register
+    const regA = await request(app).post('/api/auth/register').send(validUser);
+    const tokenA = regA.body.token;
+
+    // Session B: login to get a second independent JWT
+    const loginB = await request(app)
+      .post('/api/auth/login')
+      .send({ email: validUser.email, password: validUser.password });
+    const tokenB = loginB.body.token;
+
+    // Session A calls logoutAll — increments tokenVersion for the user
+    const logoutRes = await request(app)
+      .post('/api/auth/logout-all')
+      .set('Authorization', `Bearer ${tokenA}`);
+    expect(logoutRes.statusCode).toBe(200);
+
+    // Session B's JWT is still within its expiry window but tokenVersion is now stale
+    const meRes = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${tokenB}`);
+    expect(meRes.statusCode).toBe(401);
+  });
+});
+
+// ─── Logout All — refresh tokens revoked ───────────────────────────────────
+
+describe('POST /api/auth/logout-all — refresh tokens revoked', () => {
+  it('rejects POST /auth/refresh after logoutAll', async () => {
+    const reg = await request(app).post('/api/auth/register').send(validUser);
+    const tokenA = reg.body.token;
+    const cookie = (reg.headers['set-cookie'] || []).find((c) => c.startsWith('refreshToken='));
+
+    await request(app)
+      .post('/api/auth/logout-all')
+      .set('Authorization', `Bearer ${tokenA}`);
+
+    const refreshRes = await request(app)
+      .post('/api/auth/refresh')
+      .set('Cookie', cookie);
+    expect(refreshRes.statusCode).toBe(401);
+  });
+});
+
+// ─── GET /auth/sessions ─────────────────────────────────────────────────────
+
+describe('GET /api/auth/sessions', () => {
+  it('returns active sessions for the current user', async () => {
+    const reg = await request(app).post('/api/auth/register').send(validUser);
+    const tokenA = reg.body.token;
+
+    // Create a second session via login
+    await request(app)
+      .post('/api/auth/login')
+      .send({ email: validUser.email, password: validUser.password });
+
+    const res = await request(app)
+      .get('/api/auth/sessions')
+      .set('Authorization', `Bearer ${tokenA}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.sessions)).toBe(true);
+    expect(res.body.sessions.length).toBe(2);
+    expect(res.body.sessions[0]).toHaveProperty('_id');
+    expect(res.body.sessions[0]).toHaveProperty('deviceId');
+    expect(res.body.sessions[0]).toHaveProperty('createdAt');
+  });
+});
+
+// ─── DELETE /auth/sessions/:id ──────────────────────────────────────────────
+
+describe('DELETE /api/auth/sessions/:id', () => {
+  it('revokes the session and blocks subsequent refresh with that cookie', async () => {
+    const reg = await request(app).post('/api/auth/register').send(validUser);
+    const token = reg.body.token;
+    const cookie = (reg.headers['set-cookie'] || []).find((c) => c.startsWith('refreshToken='));
+
+    // Get sessions to find the id
+    const sessionsRes = await request(app)
+      .get('/api/auth/sessions')
+      .set('Authorization', `Bearer ${token}`);
+    const sessionId = sessionsRes.body.sessions[0]._id;
+
+    // Revoke it
+    const deleteRes = await request(app)
+      .delete(`/api/auth/sessions/${sessionId}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(deleteRes.statusCode).toBe(200);
+
+    // Refresh should now fail for that cookie
+    const refreshRes = await request(app)
+      .post('/api/auth/refresh')
+      .set('Cookie', cookie);
+    expect(refreshRes.statusCode).toBe(401);
+  });
+});
+
+// ─── Device label capture ───────────────────────────────────────────────────
+
+describe('Device label capture', () => {
+  it('stores a parsed device label on the RefreshToken after register', async () => {
+    const ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .set('User-Agent', ua)
+      .send(validUser);
+    expect(reg.statusCode).toBe(201);
+
+    const token = await RefreshToken.findOne({ userId: reg.body.user._id });
+    expect(token).not.toBeNull();
+    expect(token.deviceId).toBeTruthy();
+    expect(token.deviceId).toContain('Chrome');
+    expect(token.deviceId).toContain('Mac');
   });
 });

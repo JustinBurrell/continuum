@@ -49,9 +49,10 @@ function emailTemplate(content) {
 
 // ----------------------------------------
 // HELPER: Sign a short-lived JWT access token (1d)
+// tokenVersion is embedded so auth middleware can immediately reject stale tokens after logoutAll
 // ----------------------------------------
-const signToken = (userId) => {
-    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d', algorithm: 'HS256' });
+const signToken = (userId, tokenVersion = 0) => {
+    return jwt.sign({ userId, tokenVersion }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d', algorithm: 'HS256' });
 };
 
 // ----------------------------------------
@@ -83,11 +84,32 @@ const generateRefreshToken = async (userId, deviceId) => {
 };
 
 // ----------------------------------------
+// HELPER: Parse a human-readable device label from a User-Agent string
+// e.g. "Chrome on Mac", "Firefox on Windows", "Safari on iOS"
+// ----------------------------------------
+const parseDeviceLabel = (ua = '') => {
+    if (!ua) return 'Unknown device';
+    const browser =
+        /Edg\//.test(ua) ? 'Edge' :
+        /OPR\/|Opera/.test(ua) ? 'Opera' :
+        /Chrome\//.test(ua) ? 'Chrome' :
+        /Firefox\//.test(ua) ? 'Firefox' :
+        /Safari\//.test(ua) && !/Chrome/.test(ua) ? 'Safari' : 'Browser';
+    const os =
+        /iPhone|iPad/.test(ua) ? 'iOS' :
+        /Android/.test(ua) ? 'Android' :
+        /Windows/.test(ua) ? 'Windows' :
+        /Mac OS X/.test(ua) ? 'Mac' :
+        /Linux/.test(ua) ? 'Linux' : 'Unknown OS';
+    return `${browser} on ${os}`;
+};
+
+// ----------------------------------------
 // POST /api/auth/register
 // Purpose: Create a new user and return a JWT
 // ----------------------------------------
 exports.register = async (req, res) => {
-    const { email, username, password, firstName, lastName, deviceId } = req.body;
+    const { email, username, password, firstName, lastName } = req.body;
 
     // Return 409 if email or username is already taken
     const existing = await User.findOne({ $or: [{ email }, { username }] });
@@ -106,8 +128,8 @@ exports.register = async (req, res) => {
     if (teamEmails.includes(email.toLowerCase())) assignedRoles.push('team');
     if (assignedRoles.length) await User.updateOne({ _id: user._id }, { roles: assignedRoles });
 
-    const token = signToken(user._id);
-    const refreshToken = await generateRefreshToken(user._id, deviceId);
+    const token = signToken(user._id, user.tokenVersion);
+    const refreshToken = await generateRefreshToken(user._id, parseDeviceLabel(req.headers['user-agent']));
 
     // Auto-send verification email — non-blocking, don't fail registration if it errors
     try {
@@ -142,7 +164,7 @@ exports.register = async (req, res) => {
 // Purpose: Validate credentials and return a JWT
 // ----------------------------------------
 exports.login = async (req, res) => {
-    const { email, password, deviceId } = req.body;
+    const { email, password } = req.body;
 
     // password is select:false in the schema — must opt in explicitly to get it back
     const user = await User.findOne({ email }).select('+password');
@@ -175,8 +197,8 @@ exports.login = async (req, res) => {
 
     await user.save();
 
-    const token = signToken(user._id);
-    const refreshToken = await generateRefreshToken(user._id, deviceId);
+    const token = signToken(user._id, user.tokenVersion);
+    const refreshToken = await generateRefreshToken(user._id, parseDeviceLabel(req.headers['user-agent']));
 
     const userObj = user.toObject();
     delete userObj.password;
@@ -291,7 +313,7 @@ exports.googleCallback = async (req, res) => {
 //          Code is single-use and expires after 60 seconds
 // ----------------------------------------
 exports.googleExchange = async (req, res) => {
-    const { code, deviceId } = req.body;
+    const { code } = req.body;
 
     if (!code) {
         return res.status(400).json({ success: false, error: 'code is required' });
@@ -307,8 +329,13 @@ exports.googleExchange = async (req, res) => {
     // Mark as used immediately — prevents replay within the 60s window
     await OAuthCode.findByIdAndUpdate(record._id, { used: true });
 
-    const token = signToken(record.userId);
-    const refreshToken = await generateRefreshToken(record.userId, deviceId);
+    const user = await User.findById(record.userId);
+    if (!user) {
+        return res.status(401).json({ success: false, error: 'User not found' });
+    }
+
+    const token = signToken(user._id, user.tokenVersion);
+    const refreshToken = await generateRefreshToken(record.userId, parseDeviceLabel(req.headers['user-agent']));
 
     setRefreshCookie(res, refreshToken);
     res.status(200).json({ success: true, token });
@@ -411,7 +438,12 @@ exports.refresh = async (req, res) => {
         return res.status(401).json({ success: false, error: 'Invalid or expired refresh token' });
     }
 
-    const token = signToken(stored.userId);
+    const user = await User.findById(stored.userId);
+    if (!user) {
+        return res.status(401).json({ success: false, error: 'User not found' });
+    }
+
+    const token = signToken(stored.userId, user.tokenVersion);
 
     res.status(200).json({ success: true, token });
 };
@@ -531,15 +563,49 @@ exports.logout = async (req, res) => {
 
 // ----------------------------------------
 // POST /api/auth/logout-all
-// Purpose: Revoke all active refresh tokens for this user (all devices)
+// Purpose: Immediately invalidate all sessions — increments tokenVersion so existing JWTs are
+//          rejected by auth middleware on the next request, then revokes all refresh tokens
 // ----------------------------------------
 exports.logoutAll = async (req, res) => {
+    await User.updateOne({ _id: req.user._id }, { $inc: { tokenVersion: 1 } });
+    await invalidate(`user:${req.user._id}`);
     await RefreshToken.updateMany(
         { userId: req.user._id, revokedAt: null },
         { revokedAt: new Date() }
     );
-
+    res.clearCookie('refreshToken', { path: '/' });
     res.status(200).json({ success: true, message: 'Logged out of all devices' });
+};
+
+// ----------------------------------------
+// GET /api/auth/sessions
+// Purpose: Return all active (non-revoked, non-expired) sessions for the current user
+// ----------------------------------------
+exports.getSessions = async (req, res) => {
+    const sessions = await RefreshToken.find({
+        userId: req.user._id,
+        revokedAt: null,
+        expiresAt: { $gt: new Date() },
+    }).select('_id deviceId createdAt').sort({ createdAt: -1 });
+    res.status(200).json({ success: true, sessions });
+};
+
+// ----------------------------------------
+// DELETE /api/auth/sessions/:id
+// Purpose: Revoke a single session by its RefreshToken record _id
+// ----------------------------------------
+exports.revokeSession = async (req, res) => {
+    const session = await RefreshToken.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        revokedAt: null,
+    });
+    if (!session) {
+        return res.status(404).json({ success: false, error: 'Session not found' });
+    }
+    session.revokedAt = new Date();
+    await session.save();
+    res.status(200).json({ success: true });
 };
 
 // ----------------------------------------

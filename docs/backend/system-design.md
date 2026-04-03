@@ -19,7 +19,7 @@ flowchart TB
         ROUTER["Express Router\n17 route groups"]
 
         subgraph MIDDLEWARE["Middleware"]
-            AUTH_MW["Auth Middleware\nJWT verify\ngetOrSet user:id 5min"]
+            AUTH_MW["Auth Middleware\nJWT verify · tokenVersion check\ngetOrSet user:id 5min"]
         end
 
         subgraph CONTROLLERS["Controllers"]
@@ -141,7 +141,7 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     subgraph EMAIL["Email / Password"]
-        REG["POST /auth/register"] --> JWT1["issue JWT\nset httpOnly refreshToken cookie"]
+        REG["POST /auth/register"] --> JWT1["issue JWT (tokenVersion embedded)\nset httpOnly refreshToken cookie"]
         LOGIN["POST /auth/login"] --> JWT1
     end
 

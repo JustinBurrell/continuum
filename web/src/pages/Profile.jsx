@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
-  Camera, LinkIcon, Unlink, LogOut,
+  Camera, LinkIcon, Unlink, LogOut, Trash2,
   Bell, FileText, Layers, Briefcase, FileCheck,
   CheckSquare, Users, AtSign, Calendar as CalendarIcon,
   ChevronRight, ShieldCheck, ShieldAlert, Mail,
@@ -534,6 +534,18 @@ export default function Profile() {
   const sendVerifyMutation = useMutation({
     mutationFn: () => api.post('/auth/send-verification'),
     onSuccess: () => setVerifySent(true),
+  });
+
+  const { data: sessionsData, isLoading: sessionsLoading } = useQuery({
+    queryKey: ['auth-sessions'],
+    queryFn: () => api.get('/auth/sessions').then(r => r.data.sessions),
+    enabled: !user?.isDemo,
+  });
+
+  const revokeSessionMutation = useMutation({
+    mutationFn: (id) => api.delete(`/auth/sessions/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['auth-sessions'] }),
+    onError: () => toast({ type: 'error', message: 'Failed to revoke session' }),
   });
 
   const handleLogoutAll = () => setShowLogoutAllConfirm(true);
@@ -1144,6 +1156,39 @@ export default function Profile() {
               </div>
             )}
           </div>
+
+          {/* Active sessions */}
+          {!user?.isDemo && (
+            <div style={card}>
+              <p style={sectionLabel}>Active sessions</p>
+              {sessionsLoading ? (
+                <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>Loading sessions...</p>
+              ) : !sessionsData || sessionsData.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>No active sessions found.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {sessionsData.map((s) => (
+                    <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', background: '#faf7ff', borderRadius: 8 }}>
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{s.deviceId || 'Unknown device'}</p>
+                        <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>
+                          Signed in {new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => revokeSessionMutation.mutate(s._id)}
+                        disabled={revokeSessionMutation.isPending}
+                        title="Revoke session"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: 4, display: 'flex', alignItems: 'center', borderRadius: 6 }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Danger zone */}
           {!user?.isDemo && <div style={{ ...card, borderColor: '#fecaca', background: '#fff' }}>
