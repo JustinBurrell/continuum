@@ -260,15 +260,69 @@ router.post('/logout', authMiddleware, authController.logout);
  * @swagger
  * /api/auth/logout-all:
  *   post:
- *     summary: Invalidate all refresh tokens for the account (sign out all devices)
+ *     summary: Immediately invalidate all sessions (sign out all devices)
+ *     description: >
+ *       Increments the user's tokenVersion so all existing JWTs are rejected on the next request,
+ *       then revokes all refresh tokens. Invalidation is immediate — no waiting for JWT expiry.
  *     tags: [Auth]
  *     responses:
  *       200:
- *         description: All sessions terminated
+ *         description: All sessions terminated immediately
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
 router.post('/logout-all', authMiddleware, authController.logoutAll);
+
+/**
+ * @swagger
+ * /api/auth/sessions:
+ *   get:
+ *     summary: List active sessions for the current user
+ *     description: Returns all non-revoked, non-expired RefreshToken records with device label and creation date.
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Array of active sessions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 sessions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:       { type: string }
+ *                       deviceId:  { type: string, example: "Chrome on Mac" }
+ *                       createdAt: { type: string, format: date-time }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+router.get('/sessions', authMiddleware, authController.getSessions);
+
+/**
+ * @swagger
+ * /api/auth/sessions/{id}:
+ *   delete:
+ *     summary: Revoke a specific session by its RefreshToken record ID
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: The _id of the RefreshToken record to revoke
+ *     responses:
+ *       200:
+ *         description: Session revoked
+ *       404:
+ *         description: Session not found or already revoked
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+router.delete('/sessions/:id', authMiddleware, authController.revokeSession);
 
 /**
  * @swagger

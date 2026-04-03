@@ -40,6 +40,11 @@ const authMiddleware = async (req, res, next) => {
         return res.status(401).json({ success: false, error: 'User no longer exists' });
     }
 
+    // Reject stale tokens invalidated by logoutAll — tokenVersion in JWT must match DB
+    if (decoded.tokenVersion !== undefined && decoded.tokenVersion !== user.tokenVersion) {
+        return res.status(401).json({ success: false, error: 'Session invalidated.' });
+    }
+
     // Handle pending deletion grace period
     if (user.pendingDeletion) {
         // Grace period expired — hard delete lazily and treat as non-existent

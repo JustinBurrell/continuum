@@ -98,6 +98,11 @@ Rules:
 - Google OAuth uses Passport.js (passport-google-oauth20). On callback, a one-time code (OAuthCode, 60s TTL) is issued and the frontend exchanges it via `POST /api/auth/google/exchange` — the JWT never appears in browser history or server logs.
 - Passwords are hashed with bcryptjs (cost factor 12).
 - Founder and team roles are stored as an array (`roles`) on each user, supporting multiple roles simultaneously. Auto-assigned at registration based on the `FOUNDER_EMAILS` and `TEAM_EMAILS` environment variables (comma-separated email lists). To add someone: update the env var in Render, then run `node scripts/assign-special-tags.js` to backfill existing accounts.
+- **Session invalidation:** The `User` model has a `tokenVersion` counter (default `0`). It is embedded in every JWT at sign-in and checked by auth middleware on every request. `POST /api/auth/logout-all` increments `tokenVersion` and invalidates the user cache — all existing JWTs are rejected on the next request with no wait for token expiry.
+- **Device labels:** The `User-Agent` header is parsed at login/register to produce a human-readable label (e.g. "Chrome on Mac") stored on the `RefreshToken.deviceId` field.
+- **Session management endpoints:**
+  - `GET /api/auth/sessions` — returns all active (non-revoked, non-expired) sessions for the authenticated user: `{ _id, deviceId, createdAt }`
+  - `DELETE /api/auth/sessions/:id` — revokes a single session by its `RefreshToken._id`
 
 ---
 
