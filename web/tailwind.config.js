@@ -45,7 +45,8 @@ export default {
       },
       fontFamily: {
         sans: ['DM Sans', 'system-ui', 'sans-serif'],
-        serif: ['Lora', 'Georgia', 'serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
+        marketing: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         DEFAULT: '6px',
