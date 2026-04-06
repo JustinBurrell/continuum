@@ -1,0 +1,149 @@
+{
+  "info": {
+    "name": "Continuum — Session 15",
+    "description": "Refresh token rotation — verifies that POST /auth/refresh issues a new cookie and immediately rejects the old one.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth — Refresh Token Rotation",
+      "description": "Step-by-step manual test of the rotation flow. Run in order. Requires a valid account in the environment (email + password set via CONTINUUM_EMAIL and CONTINUUM_PASSWORD environment variables).",
+      "item": [
+        {
+          "name": "1. Login (capture refresh cookie)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 login success', () => pm.expect(pm.response.code).to.equal(200));",
+                  "pm.test('token returned', () => pm.expect(pm.response.json().token).to.be.a('string'));",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.set('accessToken', pm.response.json().token);",
+                  "    // The refresh token is set as an httpOnly cookie by the server.",
+                  "    // Postman automatically stores and sends cookies — no manual capture needed.",
+                  "    pm.test('set-cookie header present', () => {",
+                  "        const cookieHeader = pm.response.headers.get('Set-Cookie') || '';",
+                  "        pm.expect(cookieHeader).to.include('refreshToken=');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{CONTINUUM_EMAIL}}\",\n  \"password\": \"{{CONTINUUM_PASSWORD}}\"\n}"
+            },
+            "description": "Log in to get a refresh token cookie and access token. Saves accessToken to environment."
+          }
+        },
+        {
+          "name": "2. POST /auth/refresh — rotation (new cookie issued)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 new JWT issued', () => pm.expect(pm.response.code).to.equal(200));",
+                  "pm.test('success is true', () => pm.expect(pm.response.json().success).to.be.true);",
+                  "pm.test('new token in response body', () => pm.expect(pm.response.json().token).to.be.a('string'));",
+                  "pm.test('new Set-Cookie header issued', () => {",
+                  "    const cookieHeader = pm.response.headers.get('Set-Cookie') || '';",
+                  "    pm.expect(cookieHeader).to.include('refreshToken=');",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.set('accessToken', pm.response.json().token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "description": "Uses the refresh cookie from step 1. Should return 200 + new JWT + new cookie. The old cookie is now revoked server-side."
+          }
+        },
+        {
+          "name": "3. POST /auth/refresh with old cookie — expect 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 old token rejected after rotation', () => pm.expect(pm.response.code).to.equal(401));",
+                  "pm.test('success is false', () => pm.expect(pm.response.json().success).to.be.false);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "refreshToken={{OLD_REFRESH_TOKEN}}",
+                "description": "Manually paste the original refreshToken value from step 1 into the OLD_REFRESH_TOKEN environment variable to verify rejection."
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "description": "Manually set the Cookie header to the original (pre-rotation) refresh token value. Should return 401 — the token was revoked by rotation in step 2."
+          }
+        },
+        {
+          "name": "4. GET /auth/me with new token — expect 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 still authenticated after rotation', () => pm.expect(pm.response.code).to.equal(200));",
+                  "pm.test('user returned', () => pm.expect(pm.response.json().user).to.be.an('object'));",
+                  "pm.test('success is true', () => pm.expect(pm.response.json().success).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Confirms the new JWT from step 2 is valid and the user is still authenticated after rotation."
+          }
+        }
+      ]
+    }
+  ]
+}

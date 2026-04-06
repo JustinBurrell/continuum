@@ -118,23 +118,29 @@ router.post('/reset-password', authLimiter, authController.resetPassword);
  * @swagger
  * /api/auth/refresh:
  *   post:
- *     summary: Issue a new JWT using a valid refresh token
+ *     summary: Issue a new JWT using a valid refresh token (with token rotation)
+ *     description: >
+ *       Reads the refresh token from the httpOnly cookie. Implements full token rotation —
+ *       the incoming token is immediately revoked and a new httpOnly refresh cookie is issued.
+ *       The old sessionId is written to the Redis blocklist so any still-valid JWT bearing it
+ *       is immediately rejected by auth middleware. Prevents replay attacks if a refresh token
+ *       is intercepted. Device and location metadata is carried forward to the new token.
  *     tags: [Auth]
  *     security: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [refreshToken]
- *             properties:
- *               refreshToken: { type: string }
  *     responses:
  *       200:
- *         description: New token issued
+ *         description: New JWT issued; new refresh token set in httpOnly cookie (Set-Cookie header)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 token: { type: string, description: "New JWT access token (1 day)" }
+ *       400:
+ *         description: No refresh token cookie present
  *       401:
- *         description: Refresh token invalid or expired
+ *         description: Refresh token invalid, expired, or already rotated
  */
 router.post('/refresh', authLimiter, authController.refresh);
 

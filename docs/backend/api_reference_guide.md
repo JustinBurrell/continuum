@@ -13,7 +13,7 @@
 ### **Authentication**
 - `POST /api/auth/register` - Create new user account, return JWT + refresh token
 - `POST /api/auth/login` - Authenticate user, return JWT + refresh token
-- `POST /api/auth/refresh` - Exchange a valid refresh token for a new access token (public)
+- `POST /api/auth/refresh` - Exchange a valid refresh token for a new access token with full token rotation — the old token is immediately revoked and a new httpOnly cookie is issued. Old `sessionId` written to Redis blocklist to reject any still-valid JWT bearing it. Device/location metadata inherited by new token. (public)
 - `POST /api/auth/logout` - Revoke current device's refresh token (protected)
 - `POST /api/auth/logout-all` - Immediately invalidate all sessions — increments `tokenVersion` so existing JWTs are rejected on the next request, then revokes all refresh tokens (protected)
 - `GET /api/auth/sessions` - List all active (non-revoked, non-expired) sessions for the current user. Response: `{ sessions: [{ _id, deviceId, ipLocation, lastUsedAt, createdAt, isCurrent }] }`. `ipLocation` is a human-readable city/country (e.g. `"San Francisco, CA"`) resolved from the login IP via `geoip-lite`; null for local/unknown IPs. `isCurrent` is true for the session that issued the request's JWT (protected)

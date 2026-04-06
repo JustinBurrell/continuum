@@ -162,6 +162,36 @@ describe('POST /api/auth/refresh', () => {
     expect(res.statusCode).toBe(400);
     expect(res.body.success).toBe(false);
   });
+
+  it('rotates the refresh token — old cookie is rejected after rotation, new cookie is accepted', async () => {
+    const reg = await request(app).post('/api/auth/register').send(validUser);
+    const cookieA = (reg.headers['set-cookie'] || []).find((c) => c.startsWith('refreshToken='));
+    expect(cookieA).toBeDefined();
+
+    // First refresh — should succeed and issue a new cookie
+    const res1 = await request(app)
+      .post('/api/auth/refresh')
+      .set('Cookie', cookieA);
+    expect(res1.statusCode).toBe(200);
+    expect(res1.body.token).toBeDefined();
+
+    const cookieB = (res1.headers['set-cookie'] || []).find((c) => c.startsWith('refreshToken='));
+    expect(cookieB).toBeDefined();
+    expect(cookieB).not.toBe(cookieA); // new cookie issued
+
+    // Old cookie should now be rejected (rotated out)
+    const res2 = await request(app)
+      .post('/api/auth/refresh')
+      .set('Cookie', cookieA);
+    expect(res2.statusCode).toBe(401);
+
+    // New cookie should still work
+    const res3 = await request(app)
+      .post('/api/auth/refresh')
+      .set('Cookie', cookieB);
+    expect(res3.statusCode).toBe(200);
+    expect(res3.body.token).toBeDefined();
+  });
 });
 
 // ─── Get Current User ───────────────────────────────────────────────────────

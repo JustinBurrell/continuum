@@ -38,6 +38,16 @@
 |---|---|---|
 | Email verification sent | New user | `auth.controller.js → register` *(already implemented)* |
 | Password reset link sent | Requesting user | `auth.controller.js → forgotPassword` *(already implemented)* |
+| New sign-in from a device | Account owner | `auth.controller.js → login, register, googleExchange` |
+
+**New sign-in notification — implementation notes:**
+- Fires on every new session, regardless of device (same behavior as GitHub and Google — every login, not just "first-time" devices)
+- Data available at trigger time: `deviceId` (e.g. `"Chrome 120 on macOS"`), `ipLocation` (e.g. `"New York, NY"`, or `"an unknown location"` when null), `createdAt`
+- **Email only** — security events bypass debounce rules and push channel; send immediately regardless of user preference (user cannot opt out of security alerts)
+- Email subject: `"New sign-in to your Continuum account"`
+- Email body: `"A new sign-in to your Continuum account was detected from [deviceId] in [ipLocation]. If this wasn't you, go to Settings > Security to revoke the session."`
+- Trigger point: immediately after `generateRefreshToken` resolves in `login`, `register`, and `googleExchange` — fire non-blocking (same pattern as the existing verification email in `register`)
+- Do **not** send this email when `user.isDemo === true`
 
 ---
 
@@ -250,3 +260,30 @@ Update `backend/.env.example` accordingly.
 | `backend/.env.example` | Add `FIREBASE_SERVICE_ACCOUNT_JSON` |
 | Frontend settings page | Wire email/push toggles to API |
 | Frontend app shell | Add notification bell component |
+
+---
+
+## Testing
+
+### Jest
+- The Resend client is already mocked globally via `backend/tests/jest/__mocks__/resend.js`. Tests can assert `resend.emails.send` was called with the correct `to`, `subject`, and `html` after a notifiable event.
+- For `notification.service.js` unit tests: mock `Notification.create`, `email.service.js`, and `push.service.js` — verify the correct channels are called based on `user.settings` flags.
+- For integration tests (e.g. in `auth.test.js`): after login/register, assert that the mock Resend was called with the sign-in notification email.
+- For debounce logic: mock `Date.now()` to fast-forward time and verify that a second email for the same `type + targetId` is suppressed within 15 minutes but fires after.
+
+### Postman
+Add a "Notifications" folder to a future session collection with these requests:
+1. `GET /api/notifications` — verify 200 + unread list
+2. `PATCH /api/notifications/read` — verify all marked read
+3. `PATCH /api/notifications/:id/read` — verify single notification marked read
+4. `DELETE /api/notifications/:id` — verify 200 + dismissed
+
+### Docs to Update on Implementation
+When this spec is implemented, update the following files:
+| File | What to add |
+|---|---|
+| `docs/backend/api_reference_guide.md` | New notification endpoints (`GET`, `PATCH`, `DELETE /api/notifications`) + `POST /api/users/device-token` |
+| `docs/database/schema_diagram.md` | Add `Notification` entity and `User ||--o{ Notification` relationship |
+| `docs/database/mongodb_schema_explaination.md` | Add Notification collection description |
+| `docs/continuum-interview-brief.md` | Update service count (+2: email.service, notification.service), test count, feature list (add "notifications"), security section (sign-in alerts) |
+| `backend/tests/postman/` | New session collection for Notifications endpoints |
