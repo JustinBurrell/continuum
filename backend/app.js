@@ -14,6 +14,10 @@ const passport = require('./config/passport');
 
 const app = express();
 
+// Trust the first proxy hop (Render's load balancer) so req.ip returns the real client IP
+// from the X-Forwarded-For header rather than the load balancer's internal address.
+app.set('trust proxy', 1);
+
 // Suppress HTTP request logs during tests
 if (process.env.NODE_ENV !== 'test') {
   app.use(pinoHttp({ logger }));

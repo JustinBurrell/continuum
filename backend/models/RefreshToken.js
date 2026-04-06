@@ -54,6 +54,18 @@ const refreshTokenSchema = new mongoose.Schema({
     },
 
     /**
+     * Resolved Location
+     * Purpose: Human-readable city/country derived from ipAddress at login time
+     * Fields: ipLocation
+     * Note: Resolved via geoip-lite local DB. Null for loopback/private IPs or unknown addresses.
+     *       Stored as "City, ST" (US) or "City, Country" (elsewhere).
+     */
+    ipLocation: {
+        type: String,
+        default: null,
+    },
+
+    /**
      * Last Used
      * Purpose: Track when this token was last used to issue a new JWT
      * Fields: lastUsedAt

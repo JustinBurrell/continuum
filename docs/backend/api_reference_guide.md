@@ -16,7 +16,7 @@
 - `POST /api/auth/refresh` - Exchange a valid refresh token for a new access token (public)
 - `POST /api/auth/logout` - Revoke current device's refresh token (protected)
 - `POST /api/auth/logout-all` - Immediately invalidate all sessions — increments `tokenVersion` so existing JWTs are rejected on the next request, then revokes all refresh tokens (protected)
-- `GET /api/auth/sessions` - List all active (non-revoked, non-expired) sessions for the current user. Response: `{ sessions: [{ _id, deviceId, ipAddress, lastUsedAt, createdAt, isCurrent }] }`. `isCurrent` is true for the session that issued the request's JWT (protected)
+- `GET /api/auth/sessions` - List all active (non-revoked, non-expired) sessions for the current user. Response: `{ sessions: [{ _id, deviceId, ipLocation, lastUsedAt, createdAt, isCurrent }] }`. `ipLocation` is a human-readable city/country (e.g. `"San Francisco, CA"`) resolved from the login IP via `geoip-lite`; null for local/unknown IPs. `isCurrent` is true for the session that issued the request's JWT (protected)
 - `DELETE /api/auth/sessions/:id` - Revoke a single session by RefreshToken `_id`. Immediately invalidates any active JWT for that session via a Redis blocklist key (`revoked_session:{id}`, TTL 1 day) — fail-open if Redis unavailable. Returns 404 if not found or already revoked (protected)
 - `GET /api/auth/google` - Initiate Google OAuth consent flow (login or registration)
 - `GET /api/auth/google/callback` - Handle OAuth callback, find/create user, return JWT

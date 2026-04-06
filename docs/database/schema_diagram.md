@@ -40,6 +40,7 @@ erDiagram
         String tokenHash "SHA-256 hash of raw token"
         String deviceId "browser + version + OS label e.g. Chrome 120 on macOS"
         String ipAddress "client IP at login/register, nullable"
+        String ipLocation "resolved city/country e.g. San Francisco, CA, nullable"
         Date lastUsedAt "updated on each POST /auth/refresh, nullable"
         Date expiresAt "30d from creation"
         Date revokedAt "null = active"

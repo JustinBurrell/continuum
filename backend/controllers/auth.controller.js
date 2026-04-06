@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const geoip = require('geoip-lite');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const Note = require('../models/Note');
@@ -77,12 +78,12 @@ const setRefreshCookie = (res, rawToken) => {
 // Stores a SHA-256 hash in the RefreshToken collection
 // Returns { rawToken, sessionId } — rawToken is set as httpOnly cookie, sessionId is embedded in JWT
 // ----------------------------------------
-const generateRefreshToken = async (userId, deviceId, ipAddress = null) => {
+const generateRefreshToken = async (userId, deviceId, ipAddress = null, ipLocation = null) => {
     const rawToken = crypto.randomBytes(40).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
-    const doc = await RefreshToken.create({ userId, tokenHash, deviceId: deviceId || null, ipAddress: ipAddress || null, expiresAt });
+    const doc = await RefreshToken.create({ userId, tokenHash, deviceId: deviceId || null, ipAddress: ipAddress || null, ipLocation: ipLocation || null, expiresAt });
 
     return { rawToken, sessionId: doc._id };
 };
@@ -142,6 +143,24 @@ const parseDeviceLabel = (ua = '') => {
 };
 
 // ----------------------------------------
+// HELPER: Resolve a client IP to a human-readable location string
+// Returns "City, ST" (US) or "City, Country" (elsewhere), or null for loopback/private/unknown
+// ----------------------------------------
+const LOOPBACK_IPS = new Set(['::1', '127.0.0.1', '::ffff:127.0.0.1']);
+const resolveLocation = (ip) => {
+    if (!ip) return null;
+    const normalized = ip.startsWith('::ffff:') ? ip.slice(7) : ip;
+    if (LOOPBACK_IPS.has(normalized)) return null;
+    const geo = geoip.lookup(normalized);
+    if (!geo) return null;
+    const parts = [];
+    if (geo.city) parts.push(geo.city);
+    if (geo.country === 'US' && geo.region) parts.push(geo.region);
+    else if (geo.country) parts.push(geo.country);
+    return parts.join(', ') || null;
+};
+
+// ----------------------------------------
 // POST /api/auth/register
 // Purpose: Create a new user and return a JWT
 // ----------------------------------------
@@ -165,10 +184,12 @@ exports.register = async (req, res) => {
     if (teamEmails.includes(email.toLowerCase())) assignedRoles.push('team');
     if (assignedRoles.length) await User.updateOne({ _id: user._id }, { roles: assignedRoles });
 
+    const regIp = req.ip || null;
     const { rawToken: refreshToken, sessionId } = await generateRefreshToken(
         user._id,
         parseDeviceLabel(req.headers['user-agent']),
-        req.ip || null
+        regIp,
+        resolveLocation(regIp)
     );
     const token = signToken(user._id, user.tokenVersion, sessionId);
 
@@ -238,10 +259,12 @@ exports.login = async (req, res) => {
 
     await user.save();
 
+    const loginIp = req.ip || null;
     const { rawToken: refreshToken, sessionId } = await generateRefreshToken(
         user._id,
         parseDeviceLabel(req.headers['user-agent']),
-        req.ip || null
+        loginIp,
+        resolveLocation(loginIp)
     );
     const token = signToken(user._id, user.tokenVersion, sessionId);
 
@@ -379,10 +402,12 @@ exports.googleExchange = async (req, res) => {
         return res.status(401).json({ success: false, error: 'User not found' });
     }
 
+    const oauthIp = req.ip || null;
     const { rawToken: refreshToken, sessionId } = await generateRefreshToken(
         record.userId,
         parseDeviceLabel(req.headers['user-agent']),
-        req.ip || null
+        oauthIp,
+        resolveLocation(oauthIp)
     );
     const token = signToken(user._id, user.tokenVersion, sessionId);
 
@@ -639,12 +664,12 @@ exports.getSessions = async (req, res) => {
         userId: req.user._id,
         revokedAt: null,
         expiresAt: { $gt: new Date() },
-    }).select('_id deviceId ipAddress lastUsedAt createdAt').sort({ createdAt: -1 });
+    }).select('_id deviceId ipAddress ipLocation lastUsedAt createdAt').sort({ createdAt: -1 });
 
     const sessions = tokens.map((t) => ({
         _id: t._id,
         deviceId: t.deviceId,
-        ipAddress: t.ipAddress,
+        ipLocation: t.ipLocation,
         lastUsedAt: t.lastUsedAt,
         createdAt: t.createdAt,
         isCurrent: req.sessionId ? String(t._id) === req.sessionId : false,

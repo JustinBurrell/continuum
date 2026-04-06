@@ -408,7 +408,7 @@ describe('GET /api/auth/sessions', () => {
     expect(session).toHaveProperty('_id');
     expect(session).toHaveProperty('deviceId');
     expect(session).toHaveProperty('createdAt');
-    expect(session).toHaveProperty('ipAddress');
+    expect(session).toHaveProperty('ipLocation');
     expect(session).toHaveProperty('lastUsedAt');
     expect(session).toHaveProperty('isCurrent');
 
@@ -502,8 +502,9 @@ describe('Device label capture', () => {
     // New format includes version number: "Chrome 124 on macOS 10.15.7"
     expect(token.deviceId).toContain('Chrome 124');
     expect(token.deviceId).toContain('macOS');
-    // ipAddress field is now stored (may be null/undefined in test env but field exists)
+    // ipAddress and ipLocation fields are stored (both null in test env since req.ip is loopback)
     expect(Object.prototype.hasOwnProperty.call(token.toObject(), 'ipAddress')).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(token.toObject(), 'ipLocation')).toBe(true);
   });
 
   it('stores a correct label for iOS Safari', async () => {

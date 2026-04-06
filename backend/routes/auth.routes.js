@@ -281,8 +281,8 @@ router.post('/logout-all', authMiddleware, authController.logoutAll);
  *     description: >
  *       Returns all non-revoked, non-expired RefreshToken records.
  *       Each session includes a human-readable device label (browser + version + OS),
- *       the client IP at login, last active timestamp, and an isCurrent flag
- *       marking the session that issued the request's JWT.
+ *       a human-readable location resolved from the client IP at login (e.g. "San Francisco, CA"),
+ *       last active timestamp, and an isCurrent flag marking the session that issued the request's JWT.
  *     tags: [Auth]
  *     responses:
  *       200:
@@ -300,7 +300,7 @@ router.post('/logout-all', authMiddleware, authController.logoutAll);
  *                     properties:
  *                       _id:         { type: string }
  *                       deviceId:    { type: string, example: "Chrome 120 on macOS 10.15.7" }
- *                       ipAddress:   { type: string, example: "203.0.113.42", nullable: true }
+ *                       ipLocation:  { type: string, example: "San Francisco, CA", nullable: true, description: "City and state/country resolved from login IP; null for local/unknown IPs" }
  *                       lastUsedAt:  { type: string, format: date-time, nullable: true }
  *                       createdAt:   { type: string, format: date-time }
  *                       isCurrent:   { type: boolean, description: "True when this session issued the current request JWT" }

@@ -1191,7 +1191,7 @@ export default function Profile() {
                               return `${Math.floor(hrs / 24)}d ago`;
                             })()}</>
                           )}
-                          {s.ipAddress && <> &middot; {s.ipAddress}</>}
+                          {s.ipLocation && <> &middot; {s.ipLocation}</>}
                         </p>
                       </div>
                       <button
