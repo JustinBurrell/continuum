@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { getOrSet, invalidate } = require('../lib/cache');
+const cache = require('../lib/cache');
 const { hardDeleteUser } = require('../services/account.service');
 
 // ============================================================
@@ -43,6 +44,16 @@ const authMiddleware = async (req, res, next) => {
     // Reject stale tokens invalidated by logoutAll — tokenVersion in JWT must match DB
     if (decoded.tokenVersion !== undefined && decoded.tokenVersion !== user.tokenVersion) {
         return res.status(401).json({ success: false, error: 'Session invalidated.' });
+    }
+
+    // Reject individually revoked sessions — check Redis blocklist written by revokeSession.
+    // Fail-open: if Redis is unavailable, getKey returns null and we proceed normally.
+    if (decoded.sessionId) {
+        const revoked = await cache.getKey(`revoked_session:${decoded.sessionId}`);
+        if (revoked) {
+            return res.status(401).json({ success: false, error: 'Session revoked.' });
+        }
+        req.sessionId = decoded.sessionId;
     }
 
     // Handle pending deletion grace period

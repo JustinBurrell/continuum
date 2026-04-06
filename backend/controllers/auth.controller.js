@@ -9,7 +9,7 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 const cloudinary = require('../config/cloudinary');
-const { invalidate } = require('../lib/cache');
+const { invalidate, setKey } = require('../lib/cache');
 const { hardDeleteUser } = require('../services/account.service');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -50,9 +50,13 @@ function emailTemplate(content) {
 // ----------------------------------------
 // HELPER: Sign a short-lived JWT access token (1d)
 // tokenVersion is embedded so auth middleware can immediately reject stale tokens after logoutAll
+// sessionId (the RefreshToken _id) is embedded so middleware can immediately reject
+// individually revoked sessions via the Redis blocklist
 // ----------------------------------------
-const signToken = (userId, tokenVersion = 0) => {
-    return jwt.sign({ userId, tokenVersion }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d', algorithm: 'HS256' });
+const signToken = (userId, tokenVersion = 0, sessionId = null) => {
+    const payload = { userId, tokenVersion };
+    if (sessionId) payload.sessionId = String(sessionId);
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d', algorithm: 'HS256' });
 };
 
 // ----------------------------------------
@@ -71,36 +75,69 @@ const setRefreshCookie = (res, rawToken) => {
 // ----------------------------------------
 // HELPER: Generate a long-lived refresh token (30d)
 // Stores a SHA-256 hash in the RefreshToken collection
-// Returns the raw token to give to the client — never stored raw
+// Returns { rawToken, sessionId } — rawToken is set as httpOnly cookie, sessionId is embedded in JWT
 // ----------------------------------------
-const generateRefreshToken = async (userId, deviceId) => {
+const generateRefreshToken = async (userId, deviceId, ipAddress = null) => {
     const rawToken = crypto.randomBytes(40).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
-    await RefreshToken.create({ userId, tokenHash, deviceId: deviceId || null, expiresAt });
+    const doc = await RefreshToken.create({ userId, tokenHash, deviceId: deviceId || null, ipAddress: ipAddress || null, expiresAt });
 
-    return rawToken;
+    return { rawToken, sessionId: doc._id };
 };
 
 // ----------------------------------------
 // HELPER: Parse a human-readable device label from a User-Agent string
-// e.g. "Chrome on Mac", "Firefox on Windows", "Safari on iOS"
+// e.g. "Chrome 120 on macOS", "Safari 17 on iPhone (iOS 17)", "Firefox 121 on Windows"
 // ----------------------------------------
 const parseDeviceLabel = (ua = '') => {
     if (!ua) return 'Unknown device';
-    const browser =
-        /Edg\//.test(ua) ? 'Edge' :
-        /OPR\/|Opera/.test(ua) ? 'Opera' :
-        /Chrome\//.test(ua) ? 'Chrome' :
-        /Firefox\//.test(ua) ? 'Firefox' :
-        /Safari\//.test(ua) && !/Chrome/.test(ua) ? 'Safari' : 'Browser';
-    const os =
-        /iPhone|iPad/.test(ua) ? 'iOS' :
-        /Android/.test(ua) ? 'Android' :
-        /Windows/.test(ua) ? 'Windows' :
-        /Mac OS X/.test(ua) ? 'Mac' :
-        /Linux/.test(ua) ? 'Linux' : 'Unknown OS';
+
+    // Browser + major version
+    let browser = 'Browser';
+    let browserMatch;
+    if (/Edg\/(\d+)/.test(ua)) {
+        browser = `Edge ${ua.match(/Edg\/(\d+)/)[1]}`;
+    } else if (/OPR\/(\d+)|Opera\/(\d+)/.test(ua)) {
+        browserMatch = ua.match(/OPR\/(\d+)/) || ua.match(/Opera\/(\d+)/);
+        browser = `Opera ${browserMatch[1]}`;
+    } else if (/Firefox\/(\d+)/.test(ua)) {
+        browser = `Firefox ${ua.match(/Firefox\/(\d+)/)[1]}`;
+    } else if (/Chrome\/(\d+)/.test(ua) && !/Chromium/.test(ua)) {
+        browser = `Chrome ${ua.match(/Chrome\/(\d+)/)[1]}`;
+    } else if (/Version\/(\d+).*Safari/.test(ua) && !/Chrome/.test(ua)) {
+        browser = `Safari ${ua.match(/Version\/(\d+)/)[1]}`;
+    } else if (/Safari\//.test(ua) && !/Chrome/.test(ua)) {
+        browser = 'Safari';
+    }
+
+    // Device type + OS
+    let device = '';
+    let os = 'Unknown OS';
+    if (/iPhone/.test(ua)) {
+        device = 'iPhone';
+        const iosMatch = ua.match(/CPU iPhone OS ([\d_]+)/);
+        os = iosMatch ? `iOS ${iosMatch[1].replace(/_/g, '.')}` : 'iOS';
+    } else if (/iPad/.test(ua)) {
+        device = 'iPad';
+        const iosMatch = ua.match(/CPU OS ([\d_]+)/);
+        os = iosMatch ? `iOS ${iosMatch[1].replace(/_/g, '.')}` : 'iPadOS';
+    } else if (/Android/.test(ua)) {
+        const androidMatch = ua.match(/Android ([\d.]+)/);
+        os = androidMatch ? `Android ${androidMatch[1]}` : 'Android';
+    } else if (/Windows NT ([\d.]+)/.test(ua)) {
+        const ntMap = { '10.0': '10/11', '6.3': '8.1', '6.2': '8', '6.1': '7' };
+        const ntVer = ua.match(/Windows NT ([\d.]+)/)[1];
+        os = `Windows ${ntMap[ntVer] || ntVer}`;
+    } else if (/Mac OS X ([\d_]+)/.test(ua)) {
+        const macMatch = ua.match(/Mac OS X ([\d_]+)/);
+        os = `macOS ${macMatch[1].replace(/_/g, '.')}`;
+    } else if (/Linux/.test(ua)) {
+        os = 'Linux';
+    }
+
+    if (device) return `${browser} on ${device} (${os})`;
     return `${browser} on ${os}`;
 };
 
@@ -128,8 +165,12 @@ exports.register = async (req, res) => {
     if (teamEmails.includes(email.toLowerCase())) assignedRoles.push('team');
     if (assignedRoles.length) await User.updateOne({ _id: user._id }, { roles: assignedRoles });
 
-    const token = signToken(user._id, user.tokenVersion);
-    const refreshToken = await generateRefreshToken(user._id, parseDeviceLabel(req.headers['user-agent']));
+    const { rawToken: refreshToken, sessionId } = await generateRefreshToken(
+        user._id,
+        parseDeviceLabel(req.headers['user-agent']),
+        req.ip || null
+    );
+    const token = signToken(user._id, user.tokenVersion, sessionId);
 
     // Auto-send verification email — non-blocking, don't fail registration if it errors
     try {
@@ -197,8 +238,12 @@ exports.login = async (req, res) => {
 
     await user.save();
 
-    const token = signToken(user._id, user.tokenVersion);
-    const refreshToken = await generateRefreshToken(user._id, parseDeviceLabel(req.headers['user-agent']));
+    const { rawToken: refreshToken, sessionId } = await generateRefreshToken(
+        user._id,
+        parseDeviceLabel(req.headers['user-agent']),
+        req.ip || null
+    );
+    const token = signToken(user._id, user.tokenVersion, sessionId);
 
     const userObj = user.toObject();
     delete userObj.password;
@@ -334,8 +379,12 @@ exports.googleExchange = async (req, res) => {
         return res.status(401).json({ success: false, error: 'User not found' });
     }
 
-    const token = signToken(user._id, user.tokenVersion);
-    const refreshToken = await generateRefreshToken(record.userId, parseDeviceLabel(req.headers['user-agent']));
+    const { rawToken: refreshToken, sessionId } = await generateRefreshToken(
+        record.userId,
+        parseDeviceLabel(req.headers['user-agent']),
+        req.ip || null
+    );
+    const token = signToken(user._id, user.tokenVersion, sessionId);
 
     setRefreshCookie(res, refreshToken);
     res.status(200).json({ success: true, token });
@@ -443,7 +492,11 @@ exports.refresh = async (req, res) => {
         return res.status(401).json({ success: false, error: 'User not found' });
     }
 
-    const token = signToken(stored.userId, user.tokenVersion);
+    // Track when this session was last used to issue a new JWT
+    stored.lastUsedAt = new Date();
+    await stored.save();
+
+    const token = signToken(stored.userId, user.tokenVersion, stored._id);
 
     res.status(200).json({ success: true, token });
 };
@@ -582,11 +635,21 @@ exports.logoutAll = async (req, res) => {
 // Purpose: Return all active (non-revoked, non-expired) sessions for the current user
 // ----------------------------------------
 exports.getSessions = async (req, res) => {
-    const sessions = await RefreshToken.find({
+    const tokens = await RefreshToken.find({
         userId: req.user._id,
         revokedAt: null,
         expiresAt: { $gt: new Date() },
-    }).select('_id deviceId createdAt').sort({ createdAt: -1 });
+    }).select('_id deviceId ipAddress lastUsedAt createdAt').sort({ createdAt: -1 });
+
+    const sessions = tokens.map((t) => ({
+        _id: t._id,
+        deviceId: t.deviceId,
+        ipAddress: t.ipAddress,
+        lastUsedAt: t.lastUsedAt,
+        createdAt: t.createdAt,
+        isCurrent: req.sessionId ? String(t._id) === req.sessionId : false,
+    }));
+
     res.status(200).json({ success: true, sessions });
 };
 
@@ -605,6 +668,13 @@ exports.revokeSession = async (req, res) => {
     }
     session.revokedAt = new Date();
     await session.save();
+
+    // Write a Redis blocklist key so any existing JWT for this session is rejected
+    // immediately by auth middleware — not just on next refresh attempt.
+    // TTL matches JWT expiry (default 1 day). Fail-open: skip if Redis unavailable.
+    const jwtTtlSeconds = parseInt(process.env.JWT_EXPIRES_SECONDS, 10) || 86400;
+    await setKey(`revoked_session:${session._id}`, jwtTtlSeconds);
+
     res.status(200).json({ success: true });
 };
 

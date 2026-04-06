@@ -38,7 +38,9 @@ erDiagram
         ObjectId _id PK
         ObjectId userId FK
         String tokenHash "SHA-256 hash of raw token"
-        String deviceId "optional device label"
+        String deviceId "browser + version + OS label e.g. Chrome 120 on macOS"
+        String ipAddress "client IP at login/register, nullable"
+        Date lastUsedAt "updated on each POST /auth/refresh, nullable"
         Date expiresAt "30d from creation"
         Date revokedAt "null = active"
         Date createdAt

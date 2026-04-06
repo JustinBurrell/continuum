@@ -116,4 +116,35 @@ async function checkAiLimit(userId, limit, type) {
     }
 }
 
-module.exports = { getOrSet, invalidate, invalidatePattern, checkAiLimit };
+/**
+ * Set a key to '1' with a TTL (used for blocklists, e.g. revoked sessions).
+ * No-op if Redis is unavailable.
+ *
+ * @param {string} key
+ * @param {number} ttlSeconds
+ */
+async function setKey(key, ttlSeconds) {
+    const c = await getClient();
+    if (!c) return;
+    try {
+        await c.setEx(key, ttlSeconds, '1');
+    } catch (_) {}
+}
+
+/**
+ * Get the raw string value of a key, or null if missing/unavailable.
+ *
+ * @param {string} key
+ * @returns {Promise<string|null>}
+ */
+async function getKey(key) {
+    const c = await getClient();
+    if (!c) return null;
+    try {
+        return await c.get(key);
+    } catch (_) {
+        return null;
+    }
+}
+
+module.exports = { getOrSet, invalidate, invalidatePattern, checkAiLimit, setKey, getKey };

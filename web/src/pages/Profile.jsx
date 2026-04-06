@@ -1168,18 +1168,37 @@ export default function Profile() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {sessionsData.map((s) => (
-                    <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', background: '#faf7ff', borderRadius: 8 }}>
-                      <div>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{s.deviceId || 'Unknown device'}</p>
+                    <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', background: s.isCurrent ? '#f5f0ff' : '#faf7ff', borderRadius: 8, border: s.isCurrent ? '1px solid #e9d5ff' : '1px solid transparent' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{s.deviceId || 'Unknown device'}</p>
+                          {s.isCurrent && (
+                            <span style={{ fontSize: 10, fontWeight: 600, color: '#6b21a8', background: '#ede9fe', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                              This device
+                            </span>
+                          )}
+                        </div>
                         <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>
                           Signed in {new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {s.lastUsedAt && (
+                            <> &middot; Last active {(() => {
+                              const diff = Date.now() - new Date(s.lastUsedAt).getTime();
+                              const mins = Math.floor(diff / 60000);
+                              if (mins < 1) return 'just now';
+                              if (mins < 60) return `${mins}m ago`;
+                              const hrs = Math.floor(mins / 60);
+                              if (hrs < 24) return `${hrs}h ago`;
+                              return `${Math.floor(hrs / 24)}d ago`;
+                            })()}</>
+                          )}
+                          {s.ipAddress && <> &middot; {s.ipAddress}</>}
                         </p>
                       </div>
                       <button
-                        onClick={() => revokeSessionMutation.mutate(s._id)}
-                        disabled={revokeSessionMutation.isPending}
-                        title="Revoke session"
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: 4, display: 'flex', alignItems: 'center', borderRadius: 6 }}
+                        onClick={() => !s.isCurrent && revokeSessionMutation.mutate(s._id)}
+                        disabled={s.isCurrent || revokeSessionMutation.isPending}
+                        title={s.isCurrent ? 'Cannot remove your current session' : 'Revoke session'}
+                        style={{ background: 'none', border: 'none', cursor: s.isCurrent ? 'not-allowed' : 'pointer', color: s.isCurrent ? '#d1d5db' : '#dc2626', padding: 4, display: 'flex', alignItems: 'center', borderRadius: 6, flexShrink: 0 }}
                       >
                         <Trash2 size={14} />
                       </button>

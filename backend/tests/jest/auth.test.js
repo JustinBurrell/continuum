@@ -386,7 +386,7 @@ describe('POST /api/auth/logout-all — refresh tokens revoked', () => {
 // ─── GET /auth/sessions ─────────────────────────────────────────────────────
 
 describe('GET /api/auth/sessions', () => {
-  it('returns active sessions for the current user', async () => {
+  it('returns active sessions with new fields and isCurrent for the current user', async () => {
     const reg = await request(app).post('/api/auth/register').send(validUser);
     const tokenA = reg.body.token;
 
@@ -403,9 +403,18 @@ describe('GET /api/auth/sessions', () => {
     expect(res.body.success).toBe(true);
     expect(Array.isArray(res.body.sessions)).toBe(true);
     expect(res.body.sessions.length).toBe(2);
-    expect(res.body.sessions[0]).toHaveProperty('_id');
-    expect(res.body.sessions[0]).toHaveProperty('deviceId');
-    expect(res.body.sessions[0]).toHaveProperty('createdAt');
+
+    const session = res.body.sessions[0];
+    expect(session).toHaveProperty('_id');
+    expect(session).toHaveProperty('deviceId');
+    expect(session).toHaveProperty('createdAt');
+    expect(session).toHaveProperty('ipAddress');
+    expect(session).toHaveProperty('lastUsedAt');
+    expect(session).toHaveProperty('isCurrent');
+
+    // Exactly one session should be marked as current (the one that issued tokenA)
+    const currentSessions = res.body.sessions.filter((s) => s.isCurrent);
+    expect(currentSessions).toHaveLength(1);
   });
 });
 
@@ -435,12 +444,50 @@ describe('DELETE /api/auth/sessions/:id', () => {
       .set('Cookie', cookie);
     expect(refreshRes.statusCode).toBe(401);
   });
+
+  it('immediately rejects the JWT for a revoked session when Redis blocklist is active', async () => {
+    // This test simulates the Redis blocklist path by spying on cache.getKey.
+    // In production with Redis running, revokeSession writes revoked_session:{id} and
+    // auth middleware checks it — any request using the old JWT is immediately rejected
+    // without waiting for the access token to expire.
+    const cache = require('../../lib/cache');
+
+    const reg = await request(app).post('/api/auth/register').send(validUser);
+    const token = reg.body.token;
+
+    const sessionsRes = await request(app)
+      .get('/api/auth/sessions')
+      .set('Authorization', `Bearer ${token}`);
+    const sessionId = sessionsRes.body.sessions[0]._id;
+
+    // Revoke the session
+    await request(app)
+      .delete(`/api/auth/sessions/${sessionId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    // Spy on cache.getKey to simulate Redis blocklist hit for this session
+    const spy = jest.spyOn(cache, 'getKey').mockImplementation(async (key) => {
+      if (key === `revoked_session:${sessionId}`) return '1';
+      return null;
+    });
+
+    try {
+      // The JWT is still within its expiry window, but the blocklist should cause 401
+      const meRes = await request(app)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${token}`);
+      expect(meRes.statusCode).toBe(401);
+      expect(meRes.body.error).toMatch(/revoked/i);
+    } finally {
+      spy.mockRestore();
+    }
+  });
 });
 
 // ─── Device label capture ───────────────────────────────────────────────────
 
 describe('Device label capture', () => {
-  it('stores a parsed device label on the RefreshToken after register', async () => {
+  it('stores a versioned device label and IP on the RefreshToken after register', async () => {
     const ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
     const reg = await request(app)
@@ -452,7 +499,25 @@ describe('Device label capture', () => {
     const token = await RefreshToken.findOne({ userId: reg.body.user._id });
     expect(token).not.toBeNull();
     expect(token.deviceId).toBeTruthy();
-    expect(token.deviceId).toContain('Chrome');
-    expect(token.deviceId).toContain('Mac');
+    // New format includes version number: "Chrome 124 on macOS 10.15.7"
+    expect(token.deviceId).toContain('Chrome 124');
+    expect(token.deviceId).toContain('macOS');
+    // ipAddress field is now stored (may be null/undefined in test env but field exists)
+    expect(Object.prototype.hasOwnProperty.call(token.toObject(), 'ipAddress')).toBe(true);
+  });
+
+  it('stores a correct label for iOS Safari', async () => {
+    const ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
+
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .set('User-Agent', ua)
+      .send(validUser);
+    expect(reg.statusCode).toBe(201);
+
+    const token = await RefreshToken.findOne({ userId: reg.body.user._id });
+    expect(token.deviceId).toContain('Safari 17');
+    expect(token.deviceId).toContain('iPhone');
+    expect(token.deviceId).toContain('iOS 17');
   });
 });
