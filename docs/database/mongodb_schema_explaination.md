@@ -822,3 +822,11 @@ Always validate input, scope queries by user, exclude sensitive fields, check au
 
 ### 8. **Multi-Device Auth via RefreshToken Collection**
 Short-lived access tokens (1d) + long-lived refresh tokens (30d) stored as SHA-256 hashes in a separate `RefreshToken` collection. Each device gets its own document — logout revokes one device, logout-all revokes all. Raw token is never stored.
+
+Each `RefreshToken` document stores:
+- `deviceId` — human-readable label parsed from User-Agent (e.g. `"Chrome 120 on macOS 10.15.7"`, `"Safari 17 on iPhone (iOS 17)"`)
+- `ipAddress` — raw client IP captured at login/register
+- `ipLocation` — human-readable city/country resolved from `ipAddress` via `geoip-lite` at login time (e.g. `"San Francisco, CA"`, `"London, GB"`); null for loopback/private/unknown IPs. Displayed to users in the Security tab instead of the raw IP.
+- `lastUsedAt` — timestamp updated each time the token is used to issue a new JWT via `POST /auth/refresh`
+
+The JWT payload embeds `sessionId` (the `RefreshToken._id`). Auth middleware checks a Redis blocklist key `revoked_session:{sessionId}` (written by `DELETE /auth/sessions/:id`) to immediately reject active JWTs for revoked sessions — no need to wait for the 1-day access token expiry. This path is fail-open: if Redis is unavailable the check is skipped and the existing tokenVersion + revokedAt guards still apply. `logout-all` uses `tokenVersion` increment for immediate cross-device invalidation.

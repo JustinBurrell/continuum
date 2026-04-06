@@ -5,7 +5,8 @@ const mongoose = require('mongoose');
 // Purpose: Store long-lived refresh tokens for multi-device JWT auth
 // Collection: refreshtokens
 // Features: Per-device token tracking, revocation on logout,
-//           bulk revocation via logout-all, 30d expiry
+//           bulk revocation via logout-all, 30d expiry,
+//           immediate per-session revocation via Redis blocklist
 // Note: Raw token is NEVER stored — only SHA-256 hash.
 //       Same pattern as passwordResetToken in User.js.
 // ============================================================
@@ -37,12 +38,41 @@ const refreshTokenSchema = new mongoose.Schema({
     /**
      * Device Info
      * Purpose: Optionally label which device this token belongs to
-     * Fields: deviceId
-     * Note: Client can pass "iPhone 14" or "Chrome on Mac" at login.
-     *       Used for future "manage devices" UI — not functional auth logic.
+     * Fields: deviceId, ipAddress
+     * Note: deviceId is parsed from User-Agent (e.g. "Chrome 120 on macOS").
+     *       ipAddress is the client IP captured at login/register.
+     *       Both are used in the "manage sessions" UI.
      */
     deviceId: {
         type: String,
+        default: null,
+    },
+
+    ipAddress: {
+        type: String,
+        default: null,
+    },
+
+    /**
+     * Resolved Location
+     * Purpose: Human-readable city/country derived from ipAddress at login time
+     * Fields: ipLocation
+     * Note: Resolved via geoip-lite local DB. Null for loopback/private IPs or unknown addresses.
+     *       Stored as "City, ST" (US) or "City, Country" (elsewhere).
+     */
+    ipLocation: {
+        type: String,
+        default: null,
+    },
+
+    /**
+     * Last Used
+     * Purpose: Track when this token was last used to issue a new JWT
+     * Fields: lastUsedAt
+     * Note: Updated on every successful POST /auth/refresh call.
+     */
+    lastUsedAt: {
+        type: Date,
         default: null,
     },
 

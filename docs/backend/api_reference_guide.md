@@ -15,14 +15,16 @@
 - `POST /api/auth/login` - Authenticate user, return JWT + refresh token
 - `POST /api/auth/refresh` - Exchange a valid refresh token for a new access token (public)
 - `POST /api/auth/logout` - Revoke current device's refresh token (protected)
-- `POST /api/auth/logout-all` - Revoke all active refresh tokens for the user (protected)
+- `POST /api/auth/logout-all` - Immediately invalidate all sessions — increments `tokenVersion` so existing JWTs are rejected on the next request, then revokes all refresh tokens (protected)
+- `GET /api/auth/sessions` - List all active (non-revoked, non-expired) sessions for the current user. Response: `{ sessions: [{ _id, deviceId, ipLocation, lastUsedAt, createdAt, isCurrent }] }`. `ipLocation` is a human-readable city/country (e.g. `"San Francisco, CA"`) resolved from the login IP via `geoip-lite`; null for local/unknown IPs. `isCurrent` is true for the session that issued the request's JWT (protected)
+- `DELETE /api/auth/sessions/:id` - Revoke a single session by RefreshToken `_id`. Immediately invalidates any active JWT for that session via a Redis blocklist key (`revoked_session:{id}`, TTL 1 day) — fail-open if Redis unavailable. Returns 404 if not found or already revoked (protected)
 - `GET /api/auth/google` - Initiate Google OAuth consent flow (login or registration)
 - `GET /api/auth/google/callback` - Handle OAuth callback, find/create user, return JWT
 - `GET /api/auth/me` - Retrieve authenticated user from token
 - `POST /api/auth/forgot-password` - Send password reset email via Resend
 - `POST /api/auth/reset-password` - Verify reset token and set new password
 
-Users can register with email/password OR Google OAuth. Both paths create the same User document. Login and register return a short-lived JWT (1d) and a long-lived refresh token (30d). Each device gets its own refresh token — logout is per-device. `logout-all` revokes every active token for the user.
+Users can register with email/password OR Google OAuth. Both paths create the same User document. Login and register return a short-lived JWT (1d) and a long-lived refresh token (30d). Each device gets its own refresh token. The JWT payload includes `sessionId` (the RefreshToken `_id`) so per-session revocation takes effect immediately without waiting for token expiry. `logout-all` increments `tokenVersion` to immediately invalidate all sessions across all devices.
 
 ### **User Profile**
 - `PATCH /api/auth/me/profile` - Update user profile information (name, bio, avatarUrl, settings)
