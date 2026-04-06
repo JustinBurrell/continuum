@@ -24,7 +24,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | API endpoints | ~70 across 16 route groups |
 | Frontend pages | 27 |
 | UI components | 26 |
-| Jest integration tests | 173 |
+| Jest integration tests | 223 |
 | Backend controllers | 15 |
 | Services | 4 (AI, Activity, Share, Account) |
 | Middleware types | 5 (auth, rate limiting, validation, uploads, error handling) |
@@ -112,12 +112,14 @@ const pagedFilter = cursorTs
 - SameSite=None + Secure enforces HTTPS and blocks cross-site cookie abuse.
 - Storing the SHA-256 hash means a database breach exposes hashed tokens, not the raw tokens that would let an attacker impersonate users.
 - Token rotation: on 401, frontend calls `/api/auth/refresh` — browser automatically sends the httpOnly cookie, no manual token management.
+- Refresh token rotation: each `/auth/refresh` call immediately revokes the old token and issues a new one. A stolen refresh token can only be used once before rotation invalidates it.
 
 **Rotation flow:**
 1. Login → JWT in body, refresh token in httpOnly cookie
 2. JWT expires → 401
 3. Axios interceptor POSTs to `/api/auth/refresh` (cookie sent automatically)
-4. New JWT returned, original request retried
+4. Old refresh token revoked, new httpOnly cookie set
+5. New JWT returned, original request retried
 
 ---
 
@@ -559,7 +561,7 @@ Lead with cursor pagination — explain why offset fails at scale, why compound 
 Built over 8 weeks, solo, for an incubator. Started with a formal security audit before writing a line of frontend code. Used conventional commits and protected branches from day one. Deployed to production with a real CI pipeline blocking bad merges.
 
 ### Security-Focused Interview
-Walk through the auth flow: httpOnly cookie for refresh token (XSS protection), SHA-256 hash in DB (breach protection), one-time OAuth codes (no JWT in browser history), AES-256 encrypted Google tokens (defense in depth), 4-tier rate limiting (brute force + abuse prevention).
+Walk through the auth flow: httpOnly cookie for refresh token (XSS protection), SHA-256 hash in DB (breach protection), refresh token rotation (replay attack prevention — stolen token can only be used once), one-time OAuth codes (no JWT in browser history), AES-256 encrypted Google tokens (defense in depth), 4-tier rate limiting (brute force + abuse prevention).
 
 ### "Why this stack?"
 Express 5 for native async/await error propagation. MongoDB for flexible schema during rapid feature iteration. Redis chosen for dual purpose — caching and Socket.io pub/sub. Groq over OpenAI because free-tier rate limits (14.4K RPD) are viable for a multi-user product at launch. Vercel + Render because both have zero-config deploys for Vite SPA and Node.js respectively.

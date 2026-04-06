@@ -517,11 +517,21 @@ exports.refresh = async (req, res) => {
         return res.status(401).json({ success: false, error: 'User not found' });
     }
 
-    // Track when this session was last used to issue a new JWT
-    stored.lastUsedAt = new Date();
+    // Revoke old token immediately (rotation) — prevents replay if token is intercepted
+    stored.revokedAt = new Date();
     await stored.save();
 
-    const token = signToken(stored.userId, user.tokenVersion, stored._id);
+    // Write old sessionId to Redis blocklist so any still-valid JWT bearing it is rejected immediately
+    const jwtTtlSeconds = parseInt(process.env.JWT_EXPIRES_SECONDS, 10) || 86400;
+    await setKey(`revoked_session:${stored._id}`, jwtTtlSeconds);
+
+    // Issue new refresh token — inherit device/location metadata so session UI stays consistent
+    const { rawToken, sessionId } = await generateRefreshToken(
+        stored.userId, stored.deviceId, stored.ipAddress, stored.ipLocation
+    );
+    setRefreshCookie(res, rawToken);
+
+    const token = signToken(stored.userId, user.tokenVersion, sessionId);
 
     res.status(200).json({ success: true, token });
 };
