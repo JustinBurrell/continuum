@@ -101,7 +101,7 @@ export default function About() {
               </p>
             </div>
             {/* Pull quote */}
-            <div style={{ fontSize: '1.0625rem', fontStyle: 'italic', color: '#6B21A8', fontWeight: 500, borderLeft: '2px solid #6B21A8', paddingLeft: 16, marginTop: 24 }}>
+            <div className="lg:whitespace-nowrap" style={{ fontSize: '1.0625rem', fontStyle: 'italic', color: '#6B21A8', fontWeight: 500, borderLeft: '2px solid #6B21A8', paddingLeft: 16, marginTop: 24 }}>
               "Every feature in Continuum exists because a student needed it."
             </div>
           </div>
