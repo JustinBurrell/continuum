@@ -144,6 +144,108 @@
           }
         }
       ]
+    },
+    {
+      "name": "Waitlist",
+      "description": "Tests for the public POST /api/waitlist endpoint. No auth required.",
+      "item": [
+        {
+          "name": "POST /waitlist — subscribe valid email (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 created', () => pm.expect(pm.response.code).to.equal(201));",
+                  "pm.test('success is true', () => pm.expect(pm.response.json().success).to.be.true);",
+                  "pm.test('message returned', () => pm.expect(pm.response.json().message).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/waitlist",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "waitlist"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"firstName\": \"Test\",\n  \"source\": \"mobile_gate\"\n}"
+            },
+            "description": "Subscribe a new email. firstName is optional. No Authorization header required. Uses testEmail env variable."
+          }
+        },
+        {
+          "name": "POST /waitlist — duplicate email (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 for duplicate email', () => pm.expect(pm.response.code).to.equal(409));",
+                  "pm.test('success is false', () => pm.expect(pm.response.json().success).to.be.false);",
+                  "pm.test('error message returned', () => pm.expect(pm.response.json().error).to.include('already on the waitlist'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/waitlist",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "waitlist"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"source\": \"mobile_gate\"\n}"
+            },
+            "description": "Run after the first request using the same email. Should return 200 (not 4xx) — duplicate is handled gracefully."
+          }
+        },
+        {
+          "name": "POST /waitlist — invalid email (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 invalid email rejected', () => pm.expect(pm.response.code).to.equal(400));",
+                  "pm.test('success is false', () => pm.expect(pm.response.json().success).to.be.false);",
+                  "pm.test('error message returned', () => pm.expect(pm.response.json().error).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/waitlist",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "waitlist"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"notanemail\"\n}"
+            },
+            "description": "Submitting a malformed email should return 400 with success: false."
+          }
+        }
+      ]
     }
   ]
 }

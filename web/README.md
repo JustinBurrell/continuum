@@ -115,6 +115,17 @@ Radix UI primitives are used for accessibility-critical interactions (modals, dr
 | Profile           | `/profile`                    | Edit profile, manage linked accounts          |
 | Activity          | `/activity`                   | Full activity log                             |
 
+### Mobile Gate
+
+On screens narrower than 768px (phones), the app renders a `MobileGate` component in place of all routes. It matches the Landing page design and displays:
+
+- Hero copy and mobile-in-development notice
+- Email capture form that calls `POST /api/waitlist` to store signups
+- Placeholder section for mobile screenshots and demo video (to be filled after Android development)
+- Link to the full desktop experience at usecontinuum.dev
+
+Detection uses `window.innerWidth < 768` with a resize listener, matching Tailwind's `md:` breakpoint.
+
 ---
 
 ## Running locally

@@ -31,4 +31,7 @@ module.exports = {
 
   // Study
   StudySession: require('./StudySession'),
+
+  // Marketing
+  WaitlistEntry: require('./WaitlistEntry'),
 };

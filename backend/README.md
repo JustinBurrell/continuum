@@ -35,7 +35,7 @@ backend/
 
 ## API surface
 
-17 route groups, ~75 endpoints total.
+18 route groups, ~76 endpoints total.
 
 | Route group           | Description                                          |
 | --------------------- | ---------------------------------------------------- |
@@ -55,6 +55,7 @@ backend/
 | `/api/messages`       | Messages within a conversation                       |
 | `/api/activity`       | User activity feed                                   |
 | `/api/sync`           | Offline sync queue (mobile)                          |
+| `/api/waitlist`       | Mobile waitlist email capture (public, no auth)      |
 
 All responses follow `{ success: boolean, data? }` or `{ success: false, error: string }`.
 
@@ -225,4 +226,4 @@ Run tests:
 npm test
 ```
 
-57 tests across 7 suites (auth, notes, tasks, flashcards, applications, messages, activity). See [`tests/jest/README.md`](tests/jest/README.md) for suite details, how the in-memory database works, and how to add new tests.
+63 tests across 8 suites (auth, notes, tasks, flashcards, applications, messages, activity, waitlist). See [`tests/jest/README.md`](tests/jest/README.md) for suite details, how the in-memory database works, and how to add new tests.
