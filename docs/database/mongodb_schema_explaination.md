@@ -820,7 +820,30 @@ All hot query paths have compound indexes defined at the bottom of each Mongoose
 ### 7. **Security First**
 Always validate input, scope queries by user, exclude sensitive fields, check authorization.
 
-### 8. **Multi-Device Auth via RefreshToken Collection**
+### 8. **Marketing — WaitlistEntry Collection**
+
+Stores email signups captured from the mobile gate screen. No user reference — signups are anonymous.
+
+```javascript
+WaitlistEntry {
+  email:     String  // required, unique, lowercase, trimmed
+  source:    String  // default: 'mobile_gate' — allows future reuse (newsletter, etc.)
+  createdAt: Date    // auto via timestamps
+  updatedAt: Date    // auto via timestamps
+}
+```
+
+**Key behaviors:**
+- `unique: true` on `email` with MongoDB handling duplicates at the DB layer (E11000)
+- Controller catches duplicates and returns `200` (idempotent — avoids leaking "this email is registered")
+- No `userId` reference — intentionally anonymous pre-registration signups
+- No TTL — entries are permanent until the mobile app launches and the list is exported
+
+**Query surface:** Admin reads only (no user-facing reads). Exports via MongoDB Atlas or a future admin endpoint.
+
+---
+
+### 9. **Multi-Device Auth via RefreshToken Collection**
 Short-lived access tokens (1d) + long-lived refresh tokens (30d) stored as SHA-256 hashes in a separate `RefreshToken` collection. Each device gets its own document — logout revokes one device, logout-all revokes all. Raw token is never stored.
 
 Each `RefreshToken` document stores:

@@ -274,4 +274,22 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp) except `DE
 | Activity Feed | 2 | Stretch |
 | Offline Sync | 1 | Stretch |
 | Health | 1 | Yes |
-| **Total** | **85** | **80** |
+| Waitlist | 1 | Yes |
+| **Total** | **86** | **81** |
+
+---
+
+## Waitlist
+
+### **Mobile Waitlist**
+- `POST /api/waitlist` — Subscribe an email to the mobile waitlist. No auth required. Idempotent — returns success for duplicate emails without revealing whether the address was already registered.
+
+**Request body:**
+```json
+{ "email": "student@university.edu", "source": "mobile_gate" }
+```
+
+**Responses:**
+- `201` — Email successfully subscribed: `{ success: true, message: "You're on the list!" }`
+- `200` — Duplicate email (already subscribed): `{ success: true, message: "You're on the list!" }`
+- `400` — Missing or invalid email: `{ success: false, error: "Please enter a valid email address." }`

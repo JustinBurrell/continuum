@@ -3,6 +3,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import queryClient from '@/lib/queryClient';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/components/ui/Toast';
+import { useMobile } from '@/hooks/useMobile';
+import MobileGate from '@/components/MobileGate';
 
 import AppLayout from '@/components/layout/AppLayout';
 import AuthLayout from '@/components/layout/AuthLayout';
@@ -41,6 +43,8 @@ import Profile from '@/pages/Profile';
 import UserProfile from '@/pages/UserProfile';
 
 export default function App() {
+  const isMobile = useMobile();
+
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
@@ -48,7 +52,7 @@ export default function App() {
         <BrowserRouter>
           <ScrollToTop />
           <TitleManager />
-          <Routes>
+          {isMobile ? <MobileGate /> : <Routes>
             {/* Public pages */}
             <Route path="/" element={<Landing />} />
             <Route path="/product" element={<Product />} />
@@ -89,7 +93,7 @@ export default function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/users/view" element={<UserProfile />} />
             </Route>
-          </Routes>
+          </Routes>}
         </BrowserRouter>
       </AuthProvider>
       </ToastProvider>
