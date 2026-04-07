@@ -827,6 +827,7 @@ Stores email signups captured from the mobile gate screen. No user reference —
 ```javascript
 WaitlistEntry {
   email:     String  // required, unique, lowercase, trimmed
+  firstName: String  // optional, trimmed, null if not provided
   source:    String  // default: 'mobile_gate' — allows future reuse (newsletter, etc.)
   createdAt: Date    // auto via timestamps
   updatedAt: Date    // auto via timestamps

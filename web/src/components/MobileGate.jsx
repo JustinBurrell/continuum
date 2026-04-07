@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function MobileGate() {
+  const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -23,7 +24,11 @@ export default function MobileGate() {
 
     setLoading(true);
     try {
-      await api.post('/waitlist', { email: email.trim(), source: 'mobile_gate' });
+      await api.post('/waitlist', {
+        email: email.trim(),
+        firstName: firstName.trim() || undefined,
+        source: 'mobile_gate',
+      });
       setSubmitted(true);
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong. Please try again.');
@@ -87,6 +92,16 @@ export default function MobileGate() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 10 }}>
+              <Input
+                type="text"
+                placeholder="First name (optional)"
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
+                disabled={loading}
+                aria-label="First name"
+              />
+            </div>
             <div style={{ marginBottom: 10 }}>
               <Input
                 type="email"

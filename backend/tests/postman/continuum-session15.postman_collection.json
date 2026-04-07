@@ -176,9 +176,9 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"source\": \"mobile_gate\"\n}"
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"firstName\": \"Test\",\n  \"source\": \"mobile_gate\"\n}"
             },
-            "description": "Subscribe a new email. No Authorization header required. Uses testEmail env variable."
+            "description": "Subscribe a new email. firstName is optional. No Authorization header required. Uses testEmail env variable."
           }
         },
         {

@@ -74,4 +74,22 @@ describe('POST /api/waitlist', () => {
         expect(res.statusCode).toBe(201);
         expect(res.body.success).toBe(true);
     });
+
+    it('accepts an optional firstName field', async () => {
+        const res = await request(app)
+            .post('/api/waitlist')
+            .send({ email: 'named@example.com', firstName: 'Justin' });
+
+        expect(res.statusCode).toBe(201);
+        expect(res.body.success).toBe(true);
+    });
+
+    it('succeeds without firstName (stores null)', async () => {
+        const res = await request(app)
+            .post('/api/waitlist')
+            .send({ email: 'noname@example.com' });
+
+        expect(res.statusCode).toBe(201);
+        expect(res.body.success).toBe(true);
+    });
 });

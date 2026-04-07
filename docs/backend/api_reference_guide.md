@@ -286,8 +286,9 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp) except `DE
 
 **Request body:**
 ```json
-{ "email": "student@university.edu", "source": "mobile_gate" }
+{ "email": "student@university.edu", "firstName": "Justin", "source": "mobile_gate" }
 ```
+`firstName` is optional — stored as `null` if omitted.
 
 **Responses:**
 - `201` — Email successfully subscribed: `{ success: true, message: "You're on the list!" }`

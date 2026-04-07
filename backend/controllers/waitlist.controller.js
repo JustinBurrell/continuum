@@ -18,7 +18,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Returns 201 on first successful signup
 // ----------------------------------------
 exports.subscribe = async (req, res) => {
-    const { email, source = 'mobile_gate' } = req.body;
+    const { email, firstName, source = 'mobile_gate' } = req.body;
 
     if (!email || typeof email !== 'string') {
         return res.status(400).json({ success: false, error: 'Email is required.' });
@@ -29,7 +29,11 @@ exports.subscribe = async (req, res) => {
     }
 
     try {
-        await WaitlistEntry.create({ email: email.trim(), source });
+        await WaitlistEntry.create({
+            email: email.trim(),
+            firstName: firstName ? firstName.trim() : null,
+            source,
+        });
     } catch (err) {
         // E11000 = MongoDB duplicate key — email already on the list
         // Return success anyway so users don't know whether an email was already registered

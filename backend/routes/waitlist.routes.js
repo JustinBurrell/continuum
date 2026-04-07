@@ -36,6 +36,10 @@ const waitlistController = require('../controllers/waitlist.controller');
  *                 format: email
  *                 description: Email address to subscribe
  *                 example: student@university.edu
+ *               firstName:
+ *                 type: string
+ *                 description: Optional first name for personalized launch emails
+ *                 example: Justin
  *               source:
  *                 type: string
  *                 description: Origin of the signup (defaults to mobile_gate)
