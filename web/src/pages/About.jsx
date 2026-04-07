@@ -201,7 +201,7 @@ export default function About() {
           <div style={{ width: 80, height: 1, background: 'rgba(255,255,255,0.20)', margin: '0 auto 20px' }} />
           <h2
             className="font-bold text-white"
-            style={{ fontFamily: 'Fraunces, Georgia, serif', fontStyle: 'normal', fontWeight: 700, fontSize: '2.75rem', color: 'white', textAlign: 'center' }}
+            style={{ fontFamily: 'inherit', fontStyle: 'normal', fontWeight: 700, fontSize: '2.75rem', color: 'white', textAlign: 'center' }}
           >
             Give every student a single, intelligent workspace.
           </h2>
@@ -327,7 +327,7 @@ export default function About() {
               </span>
               <div style={{ height: 1, background: '#E5E7EB', margin: '0 0 16px' }} />
               <p style={{ color: '#6B7280', fontSize: '0.9375rem', lineHeight: 1.625, marginBottom: 8 }}>{org.description}</p>
-              <p style={{ fontSize: '0.75rem', fontWeight: 500, color: '#6B21A8', marginTop: 8 }}>{org.contribution}</p>
+              <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6B21A8', marginTop: 8 }}>{org.contribution}</p>
             </div>
           ))}
         </div>
@@ -348,7 +348,7 @@ export default function About() {
           {user ? (
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-2 font-semibold px-7 py-3 rounded-lg"
+              className="inline-flex items-center gap-2 font-semibold px-7 py-3"
               style={{ background: 'white', color: '#6B21A8', fontSize: '0.9375rem', borderRadius: 8 }}
             >
               Go to Dashboard <ArrowRight size={15} />
@@ -356,7 +356,7 @@ export default function About() {
           ) : (
             <Link
               to="/register"
-              className="inline-flex items-center gap-2 font-semibold px-7 py-3 rounded-lg"
+              className="inline-flex items-center gap-2 font-semibold px-7 py-3"
               style={{ background: 'white', color: '#6B21A8', fontSize: '0.9375rem', borderRadius: 8 }}
             >
               Start for free <ArrowRight size={15} />
