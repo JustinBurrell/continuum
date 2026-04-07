@@ -168,14 +168,14 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               to="/register"
-              className="inline-flex items-center justify-center gap-2 text-white font-semibold px-8 py-3.5 rounded-lg transition-all"
+              className="inline-flex items-center justify-center gap-2 text-white font-semibold px-8 py-3.5 transition-all"
               style={{ background: '#6B21A8', fontSize: '0.9375rem', borderRadius: 8 }}
             >
               Start for free, no credit card needed <ArrowRight size={16} />
             </Link>
             <Link
               to="/product"
-              className="inline-flex items-center justify-center gap-2 font-semibold px-8 py-3.5 rounded-lg border transition-all"
+              className="inline-flex items-center justify-center gap-2 font-semibold px-8 py-3.5 border transition-all"
               style={{ background: 'white', borderColor: '#6B21A8', color: '#6B21A8', fontSize: '0.9375rem', borderRadius: 8 }}
             >
               See how it works
@@ -554,7 +554,7 @@ export default function Landing() {
                 "{t.quote}"
               </p>
               <div className="flex items-center gap-3">
-                <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#F3F0FF', color: '#6B21A8', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', flexShrink: 0 }}>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#F3F0FF', color: '#6B21A8', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9375rem', flexShrink: 0 }}>
                   {t.name.charAt(0)}
                 </div>
                 <div>

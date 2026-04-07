@@ -33,7 +33,7 @@ export default function MarketingFooter() {
             <Link to="/" style={{ display: 'inline-block', textDecoration: 'none', marginBottom: 12 }}>
               <img src="/wordmark.svg" alt="Continuum" style={{ height: 26 }} />
             </Link>
-            <p style={{ fontSize: 14, lineHeight: 1.65, color: '#6B7280', margin: 0 }}>
+            <p style={{ fontSize: 14, lineHeight: 1.65, color: '#6B7280', margin: 0, maxWidth: 280 }}>
               Your all-in-one academic and career workspace, built for students who want to stay ahead.
             </p>
           </div>
