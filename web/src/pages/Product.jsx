@@ -393,7 +393,7 @@ export default function Product() {
         }}
       >
         <div className="max-w-6xl mx-auto px-6">
-          <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none', justifyContent: 'center' }}>
             {tabs.map(tab => (
               <button
                 key={tab.id}
