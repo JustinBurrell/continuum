@@ -1,52 +1,79 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
-export default function MarketingNav({ active }) {
+export default function MarketingNav() {
   const { user, isLoading } = useAuth();
+  const { pathname } = useLocation();
 
-  const linkStyle = (page) => ({
-    color: active === page ? '#6b21a8' : 'rgba(17,24,39,0.55)',
-    borderBottom: active === page ? '2px solid #6b21a8' : '2px solid transparent',
-    fontWeight: active === page ? 600 : 500,
-  });
+  const navLinks = [
+    { to: '/product', label: 'Product' },
+    { to: '/about', label: 'About' },
+  ];
 
   return (
     <header
-      className="sticky top-0 z-40 border-b"
+      className="font-marketing sticky top-0 z-40"
       style={{
-        backgroundColor: 'rgba(254,247,255,0.92)',
+        background: 'rgba(255,255,255,0.85)',
         backdropFilter: 'blur(12px)',
-        borderColor: '#ede9fe',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderBottom: '1px solid #E5E7EB',
       }}
     >
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="no-underline">
-          <img src="/wordmark.svg" alt="Continuum" style={{ height: 30 }} />
+      <div style={{ maxWidth: 1152, margin: '0 auto', padding: '0 24px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* Logo */}
+        <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}>
+          <img src="/wordmark.svg" alt="Continuum" style={{ height: 28 }} />
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1">
-          <Link
-            to="/product"
-            className="text-sm px-3 py-2"
-            style={linkStyle('product')}
-          >
-            Product
-          </Link>
-          <Link
-            to="/about"
-            className="text-sm px-3 py-2"
-            style={linkStyle('about')}
-          >
-            About
-          </Link>
+        {/* Center nav links */}
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {navLinks.map(({ to, label }) => {
+            const active = pathname === to || pathname.startsWith(to + '/');
+            return (
+              <Link
+                key={to}
+                to={to}
+                style={{
+                  fontSize: 14,
+                  fontWeight: active ? 600 : 500,
+                  color: active ? '#6B21A8' : '#374151',
+                  textDecoration: 'none',
+                  padding: '6px 14px',
+                  borderRadius: 6,
+                  transition: 'color 0.15s, background 0.15s',
+                }}
+                onMouseEnter={e => {
+                  if (!active) {
+                    e.currentTarget.style.color = '#111827';
+                    e.currentTarget.style.background = '#F9FAFB';
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!active) {
+                    e.currentTarget.style.color = '#374151';
+                    e.currentTarget.style.background = 'transparent';
+                  }
+                }}
+              >
+                {label}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="flex items-center gap-3" style={{ minWidth: 160, justifyContent: 'flex-end' }}>
+        {/* Right CTA */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 180, justifyContent: 'flex-end' }}>
           {isLoading ? null : user ? (
             <Link
               to="/dashboard"
-              className="text-sm font-semibold text-white px-4 py-2 rounded-lg"
-              style={{ background: '#6b21a8' }}
+              style={{
+                fontSize: 14, fontWeight: 600, color: '#fff',
+                background: '#6B21A8', padding: '7px 18px', borderRadius: 8,
+                textDecoration: 'none', transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#5B1A91'}
+              onMouseLeave={e => e.currentTarget.style.background = '#6B21A8'}
             >
               Go to Dashboard
             </Link>
@@ -54,15 +81,26 @@ export default function MarketingNav({ active }) {
             <>
               <Link
                 to="/login"
-                className="text-sm font-medium px-4 py-2"
-                style={{ color: 'rgba(17,24,39,0.6)' }}
+                style={{
+                  fontSize: 14, fontWeight: 500, color: '#374151',
+                  textDecoration: 'none', padding: '7px 14px', borderRadius: 6,
+                  transition: 'color 0.15s, background 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#111827'; e.currentTarget.style.background = '#F9FAFB'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#374151'; e.currentTarget.style.background = 'transparent'; }}
               >
                 Sign in
               </Link>
               <Link
                 to="/register"
-                className="text-sm font-semibold text-white px-4 py-2 rounded-lg"
-                style={{ background: '#6b21a8', boxShadow: '0 1px 8px rgba(107,33,168,0.25)' }}
+                style={{
+                  fontSize: 14, fontWeight: 600, color: '#fff',
+                  background: '#6B21A8', padding: '7px 18px', borderRadius: 8,
+                  textDecoration: 'none', transition: 'background 0.15s',
+                  boxShadow: '0 1px 6px rgba(107,33,168,0.2)',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#5B1A91'}
+                onMouseLeave={e => e.currentTarget.style.background = '#6B21A8'}
               >
                 Get started
               </Link>
