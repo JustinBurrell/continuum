@@ -292,5 +292,5 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp) except `DE
 
 **Responses:**
 - `201` — Email successfully subscribed: `{ success: true, message: "You're on the list!" }`
-- `200` — Duplicate email (already subscribed): `{ success: true, message: "You're on the list!" }`
+- `409` — Email already on the waitlist: `{ success: false, error: "This email is already on the waitlist." }`
 - `400` — Missing or invalid email: `{ success: false, error: "Please enter a valid email address." }`

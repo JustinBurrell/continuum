@@ -37,15 +37,16 @@ describe('POST /api/waitlist', () => {
         expect(res.body.success).toBe(true);
     });
 
-    it('returns 200 for a duplicate email (idempotent)', async () => {
+    it('returns 409 for a duplicate email', async () => {
         await request(app).post('/api/waitlist').send({ email: 'dup@example.com' });
 
         const res = await request(app)
             .post('/api/waitlist')
             .send({ email: 'dup@example.com' });
 
-        expect(res.statusCode).toBe(200);
-        expect(res.body.success).toBe(true);
+        expect(res.statusCode).toBe(409);
+        expect(res.body.success).toBe(false);
+        expect(res.body.error).toBe('This email is already on the waitlist.');
     });
 
     it('returns 400 when email is missing', async () => {

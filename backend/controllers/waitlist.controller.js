@@ -28,20 +28,16 @@ exports.subscribe = async (req, res) => {
         return res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
     }
 
-    try {
-        await WaitlistEntry.create({
-            email: email.trim(),
-            firstName: firstName ? firstName.trim() : null,
-            source,
-        });
-    } catch (err) {
-        // E11000 = MongoDB duplicate key — email already on the list
-        // Return success anyway so users don't know whether an email was already registered
-        if (err.code === 11000) {
-            return res.status(200).json({ success: true, message: "You're on the list!" });
-        }
-        throw err; // Let app.js global error handler deal with anything else
+    const existing = await WaitlistEntry.findOne({ email: email.trim() });
+    if (existing) {
+        return res.status(409).json({ success: false, error: 'This email is already on the waitlist.' });
     }
+
+    await WaitlistEntry.create({
+        email: email.trim(),
+        firstName: firstName ? firstName.trim() : null,
+        source,
+    });
 
     return res.status(201).json({ success: true, message: "You're on the list!" });
 };

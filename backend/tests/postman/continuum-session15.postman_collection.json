@@ -182,15 +182,16 @@
           }
         },
         {
-          "name": "POST /waitlist — duplicate email (200 idempotent)",
+          "name": "POST /waitlist — duplicate email (409)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('200 idempotent response for duplicate', () => pm.expect(pm.response.code).to.equal(200));",
-                  "pm.test('success is true', () => pm.expect(pm.response.json().success).to.be.true);"
+                  "pm.test('409 for duplicate email', () => pm.expect(pm.response.code).to.equal(409));",
+                  "pm.test('success is false', () => pm.expect(pm.response.json().success).to.be.false);",
+                  "pm.test('error message returned', () => pm.expect(pm.response.json().error).to.include('already on the waitlist'));"
                 ]
               }
             }

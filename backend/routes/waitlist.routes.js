@@ -58,8 +58,8 @@ const waitlistController = require('../controllers/waitlist.controller');
  *                 message:
  *                   type: string
  *                   example: "You're on the list!"
- *       200:
- *         description: Email already on the list (idempotent response)
+ *       409:
+ *         description: Email already on the waitlist
  *         content:
  *           application/json:
  *             schema:
@@ -67,10 +67,10 @@ const waitlistController = require('../controllers/waitlist.controller');
  *               properties:
  *                 success:
  *                   type: boolean
- *                   example: true
- *                 message:
+ *                   example: false
+ *                 error:
  *                   type: string
- *                   example: "You're on the list!"
+ *                   example: This email is already on the waitlist.
  *       400:
  *         description: Missing or invalid email
  *         content:
