@@ -3,13 +3,16 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
+import { useAuth } from '@/context/AuthContext';
 
 export default function EmailVerified() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const { user } = useAuth();
 
   const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
   const [errorMsg, setErrorMsg] = useState('');
+  const [resendStatus, setResendStatus] = useState('idle'); // 'idle' | 'sending' | 'sent'
   // Prevents double-firing in React StrictMode dev (effects intentionally run twice).
   // The ref is set synchronously before the async call so the second run is a no-op.
   const calledRef = useRef(false);
@@ -37,27 +40,28 @@ export default function EmailVerified() {
   }, [token]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="max-w-md w-full text-center">
+    <div className="font-marketing min-h-screen flex items-center justify-center px-4" style={{ background: '#F8F9FA' }}>
+      <div style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: 16, padding: 40, boxShadow: '0 4px 24px rgba(0,0,0,0.08)', maxWidth: 440, width: '100%', textAlign: 'center' }}>
         {status === 'loading' && (
           <div className="space-y-4">
-            <Loader size={40} className="text-primary animate-spin mx-auto" />
-            <p className="text-foreground font-medium">Verifying your email...</p>
+            <Loader size={40} className="animate-spin mx-auto" style={{ color: '#6B21A8' }} />
+            <p style={{ color: '#111827', fontWeight: 500 }}>Verifying your email...</p>
           </div>
         )}
 
         {status === 'success' && (
           <div className="space-y-5">
-            <CheckCircle size={48} className="text-green-500 mx-auto" />
+            <CheckCircle size={48} className="mx-auto" style={{ color: '#059669' }} />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Email verified</h1>
-              <p className="text-secondary text-sm mt-2">
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>Email verified</h1>
+              <p style={{ color: '#6B7280', fontSize: '0.9375rem', margin: 0 }}>
                 Your email address has been confirmed. You're all set with Continuum.
               </p>
             </div>
             <Link
               to="/dashboard"
-              className="inline-block bg-primary text-white text-sm font-medium px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+              className="inline-block text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-opacity hover:opacity-90"
+              style={{ background: '#6B21A8' }}
             >
               Continue to Continuum
             </Link>
@@ -66,20 +70,49 @@ export default function EmailVerified() {
 
         {status === 'error' && (
           <div className="space-y-5">
-            <XCircle size={48} className="text-red-500 mx-auto" />
+            <XCircle size={48} className="mx-auto" style={{ color: '#DC2626' }} />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Verification failed</h1>
-              <p className="text-secondary text-sm mt-2">{errorMsg}</p>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>Verification failed</h1>
+              <p style={{ color: '#6B7280', fontSize: '0.9375rem', margin: 0 }}>{errorMsg}</p>
             </div>
             <div className="flex flex-col items-center gap-3">
+              {user ? (
+                resendStatus === 'sent' ? (
+                  <p style={{ fontSize: '0.875rem', color: '#059669', fontWeight: 500 }}>Verification email sent.</p>
+                ) : (
+                  <button
+                    disabled={resendStatus === 'sending'}
+                    onClick={async () => {
+                      setResendStatus('sending');
+                      try {
+                        await api.post('/auth/send-verification');
+                        setResendStatus('sent');
+                      } catch {
+                        setResendStatus('idle');
+                      }
+                    }}
+                    className="inline-block text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-opacity hover:opacity-90"
+                    style={{ background: resendStatus === 'sending' ? '#9CA3AF' : '#6B21A8', border: 'none', cursor: resendStatus === 'sending' ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}
+                  >
+                    {resendStatus === 'sending' ? 'Sending...' : 'Resend verification email'}
+                  </button>
+                )
+              ) : (
+                <Link
+                  to="/login"
+                  className="inline-block text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-opacity hover:opacity-90"
+                  style={{ background: '#6B21A8' }}
+                >
+                  Sign in to resend
+                </Link>
+              )}
               <Link
-                to="/profile"
-                className="inline-block bg-primary text-white text-sm font-medium px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+                to={user ? '/dashboard' : '/'}
+                style={{ fontSize: '0.875rem', color: '#6B21A8', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
               >
-                Go to Settings to resend
-              </Link>
-              <Link to="/dashboard" className="text-sm text-secondary hover:text-foreground transition-colors">
-                Back to dashboard
+                {user ? 'Back to dashboard' : 'Back to home'}
               </Link>
             </div>
           </div>

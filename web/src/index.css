@@ -1,8 +1,52 @@
 @import '@fontsource-variable/dm-sans';
-@import '@fontsource/lora/400.css';
-@import '@fontsource/lora/500.css';
-@import '@fontsource/lora/600.css';
-@import '@fontsource/lora/400-italic.css';
+
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/fonts/fraunces-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/fonts/fraunces-900.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/plus-jakarta-sans-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/plus-jakarta-sans-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/plus-jakarta-sans-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/plus-jakarta-sans-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -196,15 +240,6 @@
   /* ---- Page structure ---- */
   .page-header {
     @apply mb-6 flex items-center justify-between;
-  }
-
-  .page-title {
-    font-family: 'Lora', serif;
-    font-size: 1.625rem;
-    font-weight: 500;
-    color: var(--text-primary);
-    letter-spacing: -0.02em;
-    line-height: 1.2;
   }
 
   .section-label {

@@ -56,13 +56,14 @@ export default function App() {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
 
-            {/* Auth — unauthenticated */}
+            {/* Auth — unauthenticated only */}
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
+            {/* Auth — accessible regardless of login state (arrive via email link) */}
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/verify-email" element={<EmailVerified />} />
 
