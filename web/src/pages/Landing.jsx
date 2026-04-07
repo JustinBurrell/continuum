@@ -202,7 +202,7 @@ export default function Landing() {
                 className="rounded px-3 py-0.5 text-xs text-center max-w-xs mx-auto"
                 style={{ background: 'white', color: '#9CA3AF', border: '1px solid #E5E7EB' }}
               >
-                app.continuum.io/dashboard
+                usecontinuum.dev
               </div>
             </div>
           </div>
