@@ -232,7 +232,7 @@ export default function About() {
               <img
                 src="/justin.jpg"
                 alt="Justin Burrell"
-                style={{ borderRadius: 12, width: 120, height: 120, objectFit: 'cover', objectPosition: 'top' }}
+                style={{ borderRadius: 16, width: 200, height: 200, objectFit: 'cover', objectPosition: 'top' }}
               />
               <div style={{ background: '#F3F0FF', color: '#6B21A8', fontSize: '0.75rem', fontWeight: 500, borderRadius: 999, padding: '4px 12px', display: 'inline-block', marginTop: 12 }}>
                 Founder
