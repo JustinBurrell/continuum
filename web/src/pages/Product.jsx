@@ -368,10 +368,9 @@ export default function Product() {
         </div>
         <h1
           className="font-bold tracking-tight leading-tight mb-5"
-          style={{ fontFamily: 'Fraunces, Georgia, serif', fontStyle: 'normal', fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#111827' }}
+          style={{ fontFamily: 'Fraunces, Georgia, serif', fontStyle: 'normal', fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#111827', fontWeight: 700 }}
         >
-          Everything a student needs.{' '}
-          <span style={{ color: '#6B21A8' }}>Nothing they don't.</span>
+          Every tool a student needs, connected in one place.
         </h1>
         <p className="text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: '#6B7280' }}>
           One platform for your academic life and career. Notes, flashcards, tasks, job
@@ -568,35 +567,35 @@ export default function Product() {
       </section>
 
       {/* CTA */}
-      <section style={{ background: '#6B21A8', padding: '96px 0' }}>
+      <section style={{ background: '#FFFFFF', borderTop: '1px solid #E5E7EB', padding: '96px 0' }}>
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2
             className="font-bold mb-4"
-            style={{ fontFamily: 'Fraunces, Georgia, serif', fontStyle: 'normal', fontSize: '2.5rem', color: 'white' }}
+            style={{ fontFamily: 'Fraunces, Georgia, serif', fontStyle: 'normal', fontSize: '2.5rem', color: '#111827' }}
           >
             Ready to get started?
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.125rem', marginBottom: 40 }}>
+          <p style={{ color: '#6B7280', fontSize: '1.125rem', marginBottom: 40 }}>
             Join Continuum and keep everything that matters in one place.
           </p>
           {user ? (
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-2 font-semibold px-7 py-3 rounded-lg transition-all"
-              style={{ background: 'white', color: '#6B21A8', fontSize: '0.9375rem', borderRadius: 8 }}
+              className="inline-flex items-center gap-2 font-semibold px-7 py-3 transition-all"
+              style={{ background: '#6B21A8', color: 'white', fontSize: '0.9375rem', borderRadius: 8 }}
             >
               Go to Dashboard <ArrowRight size={15} />
             </Link>
           ) : (
             <Link
               to="/register"
-              className="inline-flex items-center gap-2 font-semibold px-7 py-3 rounded-lg transition-all"
-              style={{ background: 'white', color: '#6B21A8', fontSize: '0.9375rem', borderRadius: 8 }}
+              className="inline-flex items-center gap-2 font-semibold px-7 py-3 transition-all"
+              style={{ background: '#6B21A8', color: 'white', fontSize: '0.9375rem', borderRadius: 8 }}
             >
               Start for free <ArrowRight size={15} />
             </Link>
           )}
-          <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.55)', marginTop: 12 }}>
+          <p style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: 12 }}>
             Free forever. No credit card required.
           </p>
         </div>
