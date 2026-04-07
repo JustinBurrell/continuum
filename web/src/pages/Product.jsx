@@ -375,7 +375,7 @@ export default function Product() {
           aiVisible = entry.isIntersecting;
           update();
         },
-        { threshold: 0 }
+        { rootMargin: '0px 0px -60% 0px', threshold: 0 }
       );
       aiObserver.observe(aiSection);
       observers.push(aiObserver);
