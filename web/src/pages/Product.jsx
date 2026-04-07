@@ -442,11 +442,11 @@ export default function Product() {
       {/* Hero */}
       <section className="max-w-3xl mx-auto px-6 pt-20 pb-10 text-center">
         <div
-          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 border"
-          style={{ background: '#F3F0FF', borderColor: 'rgba(107,33,168,0.2)' }}
+          className="mb-6"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'white', border: '1px solid #E5E7EB', color: '#6B21A8', fontSize: '0.75rem', fontWeight: 500, borderRadius: 999, padding: '6px 14px' }}
         >
-          <Sparkles size={12} style={{ color: '#6B21A8' }} />
-          <span className="text-xs font-semibold" style={{ color: '#6B21A8' }}>Full feature breakdown</span>
+          <Sparkles size={12} />
+          Full feature breakdown
         </div>
         <h1
           className="font-bold tracking-tight leading-tight mb-5"
