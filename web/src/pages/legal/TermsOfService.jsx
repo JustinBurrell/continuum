@@ -152,21 +152,20 @@ const toc = [
 
 export default function TermsOfService() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
+    <div className="font-marketing min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
       <MarketingNav />
 
-      <main className="max-w-3xl mx-auto px-6 py-16">
+      <main style={{ maxWidth: 768, margin: '0 auto', padding: '64px 24px 96px' }}>
         <h1
-          className="font-bold mb-2"
-          style={{ fontFamily: 'inherit', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', color: '#111827' }}
+          style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 2.75rem)', color: '#111827', marginBottom: 8, lineHeight: 1.15 }}
         >
           Terms of Service
         </h1>
-        <p className="text-sm font-semibold mb-8" style={{ color: '#6b21a8' }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: '#6B21A8', marginBottom: 32 }}>
           Last updated: March 2026
         </p>
 
-        <p className="text-base leading-relaxed mb-10" style={{ color: '#374151' }}>
+        <p style={{ fontSize: 15, lineHeight: 1.75, color: '#374151', marginBottom: 48 }}>
           These Terms of Service govern your access to and use of Continuum, a student productivity platform.
           Please read these Terms carefully before using the platform. By creating an account or accessing Continuum,
           you agree to be bound by these Terms.
@@ -174,19 +173,19 @@ export default function TermsOfService() {
 
         {/* Table of contents */}
         <div
-          className="rounded-xl p-6 mb-12"
-          style={{ background: '#f5f0ff', border: '1px solid rgba(107,33,168,0.15)' }}
+          style={{ background: '#F3F0FF', border: '1px solid #E5E7EB', borderRadius: 12, padding: '24px 28px', marginBottom: 56 }}
         >
-          <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#a087b0', letterSpacing: '0.12em' }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6B7280', marginBottom: 16 }}>
             Table of Contents
           </p>
-          <ol className="space-y-2">
+          <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {toc.map((item) => (
               <li key={item.id}>
                 <a
                   href={`#${item.id}`}
-                  className="text-sm no-underline"
-                  style={{ color: '#6b21a8', fontWeight: 500 }}
+                  style={{ fontSize: 14, color: '#6B21A8', fontWeight: 500, textDecoration: 'none' }}
+                  onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                  onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
                 >
                   {item.label}
                 </a>
@@ -196,19 +195,15 @@ export default function TermsOfService() {
         </div>
 
         {/* Sections */}
-        <div className="space-y-12">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
           {sections.map((section) => (
             <section key={section.id} id={section.id}>
               <h2
-                className="font-bold mb-4"
-                style={{ fontFamily: 'inherit', fontSize: '1.15rem', color: '#111827' }}
+                style={{ fontFamily: 'inherit', fontWeight: 700, fontSize: '1.1rem', color: '#111827', marginBottom: 16 }}
               >
                 {section.title}
               </h2>
-              <div
-                className="text-sm leading-relaxed space-y-4"
-                style={{ color: '#374151' }}
-              >
+              <div className="legal-content">
                 {section.content}
               </div>
             </section>
@@ -217,10 +212,12 @@ export default function TermsOfService() {
       </main>
 
       <style>{`
-        .space-y-4 p { margin: 0; }
-        .space-y-4 ul { padding-left: 1.25rem; list-style: disc; margin: 0; }
-        .space-y-4 ul li { margin-bottom: 0.35rem; }
-        .space-y-4 a { color: #6b21a8; }
+        .legal-content { display: flex; flex-direction: column; gap: 12px; }
+        .legal-content p { font-size: 14px; line-height: 1.75; color: #374151; margin: 0; }
+        .legal-content ul { padding-left: 20px; list-style: disc; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+        .legal-content ul li { font-size: 14px; line-height: 1.7; color: #374151; }
+        .legal-content a { color: #6B21A8; }
+        .legal-content strong { color: #111827; }
       `}</style>
 
       <MarketingFooter />
