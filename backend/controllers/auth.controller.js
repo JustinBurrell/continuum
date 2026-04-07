@@ -22,14 +22,14 @@ function emailTemplate(content) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
-<body style="margin:0;padding:0;background:#fef7ff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef7ff;padding:40px 0;">
+<body style="margin:0;padding:0;background:#F8F9FA;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8F9FA;padding:40px 0;">
     <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;padding:40px;max-width:560px;">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;border:1px solid #E5E7EB;padding:40px;max-width:560px;">
         <tr><td>
           ${content}
-          <hr style="border:none;border-top:1px solid #e9e3f0;margin:32px 0;" />
-          <p style="color:#a087b0;font-size:13px;margin:0 0 16px;">Team Continuum</p>
+          <hr style="border:none;border-top:1px solid #E5E7EB;margin:32px 0;" />
+          <p style="color:#6B7280;font-size:13px;margin:0 0 16px;">Team Continuum</p>
           <img src="https://usecontinuum.dev/wordmark.svg" alt="Continuum" height="22" style="display:block;" />
         </td></tr>
       </table>
@@ -206,10 +206,10 @@ exports.register = async (req, res) => {
             to: user.email,
             subject: 'Verify your Continuum email',
             html: emailTemplate(`
-                <p style="color:#1a1a1a;font-size:16px;margin:0 0 12px;">Hi ${user.firstName},</p>
-                <p style="color:#3d3d3d;font-size:15px;margin:0 0 24px;">Welcome to Continuum! Click the button below to verify your email address. This link expires in 24 hours.</p>
-                <a href="${verifyUrl}" style="display:inline-block;background:#6b21a8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:500;">Verify Email</a>
-                <p style="color:#a087b0;font-size:13px;margin:24px 0 0;">If you didn't create a Continuum account, you can safely ignore this email.</p>
+                <p style="color:#111827;font-size:16px;margin:0 0 12px;">Hi ${user.firstName},</p>
+                <p style="color:#374151;font-size:15px;margin:0 0 24px;">Welcome to Continuum! Click the button below to verify your email address. This link expires in 24 hours.</p>
+                <a href="${verifyUrl}" style="display:inline-block;background:#6B21A8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600;">Verify Email</a>
+                <p style="color:#6B7280;font-size:13px;margin:24px 0 0;">If you didn't create a Continuum account, you can safely ignore this email.</p>
             `),
         });
     } catch (_) { /* non-blocking */ }
@@ -314,10 +314,10 @@ exports.forgotPassword = async (req, res) => {
         to: user.email,
         subject: 'Reset your Continuum password',
         html: emailTemplate(`
-            <p style="color:#1a1a1a;font-size:16px;margin:0 0 12px;">Reset your password</p>
-            <p style="color:#3d3d3d;font-size:15px;margin:0 0 24px;">Click the button below to set a new password. This link expires in 1 hour.</p>
-            <a href="${resetUrl}" style="display:inline-block;background:#6b21a8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:500;">Reset Password</a>
-            <p style="color:#a087b0;font-size:13px;margin:24px 0 0;">If you didn't request a password reset, you can safely ignore this email.</p>
+            <p style="color:#111827;font-size:16px;margin:0 0 12px;">Reset your password</p>
+            <p style="color:#374151;font-size:15px;margin:0 0 24px;">Click the button below to set a new password. This link expires in 1 hour.</p>
+            <a href="${resetUrl}" style="display:inline-block;background:#6B21A8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600;">Reset Password</a>
+            <p style="color:#6B7280;font-size:13px;margin:24px 0 0;">If you didn't request a password reset, you can safely ignore this email.</p>
         `),
     });
 
@@ -737,10 +737,10 @@ exports.sendVerificationEmail = async (req, res) => {
         to: req.user.email,
         subject: 'Verify your Continuum email',
         html: emailTemplate(`
-            <p style="color:#1a1a1a;font-size:16px;margin:0 0 12px;">Hi ${req.user.firstName},</p>
-            <p style="color:#3d3d3d;font-size:15px;margin:0 0 24px;">Click the button below to verify your email address. This link expires in 24 hours.</p>
-            <a href="${verifyUrl}" style="display:inline-block;background:#6b21a8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:500;">Verify Email</a>
-            <p style="color:#a087b0;font-size:13px;margin:24px 0 0;">If you didn't request this, you can safely ignore this email.</p>
+            <p style="color:#111827;font-size:16px;margin:0 0 12px;">Hi ${req.user.firstName},</p>
+            <p style="color:#374151;font-size:15px;margin:0 0 24px;">Click the button below to verify your email address. This link expires in 24 hours.</p>
+            <a href="${verifyUrl}" style="display:inline-block;background:#6B21A8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600;">Verify Email</a>
+            <p style="color:#6B7280;font-size:13px;margin:24px 0 0;">If you didn't request this, you can safely ignore this email.</p>
         `),
     });
 
@@ -881,10 +881,10 @@ exports.deleteAccount = async (req, res) => {
             to: user.email,
             subject: 'Your Continuum account has been scheduled for deletion',
             html: emailTemplate(`
-                <p style="color:#1a1a1a;font-size:16px;margin:0 0 12px;">Hi ${user.firstName},</p>
-                <p style="color:#3d3d3d;font-size:15px;margin:0 0 12px;">Your account has been scheduled for deletion. <strong>All your data (notes, tasks, flashcards, messages, and more) will be permanently deleted on ${restoreDeadline}.</strong></p>
-                <p style="color:#3d3d3d;font-size:15px;margin:0 0 24px;">Changed your mind? Simply log in before ${restoreDeadline} and your account will be fully restored.</p>
-                <p style="color:#a087b0;font-size:13px;margin:0;">If you did not request this, log in immediately to restore your account.</p>
+                <p style="color:#111827;font-size:16px;margin:0 0 12px;">Hi ${user.firstName},</p>
+                <p style="color:#374151;font-size:15px;margin:0 0 12px;">Your account has been scheduled for deletion. <strong>All your data (notes, tasks, flashcards, messages, and more) will be permanently deleted on ${restoreDeadline}.</strong></p>
+                <p style="color:#374151;font-size:15px;margin:0 0 24px;">Changed your mind? Simply log in before ${restoreDeadline} and your account will be fully restored.</p>
+                <p style="color:#6B7280;font-size:13px;margin:0;">If you did not request this, log in immediately to restore your account.</p>
             `),
         });
     } catch (_) { /* non-blocking */ }
