@@ -329,10 +329,13 @@ const aiFeatures = [
 export default function Product() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('notes');
+  const [navVisible, setNavVisible] = useState(false);
   const sectionRefs = useRef({});
 
   useEffect(() => {
     const observers = [];
+
+    // Active tab: highlight whichever section is most visible
     sections.forEach(s => {
       const el = document.getElementById(s.id);
       if (!el) return;
@@ -345,6 +348,39 @@ export default function Product() {
       observer.observe(el);
       observers.push(observer);
     });
+
+    // Visibility: show tab strip after trigger scrolls above viewport, hide at AI section
+    let triggerPassed = false;
+    let aiVisible = false;
+
+    const update = () => setNavVisible(triggerPassed && !aiVisible);
+
+    const trigger = document.getElementById('feature-nav-trigger');
+    if (trigger) {
+      const triggerObserver = new IntersectionObserver(
+        ([entry]) => {
+          triggerPassed = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+          update();
+        },
+        { threshold: 0 }
+      );
+      triggerObserver.observe(trigger);
+      observers.push(triggerObserver);
+    }
+
+    const aiSection = document.getElementById('ai-section');
+    if (aiSection) {
+      const aiObserver = new IntersectionObserver(
+        ([entry]) => {
+          aiVisible = entry.isIntersecting;
+          update();
+        },
+        { threshold: 0 }
+      );
+      aiObserver.observe(aiSection);
+      observers.push(aiObserver);
+    }
+
     return () => observers.forEach(o => o.disconnect());
   }, []);
 
@@ -357,38 +393,23 @@ export default function Product() {
     <div className="font-marketing min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
       <MarketingNav active="product" />
 
-      {/* Hero */}
-      <section className="max-w-3xl mx-auto px-6 pt-20 pb-10 text-center">
-        <div
-          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 border"
-          style={{ background: '#F3F0FF', borderColor: 'rgba(107,33,168,0.2)' }}
-        >
-          <Sparkles size={12} style={{ color: '#6B21A8' }} />
-          <span className="text-xs font-semibold" style={{ color: '#6B21A8' }}>Full feature breakdown</span>
-        </div>
-        <h1
-          className="font-bold tracking-tight leading-tight mb-5"
-          style={{ fontFamily: 'Fraunces, Georgia, serif', fontStyle: 'normal', fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#111827', fontWeight: 700 }}
-        >
-          Every tool a student needs, connected in one place.
-        </h1>
-        <p className="text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: '#6B7280' }}>
-          One platform for your academic life and career. Notes, flashcards, tasks, job
-          applications, resumes, and your social network, connected and powered by AI.
-        </p>
-      </section>
-
-      {/* Tab strip */}
+      {/* Fixed tab strip — appears after scrolling past trigger anchor */}
       <div
         style={{
-          position: 'sticky',
+          position: 'fixed',
           top: 57,
+          left: 0,
+          right: 0,
           zIndex: 40,
           background: 'rgba(255,255,255,0.90)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
           borderBottom: '1px solid #E5E7EB',
-          padding: '12px 0',
+          padding: '10px 0',
+          opacity: navVisible ? 1 : 0,
+          pointerEvents: navVisible ? 'auto' : 'none',
+          transform: navVisible ? 'translateY(0)' : 'translateY(-8px)',
+          transition: 'opacity 0.25s ease, transform 0.25s ease',
         }}
       >
         <div className="max-w-6xl mx-auto px-6">
@@ -417,6 +438,27 @@ export default function Product() {
           </div>
         </div>
       </div>
+
+      {/* Hero */}
+      <section className="max-w-3xl mx-auto px-6 pt-20 pb-10 text-center">
+        <div
+          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 border"
+          style={{ background: '#F3F0FF', borderColor: 'rgba(107,33,168,0.2)' }}
+        >
+          <Sparkles size={12} style={{ color: '#6B21A8' }} />
+          <span className="text-xs font-semibold" style={{ color: '#6B21A8' }}>Full feature breakdown</span>
+        </div>
+        <h1
+          className="font-bold tracking-tight leading-tight mb-5"
+          style={{ fontFamily: 'Fraunces, Georgia, serif', fontStyle: 'normal', fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#111827', fontWeight: 700 }}
+        >
+          Every tool a student needs, connected in one place.
+        </h1>
+        <p className="text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: '#6B7280' }}>
+          One platform for your academic life and career. Notes, flashcards, tasks, job
+          applications, resumes, and your social network, connected and powered by AI.
+        </p>
+      </section>
 
       {/* 3-up mini mockup preview row */}
       <div className="max-w-6xl mx-auto px-6 pt-10 pb-6">
@@ -488,6 +530,7 @@ export default function Product() {
 
       {/* Feature sections */}
       <div className="max-w-6xl mx-auto px-6">
+        <div id="feature-nav-trigger" />
         {sections.map((s, i) => (
           <section
             key={s.id}
@@ -530,7 +573,7 @@ export default function Product() {
       </div>
 
       {/* AI section */}
-      <section style={{ background: '#3B0764' }}>
+      <section id="ai-section" style={{ background: '#3B0764' }}>
         <div className="max-w-6xl mx-auto px-6 py-24">
           <div className="text-center mb-14">
             <div
