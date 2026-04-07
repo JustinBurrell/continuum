@@ -77,7 +77,7 @@ function LeftPanel() {
           Your academic life, all in one place.
         </h2>
         <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, maxWidth: 280 }}>
-          Notes, flashcards, tasks, applications, and more — organized so you can focus on what matters.
+          Notes, flashcards, tasks, applications, and more, organized so you can focus on what matters.
         </p>
       </div>
 
