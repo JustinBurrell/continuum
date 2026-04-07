@@ -152,13 +152,13 @@ const toc = [
 
 export default function TermsOfService() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#fef7ff' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
       <MarketingNav />
 
       <main className="max-w-3xl mx-auto px-6 py-16">
         <h1
           className="font-bold mb-2"
-          style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', color: '#111827' }}
+          style={{ fontFamily: 'inherit', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', color: '#111827' }}
         >
           Terms of Service
         </h1>
@@ -201,7 +201,7 @@ export default function TermsOfService() {
             <section key={section.id} id={section.id}>
               <h2
                 className="font-bold mb-4"
-                style={{ fontFamily: 'Georgia, serif', fontSize: '1.15rem', color: '#111827' }}
+                style={{ fontFamily: 'inherit', fontSize: '1.15rem', color: '#111827' }}
               >
                 {section.title}
               </h2>

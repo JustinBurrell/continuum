@@ -29,7 +29,7 @@ export default function About() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#fef7ff' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
       <MarketingNav active="about" />
 
       {/* Hero */}
@@ -47,7 +47,7 @@ export default function About() {
           </div>
           <h1
             className="font-bold tracking-tight leading-tight mb-6"
-            style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2.2rem, 5vw, 3.2rem)', color: '#111827' }}
+            style={{ fontFamily: 'inherit', fontSize: 'clamp(2.2rem, 5vw, 3.2rem)', color: '#111827' }}
           >
             Built for the student who is trying to do it all
           </h1>
@@ -66,7 +66,7 @@ export default function About() {
               <div className="w-1 h-7 rounded-full" style={{ background: 'linear-gradient(180deg, #6b21a8, #a087b0)' }} />
               <h2
                 className="font-bold"
-                style={{ fontFamily: 'Georgia, serif', fontSize: '1.6rem', color: '#111827' }}
+                style={{ fontFamily: 'inherit', fontSize: '1.6rem', color: '#111827' }}
               >
                 How it started
               </h2>
@@ -113,7 +113,7 @@ export default function About() {
                     label: 'Ideation',
                     detail: 'What if one app replaced all of them?',
                     icon: '💡',
-                    accent: '#fffade',
+                    accent: '#F3F0FF',
                     border: 'rgba(107,33,168,0.15)',
                     done: true,
                   },
@@ -190,7 +190,7 @@ export default function About() {
       <section className="max-w-6xl mx-auto px-6 pb-24">
         <div
           className="rounded-2xl px-8 py-14"
-          style={{ background: '#fffade', border: '1px solid rgba(107,33,168,0.1)' }}
+          style={{ background: '#F8F9FA', border: '1px solid #E5E7EB' }}
         >
           <p
             className="text-xs font-semibold uppercase tracking-widest text-center mb-10"
@@ -203,7 +203,7 @@ export default function About() {
               <div key={item.stat} className="text-center">
                 <div
                   className="font-bold mb-3"
-                  style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', color: '#6b21a8', lineHeight: 1 }}
+                  style={{ fontFamily: 'inherit', fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', color: '#6b21a8', lineHeight: 1 }}
                 >
                   {item.stat}
                 </div>
@@ -225,7 +225,7 @@ export default function About() {
           </p>
           <h2
             className="font-bold text-white mb-6"
-            style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', lineHeight: 1.3 }}
+            style={{ fontFamily: 'inherit', fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', lineHeight: 1.3 }}
           >
             Give every student a single,
             <br />
@@ -249,7 +249,7 @@ export default function About() {
           </p>
           <h2
             className="font-bold"
-            style={{ fontFamily: 'Georgia, serif', fontSize: '1.6rem', color: '#111827' }}
+            style={{ fontFamily: 'inherit', fontSize: '1.6rem', color: '#111827' }}
           >
             Meet Justin
           </h2>
@@ -348,7 +348,7 @@ export default function About() {
           </p>
           <h2
             className="font-bold"
-            style={{ fontFamily: 'Georgia, serif', fontSize: '1.6rem', color: '#111827' }}
+            style={{ fontFamily: 'inherit', fontSize: '1.6rem', color: '#111827' }}
           >
             Organizations that made this possible
           </h2>
@@ -395,7 +395,7 @@ export default function About() {
         >
           <h2
             className="font-bold mb-3"
-            style={{ fontFamily: 'Georgia, serif', fontSize: '1.75rem', color: '#111827' }}
+            style={{ fontFamily: 'inherit', fontSize: '1.75rem', color: '#111827' }}
           >
             Ready to get started?
           </h2>

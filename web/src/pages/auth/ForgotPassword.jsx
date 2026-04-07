@@ -32,7 +32,7 @@ export default function ForgotPassword() {
         </div>
         <h2
           className="text-xl font-bold text-[#6b21a8] mb-2"
-          style={{ fontFamily: 'Georgia, serif' }}
+          style={{ fontFamily: 'inherit' }}
         >
           Check your email
         </h2>
@@ -55,7 +55,7 @@ export default function ForgotPassword() {
       <div className="mb-7 text-center">
         <h1
           className="text-2xl font-bold text-[#6b21a8] mb-1"
-          style={{ fontFamily: 'Georgia, serif' }}
+          style={{ fontFamily: 'inherit' }}
         >
           Reset your password
         </h1>

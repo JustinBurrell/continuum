@@ -28,7 +28,7 @@ export default function ResetPassword() {
       <div className="mb-7 text-center">
         <h1
           className="text-2xl font-bold text-[#6b21a8] mb-1"
-          style={{ fontFamily: 'Georgia, serif' }}
+          style={{ fontFamily: 'inherit' }}
         >
           Set new password
         </h1>

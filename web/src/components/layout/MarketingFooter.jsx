@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 export default function MarketingFooter() {
   return (
-    <footer style={{ borderTop: '1px solid #e5e7eb', backgroundColor: '#fef7ff' }}>
+    <footer style={{ backgroundColor: '#111827' }}>
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex flex-col md:flex-row justify-between gap-10 mb-10">
           <div className="max-w-xs">

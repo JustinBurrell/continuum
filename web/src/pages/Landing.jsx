@@ -13,55 +13,31 @@ const featureCards = [
     icon: FileText,
     title: 'Smart Notes',
     description: 'Rich text notes organized by type and tag, with AI summaries and Google Drive import.',
-    bg: '#6b21a8',
-    color: 'white',
-    iconBg: 'rgba(255,255,255,0.15)',
-    iconColor: 'white',
   },
   {
     icon: BookOpen,
     title: 'Flashcard Study',
     description: 'Turn any note into a study-ready flashcard set. Track your progress card by card.',
-    bg: '#fffade',
-    color: '#111827',
-    iconBg: 'rgba(107,33,168,0.1)',
-    iconColor: '#6b21a8',
   },
   {
     icon: CheckSquare,
     title: 'Task Manager',
     description: 'Visual kanban board with due dates, priorities, and shared tasks for collaborators.',
-    bg: '#f5f0ff',
-    color: '#111827',
-    iconBg: 'rgba(107,33,168,0.12)',
-    iconColor: '#6b21a8',
   },
   {
     icon: Briefcase,
     title: 'Career Pipeline',
     description: 'Track applications from Saved to Offer. Log contacts and set follow-up reminders.',
-    bg: '#ecfdf5',
-    color: '#111827',
-    iconBg: 'rgba(5,150,105,0.12)',
-    iconColor: '#059669',
   },
   {
     icon: FileText,
     title: 'Resume Builder',
     description: 'Upload and version your resumes. Get AI feedback with scores and keyword analysis.',
-    bg: '#eff6ff',
-    color: '#111827',
-    iconBg: 'rgba(37,99,235,0.12)',
-    iconColor: '#2563eb',
   },
   {
     icon: MessageCircle,
     title: 'Social Network',
     description: 'Connect with friends, share notes and flashcard sets, and message your academic network.',
-    bg: '#fff7ed',
-    color: '#111827',
-    iconBg: 'rgba(234,88,12,0.12)',
-    iconColor: '#ea580c',
   },
 ];
 
@@ -97,7 +73,7 @@ export default function Landing() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#fef7ff' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
       <MarketingNav active="landing" />
 
       {/* Hero */}
@@ -127,7 +103,7 @@ export default function Landing() {
           <h1
             className="font-bold tracking-tight leading-tight mb-6"
             style={{
-              fontFamily: 'Georgia, serif',
+              fontFamily: 'inherit',
               fontSize: 'clamp(2.75rem, 7vw, 4.5rem)',
               color: '#111827',
               lineHeight: 1.1,
@@ -247,7 +223,7 @@ export default function Landing() {
             <div className="flex-1 overflow-hidden" style={{ padding: '24px 28px' }}>
               <div className="flex items-end justify-between mb-5">
                 <div>
-                  <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 20, fontWeight: 400, color: '#111827', marginBottom: 2 }}>
+                  <h2 style={{ fontFamily: 'inherit', fontSize: 20, fontWeight: 400, color: '#111827', marginBottom: 2 }}>
                     {getGreeting()}, Alex.
                   </h2>
                   <p style={{ fontSize: 12, color: '#6b7280' }}>You have 3 assignments due tomorrow.</p>
@@ -364,7 +340,7 @@ export default function Landing() {
           </p>
           <h2
             className="font-bold mb-4"
-            style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', color: '#111827' }}
+            style={{ fontFamily: 'inherit', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', color: '#111827' }}
           >
             Six tools. One platform.
           </h2>
@@ -401,7 +377,7 @@ export default function Landing() {
       >
         <div
           className="rounded-2xl px-8 py-14"
-          style={{ background: '#fffade', border: '1px solid rgba(107,33,168,0.1)' }}
+          style={{ background: '#F8F9FA', border: '1px solid #E5E7EB' }}
         >
           <p
             className="text-xs font-semibold uppercase tracking-widest text-center mb-10"
@@ -414,7 +390,7 @@ export default function Landing() {
               <div key={item.stat} className="text-center">
                 <div
                   className="font-bold mb-3"
-                  style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', color: '#6b21a8', lineHeight: 1 }}
+                  style={{ fontFamily: 'inherit', fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', color: '#6b21a8', lineHeight: 1 }}
                 >
                   {item.stat}
                 </div>
@@ -477,7 +453,7 @@ export default function Landing() {
             </div>
             <h2
               className="font-bold mb-3"
-              style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.5rem, 3.5vw, 2.25rem)', color: 'white' }}
+              style={{ fontFamily: 'inherit', fontSize: 'clamp(1.5rem, 3.5vw, 2.25rem)', color: 'white' }}
             >
               Let AI do the heavy lifting
             </h2>
@@ -515,7 +491,7 @@ export default function Landing() {
           </p>
           <h2
             className="font-bold mb-4"
-            style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', color: '#111827' }}
+            style={{ fontFamily: 'inherit', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', color: '#111827' }}
           >
             Ready to get started?
           </h2>

@@ -75,7 +75,7 @@ const sections = [
           </div>
           <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 24, lineHeight: 1.4 }}>What is opportunity cost?</div>
           <div style={{ height: 1, background: 'rgba(107,33,168,0.15)', marginBottom: 20 }} />
-          <div style={{ fontSize: 14, color: '#6b21a8', fontStyle: 'italic', lineHeight: 1.6 }}>The value of the next best alternative forgone when a decision is made between two or more options.</div>
+          <div style={{ fontSize: 14, color: '#6b21a8', lineHeight: 1.6 }}>The value of the next best alternative forgone when a decision is made between two or more options.</div>
         </div>
         <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
           <div style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fca5a5', background: '#fef2f2', textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#dc2626' }}>Again</div>
@@ -305,7 +305,7 @@ export default function Product() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#fef7ff' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
       <MarketingNav active="product" />
 
       {/* Hero */}
@@ -319,7 +319,7 @@ export default function Product() {
         </div>
         <h1
           className="font-bold tracking-tight leading-tight mb-5"
-          style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#111827' }}
+          style={{ fontFamily: 'inherit', fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#111827' }}
         >
           Everything a student needs.
           <br />
@@ -347,7 +347,7 @@ export default function Product() {
               </span>
               <h2
                 className="font-bold mb-4"
-                style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.5rem, 3vw, 2rem)', color: '#111827' }}
+                style={{ fontFamily: 'inherit', fontSize: 'clamp(1.5rem, 3vw, 2rem)', color: '#111827' }}
               >
                 {s.title}
               </h2>
@@ -385,7 +385,7 @@ export default function Product() {
             </div>
             <h2
               className="font-bold text-white mb-3"
-              style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)' }}
+              style={{ fontFamily: 'inherit', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)' }}
             >
               AI built into every layer
             </h2>
@@ -419,7 +419,7 @@ export default function Product() {
         </p>
         <h2
           className="font-bold mb-3"
-          style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.75rem, 4vw, 2.25rem)', color: '#111827' }}
+          style={{ fontFamily: 'inherit', fontSize: 'clamp(1.75rem, 4vw, 2.25rem)', color: '#111827' }}
         >
           Ready to try it?
         </h2>
