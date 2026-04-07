@@ -90,21 +90,14 @@ const aiCapabilities = [
 ];
 
 const testimonials = [
-  {
-    quote: 'Finally stopped switching between 6 apps every night before an exam. Everything I need is just there.',
-    name: 'Priya M.',
-    role: 'Computer Science, Junior',
-  },
-  {
-    quote: 'The AI flashcard generation alone saves me an hour before every midterm. I don\'t know how I studied without it.',
-    name: 'Marcus T.',
-    role: 'Biology, Sophomore',
-  },
-  {
-    quote: 'Tracking internship applications in a spreadsheet was chaos. The pipeline view is exactly what I needed.',
-    name: 'Jordan K.',
-    role: 'Business, Senior',
-  },
+  { quote: 'Finally stopped switching between 6 apps every night before an exam. Everything I need is just there.', name: 'Priya M.', role: 'Computer Science, Junior' },
+  { quote: "The AI flashcard generation alone saves me an hour before every midterm. I don't know how I studied without it.", name: 'Marcus T.', role: 'Biology, Sophomore' },
+  { quote: 'Tracking internship applications in a spreadsheet was chaos. The pipeline view is exactly what I needed.', name: 'Jordan K.', role: 'Business, Senior' },
+  { quote: 'Imported my entire Google Drive in one click. The AI summaries actually capture what matters.', name: 'Aisha R.', role: 'Political Science, Junior' },
+  { quote: 'Shared a study guide with my whole group in seconds. No more sending files over text.', name: 'Devon C.', role: 'Engineering, Sophomore' },
+  { quote: 'Got AI feedback on my resume before every application. My callback rate went up noticeably.', name: 'Simone W.', role: 'Finance, Senior' },
+  { quote: 'The calendar finally shows my tasks and deadlines together. I stopped missing things the week before finals.', name: 'Tyler B.', role: 'Psychology, Junior' },
+  { quote: 'Everything from notes to job applications in one tab. It actually reduces my stress.', name: 'Nadia F.', role: 'Neuroscience, Sophomore' },
 ];
 
 function getGreeting() {
@@ -521,49 +514,122 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Social Proof */}
-      <section className="max-w-6xl mx-auto px-6 pb-24">
-        <div className="text-center mb-14">
-          <p
-            className="text-xs font-semibold uppercase tracking-widest mb-3"
-            style={{ color: '#6B21A8', letterSpacing: '0.1em' }}
-          >
-            WHAT STUDENTS ARE SAYING
-          </p>
-          <h2
-            className="font-bold"
-            style={{ fontFamily: 'Fraunces, Georgia, serif', fontStyle: 'normal', fontSize: '2rem', color: '#111827' }}
-          >
-            Built for how students actually work
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.map((t) => (
-            <div
-              key={t.name}
-              style={{
-                background: 'white',
-                border: '1px solid #E5E7EB',
-                borderRadius: 12,
-                padding: 24,
-                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-              }}
+      {/* Social Proof — Infinite Marquee */}
+      <section className="pb-24">
+        <style>{`
+          @keyframes marquee-left {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+          }
+          @keyframes marquee-right {
+            from { transform: translateX(-50%); }
+            to { transform: translateX(0); }
+          }
+          .marquee-wrapper:hover .marquee-track {
+            animation-play-state: paused;
+          }
+        `}</style>
+
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <p
+              className="text-xs font-semibold uppercase tracking-widest mb-3"
+              style={{ color: '#6B21A8', letterSpacing: '0.1em' }}
             >
-              <div style={{ marginBottom: 12, fontSize: '0.875rem', color: '#6B21A8' }}>★★★★★</div>
-              <p style={{ fontSize: '0.9375rem', color: '#111827', lineHeight: 1.625, marginBottom: 16 }}>
-                "{t.quote}"
-              </p>
-              <div className="flex items-center gap-3">
-                <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#F3F0FF', color: '#6B21A8', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9375rem', flexShrink: 0 }}>
-                  {t.name.charAt(0)}
+              WHAT STUDENTS ARE SAYING
+            </p>
+            <h2
+              className="font-bold"
+              style={{ fontFamily: 'Fraunces, Georgia, serif', fontStyle: 'normal', fontSize: '2rem', color: '#111827' }}
+            >
+              Built for how students actually work
+            </h2>
+          </div>
+        </div>
+
+        <div
+          style={{
+            overflow: 'hidden',
+            maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+          }}
+        >
+          {/* Row 1 — scrolls left */}
+          <div className="marquee-wrapper">
+            <div
+              className="marquee-track"
+              style={{ display: 'flex', gap: 20, width: 'max-content', animation: 'marquee-left 40s linear infinite' }}
+            >
+              {[...testimonials, ...testimonials].map((t, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: 'white',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: 12,
+                    padding: '20px 24px',
+                    minWidth: 300,
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <div style={{ marginBottom: 10, fontSize: '0.8125rem', color: '#6B21A8' }}>★★★★★</div>
+                  <p style={{ fontSize: '0.875rem', color: '#111827', lineHeight: 1.625, marginBottom: 14 }}>
+                    "{t.quote}"
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#F3F0FF', color: '#6B21A8', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', flexShrink: 0 }}>
+                      {t.name.charAt(0)}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>{t.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>{t.role}</div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{t.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>{t.role}</div>
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Row 2 — scrolls right */}
+          <div className="marquee-wrapper">
+            <div
+              className="marquee-track"
+              style={{ display: 'flex', gap: 20, width: 'max-content', animation: 'marquee-right 35s linear infinite' }}
+            >
+              {[...testimonials, ...testimonials].map((t, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: 'white',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: 12,
+                    padding: '20px 24px',
+                    minWidth: 300,
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <div style={{ marginBottom: 10, fontSize: '0.8125rem', color: '#6B21A8' }}>★★★★★</div>
+                  <p style={{ fontSize: '0.875rem', color: '#111827', lineHeight: 1.625, marginBottom: 14 }}>
+                    "{t.quote}"
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#F3F0FF', color: '#6B21A8', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', flexShrink: 0 }}>
+                      {t.name.charAt(0)}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>{t.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>{t.role}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
