@@ -450,11 +450,11 @@ export default function Product() {
         </div>
         <h1
           className="font-bold tracking-tight leading-tight mb-5"
-          style={{ fontFamily: 'Fraunces, Georgia, serif', fontStyle: 'normal', fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#111827', fontWeight: 700 }}
+          style={{ fontFamily: 'Fraunces, Georgia, serif', fontStyle: 'normal', fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', color: '#111827', fontWeight: 700 }}
         >
           Every tool a student needs, connected in one place.
         </h1>
-        <p className="text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: '#6B7280' }}>
+        <p className="text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: '#6B7280', fontSize: '1.125rem' }}>
           One platform for your academic life and career. Notes, flashcards, tasks, job
           applications, resumes, and your social network, connected and powered by AI.
         </p>

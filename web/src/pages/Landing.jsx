@@ -140,7 +140,7 @@ export default function Landing() {
             style={{
               fontFamily: 'Fraunces, Georgia, serif',
               fontStyle: 'normal',
-              fontSize: 'clamp(2.5rem, 5vw, 3.75rem)',
+              fontSize: 'clamp(2.5rem, 5vw, 3.5rem)',
               color: '#111827',
               lineHeight: 1.1,
               marginBottom: 24,
