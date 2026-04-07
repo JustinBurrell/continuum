@@ -3,13 +3,16 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
+import { useAuth } from '@/context/AuthContext';
 
 export default function EmailVerified() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const { user } = useAuth();
 
   const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
   const [errorMsg, setErrorMsg] = useState('');
+  const [resendStatus, setResendStatus] = useState('idle'); // 'idle' | 'sending' | 'sent'
   // Prevents double-firing in React StrictMode dev (effects intentionally run twice).
   // The ref is set synchronously before the async call so the second run is a no-op.
   const calledRef = useRef(false);
@@ -73,20 +76,43 @@ export default function EmailVerified() {
               <p style={{ color: '#6B7280', fontSize: '0.9375rem', margin: 0 }}>{errorMsg}</p>
             </div>
             <div className="flex flex-col items-center gap-3">
+              {user ? (
+                resendStatus === 'sent' ? (
+                  <p style={{ fontSize: '0.875rem', color: '#059669', fontWeight: 500 }}>Verification email sent.</p>
+                ) : (
+                  <button
+                    disabled={resendStatus === 'sending'}
+                    onClick={async () => {
+                      setResendStatus('sending');
+                      try {
+                        await api.post('/auth/send-verification');
+                        setResendStatus('sent');
+                      } catch {
+                        setResendStatus('idle');
+                      }
+                    }}
+                    className="inline-block text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-opacity hover:opacity-90"
+                    style={{ background: resendStatus === 'sending' ? '#9CA3AF' : '#6B21A8', border: 'none', cursor: resendStatus === 'sending' ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}
+                  >
+                    {resendStatus === 'sending' ? 'Sending...' : 'Resend verification email'}
+                  </button>
+                )
+              ) : (
+                <Link
+                  to="/login"
+                  className="inline-block text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-opacity hover:opacity-90"
+                  style={{ background: '#6B21A8' }}
+                >
+                  Sign in to resend
+                </Link>
+              )}
               <Link
-                to="/profile"
-                className="inline-block text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-opacity hover:opacity-90"
-                style={{ background: '#6B21A8' }}
-              >
-                Resend verification email
-              </Link>
-              <Link
-                to="/dashboard"
+                to={user ? '/dashboard' : '/'}
                 style={{ fontSize: '0.875rem', color: '#6B21A8', textDecoration: 'none' }}
                 onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
                 onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
               >
-                Back to dashboard
+                {user ? 'Back to dashboard' : 'Back to home'}
               </Link>
             </div>
           </div>
