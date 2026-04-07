@@ -42,12 +42,12 @@ export default function AuthCallback() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#F8F9FA' }}>
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center animate-pulse">
-          <span className="text-primary font-bold text-xl">C</span>
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center animate-pulse" style={{ background: 'rgba(107,33,168,0.10)' }}>
+          <span className="font-bold text-xl" style={{ color: '#6B21A8' }}>C</span>
         </div>
-        <p className="text-sm text-secondary">Signing you in...</p>
+        <p className="text-sm" style={{ color: '#6B7280' }}>Signing you in...</p>
       </div>
     </div>
   );

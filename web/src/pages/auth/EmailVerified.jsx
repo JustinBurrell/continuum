@@ -37,27 +37,28 @@ export default function EmailVerified() {
   }, [token]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="max-w-md w-full text-center">
+    <div className="font-marketing min-h-screen flex items-center justify-center px-4" style={{ background: '#F8F9FA' }}>
+      <div style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: 16, padding: 40, boxShadow: '0 4px 24px rgba(0,0,0,0.08)', maxWidth: 440, width: '100%', textAlign: 'center' }}>
         {status === 'loading' && (
           <div className="space-y-4">
-            <Loader size={40} className="text-primary animate-spin mx-auto" />
-            <p className="text-foreground font-medium">Verifying your email...</p>
+            <Loader size={40} className="animate-spin mx-auto" style={{ color: '#6B21A8' }} />
+            <p style={{ color: '#111827', fontWeight: 500 }}>Verifying your email...</p>
           </div>
         )}
 
         {status === 'success' && (
           <div className="space-y-5">
-            <CheckCircle size={48} className="text-green-500 mx-auto" />
+            <CheckCircle size={48} className="mx-auto" style={{ color: '#059669' }} />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Email verified</h1>
-              <p className="text-secondary text-sm mt-2">
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>Email verified</h1>
+              <p style={{ color: '#6B7280', fontSize: '0.9375rem', margin: 0 }}>
                 Your email address has been confirmed. You're all set with Continuum.
               </p>
             </div>
             <Link
               to="/dashboard"
-              className="inline-block bg-primary text-white text-sm font-medium px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+              className="inline-block text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-opacity hover:opacity-90"
+              style={{ background: '#6B21A8' }}
             >
               Continue to Continuum
             </Link>
@@ -66,19 +67,25 @@ export default function EmailVerified() {
 
         {status === 'error' && (
           <div className="space-y-5">
-            <XCircle size={48} className="text-red-500 mx-auto" />
+            <XCircle size={48} className="mx-auto" style={{ color: '#DC2626' }} />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Verification failed</h1>
-              <p className="text-secondary text-sm mt-2">{errorMsg}</p>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>Verification failed</h1>
+              <p style={{ color: '#6B7280', fontSize: '0.9375rem', margin: 0 }}>{errorMsg}</p>
             </div>
             <div className="flex flex-col items-center gap-3">
               <Link
                 to="/profile"
-                className="inline-block bg-primary text-white text-sm font-medium px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+                className="inline-block text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-opacity hover:opacity-90"
+                style={{ background: '#6B21A8' }}
               >
-                Go to Settings to resend
+                Resend verification email
               </Link>
-              <Link to="/dashboard" className="text-sm text-secondary hover:text-foreground transition-colors">
+              <Link
+                to="/dashboard"
+                style={{ fontSize: '0.875rem', color: '#6B21A8', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+              >
                 Back to dashboard
               </Link>
             </div>
