@@ -82,7 +82,7 @@ export default function MobileGate() {
 
         {/* Mobile notice */}
         <div style={{ background: '#fef7ff', border: '1px solid #e9d5ff', borderRadius: 10, padding: '14px 18px', marginBottom: 28, color: '#6b21a8', fontSize: '0.875rem', lineHeight: 1.6, textAlign: 'left' }}>
-          The full Continuum experience is built for desktop. Mobile apps are in development — sign up below to be first to know when they launch.
+          The full Continuum experience is built for desktop. Mobile apps are in development, sign up below to be first to know when they launch.
         </div>
 
         {/* Email capture */}
