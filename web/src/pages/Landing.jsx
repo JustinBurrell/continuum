@@ -559,7 +559,7 @@ export default function Landing() {
           <div className="marquee-wrapper">
             <div
               className="marquee-track"
-              style={{ display: 'flex', gap: 20, width: 'max-content', animation: 'marquee-left 40s linear infinite' }}
+              style={{ display: 'flex', gap: 20, width: 'max-content', animation: 'marquee-left 55s linear infinite' }}
             >
               {[...testimonials, ...testimonials].map((t, i) => (
                 <div
@@ -568,14 +568,15 @@ export default function Landing() {
                     background: 'white',
                     border: '1px solid #E5E7EB',
                     borderRadius: 12,
-                    padding: '20px 24px',
-                    minWidth: 300,
+                    padding: '20px 22px',
+                    minWidth: 260,
+                    maxWidth: 260,
                     boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                     flexShrink: 0,
                   }}
                 >
-                  <div style={{ marginBottom: 10, fontSize: '0.8125rem', color: '#6B21A8' }}>★★★★★</div>
-                  <p style={{ fontSize: '0.875rem', color: '#111827', lineHeight: 1.625, marginBottom: 14 }}>
+                  <div style={{ marginBottom: 10, fontSize: '0.9375rem', color: '#6B21A8', textAlign: 'center' }}>★★★★★</div>
+                  <p style={{ fontSize: '0.9375rem', color: '#111827', lineHeight: 1.6, marginBottom: 14 }}>
                     "{t.quote}"
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -583,8 +584,8 @@ export default function Landing() {
                       {t.name.charAt(0)}
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>{t.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>{t.role}</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{t.name}</div>
+                      <div style={{ fontSize: '0.8125rem', color: '#6B7280' }}>{t.role}</div>
                     </div>
                   </div>
                 </div>
@@ -596,7 +597,7 @@ export default function Landing() {
           <div className="marquee-wrapper">
             <div
               className="marquee-track"
-              style={{ display: 'flex', gap: 20, width: 'max-content', animation: 'marquee-right 35s linear infinite' }}
+              style={{ display: 'flex', gap: 20, width: 'max-content', animation: 'marquee-right 48s linear infinite' }}
             >
               {[...testimonials, ...testimonials].map((t, i) => (
                 <div
@@ -605,14 +606,15 @@ export default function Landing() {
                     background: 'white',
                     border: '1px solid #E5E7EB',
                     borderRadius: 12,
-                    padding: '20px 24px',
-                    minWidth: 300,
+                    padding: '20px 22px',
+                    minWidth: 260,
+                    maxWidth: 260,
                     boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                     flexShrink: 0,
                   }}
                 >
-                  <div style={{ marginBottom: 10, fontSize: '0.8125rem', color: '#6B21A8' }}>★★★★★</div>
-                  <p style={{ fontSize: '0.875rem', color: '#111827', lineHeight: 1.625, marginBottom: 14 }}>
+                  <div style={{ marginBottom: 10, fontSize: '0.9375rem', color: '#6B21A8', textAlign: 'center' }}>★★★★★</div>
+                  <p style={{ fontSize: '0.9375rem', color: '#111827', lineHeight: 1.6, marginBottom: 14 }}>
                     "{t.quote}"
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -620,8 +622,8 @@ export default function Landing() {
                       {t.name.charAt(0)}
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>{t.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>{t.role}</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{t.name}</div>
+                      <div style={{ fontSize: '0.8125rem', color: '#6B7280' }}>{t.role}</div>
                     </div>
                   </div>
                 </div>
