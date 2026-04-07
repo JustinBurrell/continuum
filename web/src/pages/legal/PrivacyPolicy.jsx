@@ -211,6 +211,7 @@ export default function PrivacyPolicy() {
         .legal-content a { color: #6B21A8; }
         .legal-content strong { color: #111827; }
         .legal-content code { font-size: 0.85em; background: rgba(107,33,168,0.08); padding: 1px 5px; border-radius: 4px; }
+        section[id] { scroll-margin-top: 80px; }
       `}</style>
 
       <MarketingFooter />

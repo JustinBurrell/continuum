@@ -218,6 +218,7 @@ export default function TermsOfService() {
         .legal-content ul li { font-size: 14px; line-height: 1.7; color: #374151; }
         .legal-content a { color: #6B21A8; }
         .legal-content strong { color: #111827; }
+        section[id] { scroll-margin-top: 80px; }
       `}</style>
 
       <MarketingFooter />
