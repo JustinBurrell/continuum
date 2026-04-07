@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff } from 'lucide-react';
@@ -23,7 +23,7 @@ const inputFocusStyle = {
   boxShadow: '0 0 0 3px rgba(107,33,168,0.12)',
 };
 
-function AuthInput({ label, error, type = 'text', ...props }) {
+const AuthInput = forwardRef(function AuthInput({ label, error, type = 'text', onBlur, onFocus, ...props }, ref) {
   const [focused, setFocused] = useState(false);
   return (
     <div>
@@ -31,16 +31,17 @@ function AuthInput({ label, error, type = 'text', ...props }) {
         {label}
       </label>
       <input
+        ref={ref}
         type={type}
         style={{ ...inputStyle, ...(focused ? inputFocusStyle : {}), ...(error ? { borderColor: '#EF4444' } : {}) }}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onFocus={(e) => { setFocused(true); onFocus?.(e); }}
+        onBlur={(e) => { setFocused(false); onBlur?.(e); }}
         {...props}
       />
       {error && <p style={{ marginTop: 4, fontSize: 12, color: '#EF4444' }}>{error}</p>}
     </div>
   );
-}
+});
 
 function PasswordInput({ label, error, register, name, rules }) {
   const [show, setShow] = useState(false);
