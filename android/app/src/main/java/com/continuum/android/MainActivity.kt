@@ -1,47 +1,47 @@
 package com.continuum.android
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.continuum.android.ui.theme.ContinuumTheme
+import androidx.navigation.compose.rememberNavController
+import com.continuum.android.core.data.local.TokenManager
+import com.continuum.android.core.ui.navigation.AppNavHost
+import com.continuum.android.core.ui.navigation.sensitiveRoutes
+import com.continuum.android.core.ui.theme.ContinuumTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var tokenManager: TokenManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val isAuthenticated = tokenManager.getAccessToken() != null
+
         setContent {
             ContinuumTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                val navController = rememberNavController()
+
+                AppNavHost(
+                    isAuthenticated = isAuthenticated,
+                    navController = navController,
+                    onSensitiveScreenEntered = {
+                        window.setFlags(
+                            WindowManager.LayoutParams.FLAG_SECURE,
+                            WindowManager.LayoutParams.FLAG_SECURE
+                        )
+                    },
+                    onSensitiveScreenExited = {
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                    }
+                )
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ContinuumTheme {
-        Greeting("Android")
     }
 }
