@@ -102,7 +102,8 @@ val sensitiveRoutes = setOf(
     NavRoutes.Career.RESUME_DETAIL,
     NavRoutes.Career.RESUME_FEEDBACK,
     NavRoutes.Career.APPLICATION_DETAIL,
-    NavRoutes.Social.CONVERSATION_DETAIL
+    NavRoutes.Social.CONVERSATION_DETAIL,
+    NavRoutes.Social.SHARED_NOTE
 )
 
 // ---------------------------------------------------------------------------
