@@ -132,7 +132,7 @@ export default function MobileGate() {
           rel="noopener noreferrer"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#6b21a8', fontWeight: 600, fontSize: '0.875rem', textDecoration: 'none' }}
         >
-          Explore the full experience at usecontinuum.dev
+          Explore the full experience on web at usecontinuum.dev
           <ExternalLink size={14} />
         </a>
 
