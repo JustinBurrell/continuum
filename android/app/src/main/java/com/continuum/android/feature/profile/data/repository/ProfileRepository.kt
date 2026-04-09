@@ -1,9 +1,11 @@
 package com.continuum.android.feature.profile.data.repository
 
 import com.continuum.android.feature.profile.data.remote.ProfileApiService
-import com.continuum.android.feature.profile.data.remote.dto.ChangePasswordRequestDto
-import com.continuum.android.feature.profile.data.remote.dto.UpdateProfileRequestDto
+import com.continuum.android.feature.profile.data.remote.dto.*
 import com.continuum.android.feature.profile.domain.Profile
+import com.continuum.android.feature.profile.domain.Session
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -11,21 +13,41 @@ import javax.inject.Singleton
 class ProfileRepository @Inject constructor(
     private val api: ProfileApiService
 ) {
+
+    private fun ProfileDto.toDomain(): Profile {
+        val dto = this
+        return Profile(
+            id = dto.id,
+            firstName = dto.firstName,
+            lastName = dto.lastName,
+            username = dto.username,
+            email = dto.email,
+            bio = dto.bio,
+            avatarUrl = dto.avatar,
+            linkedinUrl = dto.linkedinUrl,
+            instagramHandle = dto.instagramHandle,
+            isEmailVerified = dto.isEmailVerified || dto.emailVerified,
+            isGoogleLinked = dto.googleId != null,
+            isDemo = dto.isDemo,
+            pendingDeletion = dto.pendingDeletion,
+            scheduledDeletionAt = dto.scheduledDeletionAt,
+            activityVisibility = dto.settings?.activityVisibility ?: "friends",
+            emailNotifications = dto.settings?.emailNotifications ?: true,
+            pushNotifications = dto.settings?.pushNotifications ?: true,
+            createdAt = dto.createdAt
+        )
+    }
+
+    private fun ProfileResponseDto.resolve(): ProfileDto = data ?: user
+
     suspend fun getProfile(): Result<Profile> = runCatching {
-        api.getProfile().user.let { dto ->
-            Profile(
-                id = dto.id,
-                firstName = dto.firstName,
-                lastName = dto.lastName,
-                username = dto.username,
-                email = dto.email,
-                bio = dto.bio,
-                avatarUrl = dto.avatar,
-                isEmailVerified = dto.isEmailVerified,
-                isGoogleLinked = dto.googleId != null,
-                createdAt = dto.createdAt
-            )
-        }
+        api.getProfile().resolve().toDomain()
+    }
+
+    suspend fun updateProfileMultipart(fields: Map<String, String>): Result<Profile> = runCatching {
+        val textType = "text/plain".toMediaType()
+        val parts = fields.mapValues { (_, v) -> v.toRequestBody(textType) }
+        api.updateProfileMultipart(parts).resolve().toDomain()
     }
 
     suspend fun updateProfile(
@@ -35,26 +57,12 @@ class ProfileRepository @Inject constructor(
         bio: String?
     ): Result<Profile> = runCatching {
         api.updateProfile(
-            UpdateProfileRequestDto(
-                firstName = firstName,
-                lastName = lastName,
-                username = username,
-                bio = bio
-            )
-        ).user.let { dto ->
-            Profile(
-                id = dto.id,
-                firstName = dto.firstName,
-                lastName = dto.lastName,
-                username = dto.username,
-                email = dto.email,
-                bio = dto.bio,
-                avatarUrl = dto.avatar,
-                isEmailVerified = dto.isEmailVerified,
-                isGoogleLinked = dto.googleId != null,
-                createdAt = dto.createdAt
-            )
-        }
+            UpdateProfileRequestDto(firstName = firstName, lastName = lastName, username = username, bio = bio)
+        ).resolve().toDomain()
+    }
+
+    suspend fun updateUsername(username: String): Result<Profile> = runCatching {
+        api.updateUsername(UpdateUsernameRequestDto(username)).resolve().toDomain()
     }
 
     suspend fun changePassword(current: String, new: String): Result<Unit> = runCatching {
@@ -62,8 +70,40 @@ class ProfileRepository @Inject constructor(
         Unit
     }
 
-    suspend fun deleteAccount(): Result<Unit> = runCatching {
-        api.deleteAccount()
+    suspend fun deleteAccount(password: String): Result<Unit> = runCatching {
+        api.deleteAccount(DeleteAccountRequestDto(password))
         Unit
+    }
+
+    suspend fun sendVerificationEmail(): Result<Unit> = runCatching {
+        api.sendVerificationEmail()
+        Unit
+    }
+
+    suspend fun logoutAll(): Result<Unit> = runCatching {
+        api.logoutAll()
+        Unit
+    }
+
+    suspend fun getSessions(): Result<List<Session>> = runCatching {
+        api.getSessions().sessions.map { dto ->
+            Session(
+                id = dto.id,
+                deviceId = dto.deviceId ?: "Unknown device",
+                isCurrent = dto.isCurrent,
+                createdAt = dto.createdAt,
+                lastUsedAt = dto.lastUsedAt,
+                ipLocation = dto.ipLocation
+            )
+        }
+    }
+
+    suspend fun revokeSession(sessionId: String): Result<Unit> = runCatching {
+        api.revokeSession(sessionId)
+        Unit
+    }
+
+    suspend fun restoreAccount(): Result<Profile> = runCatching {
+        api.restoreAccount().resolve().toDomain()
     }
 }

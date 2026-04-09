@@ -8,8 +8,16 @@ data class Profile(
     val email: String,
     val bio: String?,
     val avatarUrl: String?,
+    val linkedinUrl: String?,
+    val instagramHandle: String?,
     val isEmailVerified: Boolean,
     val isGoogleLinked: Boolean,
+    val isDemo: Boolean,
+    val pendingDeletion: Boolean,
+    val scheduledDeletionAt: String?,
+    val activityVisibility: String,
+    val emailNotifications: Boolean,
+    val pushNotifications: Boolean,
     val createdAt: String
 ) {
     val fullName: String get() = "$firstName $lastName".trim().ifEmpty { username }
@@ -19,3 +27,12 @@ data class Profile(
         if (isEmpty()) username.firstOrNull()?.let { append(it.uppercaseChar()) }
     }
 }
+
+data class Session(
+    val id: String,
+    val deviceId: String,
+    val isCurrent: Boolean,
+    val createdAt: String,
+    val lastUsedAt: String?,
+    val ipLocation: String?
+)

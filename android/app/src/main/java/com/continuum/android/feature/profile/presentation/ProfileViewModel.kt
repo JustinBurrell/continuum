@@ -3,12 +3,10 @@ package com.continuum.android.feature.profile.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.continuum.android.core.data.local.TokenManager
-import com.continuum.android.feature.notes.data.remote.NotesApiService
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.feature.profile.domain.Profile
-import com.continuum.android.feature.social.data.remote.SocialApiService
+import com.continuum.android.feature.profile.domain.Session
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,19 +17,21 @@ import javax.inject.Inject
 data class ProfileUiState(
     val isLoading: Boolean = true,
     val profile: Profile? = null,
-    val notesCount: Int = 0,
-    val friendsCount: Int = 0,
+    val sessions: List<Session> = emptyList(),
+    val sessionsLoading: Boolean = false,
     val error: String? = null,
     val successMessage: String? = null,
-    val isSaving: Boolean = false
+    val isSaving: Boolean = false,
+    val verificationSent: Boolean = false,
+    val logoutAllLoading: Boolean = false,
+    val deleteLoading: Boolean = false,
+    val restoreLoading: Boolean = false
 )
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val repository: ProfileRepository,
-    private val tokenManager: TokenManager,
-    private val notesApi: NotesApiService,
-    private val socialApi: SocialApiService
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileUiState())
@@ -40,24 +40,10 @@ class ProfileViewModel @Inject constructor(
     fun load() {
         _state.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            val profileDeferred = async { repository.getProfile() }
-            val notesDeferred   = async { runCatching { notesApi.getNotes() } }
-            val friendsDeferred = async { runCatching { socialApi.getFriends() } }
-
-            val profileResult  = profileDeferred.await()
-            val notesResult    = notesDeferred.await()
-            val friendsResult  = friendsDeferred.await()
-
-            profileResult.fold(
+            repository.getProfile().fold(
                 onSuccess = { profile ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            profile = profile,
-                            notesCount = notesResult.getOrNull()?.notes?.size ?: 0,
-                            friendsCount = friendsResult.getOrNull()?.friends?.size ?: 0
-                        )
-                    }
+                    _state.update { it.copy(isLoading = false, profile = profile) }
+                    if (!profile.isDemo) loadSessions()
                 },
                 onFailure = { e ->
                     _state.update { it.copy(isLoading = false, error = e.message) }
@@ -66,15 +52,44 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun updateProfile(firstName: String, lastName: String, username: String, bio: String) {
+    fun loadSessions() {
+        _state.update { it.copy(sessionsLoading = true) }
+        viewModelScope.launch {
+            repository.getSessions().fold(
+                onSuccess = { sessions ->
+                    _state.update { it.copy(sessions = sessions, sessionsLoading = false) }
+                },
+                onFailure = {
+                    _state.update { it.copy(sessionsLoading = false) }
+                }
+            )
+        }
+    }
+
+    fun updateProfileFields(fields: Map<String, String>) {
         _state.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
-            repository.updateProfile(firstName, lastName, username, bio).fold(
+            repository.updateProfileMultipart(fields).fold(
                 onSuccess = { profile ->
                     _state.update { it.copy(isSaving = false, profile = profile, successMessage = "Profile updated") }
                 },
                 onFailure = { e ->
                     _state.update { it.copy(isSaving = false, error = e.message) }
+                }
+            )
+        }
+    }
+
+    fun updateUsername(username: String) {
+        _state.update { it.copy(isSaving = true, error = null) }
+        viewModelScope.launch {
+            repository.updateUsername(username).fold(
+                onSuccess = { profile ->
+                    _state.update { it.copy(isSaving = false, profile = profile, successMessage = "Username updated") }
+                },
+                onFailure = { e ->
+                    val msg = e.message ?: "Failed to update username"
+                    _state.update { it.copy(isSaving = false, error = if ("409" in msg || "taken" in msg.lowercase()) "Username is already taken" else msg) }
                 }
             )
         }
@@ -94,15 +109,56 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun deleteAccount(onComplete: () -> Unit) {
+    fun sendVerificationEmail() {
         viewModelScope.launch {
-            repository.deleteAccount().fold(
+            repository.sendVerificationEmail().fold(
+                onSuccess = { _state.update { it.copy(verificationSent = true) } },
+                onFailure = { e -> _state.update { it.copy(error = e.message) } }
+            )
+        }
+    }
+
+    fun revokeSession(sessionId: String) {
+        viewModelScope.launch {
+            repository.revokeSession(sessionId).onSuccess { loadSessions() }
+        }
+    }
+
+    fun logoutAll(onComplete: () -> Unit) {
+        _state.update { it.copy(logoutAllLoading = true) }
+        viewModelScope.launch {
+            repository.logoutAll()
+            tokenManager.clearTokens()
+            _state.update { it.copy(logoutAllLoading = false) }
+            onComplete()
+        }
+    }
+
+    fun deleteAccount(password: String, onComplete: () -> Unit) {
+        _state.update { it.copy(deleteLoading = true, error = null) }
+        viewModelScope.launch {
+            repository.deleteAccount(password).fold(
                 onSuccess = {
                     tokenManager.clearTokens()
+                    _state.update { it.copy(deleteLoading = false) }
                     onComplete()
                 },
                 onFailure = { e ->
-                    _state.update { it.copy(error = e.message) }
+                    _state.update { it.copy(deleteLoading = false, error = e.message) }
+                }
+            )
+        }
+    }
+
+    fun restoreAccount() {
+        _state.update { it.copy(restoreLoading = true, error = null) }
+        viewModelScope.launch {
+            repository.restoreAccount().fold(
+                onSuccess = { profile ->
+                    _state.update { it.copy(restoreLoading = false, profile = profile, successMessage = "Account restored") }
+                },
+                onFailure = { e ->
+                    _state.update { it.copy(restoreLoading = false, error = e.message) }
                 }
             )
         }

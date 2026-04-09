@@ -12,6 +12,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 
+private val linkedinPattern = Regex("^https://(www\\.)?linkedin\\.com/in/")
+private val instagramPattern = Regex("^@?[a-zA-Z0-9._]{1,30}$")
+private val usernamePattern = Regex("^[a-zA-Z0-9_-]{3,30}$")
+
 @Composable
 fun EditProfileScreen(
     onNavigateBack: () -> Unit,
@@ -21,9 +25,16 @@ fun EditProfileScreen(
     val profile = state.profile
 
     var firstName by remember(profile) { mutableStateOf(profile?.firstName ?: "") }
-    var lastName  by remember(profile) { mutableStateOf(profile?.lastName ?: "") }
-    var username  by remember(profile) { mutableStateOf(profile?.username ?: "") }
-    var bio       by remember(profile) { mutableStateOf(profile?.bio ?: "") }
+    var lastName by remember(profile) { mutableStateOf(profile?.lastName ?: "") }
+    var bio by remember(profile) { mutableStateOf(profile?.bio ?: "") }
+    var linkedinUrl by remember(profile) { mutableStateOf(profile?.linkedinUrl ?: "") }
+    var instagramHandle by remember(profile) { mutableStateOf(profile?.instagramHandle ?: "") }
+    var activityVisibility by remember(profile) { mutableStateOf(profile?.activityVisibility ?: "friends") }
+    var username by remember(profile) { mutableStateOf(profile?.username ?: "") }
+
+    var linkedinError by remember { mutableStateOf<String?>(null) }
+    var instagramError by remember { mutableStateOf<String?>(null) }
+    var usernameError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(state.successMessage) {
         if (state.successMessage != null) {
@@ -32,18 +43,39 @@ fun EditProfileScreen(
         }
     }
 
+    fun validateAndSave() {
+        linkedinError = if (linkedinUrl.isNotBlank() && !linkedinPattern.containsMatchIn(linkedinUrl.trim()))
+            "Must start with https://linkedin.com/in/" else null
+        instagramError = if (instagramHandle.isNotBlank() && !instagramPattern.matches(instagramHandle.trim()))
+            "1–30 chars: letters, numbers, periods, underscores" else null
+
+        if (linkedinError != null || instagramError != null) return
+
+        val fields = mutableMapOf(
+            "firstName" to firstName,
+            "lastName" to lastName,
+            "bio" to bio,
+            "linkedinUrl" to linkedinUrl,
+            "instagramHandle" to instagramHandle,
+            "settings.activityVisibility" to activityVisibility
+        )
+        viewModel.updateProfileFields(fields)
+    }
+
+    fun validateAndSaveUsername() {
+        usernameError = when {
+            username.isBlank() -> "Username is required"
+            !usernamePattern.matches(username) -> "3–30 chars: letters, numbers, _ or -"
+            else -> null
+        }
+        if (usernameError != null) return
+        viewModel.updateUsername(username)
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         PurpleTopAppBar(
             title = "Edit Profile",
-            onNavigateBack = onNavigateBack,
-            actions = {
-                TextButton(
-                    onClick = { viewModel.updateProfile(firstName, lastName, username, bio) },
-                    enabled = !state.isSaving
-                ) {
-                    Text(if (state.isSaving) "Saving..." else "Save", color = White)
-                }
-            }
+            onNavigateBack = onNavigateBack
         )
 
         Column(
@@ -53,36 +85,118 @@ fun EditProfileScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text("PERSONAL INFO", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ContinuumTextField(
                     value = firstName,
                     onValueChange = { firstName = it },
-                    label = "First name",
+                    label = "First name *",
                     placeholder = "First",
                     modifier = Modifier.weight(1f)
                 )
                 ContinuumTextField(
                     value = lastName,
                     onValueChange = { lastName = it },
-                    label = "Last name",
+                    label = "Last name *",
                     placeholder = "Last",
                     modifier = Modifier.weight(1f)
                 )
             }
 
             ContinuumTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = "Username",
-                placeholder = "username",
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            ContinuumTextField(
                 value = bio,
                 onValueChange = { bio = it },
                 label = "Bio",
                 placeholder = "Tell people about yourself...",
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Column {
+                ContinuumTextField(
+                    value = linkedinUrl,
+                    onValueChange = { linkedinUrl = it; linkedinError = null },
+                    label = "LinkedIn URL",
+                    placeholder = "https://linkedin.com/in/yourprofile",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                linkedinError?.let {
+                    Text(it, color = ErrorRed, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+
+            Column {
+                ContinuumTextField(
+                    value = instagramHandle,
+                    onValueChange = { instagramHandle = it; instagramError = null },
+                    label = "Instagram handle",
+                    placeholder = "yourhandle",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                instagramError?.let {
+                    Text(it, color = ErrorRed, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+
+            Text("ACTIVITY VISIBILITY", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = activityVisibility == "private",
+                    onClick = { activityVisibility = "private" },
+                    label = { Text("Private") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = BrandPurple,
+                        selectedLabelColor = White
+                    )
+                )
+                FilterChip(
+                    selected = activityVisibility == "friends",
+                    onClick = { activityVisibility = "friends" },
+                    label = { Text("Friends") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = BrandPurple,
+                        selectedLabelColor = White
+                    )
+                )
+            }
+
+            ContinuumButton(
+                text = if (state.isSaving) "Saving..." else "Save changes",
+                onClick = { validateAndSave() },
+                enabled = firstName.isNotBlank() && lastName.isNotBlank() && !state.isSaving,
+                loading = state.isSaving,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            HorizontalDivider(color = Border, modifier = Modifier.padding(vertical = 8.dp))
+
+            Text("USERNAME", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+
+            Column {
+                ContinuumTextField(
+                    value = username,
+                    onValueChange = { username = it; usernameError = null },
+                    label = "Username",
+                    placeholder = "your_username",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text(
+                    "3–30 characters. Letters, numbers, underscores and hyphens only.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextMuted,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+                usernameError?.let {
+                    Text(it, color = ErrorRed, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+
+            ContinuumButton(
+                text = "Update username",
+                onClick = { validateAndSaveUsername() },
+                enabled = username.isNotBlank() && !state.isSaving,
+                loading = state.isSaving,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -93,6 +207,8 @@ fun EditProfileScreen(
                     style = MaterialTheme.typography.bodySmall
                 )
             }
+
+            Spacer(Modifier.height(32.dp))
         }
     }
 }
