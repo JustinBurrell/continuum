@@ -21,7 +21,9 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.feature.auth.presentation.*
+import com.continuum.android.feature.notes.presentation.*
 
 // ---------------------------------------------------------------------------
 // Route constants
@@ -268,22 +270,48 @@ private fun NavGraph(
             startDestination = NavRoutes.Notes.LIST
         ) {
             composable(NavRoutes.Notes.LIST) {
-                PlaceholderScreen("Notes List")
+                val networkMonitor = LocalNetworkMonitor.current
+                NotesListScreen(
+                    onNoteClick = { noteId -> navController.navigate(NavRoutes.Notes.detail(noteId)) },
+                    onCreateNote = { navController.navigate(NavRoutes.Notes.editor()) },
+                    onDriveImport = { navController.navigate(NavRoutes.Notes.DRIVE_IMPORT) },
+                    networkMonitor = networkMonitor
+                )
             }
             composable(
                 route = NavRoutes.Notes.DETAIL,
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType })
-            ) {
-                PlaceholderScreen("Note Detail")
+            ) { backStackEntry ->
+                val networkMonitor = LocalNetworkMonitor.current
+                val noteId = backStackEntry.arguments?.getString("noteId") ?: return@composable
+                NoteDetailScreen(
+                    noteId = noteId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onEdit = { id -> navController.navigate(NavRoutes.Notes.editor(id)) },
+                    networkMonitor = networkMonitor
+                )
             }
             composable(
                 route = NavRoutes.Notes.EDITOR,
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType })
-            ) {
-                PlaceholderScreen("Note Editor")
+            ) { backStackEntry ->
+                val networkMonitor = LocalNetworkMonitor.current
+                val noteId = backStackEntry.arguments?.getString("noteId") ?: "new"
+                NoteEditorScreen(
+                    noteId = noteId,
+                    onNavigateBack = { navController.popBackStack() },
+                    networkMonitor = networkMonitor
+                )
             }
             composable(NavRoutes.Notes.DRIVE_IMPORT) {
-                PlaceholderScreen("Google Drive Import")
+                GoogleDriveImportScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onImportSuccess = { noteId ->
+                        navController.navigate(NavRoutes.Notes.detail(noteId)) {
+                            popUpTo(NavRoutes.Notes.DRIVE_IMPORT) { inclusive = true }
+                        }
+                    }
+                )
             }
         }
 
