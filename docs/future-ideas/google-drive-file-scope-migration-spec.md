@@ -324,7 +324,78 @@ Android work finishes Sunday but is not bundled in this rollout.
 
 ---
 
-## 11. Implementation Checklist
+## 11. Testing Asset Updates (Jest, Postman, README)
+
+This migration changes Google Drive access semantics, so test assets and test docs must be updated alongside code changes.
+
+## 11.1 Jest Updates (Backend)
+
+Current gap:
+
+- Drive list/import/refresh behavior is minimally covered in Jest and does not enforce `drive.file`-aligned behavior.
+
+Required updates:
+
+- Add or extend tests under:
+  - `backend/tests/jest/notes.test.js` (or a dedicated Google Drive test file)
+- Add migration-specific coverage for:
+  - import success with picker-selected `googleDocId`
+  - refresh success for previously imported doc
+  - missing `googleDocId`/`googleDocUrl` validation errors
+  - access revoked / file unavailable errors (mocked Drive API 403/404)
+  - duplicate import conflict for same `googleDocId`
+- If `GET /api/google/files` is removed from production API, assert route behavior accordingly (removed/deprecated/blocked).
+
+Implementation note:
+
+- Mock Google Drive client calls (`files.export`) rather than requiring live Google auth in Jest.
+
+## 11.2 Postman Updates (Backend)
+
+Current gap:
+
+- Existing Postman flow includes Drive-wide listing (`GET /api/google/files`) and old OAuth assumptions.
+
+Required updates:
+
+- Update:
+  - `backend/tests/postman/continuum-session3-4.postman_collection.json`
+  - `backend/tests/postman/continuum-local.postman_environment.json`
+- Replace "list all docs" flow with:
+  - picker-driven selected file ID workflow
+  - import and refresh requests using selected `googleDocId`
+- Add/adjust requests for failure states:
+  - invalid/non-granted file ID
+  - revoked access on refresh
+
+## 11.3 README and Test Documentation Updates
+
+Required backend test documentation updates:
+
+- `backend/README.md`
+  - refresh stale suite/test counts
+  - reflect `drive.file` scope and picker-based import testing expectations
+- `backend/tests/jest/README.md`
+  - update suite list/counts to match current test files
+  - add section for Drive import/refresh tests under `drive.file`
+- `backend/tests/postman/README.md`
+  - remove or rewrite instructions that depend on full-drive listing
+  - document picker-selected file test flow for import/refresh
+
+## 11.4 Docs Folder Updates Tied to Testing and API Behavior
+
+To keep engineering docs aligned with test behavior and API flow, update:
+
+- `docs/backend/api_reference_guide.md`
+- `docs/frontend/api_coverage.md`
+- `docs/backend/backend_architecture.md`
+- `docs/backend/backend_user_flows.md`
+
+These docs currently reference listing-first Drive flows and must reflect picker-selected file import flow.
+
+---
+
+## 12. Implementation Checklist
 
 - [ ] Update OAuth scopes to `drive.file`
 - [ ] Remove/deprecate `/api/google/files` production usage
@@ -332,12 +403,16 @@ Android work finishes Sunday but is not bundled in this rollout.
 - [ ] Keep import/refresh by `googleDocId`
 - [ ] Ensure `googleDocUrl` persistence and note-view action
 - [ ] Update privacy/legal/product copy
+- [ ] Update Jest tests for import/refresh and error paths
+- [ ] Update Postman collections/environment for picker-based flow
+- [ ] Update backend README + test READMEs (Jest/Postman)
+- [ ] Update high-priority docs (`api_reference_guide`, `api_coverage`, `backend_architecture`, `backend_user_flows`)
 - [ ] Run full web/backend QA matrix
 - [ ] Submit verification response Monday
 
 ---
 
-## 12. Android Follow-Up (Post-Sunday)
+## 13. Android Follow-Up (Post-Sunday)
 
 When Android development is complete, append a dedicated section covering:
 
@@ -350,11 +425,11 @@ Android should reuse the same backend contracts introduced in this spec.
 
 ---
 
-## 13. Google Verification Email Requirements and Reply Plan
+## 14. Google Verification Email Requirements and Reply Plan
 
 This section captures the actionable requirements from the Google "Action Needed" email so implementation and response are aligned.
 
-## 13.1 What Google Explicitly Requested
+## 14.1 What Google Explicitly Requested
 
 Google flagged requested scope:
 
@@ -374,7 +449,7 @@ Important instruction from Google email:
 
 - **Do not remove any previously approved scopes at this stage.**
 
-## 13.2 Decision for This Migration
+## 14.2 Decision for This Migration
 
 Given this spec's architecture (Picker-based file selection + import by file ID), this project should proceed with:
 
@@ -382,7 +457,7 @@ Given this spec's architecture (Picker-based file selection + import by file ID)
 
 because the product can preserve required functionality without `drive.readonly`.
 
-## 13.3 Preconditions Before Replying
+## 14.3 Preconditions Before Replying
 
 Before sending the confirmation reply, complete these checks:
 
@@ -391,7 +466,7 @@ Before sending the confirmation reply, complete these checks:
 - Privacy policy and product copy reflect selected-file access model.
 - Import, refresh, download, and "View in Google Docs" flows verified in testing.
 
-## 13.4 Recommended Reply Template (Option 1)
+## 14.4 Recommended Reply Template (Option 1)
 
 Use this exact structure when replying to Google's thread after changes are in place:
 
@@ -410,7 +485,7 @@ updated our Cloud Console configuration and app code accordingly.
 Please continue our verification review with the narrower scope configuration.
 ```
 
-## 13.5 Fallback Reply Template (Option 2)
+## 14.5 Fallback Reply Template (Option 2)
 
 Use only if implementation constraints prevent migration to `drive.file`:
 
@@ -423,7 +498,7 @@ implemented with drive.file. Avoid UI-preference justifications.]
 
 Note: this fallback has higher denial risk based on Google's minimum-scope policy language.
 
-## 13.6 Monday Submission Checklist (Email + Console)
+## 14.6 Monday Submission Checklist (Email + Console)
 
 - [ ] Scope updates saved in Cloud Console
 - [ ] Verification request updated/resubmitted in Cloud Console if required
