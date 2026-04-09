@@ -1,3 +1,4 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 package com.continuum.android.feature.flashcards.presentation
 
 import androidx.compose.animation.AnimatedVisibility
@@ -18,7 +19,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.flashcards.domain.Flashcard
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlashcardSetDetailScreen(
     setId: String,
@@ -38,11 +41,7 @@ fun FlashcardSetDetailScreen(
             topBar = {
                 PurpleTopAppBar(
                     title = state.set?.title ?: "",
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = androidx.compose.ui.graphics.Color.White)
-                        }
-                    },
+                    onNavigateBack = onNavigateBack,
                     actions = {
                         TextButton(onClick = onStudy) {
                             Text("Study", color = androidx.compose.ui.graphics.Color.White)

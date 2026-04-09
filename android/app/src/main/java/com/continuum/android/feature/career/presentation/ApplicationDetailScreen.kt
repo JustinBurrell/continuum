@@ -41,11 +41,7 @@ fun ApplicationDetailScreen(
         topBar = {
             PurpleTopAppBar(
                 title = app?.company ?: "Application",
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = androidx.compose.ui.graphics.Color.White)
-                    }
-                }
+                onNavigateBack = onNavigateBack
             )
         }
     ) { innerPadding ->
@@ -71,7 +67,7 @@ fun ApplicationDetailScreen(
                     app.appliedDate?.let { Text("Applied: ${it.take(10)}", style = MaterialTheme.typography.bodySmall, color = TextMuted) }
 
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        StatusBadge(status = app.status)
+                        StatusBadge(app.status)
                         Box {
                             TextButton(onClick = { showStatusDropdown = true }) {
                                 Text("Change status", color = BrandPurple)

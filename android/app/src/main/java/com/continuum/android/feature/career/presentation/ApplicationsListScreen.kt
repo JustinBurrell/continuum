@@ -1,3 +1,4 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 package com.continuum.android.feature.career.presentation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -19,9 +20,11 @@ import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.career.domain.Application
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import androidx.compose.material3.ExperimentalMaterial3Api
 
 private val statusTabs = listOf("all", "saved", "applied", "interview", "offer", "rejected")
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ApplicationsListScreen(
     onApplicationClick: (String) -> Unit,
@@ -165,7 +168,7 @@ private fun ApplicationCard(app: Application, onClick: () -> Unit, onDelete: () 
                         Text("Applied: ${it.take(10)}", style = MaterialTheme.typography.bodySmall, color = TextMuted)
                     }
                 }
-                StatusBadge(status = app.status)
+                StatusBadge(app.status)
             }
         }
     }
