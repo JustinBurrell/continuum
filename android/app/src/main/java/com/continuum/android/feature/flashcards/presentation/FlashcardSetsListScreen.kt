@@ -42,6 +42,77 @@ fun FlashcardSetsListScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             PurpleTopAppBar(title = "Flashcards", onLogoClick = onLogoClick)
 
+            OutlinedTextField(
+                value = state.searchQuery,
+                onValueChange = viewModel::setSearchQuery,
+                placeholder = { Text("Search flashcard sets...") },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                leadingIcon = { Icon(Icons.Default.Search, null, tint = TextSecondary) },
+                trailingIcon = {
+                    if (state.searchQuery.isNotBlank()) {
+                        IconButton(onClick = { viewModel.setSearchQuery("") }) {
+                            Icon(Icons.Default.Close, null, tint = TextSecondary)
+                        }
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = BrandPurple,
+                    unfocusedBorderColor = Border
+                )
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = !state.isSharedTab,
+                    onClick = { viewModel.setSharedTab(false) },
+                    label = { Text("My sets") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = BrandPurple,
+                        selectedLabelColor = White
+                    )
+                )
+                FilterChip(
+                    selected = state.isSharedTab,
+                    onClick = { viewModel.setSharedTab(true) },
+                    label = { Text("Shared with me") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = BrandPurple,
+                        selectedLabelColor = White
+                    )
+                )
+            }
+
+            if (!state.isSharedTab) {
+                Surface(
+                    color = PurpleTint,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.LocalFireDepartment, null, tint = BrandPurple)
+                        Text(
+                            text = "Current streak: ${state.streak} day${if (state.streak == 1) "" else "s"}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = BrandPurple
+                        )
+                    }
+                }
+            }
+
             SwipeRefresh(
                 state = rememberSwipeRefreshState(state.isLoading),
                 onRefresh = { viewModel.loadSets() },
@@ -60,10 +131,10 @@ fun FlashcardSetsListScreen(
                     state.sets.isEmpty() -> {
                         EmptyState(
                             icon = Icons.Default.Style,
-                            headline = "No flashcard sets yet",
-                            subtext = "Create a set or generate one from your notes",
-                            actionLabel = "Create set",
-                            onAction = { showCreateSheet = true },
+                            headline = if (state.isSharedTab) "No shared sets" else "No flashcard sets yet",
+                            subtext = if (state.isSharedTab) "Sets shared with you will appear here" else "Create a set or generate one from your notes",
+                            actionLabel = if (state.isSharedTab) null else "Create set",
+                            onAction = if (state.isSharedTab) null else { { showCreateSheet = true } },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -78,7 +149,7 @@ fun FlashcardSetsListScreen(
                                     set = set,
                                     onClick = { onSetClick(set.id) },
                                     onStudy = { onStudy(set.id) },
-                                    onDelete = { setToDelete = set }
+                                    onDelete = if (state.isSharedTab) null else { { setToDelete = set } }
                                 )
                             }
                         }
@@ -137,22 +208,25 @@ private fun FlashcardSetCard(
     set: FlashcardSet,
     onClick: () -> Unit,
     onStudy: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: (() -> Unit)?
 ) {
     val swipeToDismissBoxState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) { onDelete(); false } else false
+            if (value == SwipeToDismissBoxValue.EndToStart && onDelete != null) { onDelete(); false } else false
         }
     )
 
     SwipeToDismissBox(
         state = swipeToDismissBoxState,
         backgroundContent = {
-            Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
-                Icon(Icons.Default.Delete, null, tint = ErrorRed)
+            if (onDelete != null) {
+                Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
+                    Icon(Icons.Default.Delete, null, tint = ErrorRed)
+                }
             }
         },
-        enableDismissFromStartToEnd = false
+        enableDismissFromStartToEnd = false,
+        enableDismissFromEndToStart = onDelete != null
     ) {
         ContinuumCard(
             modifier = Modifier.fillMaxWidth().combinedClickable(onClick = onClick)

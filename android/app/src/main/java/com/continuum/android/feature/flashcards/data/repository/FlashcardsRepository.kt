@@ -18,6 +18,21 @@ class FlashcardsRepository @Inject constructor(
     private val api: FlashcardsApiService,
     private val db: AppDatabase
 ) {
+    suspend fun querySets(search: String? = null, shared: Boolean = false): Result<List<FlashcardSet>> = runCatching {
+        val sets = if (shared) {
+            api.getSharedSets(search = search?.takeIf { it.isNotBlank() }).sets
+        } else {
+            api.getSets(search = search?.takeIf { it.isNotBlank() }).sets
+        }
+        if (!shared && search.isNullOrBlank()) {
+            setDao.deleteAll()
+            setDao.insertAll(sets.map { it.toEntity() })
+        }
+        sets.map { it.toDomain() }
+    }
+
+    suspend fun getStreak(): Result<Int> = runCatching { api.getStreak().streak }
+
     private val setDao get() = db.flashcardSetDao()
     private val cardDao get() = db.flashcardDao()
 

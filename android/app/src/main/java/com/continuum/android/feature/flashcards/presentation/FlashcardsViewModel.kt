@@ -6,12 +6,17 @@ import com.continuum.android.feature.flashcards.data.repository.FlashcardsReposi
 import com.continuum.android.feature.flashcards.domain.Flashcard
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SetsUiState(
     val sets: List<FlashcardSet> = emptyList(),
+    val searchQuery: String = "",
+    val isSharedTab: Boolean = false,
+    val streak: Int = 0,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -47,14 +52,42 @@ class FlashcardsViewModel @Inject constructor(
     private val _detailState = MutableStateFlow(SetDetailUiState())
     val detailState: StateFlow<SetDetailUiState> = _detailState.asStateFlow()
 
+    private var searchJob: Job? = null
+
     fun loadSets() {
         viewModelScope.launch {
             _setsState.update { it.copy(isLoading = true, error = null) }
-            repository.getSets().collect { result ->
-                result
-                    .onSuccess { sets -> _setsState.update { it.copy(sets = sets, isLoading = false) } }
-                    .onFailure { e -> _setsState.update { it.copy(isLoading = false, error = e.message) } }
+            val query = _setsState.value.searchQuery.trim().ifBlank { null }
+            val shared = _setsState.value.isSharedTab
+            val setsResult = repository.querySets(search = query, shared = shared)
+            val streakResult = if (!shared) repository.getStreak() else Result.success(0)
+
+            setsResult.onSuccess { sets ->
+                _setsState.update {
+                    it.copy(
+                        sets = sets,
+                        streak = streakResult.getOrDefault(0),
+                        isLoading = false
+                    )
+                }
+            }.onFailure { e ->
+                _setsState.update { it.copy(isLoading = false, error = e.message) }
             }
+        }
+    }
+
+    fun setSharedTab(shared: Boolean) {
+        if (_setsState.value.isSharedTab == shared) return
+        _setsState.update { it.copy(isSharedTab = shared) }
+        loadSets()
+    }
+
+    fun setSearchQuery(query: String) {
+        _setsState.update { it.copy(searchQuery = query) }
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(250)
+            loadSets()
         }
     }
 

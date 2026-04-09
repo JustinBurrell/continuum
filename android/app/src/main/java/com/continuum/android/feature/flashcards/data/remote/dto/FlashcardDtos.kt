@@ -77,3 +77,9 @@ data class UpdateCardRequestDto(
 data class CardProgressRequestDto(
     val correct: Boolean
 )
+
+@JsonClass(generateAdapter = true)
+data class StudyStreakResponseDto(
+    val success: Boolean = false,
+    val streak: Int = 0
+)

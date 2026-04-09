@@ -122,30 +122,52 @@ fun StudyModeScreen(
                 Spacer(Modifier.weight(1f))
 
                 // Action buttons
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                if (!state.isFlipped) {
                     ContinuumButton(
-                        text = "Again",
+                        text = "Reveal answer",
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.answerCard(setId, correct = false)
+                            viewModel.flipCard()
                         },
-                        modifier = Modifier.weight(1f),
-                        variant = ContinuumButtonVariant.Secondary
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 24.dp)
                     )
-                    ContinuumButton(
-                        text = "Got it",
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.answerCard(setId, correct = true)
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ContinuumButton(
+                            text = "Again",
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.answerCard(setId, correct = false)
+                            },
+                            modifier = Modifier.weight(1f),
+                            variant = ContinuumButtonVariant.Secondary
+                        )
+                        ContinuumButton(
+                            text = "Got it",
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.answerCard(setId, correct = true)
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
+
+                Text(
+                    text = "${state.correctCount} known · ${totalCards - state.correctCount} remaining",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(bottom = 16.dp)
+                )
             }
         }
     }

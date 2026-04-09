@@ -6,7 +6,10 @@ import retrofit2.http.*
 interface FlashcardsApiService {
 
     @GET("flashcard-sets")
-    suspend fun getSets(): FlashcardSetsResponseDto
+    suspend fun getSets(@Query("search") search: String? = null): FlashcardSetsResponseDto
+
+    @GET("flashcard-sets/shared")
+    suspend fun getSharedSets(@Query("search") search: String? = null): FlashcardSetsResponseDto
 
     @GET("flashcard-sets/{setId}")
     suspend fun getSetById(@Path("setId") setId: String): FlashcardSetResponseDto
@@ -45,4 +48,7 @@ interface FlashcardsApiService {
         @Path("cardId") cardId: String,
         @Body request: CardProgressRequestDto
     ): retrofit2.Response<Unit>
+
+    @GET("study-sessions/streak")
+    suspend fun getStreak(): StudyStreakResponseDto
 }
