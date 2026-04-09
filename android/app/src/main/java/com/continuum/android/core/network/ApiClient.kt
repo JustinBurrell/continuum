@@ -36,6 +36,17 @@ class AuthInterceptor @Inject constructor(
     }
 }
 
+class RateLimitInterceptor : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val response = chain.proceed(chain.request())
+        if (response.code == 429) {
+            response.close()
+            throw java.io.IOException("Too many requests. Please wait a moment and try again.")
+        }
+        return response
+    }
+}
+
 /**
  * OkHttp Authenticator that handles 401 responses by calling POST /api/auth/mobile/refresh.
  * On success: updates stored tokens and retries the original request.
@@ -110,6 +121,7 @@ class ApiClient @Inject constructor(
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .addInterceptor(authInterceptor)
+            .addInterceptor(RateLimitInterceptor())
             .authenticator(tokenAuthenticator)
             .apply {
                 if (BuildConfig.DEBUG) {

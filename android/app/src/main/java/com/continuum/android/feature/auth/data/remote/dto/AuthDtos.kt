@@ -41,7 +41,8 @@ data class UserDto(
     val username: String? = null,
     val email: String = "",
     @Json(name = "avatarUrl") val avatar: String? = null,
-    val isEmailVerified: Boolean = false
+    val isEmailVerified: Boolean = false,
+    val isDemo: Boolean = false
 )
 
 @JsonClass(generateAdapter = true)

@@ -2,6 +2,7 @@ package com.continuum.android.feature.auth.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.continuum.android.core.network.friendlyError
 import com.continuum.android.feature.auth.data.repository.AuthRepository
 import com.continuum.android.feature.auth.domain.User
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -101,6 +102,5 @@ class AuthViewModel @Inject constructor(
 
     fun resetState() { _uiState.value = AuthUiState.Idle }
 
-    private fun errorMessage(t: Throwable): String =
-        t.message?.substringAfter(":")?.trim()?.ifBlank { null } ?: "Something went wrong"
+    private fun errorMessage(t: Throwable): String = friendlyError(t)
 }

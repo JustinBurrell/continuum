@@ -209,6 +209,8 @@ fun AppNavHost(
         }
     }
 
+    val showDemoBanner = navProfile.isDemo && showMainNav
+
     if (isExpandedScreen && showMainNav) {
         Row(modifier = Modifier.fillMaxSize()) {
             ContinuumNavigationRail(
@@ -217,12 +219,15 @@ fun AppNavHost(
                 profileAvatarUrl = navProfile.avatarUrl,
                 profileDisplayName = navProfile.displayName
             )
-            NavGraph(
-                navController = navController,
-                startDestination = startDestination,
-                onLogoClick = onLogoClick,
-                modifier = Modifier.weight(1f)
-            )
+            androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
+                if (showDemoBanner) com.continuum.android.core.ui.components.DemoBanner()
+                NavGraph(
+                    navController = navController,
+                    startDestination = startDestination,
+                    onLogoClick = onLogoClick,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     } else {
         Scaffold(
@@ -237,12 +242,15 @@ fun AppNavHost(
                 }
             }
         ) { innerPadding ->
-            NavGraph(
-                navController = navController,
-                startDestination = startDestination,
-                onLogoClick = onLogoClick,
-                modifier = Modifier.padding(innerPadding)
-            )
+            androidx.compose.foundation.layout.Column(modifier = Modifier.padding(innerPadding)) {
+                if (showDemoBanner) com.continuum.android.core.ui.components.DemoBanner()
+                NavGraph(
+                    navController = navController,
+                    startDestination = startDestination,
+                    onLogoClick = onLogoClick,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }

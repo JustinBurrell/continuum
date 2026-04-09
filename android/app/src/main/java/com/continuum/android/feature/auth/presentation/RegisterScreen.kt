@@ -6,6 +6,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.graphics.ColorFilter
@@ -85,13 +87,13 @@ fun RegisterScreen(
                     ContinuumTextField(
                         value = firstName,
                         onValueChange = { firstName = it },
-                        label = "First name",
+                        label = "First name *",
                         modifier = Modifier.weight(1f)
                     )
                     ContinuumTextField(
                         value = lastName,
                         onValueChange = { lastName = it },
-                        label = "Last name",
+                        label = "Last name *",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -99,14 +101,17 @@ fun RegisterScreen(
                 ContinuumTextField(
                     value = username,
                     onValueChange = { username = it },
-                    label = "Username",
+                    label = "Username *",
                     placeholder = "yourhandle"
                 )
+                if (username.isNotBlank() && username.length < 3) {
+                    Text("Min 3 characters", color = ErrorRed, style = MaterialTheme.typography.bodySmall)
+                }
 
                 ContinuumTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = "Email",
+                    label = "Email *",
                     placeholder = "your@email.com",
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                 )
@@ -114,7 +119,7 @@ fun RegisterScreen(
                 ContinuumTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = "Password",
+                    label = "Password *",
                     placeholder = "••••••••",
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -128,6 +133,18 @@ fun RegisterScreen(
                         }
                     }
                 )
+                if (password.isNotEmpty()) {
+                    val hasLetter = password.any { it.isLetter() }
+                    val hasDigit = password.any { it.isDigit() }
+                    val hasSpecial = password.any { !it.isLetterOrDigit() }
+                    val longEnough = password.length >= 8
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        PasswordReqLine("At least 8 characters", longEnough)
+                        PasswordReqLine("Contains a letter", hasLetter)
+                        PasswordReqLine("Contains a number", hasDigit)
+                        PasswordReqLine("Contains a special character", hasSpecial)
+                    }
+                }
 
                 Column {
                     Text(
@@ -164,7 +181,9 @@ fun RegisterScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = firstName.isNotBlank() && lastName.isNotBlank() &&
-                        username.isNotBlank() && email.isNotBlank() && password.isNotBlank(),
+                        username.length >= 3 && email.isNotBlank() &&
+                        password.length >= 8 && password.any { it.isLetter() } &&
+                        password.any { it.isDigit() } && password.any { !it.isLetterOrDigit() },
                     loading = uiState is AuthUiState.Loading
                 )
             }
@@ -182,5 +201,18 @@ fun RegisterScreen(
                 Text("Sign in", color = BrandPurple, style = MaterialTheme.typography.bodyMedium)
             }
         }
+    }
+}
+
+@Composable
+private fun PasswordReqLine(text: String, met: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Icon(
+            if (met) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+            contentDescription = null,
+            tint = if (met) SuccessGreen else TextMuted,
+            modifier = Modifier.size(14.dp)
+        )
+        Text(text, style = MaterialTheme.typography.bodySmall, color = if (met) SuccessGreen else TextMuted)
     }
 }

@@ -7,7 +7,8 @@ data class User(
     val username: String?,
     val email: String,
     val avatar: String?,
-    val isEmailVerified: Boolean = false
+    val isEmailVerified: Boolean = false,
+    val isDemo: Boolean = false
 ) {
     val fullName: String get() = "$firstName $lastName".trim()
     val initials: String

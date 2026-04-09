@@ -36,14 +36,14 @@ fun TaskCreationBottomSheet(
             ContinuumTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = "Task title",
+                label = "Task title *",
                 placeholder = "What needs to be done?"
             )
 
             ContinuumTextField(
                 value = dueDate,
                 onValueChange = { dueDate = it },
-                label = "Due date (YYYY-MM-DD)",
+                label = "Due date (YYYY-MM-DD) *",
                 placeholder = "2025-12-31"
             )
 
@@ -98,13 +98,12 @@ fun TaskCreationBottomSheet(
             ContinuumButton(
                 text = "Create task",
                 onClick = {
-                    if (title.isNotBlank()) {
-                        val dueDateParam = dueDate.takeIf { it.isNotBlank() }
-                        onCreate(title, selectedPriority, dueDateParam, selectedType)
+                    if (title.isNotBlank() && dueDate.isNotBlank()) {
+                        onCreate(title, selectedPriority, dueDate, selectedType)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = title.isNotBlank()
+                enabled = title.isNotBlank() && dueDate.isNotBlank()
             )
             Spacer(Modifier.height(16.dp))
         }

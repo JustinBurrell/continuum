@@ -20,7 +20,8 @@ class AuthRepository @Inject constructor(
         username = username,
         email = email,
         avatar = avatar,
-        isEmailVerified = isEmailVerified
+        isEmailVerified = isEmailVerified,
+        isDemo = isDemo
     )
 
     suspend fun login(email: String, password: String): Result<User> = runCatching {
