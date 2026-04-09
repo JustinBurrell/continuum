@@ -9,7 +9,7 @@ data class NoteDto(
     val title: String = "",
     val content: String = "",
     val tags: List<String> = emptyList(),
-    val isFavorite: Boolean = false,
+    @Json(name = "isPinned") val isPinned: Boolean = false,
     val visibility: String = "private",
     val googleDocId: String? = null,
     val hasFlashcards: Boolean = false,
@@ -20,20 +20,21 @@ data class NoteDto(
 
 @JsonClass(generateAdapter = true)
 data class NoteSummaryDto(
-    val quick: String? = null,
-    val detailed: String? = null
+    @Json(name = "quickSummary") val quick: String? = null,
+    @Json(name = "detailedSummary") val detailed: String? = null
 )
 
 @JsonClass(generateAdapter = true)
 data class NotesListResponseDto(
     val success: Boolean = false,
-    val data: List<NoteDto> = emptyList()
+    val notes: List<NoteDto> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
 data class NoteResponseDto(
     val success: Boolean = false,
-    val data: NoteDto = NoteDto()
+    val note: NoteDto = NoteDto(),
+    val cached: Boolean? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -68,5 +69,5 @@ data class DriveFileDto(
 @JsonClass(generateAdapter = true)
 data class DriveFilesResponseDto(
     val success: Boolean = false,
-    val data: List<DriveFileDto> = emptyList()
+    val files: List<DriveFileDto> = emptyList()
 )

@@ -22,7 +22,7 @@ class TasksRepository @Inject constructor(
         val cached = taskDao.getAll().map { it.toDomain() }
         if (cached.isNotEmpty()) emit(Result.success(cached))
         try {
-            val fresh = api.getTasks().data
+            val fresh = api.getTasks().tasks
             taskDao.deleteAll()
             taskDao.insertAll(fresh.map { it.toEntity() })
             emit(Result.success(taskDao.getAll().map { it.toDomain() }))
@@ -39,13 +39,13 @@ class TasksRepository @Inject constructor(
     ): Result<Task> = runCatching {
         val task = api.createTask(
             CreateTaskRequestDto(title, description, status, priority, type, dueDate, duration, isShared)
-        ).data
+        ).task
         taskDao.insert(task.toEntity())
         task.toDomain()
     }
 
     suspend fun updateStatus(id: String, status: String): Result<Task> = runCatching {
-        val task = api.updateTaskStatus(id, UpdateTaskStatusRequestDto(status)).data
+        val task = api.updateTaskStatus(id, UpdateTaskStatusRequestDto(status)).task
         taskDao.insert(task.toEntity())
         task.toDomain()
     }

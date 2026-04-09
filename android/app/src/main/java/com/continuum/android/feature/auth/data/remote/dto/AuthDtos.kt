@@ -40,7 +40,7 @@ data class UserDto(
     val lastName: String = "",
     val username: String? = null,
     val email: String = "",
-    val avatar: String? = null,
+    @Json(name = "avatarUrl") val avatar: String? = null,
     val isEmailVerified: Boolean = false
 )
 
@@ -55,7 +55,7 @@ data class AuthResponseDto(
 @JsonClass(generateAdapter = true)
 data class GetMeResponseDto(
     val success: Boolean = false,
-    val data: UserDto = UserDto()
+    val user: UserDto = UserDto()
 )
 
 @JsonClass(generateAdapter = true)

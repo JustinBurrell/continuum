@@ -111,7 +111,7 @@ class CareerViewModel @Inject constructor(
             try {
                 val bytes = context.contentResolver.openInputStream(uri)?.readBytes() ?: return@launch
                 val requestBody = bytes.toRequestBody("application/pdf".toMediaTypeOrNull())
-                val part = MultipartBody.Part.createFormData("file", fileName, requestBody)
+                val part = MultipartBody.Part.createFormData("resume", fileName, requestBody)
                 repository.uploadResume(part)
                     .onSuccess { loadResumes() }
                     .onFailure { e -> _resumesState.update { it.copy(error = e.message) } }

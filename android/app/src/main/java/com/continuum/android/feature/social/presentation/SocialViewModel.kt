@@ -150,7 +150,7 @@ class SocialViewModel @Inject constructor(
 
     fun likeComment(noteId: String, commentId: String) {
         viewModelScope.launch {
-            repository.likeComment(noteId, commentId)
+            repository.likeComment(commentId)
         }
     }
 }

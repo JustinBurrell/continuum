@@ -20,9 +20,6 @@ interface FlashcardsApiService {
     @DELETE("flashcard-sets/{setId}")
     suspend fun deleteSet(@Path("setId") setId: String): retrofit2.Response<Unit>
 
-    @GET("flashcard-sets/{setId}/cards")
-    suspend fun getCards(@Path("setId") setId: String): FlashcardsResponseDto
-
     @POST("flashcard-sets/{setId}/cards")
     suspend fun createCard(
         @Path("setId") setId: String,

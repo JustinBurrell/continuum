@@ -49,13 +49,13 @@ class DashboardViewModel @Inject constructor(
                 val tasksResp = tasksDeferred.await()
                 val appsResp  = appsDeferred.await()
 
-                val recentNotes = notesResp.data.take(5).map { dto ->
+                val recentNotes = notesResp.notes.take(5).map { dto ->
                     Note(
                         id = dto.id,
                         title = dto.title,
                         content = dto.content,
                         tags = dto.tags,
-                        isFavorite = dto.isFavorite,
+                        isFavorite = dto.isPinned,
                         visibility = dto.visibility,
                         googleDocId = dto.googleDocId,
                         hasFlashcards = dto.hasFlashcards,
@@ -66,7 +66,7 @@ class DashboardViewModel @Inject constructor(
                     )
                 }
 
-                val openTasks = tasksResp.data
+                val openTasks = tasksResp.tasks
                     .filter { it.status != "completed" && it.status != "done" }
                     .map { dto ->
                         Task(
@@ -86,11 +86,11 @@ class DashboardViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        notesTotal = notesResp.data.size,
+                        notesTotal = notesResp.notes.size,
                         recentNotes = recentNotes,
                         upcomingTasks = openTasks.take(3),
                         openTaskCount = openTasks.size,
-                        openApplicationCount = appsResp.data.total
+                        openApplicationCount = appsResp.total
                     )
                 }
             } catch (e: Exception) {

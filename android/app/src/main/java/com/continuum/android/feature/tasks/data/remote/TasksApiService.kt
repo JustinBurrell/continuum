@@ -17,7 +17,7 @@ interface TasksApiService {
         @Body request: UpdateTaskStatusRequestDto
     ): TaskResponseDto
 
-    @PATCH("tasks/{id}")
+    @PUT("tasks/{id}")
     suspend fun updateTask(
         @Path("id") id: String,
         @Body request: UpdateTaskRequestDto

@@ -11,7 +11,7 @@ data class ProfileDto(
     val username: String = "",
     val email: String = "",
     val bio: String? = null,
-    val avatar: String? = null,
+    @Json(name = "avatarUrl") val avatar: String? = null,
     val isEmailVerified: Boolean = false,
     val googleId: String? = null,
     val createdAt: String = ""
@@ -20,7 +20,7 @@ data class ProfileDto(
 @JsonClass(generateAdapter = true)
 data class ProfileResponseDto(
     val success: Boolean = false,
-    val data: ProfileDto = ProfileDto()
+    val user: ProfileDto = ProfileDto()
 )
 
 @JsonClass(generateAdapter = true)

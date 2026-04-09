@@ -15,7 +15,7 @@ interface CareerApiService {
     @POST("applications")
     suspend fun createApplication(@Body request: CreateApplicationRequestDto): ApplicationResponseDto
 
-    @PATCH("applications/{id}")
+    @PUT("applications/{id}")
     suspend fun updateApplication(
         @Path("id") id: String,
         @Body request: UpdateApplicationRequestDto
@@ -30,7 +30,7 @@ interface CareerApiService {
     @Multipart
     @POST("resumes/upload")
     suspend fun uploadResume(
-        @Part file: MultipartBody.Part
+        @Part resume: MultipartBody.Part
     ): ResumeResponseDto
 
     @DELETE("resumes/{id}")

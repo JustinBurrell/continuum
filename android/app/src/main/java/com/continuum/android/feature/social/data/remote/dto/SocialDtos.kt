@@ -4,51 +4,54 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class ActivityItemDto(
+data class SocialUserSummaryDto(
     @Json(name = "_id") val id: String = "",
-    val type: String = "",           // "note_shared" | "flashcard_shared" | "task_created" | "friend_accepted"
-    val actorName: String = "",
-    val actorAvatar: String? = null,
-    val resourceId: String? = null,
-    val resourceTitle: String? = null,
+    val firstName: String = "",
+    val lastName: String = "",
+    val username: String? = null,
+    @Json(name = "avatarUrl") val avatarUrl: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class ActivityMetadataDto(
+    val noteTitle: String? = null,
+    val setTitle: String? = null,
+    val taskTitle: String? = null,
+    val commentPreview: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class ActivityFeedItemDto(
+    @Json(name = "_id") val id: String = "",
+    val type: String = "",
+    val targetId: String? = null,
+    val targetType: String? = null,
+    val userId: SocialUserSummaryDto? = null,
+    val metadata: ActivityMetadataDto? = null,
     val createdAt: String = ""
 )
 
 @JsonClass(generateAdapter = true)
 data class ActivityResponseDto(
     val success: Boolean = false,
-    val data: List<ActivityItemDto> = emptyList(),
-    val nextCursor: String? = null
+    val feed: List<ActivityFeedItemDto> = emptyList(),
+    val nextCursor: String? = null,
+    val total: Int = 0
 )
 
 @JsonClass(generateAdapter = true)
-data class FriendDto(
+data class FriendshipJsonDto(
     @Json(name = "_id") val id: String = "",
-    val firstName: String = "",
-    val lastName: String = "",
-    val username: String? = null,
-    val avatar: String? = null,
-    val mutualFriendsCount: Int = 0
+    val user1: SocialUserSummaryDto? = null,
+    val user2: SocialUserSummaryDto? = null,
+    val requestedBy: String? = null,
+    val status: String = ""
 )
 
 @JsonClass(generateAdapter = true)
-data class FriendRequestDto(
-    @Json(name = "_id") val id: String = "",
-    val sender: FriendDto = FriendDto(),
-    val receiver: FriendDto = FriendDto(),
-    val status: String = "pending"
-)
-
-@JsonClass(generateAdapter = true)
-data class FriendsResponseDto(
+data class FriendsListResponseDto(
     val success: Boolean = false,
-    val data: List<FriendDto> = emptyList()
-)
-
-@JsonClass(generateAdapter = true)
-data class FriendRequestsResponseDto(
-    val success: Boolean = false,
-    val data: List<FriendRequestDto> = emptyList()
+    val friends: List<FriendshipJsonDto> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
@@ -57,43 +60,49 @@ data class UserSearchDto(
     val firstName: String = "",
     val lastName: String = "",
     val username: String? = null,
-    val avatar: String? = null,
-    val friendStatus: String = "none" // "none" | "pending" | "friends"
+    @Json(name = "avatarUrl") val avatar: String? = null,
+    val friendStatus: String = "none"
 )
 
 @JsonClass(generateAdapter = true)
 data class UserSearchResponseDto(
     val success: Boolean = false,
-    val data: List<UserSearchDto> = emptyList()
+    val users: List<UserSearchDto> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
-data class CommentDto(
+data class UserSnapshotDto(
+    val username: String? = null,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val avatarUrl: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class CommentJsonDto(
     @Json(name = "_id") val id: String = "",
-    val authorName: String = "",
-    val authorAvatar: String? = null,
     val content: String = "",
-    val likes: Int = 0,
-    val replies: List<CommentDto> = emptyList(),
+    val userSnapshot: UserSnapshotDto? = null,
+    val likes: List<String> = emptyList(),
+    val parentId: String? = null,
     val createdAt: String = ""
 )
 
 @JsonClass(generateAdapter = true)
-data class NoteWithCommentsDto(
-    @Json(name = "_id") val id: String = "",
-    val title: String = "",
-    val content: String = "",
-    val comments: List<CommentDto> = emptyList()
-)
-
-@JsonClass(generateAdapter = true)
-data class NoteWithCommentsResponseDto(
+data class CommentsListResponseDto(
     val success: Boolean = false,
-    val data: NoteWithCommentsDto = NoteWithCommentsDto()
+    val comments: List<CommentJsonDto> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
-data class AddCommentRequestDto(val content: String)
+data class CreateCommentRequestDto(
+    val targetId: String,
+    val targetType: String = "note",
+    val content: String
+)
 
 @JsonClass(generateAdapter = true)
-data class SendFriendRequestDto(val receiverId: String)
+data class SendFriendRequestDto(val recipientId: String)
+
+@JsonClass(generateAdapter = true)
+data class FriendRequestActionDto(val action: String)

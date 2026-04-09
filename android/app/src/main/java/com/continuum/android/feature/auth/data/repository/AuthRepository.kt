@@ -68,7 +68,7 @@ class AuthRepository @Inject constructor(
 
     suspend fun getMe(): Result<User> = runCatching {
         val response = api.getMe()
-        response.data.toDomain()
+        response.user.toDomain()
     }
 
     fun logout() = tokenManager.clearTokens()

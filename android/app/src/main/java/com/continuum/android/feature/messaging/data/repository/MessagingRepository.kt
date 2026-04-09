@@ -1,5 +1,6 @@
 package com.continuum.android.feature.messaging.data.repository
 
+import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.messaging.data.remote.MessagingApiService
 import com.continuum.android.feature.messaging.data.remote.dto.*
 import com.continuum.android.feature.messaging.domain.Conversation
@@ -8,23 +9,71 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class MessagingRepository @Inject constructor(private val api: MessagingApiService) {
+class MessagingRepository @Inject constructor(
+    private val api: MessagingApiService,
+    private val tokenManager: TokenManager
+) {
+
+    private fun meId(): String =
+        tokenManager.getJwtUserId() ?: error("Not signed in")
 
     suspend fun getConversations(): Result<List<Conversation>> = runCatching {
-        api.getConversations().data.map { it.toDomain() }
+        val me = meId()
+        api.getConversations().conversations.map { it.toDomain(me) }
     }
 
     suspend fun getMessages(conversationId: String): Result<List<Message>> = runCatching {
-        api.getMessages(conversationId).data.map { it.toDomain() }
+        api.getMessages(conversationId).messages.map { it.toDomain() }
     }
 
     suspend fun sendMessage(conversationId: String, content: String): Result<Message> = runCatching {
-        api.sendMessage(conversationId, SendMessageRequestDto(content)).data.toDomain()
+        api.sendMessage(conversationId, SendMessageRequestDto(content)).message.toDomain()
     }
 
-    // Mappers
-    private fun ConversationDto.toDomain() = Conversation(
-        id, participantName, participantAvatar, participantId, lastMessage, lastMessageAt, unreadCount
-    )
-    private fun MessageDto.toDomain() = Message(id, conversationId, senderId, senderName, content, createdAt)
+    private fun ConversationJsonDto.toDomain(meId: String): Conversation {
+        val other = participants.firstOrNull { it.id != meId } ?: participants.firstOrNull()
+            ?: return Conversation(
+                id = id,
+                participantName = "Unknown",
+                participantAvatar = null,
+                participantId = "",
+                lastMessage = lastMessage?.content ?: "",
+                lastMessageAt = lastMessage?.sentAt ?: "",
+                unreadCount = 0
+            )
+        val name = when {
+            other.firstName.isNotBlank() || other.lastName.isNotBlank() ->
+                "${other.firstName} ${other.lastName}".trim()
+            else -> other.username ?: "Unknown"
+        }
+        val unread = unreadCounts.firstOrNull { it.userId == meId }?.count ?: 0
+        return Conversation(
+            id = id,
+            participantName = name,
+            participantAvatar = other.avatarUrl,
+            participantId = other.id,
+            lastMessage = lastMessage?.content ?: "",
+            lastMessageAt = lastMessage?.sentAt ?: "",
+            unreadCount = unread
+        )
+    }
+
+    private fun MessageJsonDto.toDomain(): Message {
+        val s = senderId
+        val senderName = when {
+            s == null -> "Someone"
+            s.firstName.isNotBlank() || s.lastName.isNotBlank() ->
+                "${s.firstName} ${s.lastName}".trim()
+            else -> s.username ?: "Someone"
+        }
+        val sid = s?.id ?: ""
+        return Message(
+            id = id,
+            conversationId = conversationId,
+            senderId = sid,
+            senderName = senderName,
+            content = content,
+            createdAt = createdAt
+        )
+    }
 }

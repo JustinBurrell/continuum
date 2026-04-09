@@ -4,28 +4,45 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class ConversationDto(
+data class MessagingUserDto(
     @Json(name = "_id") val id: String = "",
-    val participantName: String = "",
-    val participantAvatar: String? = null,
-    val participantId: String = "",
-    val lastMessage: String = "",
-    val lastMessageAt: String = "",
-    val unreadCount: Int = 0
+    val firstName: String = "",
+    val lastName: String = "",
+    val username: String? = null,
+    @Json(name = "avatarUrl") val avatarUrl: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class LastMessageDto(
+    val content: String? = null,
+    val sentAt: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class UnreadCountDto(
+    val userId: String? = null,
+    val count: Int = 0
+)
+
+@JsonClass(generateAdapter = true)
+data class ConversationJsonDto(
+    @Json(name = "_id") val id: String = "",
+    val participants: List<MessagingUserDto> = emptyList(),
+    val lastMessage: LastMessageDto? = null,
+    val unreadCounts: List<UnreadCountDto> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
 data class ConversationsResponseDto(
     val success: Boolean = false,
-    val data: List<ConversationDto> = emptyList()
+    val conversations: List<ConversationJsonDto> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
-data class MessageDto(
+data class MessageJsonDto(
     @Json(name = "_id") val id: String = "",
     val conversationId: String = "",
-    val senderId: String = "",
-    val senderName: String = "",
+    val senderId: MessagingUserDto? = null,
     val content: String = "",
     val createdAt: String = ""
 )
@@ -33,7 +50,8 @@ data class MessageDto(
 @JsonClass(generateAdapter = true)
 data class MessagesResponseDto(
     val success: Boolean = false,
-    val data: List<MessageDto> = emptyList()
+    val messages: List<MessageJsonDto> = emptyList(),
+    val hasMore: Boolean = false
 )
 
 @JsonClass(generateAdapter = true)
@@ -42,5 +60,5 @@ data class SendMessageRequestDto(val content: String)
 @JsonClass(generateAdapter = true)
 data class MessageResponseDto(
     val success: Boolean = false,
-    val data: MessageDto = MessageDto()
+    val message: MessageJsonDto = MessageJsonDto()
 )

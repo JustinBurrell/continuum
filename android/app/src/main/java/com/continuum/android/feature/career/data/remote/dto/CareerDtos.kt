@@ -8,8 +8,8 @@ data class ApplicationDto(
     @Json(name = "_id") val id: String = "",
     val company: String = "",
     val position: String = "",
-    val status: String = "saved",   // saved | applied | interview | offer | rejected
-    val appliedDate: String? = null,
+    val status: String = "saved",
+    @Json(name = "appliedAt") val appliedAt: String? = null,
     val jobUrl: String? = null,
     val notes: String = "",
     val contacts: List<ContactDto> = emptyList(),
@@ -20,19 +20,20 @@ data class ApplicationDto(
 data class ContactDto(
     val name: String = "",
     val role: String = "",
+    val email: String? = null,
     val linkedIn: String? = null
 )
 
 @JsonClass(generateAdapter = true)
 data class ApplicationsResponseDto(
     val success: Boolean = false,
-    val data: List<ApplicationDto> = emptyList()
+    val applications: List<ApplicationDto> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
 data class ApplicationResponseDto(
     val success: Boolean = false,
-    val data: ApplicationDto = ApplicationDto()
+    val application: ApplicationDto = ApplicationDto()
 )
 
 @JsonClass(generateAdapter = true)
@@ -53,50 +54,58 @@ data class UpdateApplicationRequestDto(
 data class ResumeDto(
     @Json(name = "_id") val id: String = "",
     val fileName: String = "",
-    val targetRole: String = "",
-    val version: Int = 1,
-    val uploadDate: String = "",
-    val cloudinaryUrl: String = "",
+    val targetRole: String? = null,
+    val version: String? = null,
+    @Json(name = "uploadedAt") val uploadedAt: String = "",
+    @Json(name = "fileUrl") val fileUrl: String = "",
     val aiScore: Int? = null
 )
 
 @JsonClass(generateAdapter = true)
 data class ResumesResponseDto(
     val success: Boolean = false,
-    val data: List<ResumeDto> = emptyList()
+    val resumes: List<ResumeDto> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
 data class ResumeResponseDto(
     val success: Boolean = false,
-    val data: ResumeDto = ResumeDto()
+    val resume: ResumeDto = ResumeDto()
+)
+
+@JsonClass(generateAdapter = true)
+data class ResumeFeedbackSectionDto(
+    val name: String? = null,
+    val score: Int? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class KeywordOptimizationDto(
+    val presentKeywords: List<String> = emptyList(),
+    val missingKeywords: List<String> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
 data class ResumeFeedbackDto(
     val overallScore: Int = 0,
-    val experience: Int = 0,
-    val education: Int = 0,
-    val skills: Int = 0,
-    val keywords: Int = 0,
-    val formatting: Int = 0,
     val strengths: List<String> = emptyList(),
     val improvements: List<String> = emptyList(),
-    val keywordGaps: List<String> = emptyList(),
-    val generatedAt: String = "",
-    val model: String = ""
+    val sections: List<ResumeFeedbackSectionDto> = emptyList(),
+    val keywordOptimization: KeywordOptimizationDto? = null,
+    val model: String = "",
+    val generatedAt: String = ""
 )
 
 @JsonClass(generateAdapter = true)
 data class ResumeFeedbackResponseDto(
     val success: Boolean = false,
-    val data: ResumeFeedbackDto = ResumeFeedbackDto()
+    val feedback: ResumeFeedbackDto = ResumeFeedbackDto()
 )
 
 @JsonClass(generateAdapter = true)
 data class ApplicationsPipelineDto(
+    val draft: Int = 0,
     val applied: Int = 0,
-    val screening: Int = 0,
     val interview: Int = 0,
     val offer: Int = 0,
     val rejected: Int = 0,
@@ -104,13 +113,8 @@ data class ApplicationsPipelineDto(
 )
 
 @JsonClass(generateAdapter = true)
-data class ApplicationsDashboardDto(
-    val total: Int = 0,
-    val pipeline: ApplicationsPipelineDto = ApplicationsPipelineDto()
-)
-
-@JsonClass(generateAdapter = true)
 data class ApplicationsDashboardResponseDto(
     val success: Boolean = false,
-    val data: ApplicationsDashboardDto = ApplicationsDashboardDto()
+    val total: Int = 0,
+    val pipeline: ApplicationsPipelineDto = ApplicationsPipelineDto()
 )

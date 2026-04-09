@@ -20,13 +20,13 @@ data class TaskDto(
 @JsonClass(generateAdapter = true)
 data class TasksResponseDto(
     val success: Boolean = false,
-    val data: List<TaskDto> = emptyList()
+    val tasks: List<TaskDto> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
 data class TaskResponseDto(
     val success: Boolean = false,
-    val data: TaskDto = TaskDto()
+    val task: TaskDto = TaskDto()
 )
 
 @JsonClass(generateAdapter = true)

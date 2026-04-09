@@ -12,7 +12,7 @@ class ProfileRepository @Inject constructor(
     private val api: ProfileApiService
 ) {
     suspend fun getProfile(): Result<Profile> = runCatching {
-        api.getProfile().data.let { dto ->
+        api.getProfile().user.let { dto ->
             Profile(
                 id = dto.id,
                 firstName = dto.firstName,
@@ -41,7 +41,7 @@ class ProfileRepository @Inject constructor(
                 username = username,
                 bio = bio
             )
-        ).data.let { dto ->
+        ).user.let { dto ->
             Profile(
                 id = dto.id,
                 firstName = dto.firstName,

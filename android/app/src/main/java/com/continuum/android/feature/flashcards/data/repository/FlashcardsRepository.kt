@@ -25,7 +25,7 @@ class FlashcardsRepository @Inject constructor(
         val cached = setDao.getAll().map { it.toDomain() }
         if (cached.isNotEmpty()) emit(Result.success(cached))
         try {
-            val fresh = api.getSets().data
+            val fresh = api.getSets().sets
             setDao.deleteAll()
             setDao.insertAll(fresh.map { it.toEntity() })
             emit(Result.success(setDao.getAll().map { it.toDomain() }))
@@ -39,19 +39,20 @@ class FlashcardsRepository @Inject constructor(
     suspend fun getCards(setId: String): Result<List<Flashcard>> = runCatching {
         val cached = cardDao.getBySetId(setId)
         if (cached.isNotEmpty()) return Result.success(cached.map { it.toDomain() })
-        val fresh = api.getCards(setId).data
-        cardDao.insertAll(fresh.map { it.toEntity() })
-        fresh.map { it.toDomain() }
+        val set = api.getSetById(setId).set
+        val fresh = set.flashcards.orEmpty()
+        cardDao.insertAll(fresh.map { it.toEntity(setId) })
+        fresh.map { it.toDomain(setId) }
     }
 
     suspend fun createSet(title: String, description: String): Result<FlashcardSet> = runCatching {
-        val set = api.createSet(CreateSetRequestDto(title, description)).data
+        val set = api.createSet(CreateSetRequestDto(title, description)).set
         setDao.insert(set.toEntity())
         set.toDomain()
     }
 
     suspend fun generateSet(content: String, title: String): Result<FlashcardSet> = runCatching {
-        val set = api.generateSet(GenerateSetRequestDto(content, title)).data
+        val set = api.generateSet(GenerateSetRequestDto(content, title)).set
         setDao.insert(set.toEntity())
         set.toDomain()
     }
@@ -64,10 +65,10 @@ class FlashcardsRepository @Inject constructor(
 
     suspend fun createCard(setId: String, front: String, back: String): Result<Unit> = runCatching {
         api.createCard(setId, CreateCardRequestDto(front, back))
-        // Reload cards
-        val fresh = api.getCards(setId).data
+        val set = api.getSetById(setId).set
+        val fresh = set.flashcards.orEmpty()
         cardDao.deleteBySetId(setId)
-        cardDao.insertAll(fresh.map { it.toEntity() })
+        cardDao.insertAll(fresh.map { it.toEntity(setId) })
     }
 
     suspend fun updateCard(setId: String, cardId: String, front: String, back: String): Result<Unit> = runCatching {
@@ -85,25 +86,36 @@ class FlashcardsRepository @Inject constructor(
         api.updateCardProgress(setId, cardId, CardProgressRequestDto(correct))
     }
 
-    // Mappers
     private fun FlashcardSetDto.toEntity() = FlashcardSetEntity(
-        id = id, title = title, description = description, cardCount = cardCount, updatedAt = updatedAt
+        id = id,
+        title = title,
+        description = description,
+        cardCount = resolvedCardCount(),
+        updatedAt = updatedAt
     )
     private fun FlashcardSetEntity.toDomain() = FlashcardSet(
         id = id, title = title, description = description, cardCount = cardCount,
         isAIGenerated = false, lastStudied = null, updatedAt = updatedAt
     )
     private fun FlashcardSetDto.toDomain() = FlashcardSet(
-        id = id, title = title, description = description, cardCount = cardCount,
-        isAIGenerated = isAIGenerated, lastStudied = lastStudied, updatedAt = updatedAt
+        id = id, title = title, description = description, cardCount = resolvedCardCount(),
+        isAIGenerated = isAIGenerated, lastStudied = resolvedLastStudied(), updatedAt = updatedAt
     )
-    private fun FlashcardDto.toEntity() = FlashcardEntity(
-        id = id, setId = setId, front = front, back = back, position = position
+    private fun FlashcardDto.toEntity(parentSetId: String) = FlashcardEntity(
+        id = id,
+        setId = setId ?: parentSetId,
+        front = front,
+        back = back,
+        position = resolvedPosition()
     )
     private fun FlashcardEntity.toDomain() = Flashcard(
         id = id, setId = setId, front = front, back = back, position = position
     )
-    private fun FlashcardDto.toDomain() = Flashcard(
-        id = id, setId = setId, front = front, back = back, position = position
+    private fun FlashcardDto.toDomain(parentSetId: String) = Flashcard(
+        id = id,
+        setId = setId ?: parentSetId,
+        front = front,
+        back = back,
+        position = resolvedPosition()
     )
 }

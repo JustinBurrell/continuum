@@ -12,8 +12,10 @@ data class ActivityItem(
     val displayText: String
         get() = when (type) {
             "note_shared" -> "$actorName shared a note${resourceTitle?.let { ": $it" } ?: ""}"
-            "flashcard_shared" -> "$actorName shared a flashcard set"
-            "task_created" -> "$actorName created a task"
+            "flashcard_shared" -> "$actorName shared a flashcard set${resourceTitle?.let { ": $it" } ?: ""}"
+            "task_created" -> "$actorName created a task${resourceTitle?.let { ": $it" } ?: ""}"
+            "comment_added" -> "$actorName commented${resourceTitle?.let { ": $it" } ?: ""}"
+            "like_added" -> "$actorName liked a comment"
             "friend_accepted" -> "$actorName accepted your friend request"
             else -> "$actorName did something"
         }

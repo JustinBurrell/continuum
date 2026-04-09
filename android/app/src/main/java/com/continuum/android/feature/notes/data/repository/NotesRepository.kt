@@ -24,7 +24,7 @@ class NotesRepository @Inject constructor(
         val cached = noteDao.getAll().map { it.toDomain() }
         if (cached.isNotEmpty()) emit(Result.success(cached))
         try {
-            val fresh = api.getNotes().data
+            val fresh = api.getNotes().notes
             noteDao.deleteAll()
             noteDao.insertAll(fresh.map { it.toEntity() })
             emit(Result.success(noteDao.getAll().map { it.toDomain() }))
@@ -38,21 +38,21 @@ class NotesRepository @Inject constructor(
     suspend fun getNoteById(id: String): Result<Note> = runCatching {
         val cached = noteDao.getById(id)
         if (cached != null) return Result.success(cached.toDomain())
-        val remote = api.getNoteById(id).data
+        val remote = api.getNoteById(id).note
         noteDao.insert(remote.toEntity())
         remote.toDomain()
     }
 
     suspend fun createNote(title: String, content: String, tags: List<String>, visibility: String): Result<Note> =
         runCatching {
-            val note = api.createNote(CreateNoteRequestDto(title, content, tags, visibility)).data
+            val note = api.createNote(CreateNoteRequestDto(title, content, tags, visibility)).note
             noteDao.insert(note.toEntity())
             note.toDomain()
         }
 
     suspend fun updateNote(id: String, title: String?, content: String?, tags: List<String>?, visibility: String?): Result<Note> =
         runCatching {
-            val note = api.updateNote(id, UpdateNoteRequestDto(title, content, tags, visibility)).data
+            val note = api.updateNote(id, UpdateNoteRequestDto(title, content, tags, visibility)).note
             noteDao.insert(note.toEntity())
             note.toDomain()
         }
@@ -63,7 +63,7 @@ class NotesRepository @Inject constructor(
     }
 
     suspend fun generateSummary(id: String): Result<Note> = runCatching {
-        val note = api.generateSummary(id).data
+        val note = api.generateSummary(id).note
         noteDao.insert(note.toEntity())
         note.toDomain()
     }
@@ -74,11 +74,11 @@ class NotesRepository @Inject constructor(
     }
 
     suspend fun getDriveFiles(): Result<List<DriveFile>> = runCatching {
-        api.getDriveFiles().data.map { DriveFile(it.id, it.name, it.modifiedTime) }
+        api.getDriveFiles().files.map { DriveFile(it.id, it.name, it.modifiedTime) }
     }
 
     suspend fun importFromDrive(googleDocId: String, title: String): Result<Note> = runCatching {
-        val note = api.importFromDrive(ImportNoteRequestDto(googleDocId, title)).data
+        val note = api.importFromDrive(ImportNoteRequestDto(googleDocId, title)).note
         noteDao.insert(note.toEntity())
         note.toDomain()
     }
@@ -90,7 +90,7 @@ class NotesRepository @Inject constructor(
         title = title,
         content = content,
         tags = tags.joinToString(","),
-        isFavorite = isFavorite,
+        isFavorite = isPinned,
         updatedAt = updatedAt,
         createdAt = createdAt
     )
@@ -115,7 +115,7 @@ class NotesRepository @Inject constructor(
         title = title,
         content = content,
         tags = tags,
-        isFavorite = isFavorite,
+        isFavorite = isPinned,
         visibility = visibility,
         googleDocId = googleDocId,
         hasFlashcards = hasFlashcards,

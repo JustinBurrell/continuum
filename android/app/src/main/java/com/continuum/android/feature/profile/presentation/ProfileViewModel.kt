@@ -54,8 +54,8 @@ class ProfileViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             profile = profile,
-                            notesCount = notesResult.getOrNull()?.data?.size ?: 0,
-                            friendsCount = friendsResult.getOrNull()?.data?.size ?: 0
+                            notesCount = notesResult.getOrNull()?.notes?.size ?: 0,
+                            friendsCount = friendsResult.getOrNull()?.friends?.size ?: 0
                         )
                     }
                 },

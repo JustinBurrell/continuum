@@ -11,9 +11,9 @@ interface ProfileApiService {
     @PATCH("auth/me/profile")
     suspend fun updateProfile(@Body request: UpdateProfileRequestDto): ProfileResponseDto
 
-    @POST("auth/change-password")
+    @PATCH("auth/me/password")
     suspend fun changePassword(@Body request: ChangePasswordRequestDto): SimpleMessageDto
 
-    @DELETE("auth/account")
+    @DELETE("auth/me")
     suspend fun deleteAccount(): SimpleMessageDto
 }

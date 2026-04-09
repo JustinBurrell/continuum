@@ -9,38 +9,32 @@ interface SocialApiService {
     suspend fun getActivity(@Query("cursor") cursor: String? = null): ActivityResponseDto
 
     @GET("friends")
-    suspend fun getFriends(): FriendsResponseDto
-
-    @GET("friends/requests")
-    suspend fun getFriendRequests(): FriendRequestsResponseDto
+    suspend fun getFriends(@Query("status") status: String? = null): FriendsListResponseDto
 
     @POST("friends/request")
     suspend fun sendFriendRequest(@Body request: SendFriendRequestDto): retrofit2.Response<Unit>
 
-    @POST("friends/accept/{requestId}")
-    suspend fun acceptFriendRequest(@Path("requestId") requestId: String): retrofit2.Response<Unit>
+    @PUT("friends/request/{id}")
+    suspend fun respondToFriendRequest(
+        @Path("id") friendshipId: String,
+        @Body body: FriendRequestActionDto
+    ): retrofit2.Response<Unit>
 
-    @DELETE("friends/decline/{requestId}")
-    suspend fun declineFriendRequest(@Path("requestId") requestId: String): retrofit2.Response<Unit>
-
-    @DELETE("friends/{userId}")
-    suspend fun removeFriend(@Path("userId") userId: String): retrofit2.Response<Unit>
+    @DELETE("friends/{friendshipId}")
+    suspend fun removeFriend(@Path("friendshipId") friendshipId: String): retrofit2.Response<Unit>
 
     @GET("users/search")
     suspend fun searchUsers(@Query("q") query: String): UserSearchResponseDto
 
-    @GET("notes/{noteId}/shared")
-    suspend fun getSharedNote(@Path("noteId") noteId: String): NoteWithCommentsResponseDto
+    @GET("comments/{targetType}/{targetId}")
+    suspend fun getComments(
+        @Path("targetType") targetType: String,
+        @Path("targetId") targetId: String
+    ): CommentsListResponseDto
 
-    @POST("notes/{noteId}/comments")
-    suspend fun addComment(
-        @Path("noteId") noteId: String,
-        @Body request: AddCommentRequestDto
-    ): retrofit2.Response<Unit>
+    @POST("comments")
+    suspend fun createComment(@Body request: CreateCommentRequestDto): retrofit2.Response<Unit>
 
-    @POST("notes/{noteId}/comments/{commentId}/like")
-    suspend fun likeComment(
-        @Path("noteId") noteId: String,
-        @Path("commentId") commentId: String
-    ): retrofit2.Response<Unit>
+    @POST("comments/{commentId}/like")
+    suspend fun toggleCommentLike(@Path("commentId") commentId: String): retrofit2.Response<Unit>
 }
