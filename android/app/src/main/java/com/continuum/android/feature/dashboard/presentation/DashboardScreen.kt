@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,7 +23,10 @@ import com.continuum.android.R
 import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.feature.career.domain.Application
+import com.continuum.android.feature.flashcards.domain.FlashcardSet
 import com.continuum.android.feature.notes.domain.Note
+import com.continuum.android.feature.social.domain.ActivityItem
 import com.continuum.android.feature.tasks.domain.Task
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
@@ -37,6 +41,9 @@ fun DashboardScreen(
     onActivityClick: () -> Unit,
     onMessagesClick: () -> Unit,
     onNoteClick: (String) -> Unit,
+    onFlashcardSetClick: (String) -> Unit,
+    onApplicationClick: (String) -> Unit,
+    onTaskClick: (String) -> Unit,
     networkMonitor: NetworkMonitor,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
@@ -122,7 +129,7 @@ fun DashboardScreen(
                                 StatTile(
                                     count = state.notesTotal,
                                     label = "Notes",
-                                    icon = Icons.Default.MenuBook,
+                                    icon = Icons.AutoMirrored.Filled.MenuBook,
                                     onClick = onNotesClick
                                 )
                             }
@@ -183,9 +190,73 @@ fun DashboardScreen(
                         }
                     }
 
-                    // Upcoming tasks
+                    // Flashcard sets
                     item {
-                        SectionHeader(title = "Upcoming Tasks", onSeeAll = onTasksClick)
+                        SectionHeader(title = "Flashcard Sets", onSeeAll = onFlashcardsClick)
+                    }
+                    if (state.flashcardSets.isEmpty()) {
+                        item {
+                            EmptyState(
+                                icon = Icons.Default.Style,
+                                headline = "No flashcard sets yet",
+                                subtext = "Create your first set to see it here"
+                            )
+                        }
+                    } else {
+                        item {
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                items(state.flashcardSets, key = { it.id }) { set ->
+                                    FlashcardSetPreviewCard(
+                                        set = set,
+                                        onClick = { onFlashcardSetClick(set.id) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Recent activity
+                    item {
+                        SectionHeader(title = "Recent Activity", onSeeAll = onActivityClick)
+                    }
+                    if (state.recentActivity.isEmpty()) {
+                        item {
+                            EmptyState(
+                                icon = Icons.Default.NotificationsNone,
+                                headline = "No activity yet",
+                                subtext = "Recent updates from your network appear here"
+                            )
+                        }
+                    } else {
+                        items(state.recentActivity, key = { it.id }) { item ->
+                            ActivityRow(item = item, onClick = onActivityClick)
+                        }
+                    }
+
+                    // Applications
+                    item {
+                        SectionHeader(title = "Applications", onSeeAll = onApplicationsClick)
+                    }
+                    if (state.applications.isEmpty()) {
+                        item {
+                            EmptyState(
+                                icon = Icons.Default.Work,
+                                headline = "No applications yet",
+                                subtext = "Track your job applications to see them here"
+                            )
+                        }
+                    } else {
+                        items(state.applications, key = { it.id }) { application ->
+                            ApplicationRow(
+                                application = application,
+                                onClick = { onApplicationClick(application.id) }
+                            )
+                        }
+                    }
+
+                    // Priority tasks
+                    item {
+                        SectionHeader(title = "Priority Tasks", onSeeAll = onTasksClick)
                     }
                     if (state.upcomingTasks.isEmpty()) {
                         item {
@@ -197,26 +268,7 @@ fun DashboardScreen(
                         }
                     } else {
                         items(state.upcomingTasks, key = { it.id }) { task ->
-                            TaskRow(task = task)
-                        }
-                    }
-
-                    // Quick actions
-                    item {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            ContinuumButton(
-                                text = "New Note",
-                                onClick = onNotesClick,
-                                modifier = Modifier.weight(1f)
-                            )
-                            ContinuumButton(
-                                text = "Add Task",
-                                onClick = onTasksClick,
-                                modifier = Modifier.weight(1f)
-                            )
+                            TaskRow(task = task, onClick = { onTaskClick(task.id) })
                         }
                     }
                 }
@@ -326,13 +378,131 @@ private fun NotePreviewCard(note: Note, onClick: () -> Unit) {
 }
 
 @Composable
-private fun TaskRow(task: Task) {
+private fun FlashcardSetPreviewCard(set: FlashcardSet, onClick: () -> Unit) {
+    ContinuumCard(
+        modifier = Modifier
+            .width(220.dp)
+            .clickable(onClick = onClick)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            if (set.isAIGenerated) {
+                Surface(color = PurpleTint, shape = RoundedCornerShape(4.dp)) {
+                    Text(
+                        text = "AI generated",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = BrandPurple,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
+            Text(
+                text = set.title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = TextPrimary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "${set.cardCount} cards",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondary
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActivityRow(item: ActivityItem, onClick: () -> Unit) {
+    ContinuumCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                color = PurpleTint,
+                shape = RoundedCornerShape(6.dp),
+                modifier = Modifier.size(28.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.NotificationsNone,
+                        contentDescription = null,
+                        tint = BrandPurple,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.displayText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextPrimary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = item.createdAt.take(10),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextMuted
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ApplicationRow(application: Application, onClick: () -> Unit) {
+    ContinuumCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = application.company,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = application.position,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            StatusBadge(statusString = application.status.replaceFirstChar { it.uppercase() })
+        }
+    }
+}
+
+@Composable
+private fun TaskRow(task: Task, onClick: () -> Unit) {
     val priorityColor = when (task.priority) {
         "high"   -> ErrorRed
         "medium" -> WarningAmber
         else     -> TextMuted
     }
-    ContinuumCard(modifier = Modifier.fillMaxWidth()) {
+    ContinuumCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,

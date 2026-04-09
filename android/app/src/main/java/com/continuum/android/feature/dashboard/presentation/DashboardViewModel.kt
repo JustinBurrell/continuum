@@ -3,11 +3,14 @@ package com.continuum.android.feature.dashboard.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.continuum.android.feature.career.data.remote.CareerApiService
+import com.continuum.android.feature.career.domain.Application
 import com.continuum.android.feature.flashcards.data.remote.FlashcardsApiService
+import com.continuum.android.feature.flashcards.domain.FlashcardSet
 import com.continuum.android.feature.notes.data.remote.NotesApiService
 import com.continuum.android.feature.notes.domain.Note
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.feature.social.data.remote.SocialApiService
+import com.continuum.android.feature.social.domain.ActivityItem
 import com.continuum.android.feature.tasks.data.remote.TasksApiService
 import com.continuum.android.feature.tasks.domain.Task
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +28,9 @@ data class DashboardUiState(
     val notesTotal: Int = 0,
     val flashcardSetCount: Int = 0,
     val recentNotes: List<Note> = emptyList(),
+    val flashcardSets: List<FlashcardSet> = emptyList(),
+    val recentActivity: List<ActivityItem> = emptyList(),
+    val applications: List<Application> = emptyList(),
     val upcomingTasks: List<Task> = emptyList(),
     val openTaskCount: Int = 0,
     val openApplicationCount: Int = 0,
@@ -96,6 +102,67 @@ class DashboardViewModel @Inject constructor(
                             updatedAt = dto.updatedAt
                         )
                     }
+                    .sortedWith(
+                        compareBy<Task> {
+                            when (it.priority?.lowercase()) {
+                                "high" -> 0
+                                "medium" -> 1
+                                else -> 2
+                            }
+                        }.thenBy { it.dueDate ?: "9999-12-31" }
+                    )
+
+                val flashcardSets = setsResp.sets.take(5).map { dto ->
+                    FlashcardSet(
+                        id = dto.id,
+                        title = dto.title,
+                        description = dto.description,
+                        cardCount = dto.resolvedCardCount(),
+                        isAIGenerated = dto.isAIGenerated,
+                        lastStudied = dto.resolvedLastStudied(),
+                        updatedAt = dto.updatedAt
+                    )
+                }
+
+                val activityItems = activityResp.feed.take(5).map { dto ->
+                    val actorName = listOfNotNull(
+                        dto.userId?.firstName?.takeIf { it.isNotBlank() },
+                        dto.userId?.lastName?.takeIf { it.isNotBlank() }
+                    ).joinToString(" ").ifBlank { dto.userId?.username ?: "Someone" }
+
+                    ActivityItem(
+                        id = dto.id,
+                        type = dto.type,
+                        actorName = actorName,
+                        actorAvatar = dto.userId?.avatarUrl,
+                        resourceId = dto.targetId,
+                        resourceTitle = dto.metadata?.noteTitle
+                            ?: dto.metadata?.setTitle
+                            ?: dto.metadata?.taskTitle
+                            ?: dto.metadata?.commentPreview,
+                        createdAt = dto.createdAt
+                    )
+                }
+
+                val applications = careerApi.getApplications().applications.take(5).map { dto ->
+                    Application(
+                        id = dto.id,
+                        company = dto.company,
+                        position = dto.position,
+                        status = dto.status,
+                        appliedDate = dto.appliedAt,
+                        jobUrl = dto.jobUrl,
+                        notes = dto.notes,
+                        contacts = dto.contacts.map { contact ->
+                            com.continuum.android.feature.career.domain.Contact(
+                                name = contact.name,
+                                role = contact.role,
+                                linkedIn = contact.linkedIn ?: contact.email
+                            )
+                        },
+                        updatedAt = dto.updatedAt
+                    )
+                }
 
                 _state.update {
                     it.copy(
@@ -104,7 +171,10 @@ class DashboardViewModel @Inject constructor(
                         notesTotal = notesResp.notes.size,
                         flashcardSetCount = setsResp.sets.size,
                         recentNotes = recentNotes,
-                        upcomingTasks = openTasks.take(3),
+                        flashcardSets = flashcardSets,
+                        recentActivity = activityItems,
+                        applications = applications,
+                        upcomingTasks = openTasks.take(5),
                         openTaskCount = openTasks.size,
                         openApplicationCount = appsResp.total,
                         newActivityCount = activityResp.total

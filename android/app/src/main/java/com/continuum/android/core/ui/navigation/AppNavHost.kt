@@ -368,6 +368,9 @@ private fun NavGraph(
                     onActivityClick = { navController.navigate(NavRoutes.Social.ACTIVITY_FEED) },
                     onMessagesClick = { navController.navigate(NavRoutes.Social.CONVERSATIONS) },
                     onNoteClick = { noteId -> navController.navigate(NavRoutes.Notes.detail(noteId)) },
+                    onFlashcardSetClick = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) },
+                    onApplicationClick = { appId -> navController.navigate(NavRoutes.Career.applicationDetail(appId)) },
+                    onTaskClick = { taskId -> navController.navigate(NavRoutes.Tasks.detail(taskId)) },
                     networkMonitor = networkMonitor
                 )
             }
