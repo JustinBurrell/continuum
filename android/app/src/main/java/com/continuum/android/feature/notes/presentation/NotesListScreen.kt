@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,7 +22,6 @@ import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.notes.domain.Note
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import androidx.hilt.navigation.compose.hiltViewModel as hilt
 
 @Composable
 fun NotesListScreen(
@@ -36,8 +36,8 @@ fun NotesListScreen(
     val filteredNotes by viewModel.filteredNotes.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
+    val noteTypes = remember { listOf("all", "general", "lecture", "research", "todo", "journal") }
 
-    var showSearch by remember { mutableStateOf(false) }
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
     var contextMenuNote by remember { mutableStateOf<Note?>(null) }
 
@@ -51,38 +51,80 @@ fun NotesListScreen(
                 title = "Notes",
                 onLogoClick = onLogoClick,
                 actions = {
-                    IconButton(onClick = { showSearch = !showSearch }) {
-                        Icon(Icons.Default.Search, contentDescription = "Search", tint = androidx.compose.ui.graphics.Color.White)
-                    }
                     IconButton(onClick = onDriveImport) {
                         Icon(Icons.Default.CloudDownload, contentDescription = "Import from Drive", tint = androidx.compose.ui.graphics.Color.White)
                     }
                 }
             )
 
-            if (showSearch) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { viewModel.setSearchQuery(it) },
-                    placeholder = { Text("Search notes...") },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = BrandPurple,
-                        unfocusedBorderColor = Border
-                    ),
-                    leadingIcon = { Icon(Icons.Default.Search, null, tint = TextSecondary) },
-                    trailingIcon = {
-                        if (searchQuery.isNotBlank()) {
-                            IconButton(onClick = { viewModel.setSearchQuery("") }) {
-                                Icon(Icons.Default.Close, null, tint = TextSecondary)
-                            }
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { viewModel.setSearchQuery(it) },
+                placeholder = { Text("Search notes...") },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = BrandPurple,
+                    unfocusedBorderColor = Border
+                ),
+                leadingIcon = { Icon(Icons.Default.Search, null, tint = TextSecondary) },
+                trailingIcon = {
+                    if (searchQuery.isNotBlank()) {
+                        IconButton(onClick = { viewModel.setSearchQuery("") }) {
+                            Icon(Icons.Default.Close, null, tint = TextSecondary)
                         }
                     }
+                }
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = !listState.isSharedTab,
+                    onClick = { viewModel.setSharedTab(false) },
+                    label = { Text("All") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = BrandPurple,
+                        selectedLabelColor = White
+                    )
                 )
+                FilterChip(
+                    selected = listState.isSharedTab,
+                    onClick = { viewModel.setSharedTab(true) },
+                    label = { Text("Shared with me") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = BrandPurple,
+                        selectedLabelColor = White
+                    )
+                )
+            }
+
+            if (!listState.isSharedTab) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(noteTypes) { type ->
+                        FilterChip(
+                            selected = listState.selectedType == type,
+                            onClick = { viewModel.setType(type) },
+                            label = { Text(type.replaceFirstChar { it.uppercase() }) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = PurpleTint,
+                                selectedLabelColor = BrandPurple
+                            )
+                        )
+                    }
+                }
             }
 
             SwipeRefresh(
@@ -108,10 +150,18 @@ fun NotesListScreen(
                     filteredNotes.isEmpty() -> {
                         EmptyState(
                             icon = Icons.Default.Article,
-                            headline = if (searchQuery.isBlank()) "No notes yet" else "No results",
-                            subtext = if (searchQuery.isBlank()) "Tap + to create your first note" else "Try a different search term",
-                            actionLabel = if (searchQuery.isBlank()) "Create note" else null,
-                            onAction = if (searchQuery.isBlank()) onCreateNote else null,
+                            headline = when {
+                                listState.isSharedTab -> "No shared notes"
+                                searchQuery.isNotBlank() -> "No results"
+                                else -> "No notes yet"
+                            },
+                            subtext = when {
+                                listState.isSharedTab -> "Notes shared with you will appear here"
+                                searchQuery.isNotBlank() -> "Try a different search term"
+                                else -> "Tap + to create your first note"
+                            },
+                            actionLabel = if (!listState.isSharedTab && searchQuery.isBlank()) "Create note" else null,
+                            onAction = if (!listState.isSharedTab && searchQuery.isBlank()) onCreateNote else null,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -125,8 +175,8 @@ fun NotesListScreen(
                                 NoteCard(
                                     note = note,
                                     onClick = { onNoteClick(note.id) },
-                                    onLongClick = { contextMenuNote = note },
-                                    onDelete = { noteToDelete = note }
+                                    onLongClick = if (listState.isSharedTab) null else { { contextMenuNote = note } },
+                                    onDelete = if (listState.isSharedTab) null else { { noteToDelete = note } }
                                 )
                             }
                         }
@@ -201,14 +251,12 @@ fun NotesListScreen(
 private fun NoteCard(
     note: Note,
     onClick: () -> Unit,
-    onLongClick: () -> Unit,
-    onDelete: () -> Unit
+    onLongClick: (() -> Unit)?,
+    onDelete: (() -> Unit)?
 ) {
-    val dismissState = rememberSwipeableState(initialValue = false)
-    // Use SwipeToDismiss pattern via material3
     val swipeToDismissBoxState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) {
+            if (value == SwipeToDismissBoxValue.EndToStart && onDelete != null) {
                 onDelete()
                 false // don't actually dismiss — wait for confirmation
             } else false
@@ -218,21 +266,27 @@ private fun NoteCard(
     SwipeToDismissBox(
         state = swipeToDismissBoxState,
         backgroundContent = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(end = 16.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = ErrorRed)
+            if (onDelete != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(end = 16.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = ErrorRed)
+                }
             }
         },
-        enableDismissFromStartToEnd = false
+        enableDismissFromStartToEnd = false,
+        enableDismissFromEndToStart = onDelete != null
     ) {
         ContinuumCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick ?: {}
+                )
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(
@@ -246,17 +300,30 @@ private fun NoteCard(
                         color = TextPrimary,
                         modifier = Modifier.weight(1f)
                     )
-                    if (note.hasSummary) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Surface(
                             color = PurpleTint,
                             shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(
-                                "AI",
+                                note.type.replaceFirstChar { it.uppercase() },
                                 style = MaterialTheme.typography.labelSmall,
                                 color = BrandPurple,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
+                        }
+                        if (note.hasSummary) {
+                            Surface(
+                                color = PurpleTint,
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    "AI",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = BrandPurple,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -288,6 +355,3 @@ private fun NoteCard(
         }
     }
 }
-
-@Composable
-private fun rememberSwipeableState(initialValue: Boolean) = remember { mutableStateOf(initialValue) }

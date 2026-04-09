@@ -8,6 +8,7 @@ data class NoteDto(
     @Json(name = "_id") val id: String = "",
     val title: String = "",
     val content: String = "",
+    val type: String? = null,
     val tags: List<String> = emptyList(),
     @Json(name = "isPinned") val isPinned: Boolean = false,
     val visibility: String = "private",

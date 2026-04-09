@@ -19,6 +19,27 @@ class NotesRepository @Inject constructor(
 ) {
     private val noteDao get() = db.noteDao()
 
+    suspend fun queryNotes(
+        search: String? = null,
+        type: String? = null,
+        shared: Boolean = false
+    ): Result<List<Note>> = runCatching {
+        val response = if (shared) {
+            api.getSharedNotes(search = search?.takeIf { it.isNotBlank() })
+        } else {
+            api.getNotes(
+                search = search?.takeIf { it.isNotBlank() },
+                type = type?.takeIf { it.isNotBlank() && it != "all" }
+            )
+        }
+        val notes = response.notes.map { it.toDomain() }
+        if (!shared) {
+            noteDao.deleteAll()
+            noteDao.insertAll(response.notes.map { it.toEntity() })
+        }
+        notes
+    }
+
     // NetworkBoundResource: emit cached first, then fetch fresh
     fun getNotes(): Flow<Result<List<Note>>> = flow {
         val cached = noteDao.getAll().map { it.toDomain() }
@@ -99,6 +120,7 @@ class NotesRepository @Inject constructor(
         id = id,
         title = title,
         content = content,
+        type = "general",
         tags = tags.split(",").filter { it.isNotBlank() },
         isFavorite = isFavorite,
         visibility = "private",
@@ -114,6 +136,7 @@ class NotesRepository @Inject constructor(
         id = id,
         title = title,
         content = content,
+        type = type?.ifBlank { "general" } ?: "general",
         tags = tags,
         isFavorite = isPinned,
         visibility = visibility,

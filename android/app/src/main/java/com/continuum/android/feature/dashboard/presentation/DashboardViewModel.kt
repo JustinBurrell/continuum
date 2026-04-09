@@ -74,6 +74,7 @@ class DashboardViewModel @Inject constructor(
                         id = dto.id,
                         title = dto.title,
                         content = dto.content,
+                        type = dto.type?.ifBlank { "general" } ?: "general",
                         tags = dto.tags,
                         isFavorite = dto.isPinned,
                         visibility = dto.visibility,

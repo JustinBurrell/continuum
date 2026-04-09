@@ -6,7 +6,15 @@ import retrofit2.http.*
 interface NotesApiService {
 
     @GET("notes")
-    suspend fun getNotes(): NotesListResponseDto
+    suspend fun getNotes(
+        @Query("search") search: String? = null,
+        @Query("type") type: String? = null
+    ): NotesListResponseDto
+
+    @GET("notes/shared")
+    suspend fun getSharedNotes(
+        @Query("search") search: String? = null
+    ): NotesListResponseDto
 
     @GET("notes/{id}")
     suspend fun getNoteById(@Path("id") id: String): NoteResponseDto

@@ -6,7 +6,6 @@ import com.continuum.android.feature.notes.data.repository.NotesRepository
 import com.continuum.android.feature.notes.domain.DriveFile
 import com.continuum.android.feature.notes.domain.Note
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -16,7 +15,9 @@ import javax.inject.Inject
 data class NotesUiState(
     val notes: List<Note> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isSharedTab: Boolean = false,
+    val selectedType: String = "all"
 )
 
 data class NoteDetailUiState(
@@ -51,24 +52,24 @@ class NotesViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    val filteredNotes: StateFlow<List<Note>> = combine(_listState, _searchQuery) { state, query ->
-        if (query.isBlank()) state.notes
-        else state.notes.filter {
-            it.title.contains(query, ignoreCase = true) ||
-                it.preview.contains(query, ignoreCase = true) ||
-                it.tags.any { tag -> tag.contains(query, ignoreCase = true) }
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val filteredNotes: StateFlow<List<Note>> = _listState
+        .map { it.notes }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private var autoSaveJob: Job? = null
+    private var searchJob: Job? = null
 
     fun loadNotes() {
         viewModelScope.launch {
             _listState.update { it.copy(isLoading = true, error = null) }
-            repository.getNotes().collect { result ->
-                result
-                    .onSuccess { notes -> _listState.update { it.copy(notes = notes, isLoading = false) } }
-                    .onFailure { e -> _listState.update { it.copy(isLoading = false, error = e.message) } }
+            repository.queryNotes(
+                search = _searchQuery.value.trim().ifBlank { null },
+                type = _listState.value.selectedType,
+                shared = _listState.value.isSharedTab
+            ).onSuccess { notes ->
+                _listState.update { it.copy(notes = notes, isLoading = false) }
+            }.onFailure { e ->
+                _listState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
     }
@@ -82,7 +83,31 @@ class NotesViewModel @Inject constructor(
         }
     }
 
-    fun setSearchQuery(query: String) { _searchQuery.value = query }
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(250)
+            loadNotes()
+        }
+    }
+
+    fun setSharedTab(shared: Boolean) {
+        if (_listState.value.isSharedTab == shared) return
+        _listState.update {
+            it.copy(
+                isSharedTab = shared,
+                selectedType = if (shared) "all" else it.selectedType
+            )
+        }
+        loadNotes()
+    }
+
+    fun setType(type: String) {
+        if (_listState.value.selectedType == type) return
+        _listState.update { it.copy(selectedType = type) }
+        loadNotes()
+    }
 
     fun scheduleAutoSave(id: String, title: String, content: String, tags: List<String>, visibility: String) {
         autoSaveJob?.cancel()
