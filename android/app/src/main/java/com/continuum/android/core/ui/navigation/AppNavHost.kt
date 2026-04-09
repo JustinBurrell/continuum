@@ -23,6 +23,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.feature.auth.presentation.*
+import com.continuum.android.feature.flashcards.presentation.*
 import com.continuum.android.feature.notes.presentation.*
 
 // ---------------------------------------------------------------------------
@@ -321,19 +322,31 @@ private fun NavGraph(
             startDestination = NavRoutes.Flashcards.LIST
         ) {
             composable(NavRoutes.Flashcards.LIST) {
-                PlaceholderScreen("Flashcard Sets")
+                FlashcardSetsListScreen(
+                    onSetClick = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) },
+                    onStudy = { setId -> navController.navigate(NavRoutes.Flashcards.studyMode(setId)) }
+                )
             }
             composable(
                 route = NavRoutes.Flashcards.SET_DETAIL,
                 arguments = listOf(navArgument("setId") { type = NavType.StringType })
-            ) {
-                PlaceholderScreen("Flashcard Set Detail")
+            ) { backStackEntry ->
+                val setId = backStackEntry.arguments?.getString("setId") ?: return@composable
+                FlashcardSetDetailScreen(
+                    setId = setId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onStudy = { navController.navigate(NavRoutes.Flashcards.studyMode(setId)) }
+                )
             }
             composable(
                 route = NavRoutes.Flashcards.STUDY_MODE,
                 arguments = listOf(navArgument("setId") { type = NavType.StringType })
-            ) {
-                PlaceholderScreen("Study Mode")
+            ) { backStackEntry ->
+                val setId = backStackEntry.arguments?.getString("setId") ?: return@composable
+                StudyModeScreen(
+                    setId = setId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
         }
 
