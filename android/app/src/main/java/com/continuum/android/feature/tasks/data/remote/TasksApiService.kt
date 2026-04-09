@@ -6,13 +6,22 @@ import retrofit2.http.*
 interface TasksApiService {
 
     @GET("tasks")
-    suspend fun getTasks(): TasksResponseDto
+    suspend fun getTasks(@Query("search") search: String? = null): TasksResponseDto
+
+    @GET("tasks/shared")
+    suspend fun getSharedTasks(@Query("search") search: String? = null): TasksResponseDto
 
     @POST("tasks")
     suspend fun createTask(@Body request: CreateTaskRequestDto): TaskResponseDto
 
     @PATCH("tasks/{id}/status")
     suspend fun updateTaskStatus(
+        @Path("id") id: String,
+        @Body request: UpdateTaskStatusRequestDto
+    ): TaskResponseDto
+
+    @PATCH("tasks/{id}/participant-status")
+    suspend fun updateParticipantTaskStatus(
         @Path("id") id: String,
         @Body request: UpdateTaskStatusRequestDto
     ): TaskResponseDto

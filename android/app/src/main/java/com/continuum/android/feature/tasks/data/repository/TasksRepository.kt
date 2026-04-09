@@ -16,6 +16,19 @@ class TasksRepository @Inject constructor(
     private val api: TasksApiService,
     private val db: AppDatabase
 ) {
+    suspend fun queryTasks(search: String? = null, shared: Boolean = false): Result<List<Task>> = runCatching {
+        val remote = if (shared) {
+            api.getSharedTasks(search = search?.takeIf { it.isNotBlank() }).tasks
+        } else {
+            api.getTasks(search = search?.takeIf { it.isNotBlank() }).tasks
+        }
+        if (!shared && search.isNullOrBlank()) {
+            taskDao.deleteAll()
+            taskDao.insertAll(remote.map { it.toEntity() })
+        }
+        remote.map { it.toDomain() }
+    }
+
     private val taskDao get() = db.taskDao()
 
     fun getTasks(): Flow<Result<List<Task>>> = flow {
@@ -46,6 +59,12 @@ class TasksRepository @Inject constructor(
 
     suspend fun updateStatus(id: String, status: String): Result<Task> = runCatching {
         val task = api.updateTaskStatus(id, UpdateTaskStatusRequestDto(status)).task
+        taskDao.insert(task.toEntity())
+        task.toDomain()
+    }
+
+    suspend fun updateParticipantStatus(id: String, status: String): Result<Task> = runCatching {
+        val task = api.updateParticipantTaskStatus(id, UpdateTaskStatusRequestDto(status)).task
         taskDao.insert(task.toEntity())
         task.toDomain()
     }

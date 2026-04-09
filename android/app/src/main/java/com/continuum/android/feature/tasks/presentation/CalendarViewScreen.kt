@@ -169,7 +169,7 @@ fun CalendarViewScreen(
                 HorizontalDivider(color = Border)
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Tasks on $date",
+                    "Tasks on ${date.toDisplayDate()}",
                     style = MaterialTheme.typography.headlineSmall,
                     color = TextPrimary
                 )
@@ -204,5 +204,14 @@ fun CalendarViewScreen(
                 }
             }
         }
+    }
+}
+
+private fun String.toDisplayDate(): String {
+    return try {
+        val input = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(this) ?: return this
+        SimpleDateFormat("MM-dd-yyyy", Locale.US).format(input)
+    } catch (_: Exception) {
+        this
     }
 }

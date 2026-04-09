@@ -3,7 +3,6 @@ package com.continuum.android.feature.tasks.presentation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,9 +29,6 @@ fun TaskBoardScreen(
     viewModel: TasksViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val todoTasks by viewModel.todoTasks.collectAsStateWithLifecycle()
-    val inProgressTasks by viewModel.inProgressTasks.collectAsStateWithLifecycle()
-    val doneTasks by viewModel.doneTasks.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
 
     var showCreateSheet by remember { mutableStateOf(false) }
@@ -45,55 +41,124 @@ fun TaskBoardScreen(
             PurpleTopAppBar(
                 title = "Tasks",
                 onLogoClick = onLogoClick,
-                actions = {
-                    IconButton(onClick = onCalendar) {
-                        Icon(Icons.Default.CalendarMonth, "Calendar", tint = androidx.compose.ui.graphics.Color.White)
-                    }
-                }
             )
+
+            OutlinedTextField(
+                value = state.searchQuery,
+                onValueChange = viewModel::setSearchQuery,
+                placeholder = { Text("Search tasks...") },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                leadingIcon = { Icon(Icons.Default.Search, null, tint = TextSecondary) },
+                trailingIcon = {
+                    if (state.searchQuery.isNotBlank()) {
+                        IconButton(onClick = { viewModel.setSearchQuery("") }) {
+                            Icon(Icons.Default.Close, null, tint = TextSecondary)
+                        }
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = BrandPurple,
+                    unfocusedBorderColor = Border
+                )
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = !state.isSharedTab,
+                    onClick = { viewModel.setSharedTab(false) },
+                    label = { Text("My tasks") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = BrandPurple,
+                        selectedLabelColor = White
+                    )
+                )
+                FilterChip(
+                    selected = state.isSharedTab,
+                    onClick = { viewModel.setSharedTab(true) },
+                    label = { Text("Shared with me") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = BrandPurple,
+                        selectedLabelColor = White
+                    )
+                )
+            }
+
+            val statuses = listOf(
+                "todo" to "To Do",
+                "in_progress" to "In Progress",
+                "done" to "Done"
+            )
+            TabRow(
+                selectedTabIndex = statuses.indexOfFirst { it.first == state.selectedStatus }.coerceAtLeast(0),
+                containerColor = PageBackground,
+                contentColor = BrandPurple
+            ) {
+                statuses.forEach { (statusValue, label) ->
+                    Tab(
+                        selected = state.selectedStatus == statusValue,
+                        onClick = { viewModel.setStatus(statusValue) },
+                        text = { Text(label) }
+                    )
+                }
+            }
 
             SwipeRefresh(
                 state = rememberSwipeRefreshState(state.isLoading),
                 onRefresh = { viewModel.loadTasks() },
                 modifier = Modifier.weight(1f)
             ) {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    item {
-                        KanbanColumn(
-                            title = "TO DO",
-                            tasks = todoTasks,
-                            headerColor = BrandPurple,
-                            headerBgColor = PurpleTint,
-                            targetStatus = "in_progress",
-                            onMoveTask = { id -> viewModel.moveTask(id, "in_progress") },
-                            onDeleteTask = { id -> viewModel.deleteTask(id) }
-                        )
-                    }
-                    item {
-                        KanbanColumn(
-                            title = "IN PROGRESS",
-                            tasks = inProgressTasks,
-                            headerColor = WarningAmber,
-                            headerBgColor = WarningAmberBg,
-                            targetStatus = "done",
-                            onMoveTask = { id -> viewModel.moveTask(id, "done") },
-                            onDeleteTask = { id -> viewModel.deleteTask(id) }
-                        )
-                    }
-                    item {
-                        KanbanColumn(
-                            title = "DONE",
-                            tasks = doneTasks,
-                            headerColor = SuccessGreen,
-                            headerBgColor = SuccessGreenBg,
-                            targetStatus = "todo",
-                            onMoveTask = { id -> viewModel.moveTask(id, "todo") },
-                            onDeleteTask = { id -> viewModel.deleteTask(id) }
-                        )
+                val filteredTasks = state.tasks
+                    .filter { it.status == state.selectedStatus }
+                    .sortedWith(
+                        compareBy<Task> {
+                            when (it.priority?.lowercase()) {
+                                "high" -> 0
+                                "medium" -> 1
+                                else -> 2
+                            }
+                        }.thenBy { it.dueDate ?: "9999-12-31" }
+                    )
+
+                if (filteredTasks.isEmpty()) {
+                    EmptyState(
+                        icon = Icons.Default.CheckCircle,
+                        headline = if (state.searchQuery.isNotBlank()) "No matching tasks" else "No tasks in this status",
+                        subtext = if (state.searchQuery.isNotBlank()) "Try another search term" else "Use + to add a new task",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(filteredTasks, key = { it.id }) { task ->
+                            TaskCard(
+                                task = task,
+                                moveLabel = when (state.selectedStatus) {
+                                    "todo" -> "Start"
+                                    "in_progress" -> "Done"
+                                    else -> "Reopen"
+                                },
+                                onMove = {
+                                    val target = when (state.selectedStatus) {
+                                        "todo" -> "in_progress"
+                                        "in_progress" -> "done"
+                                        else -> "todo"
+                                    }
+                                    viewModel.moveTask(task.id, target)
+                                },
+                                onDelete = if (task.isShared) null else { { viewModel.deleteTask(task.id) } }
+                            )
+                        }
                     }
                 }
             }
@@ -122,74 +187,11 @@ fun TaskBoardScreen(
 }
 
 @Composable
-private fun KanbanColumn(
-    title: String,
-    tasks: List<Task>,
-    headerColor: androidx.compose.ui.graphics.Color,
-    headerBgColor: androidx.compose.ui.graphics.Color,
-    targetStatus: String,
-    onMoveTask: (String) -> Unit,
-    onDeleteTask: (String) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .width(280.dp)
-            .fillMaxHeight()
-    ) {
-        Surface(
-            color = headerBgColor,
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelLarge,
-                color = headerColor,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
-            )
-        }
-
-        LazyColumn(
-            contentPadding = PaddingValues(vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false)
-                .background(PageBackground, RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
-                .padding(8.dp)
-        ) {
-            if (tasks.isEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("No tasks", style = MaterialTheme.typography.bodySmall, color = TextMuted)
-                    }
-                }
-            } else {
-                items(tasks, key = { it.id }) { task ->
-                    TaskCard(
-                        task = task,
-                        moveLabel = when (targetStatus) {
-                            "in_progress" -> "Start"
-                            "done" -> "Done"
-                            else -> "Reset"
-                        },
-                        onMove = { onMoveTask(task.id) },
-                        onDelete = { onDeleteTask(task.id) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun TaskCard(
     task: Task,
     moveLabel: String,
     onMove: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: (() -> Unit)?
 ) {
     ContinuumCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -225,12 +227,24 @@ private fun TaskCard(
                 }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = onMove, contentPadding = PaddingValues(0.dp)) {
                     Text(moveLabel, color = BrandPurple, style = MaterialTheme.typography.labelMedium)
                 }
-                TextButton(onClick = onDelete, contentPadding = PaddingValues(0.dp)) {
-                    Text("Delete", color = ErrorRed, style = MaterialTheme.typography.labelMedium)
+                onDelete?.let {
+                    TextButton(onClick = it, contentPadding = PaddingValues(0.dp)) {
+                        Text("Delete", color = ErrorRed, style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+                if (task.isShared) {
+                    Surface(color = PurpleTint, shape = RoundedCornerShape(4.dp)) {
+                        Text(
+                            text = "Shared",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = BrandPurple,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
                 }
             }
         }
