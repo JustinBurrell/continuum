@@ -10,8 +10,11 @@ import javax.inject.Singleton
 @Singleton
 class CareerRepository @Inject constructor(private val api: CareerApiService) {
 
-    suspend fun getApplications(): Result<List<Application>> = runCatching {
-        api.getApplications().applications.map { it.toDomain() }
+    suspend fun getApplications(search: String? = null, status: String? = null): Result<List<Application>> = runCatching {
+        api.getApplications(
+            search = search?.takeIf { it.isNotBlank() },
+            status = status?.takeIf { it.isNotBlank() && it != "all" }
+        ).applications.map { it.toDomain() }
     }
 
     suspend fun createApplication(company: String, position: String, status: String, jobUrl: String?): Result<Application> = runCatching {
@@ -24,8 +27,8 @@ class CareerRepository @Inject constructor(private val api: CareerApiService) {
 
     suspend fun deleteApplication(id: String): Result<Unit> = runCatching { api.deleteApplication(id); Unit }
 
-    suspend fun getResumes(): Result<List<Resume>> = runCatching {
-        api.getResumes().resumes.map { it.toDomain() }
+    suspend fun getResumes(search: String? = null): Result<List<Resume>> = runCatching {
+        api.getResumes(search = search?.takeIf { it.isNotBlank() }).resumes.map { it.toDomain() }
     }
 
     suspend fun uploadResume(filePart: MultipartBody.Part): Result<Resume> = runCatching {

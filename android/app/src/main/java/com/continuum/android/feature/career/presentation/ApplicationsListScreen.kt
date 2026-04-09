@@ -43,6 +43,28 @@ fun ApplicationsListScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             PurpleTopAppBar(title = "Applications", onLogoClick = onLogoClick)
 
+            OutlinedTextField(
+                value = state.searchQuery,
+                onValueChange = viewModel::setApplicationsSearchQuery,
+                placeholder = { Text("Search company or role...") },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                leadingIcon = { Icon(Icons.Default.Search, null, tint = TextSecondary) },
+                trailingIcon = {
+                    if (state.searchQuery.isNotBlank()) {
+                        IconButton(onClick = { viewModel.setApplicationsSearchQuery("") }) {
+                            Icon(Icons.Default.Close, null, tint = TextSecondary)
+                        }
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = BrandPurple,
+                    unfocusedBorderColor = Border
+                )
+            )
+
             ScrollableTabRow(
                 selectedTabIndex = selectedTabIndex,
                 containerColor = White,

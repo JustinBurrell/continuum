@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.continuum.android.feature.career.data.repository.CareerRepository
 import com.continuum.android.feature.career.domain.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -18,14 +20,16 @@ data class ApplicationsUiState(
     val applications: List<Application> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val statusFilter: String = "all"
+    val statusFilter: String = "all",
+    val searchQuery: String = ""
 )
 
 data class ResumesUiState(
     val resumes: List<Resume> = emptyList(),
     val isLoading: Boolean = false,
     val isUploading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val searchQuery: String = ""
 )
 
 data class FeedbackUiState(
@@ -38,6 +42,8 @@ data class FeedbackUiState(
 class CareerViewModel @Inject constructor(
     private val repository: CareerRepository
 ) : ViewModel() {
+    private var applicationsSearchJob: Job? = null
+    private var resumesSearchJob: Job? = null
 
     private val _applicationsState = MutableStateFlow(ApplicationsUiState())
     val applicationsState: StateFlow<ApplicationsUiState> = _applicationsState.asStateFlow()
@@ -56,13 +62,28 @@ class CareerViewModel @Inject constructor(
     fun loadApplications() {
         viewModelScope.launch {
             _applicationsState.update { it.copy(isLoading = true, error = null) }
-            repository.getApplications()
+            repository.getApplications(
+                search = _applicationsState.value.searchQuery,
+                status = _applicationsState.value.statusFilter
+            )
                 .onSuccess { apps -> _applicationsState.update { it.copy(applications = apps, isLoading = false) } }
                 .onFailure { e -> _applicationsState.update { it.copy(isLoading = false, error = e.message) } }
         }
     }
 
-    fun setStatusFilter(status: String) { _applicationsState.update { it.copy(statusFilter = status) } }
+    fun setStatusFilter(status: String) {
+        _applicationsState.update { it.copy(statusFilter = status) }
+        loadApplications()
+    }
+
+    fun setApplicationsSearchQuery(query: String) {
+        _applicationsState.update { it.copy(searchQuery = query) }
+        applicationsSearchJob?.cancel()
+        applicationsSearchJob = viewModelScope.launch {
+            delay(250)
+            loadApplications()
+        }
+    }
 
     fun createApplication(company: String, position: String, status: String = "saved", jobUrl: String? = null, onCreated: () -> Unit = {}) {
         viewModelScope.launch {
@@ -99,9 +120,18 @@ class CareerViewModel @Inject constructor(
     fun loadResumes() {
         viewModelScope.launch {
             _resumesState.update { it.copy(isLoading = true, error = null) }
-            repository.getResumes()
+            repository.getResumes(search = _resumesState.value.searchQuery)
                 .onSuccess { resumes -> _resumesState.update { it.copy(resumes = resumes, isLoading = false) } }
                 .onFailure { e -> _resumesState.update { it.copy(isLoading = false, error = e.message) } }
+        }
+    }
+
+    fun setResumesSearchQuery(query: String) {
+        _resumesState.update { it.copy(searchQuery = query) }
+        resumesSearchJob?.cancel()
+        resumesSearchJob = viewModelScope.launch {
+            delay(250)
+            loadResumes()
         }
     }
 

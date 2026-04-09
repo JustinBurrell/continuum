@@ -44,6 +44,28 @@ fun ResumesListScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             PurpleTopAppBar(title = "Resumes")
 
+            OutlinedTextField(
+                value = state.searchQuery,
+                onValueChange = viewModel::setResumesSearchQuery,
+                placeholder = { Text("Search by file name or role...") },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                leadingIcon = { Icon(Icons.Default.Search, null, tint = TextSecondary) },
+                trailingIcon = {
+                    if (state.searchQuery.isNotBlank()) {
+                        IconButton(onClick = { viewModel.setResumesSearchQuery("") }) {
+                            Icon(Icons.Default.Close, null, tint = TextSecondary)
+                        }
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = BrandPurple,
+                    unfocusedBorderColor = Border
+                )
+            )
+
             SwipeRefresh(
                 state = rememberSwipeRefreshState(state.isLoading),
                 onRefresh = { viewModel.loadResumes() },

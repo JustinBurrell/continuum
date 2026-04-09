@@ -7,7 +7,10 @@ import retrofit2.http.*
 interface CareerApiService {
 
     @GET("applications")
-    suspend fun getApplications(): ApplicationsResponseDto
+    suspend fun getApplications(
+        @Query("search") search: String? = null,
+        @Query("status") status: String? = null
+    ): ApplicationsResponseDto
 
     @GET("applications/dashboard")
     suspend fun getApplicationsDashboard(): ApplicationsDashboardResponseDto
@@ -25,7 +28,7 @@ interface CareerApiService {
     suspend fun deleteApplication(@Path("id") id: String): retrofit2.Response<Unit>
 
     @GET("resumes")
-    suspend fun getResumes(): ResumesResponseDto
+    suspend fun getResumes(@Query("search") search: String? = null): ResumesResponseDto
 
     @Multipart
     @POST("resumes/upload")
