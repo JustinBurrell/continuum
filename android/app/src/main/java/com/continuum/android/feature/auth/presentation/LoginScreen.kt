@@ -6,15 +6,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.BuildConfig
+import com.continuum.android.R
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -61,11 +62,11 @@ fun LoginScreen(
             .padding(horizontal = 24.dp, vertical = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            imageVector = Icons.Default.AutoStories,
+        androidx.compose.foundation.Image(
+            painter = painterResource(R.drawable.ic_logo_wordmark),
             contentDescription = "Continuum",
-            tint = BrandPurple,
-            modifier = Modifier.size(56.dp)
+            colorFilter = ColorFilter.tint(BrandPurple),
+            modifier = Modifier.width(200.dp).height(48.dp)
         )
         Spacer(Modifier.height(32.dp))
 

@@ -9,6 +9,9 @@ interface CareerApiService {
     @GET("applications")
     suspend fun getApplications(): ApplicationsResponseDto
 
+    @GET("applications/dashboard")
+    suspend fun getApplicationsDashboard(): ApplicationsDashboardResponseDto
+
     @POST("applications")
     suspend fun createApplication(@Body request: CreateApplicationRequestDto): ApplicationResponseDto
 

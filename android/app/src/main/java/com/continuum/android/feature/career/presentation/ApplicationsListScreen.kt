@@ -25,6 +25,7 @@ private val statusTabs = listOf("all", "saved", "applied", "interview", "offer",
 @Composable
 fun ApplicationsListScreen(
     onApplicationClick: (String) -> Unit,
+    onLogoClick: (() -> Unit)? = null,
     viewModel: CareerViewModel = hiltViewModel()
 ) {
     val state by viewModel.applicationsState.collectAsStateWithLifecycle()
@@ -37,7 +38,7 @@ fun ApplicationsListScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            PurpleTopAppBar(title = "Applications")
+            PurpleTopAppBar(title = "Applications", onLogoClick = onLogoClick)
 
             ScrollableTabRow(
                 selectedTabIndex = selectedTabIndex,

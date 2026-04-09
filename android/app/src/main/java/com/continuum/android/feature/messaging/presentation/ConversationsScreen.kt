@@ -27,6 +27,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 fun ConversationsScreen(
     onConversationClick: (String) -> Unit,
     networkMonitor: NetworkMonitor,
+    onLogoClick: (() -> Unit)? = null,
     viewModel: MessagingViewModel = hiltViewModel()
 ) {
     val state by viewModel.conversationsState.collectAsStateWithLifecycle()
@@ -36,7 +37,7 @@ fun ConversationsScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (!isOnline) OfflineBanner()
-        PurpleTopAppBar(title = "Messages")
+        PurpleTopAppBar(title = "Messages", onLogoClick = onLogoClick)
 
         SwipeRefresh(
             state = rememberSwipeRefreshState(state.isLoading),

@@ -92,3 +92,25 @@ data class ResumeFeedbackResponseDto(
     val success: Boolean = false,
     val data: ResumeFeedbackDto = ResumeFeedbackDto()
 )
+
+@JsonClass(generateAdapter = true)
+data class ApplicationsPipelineDto(
+    val applied: Int = 0,
+    val screening: Int = 0,
+    val interview: Int = 0,
+    val offer: Int = 0,
+    val rejected: Int = 0,
+    val withdrawn: Int = 0
+)
+
+@JsonClass(generateAdapter = true)
+data class ApplicationsDashboardDto(
+    val total: Int = 0,
+    val pipeline: ApplicationsPipelineDto = ApplicationsPipelineDto()
+)
+
+@JsonClass(generateAdapter = true)
+data class ApplicationsDashboardResponseDto(
+    val success: Boolean = false,
+    val data: ApplicationsDashboardDto = ApplicationsDashboardDto()
+)

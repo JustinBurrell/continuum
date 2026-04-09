@@ -6,9 +6,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
+import com.continuum.android.R
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -53,11 +55,11 @@ fun RegisterScreen(
             .padding(horizontal = 24.dp, vertical = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            imageVector = Icons.Default.AutoStories,
+        androidx.compose.foundation.Image(
+            painter = painterResource(R.drawable.ic_logo_wordmark),
             contentDescription = "Continuum",
-            tint = BrandPurple,
-            modifier = Modifier.size(56.dp)
+            colorFilter = ColorFilter.tint(BrandPurple),
+            modifier = Modifier.width(200.dp).height(48.dp)
         )
         Spacer(Modifier.height(32.dp))
 

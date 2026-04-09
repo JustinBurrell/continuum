@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Style
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Icon
@@ -40,6 +41,7 @@ val bottomNavItems = listOf(
     BottomNavItem(NavRoutes.Tasks.ROOT, "Tasks", Icons.Default.CheckCircle),
     BottomNavItem(NavRoutes.Career.ROOT, "Career", Icons.Default.Work),
     BottomNavItem(NavRoutes.Social.ROOT, "Social", Icons.Default.People),
+    BottomNavItem(NavRoutes.Profile.ROOT, "Profile", Icons.Default.Person),
 )
 
 // ---------------------------------------------------------------------------

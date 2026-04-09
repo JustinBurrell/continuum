@@ -22,12 +22,14 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.continuum.android.core.ui.LocalNetworkMonitor
+import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.feature.auth.presentation.*
-import com.continuum.android.feature.flashcards.presentation.*
-import com.continuum.android.feature.notes.presentation.*
-import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.career.presentation.*
+import com.continuum.android.feature.dashboard.presentation.DashboardScreen
+import com.continuum.android.feature.flashcards.presentation.*
 import com.continuum.android.feature.messaging.presentation.*
+import com.continuum.android.feature.notes.presentation.*
+import com.continuum.android.feature.profile.presentation.*
 import com.continuum.android.feature.social.presentation.*
 import com.continuum.android.feature.tasks.presentation.*
 
@@ -45,11 +47,16 @@ object NavRoutes {
         const val VERIFY_EMAIL = "auth/verify-email"
     }
 
+    object Dashboard {
+        const val ROOT = "dashboard"
+        const val SCREEN = "dashboard/home"
+    }
+
     object Notes {
         const val ROOT = "notes"
         const val LIST = "notes/list"
         const val DETAIL = "notes/detail/{noteId}"
-        const val EDITOR = "notes/editor/{noteId}"   // noteId = "new" for create
+        const val EDITOR = "notes/editor/{noteId}"
         const val DRIVE_IMPORT = "notes/drive-import"
 
         fun detail(noteId: String) = "notes/detail/$noteId"
@@ -100,6 +107,13 @@ object NavRoutes {
         fun sharedNote(noteId: String) = "social/shared-note/$noteId"
         fun conversationDetail(conversationId: String) = "social/conversations/$conversationId"
     }
+
+    object Profile {
+        const val ROOT = "profile"
+        const val SCREEN = "profile/main"
+        const val EDIT = "profile/edit"
+        const val SETTINGS = "profile/settings"
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -122,10 +136,10 @@ val sensitiveRoutes = setOf(
 /**
  * Root navigation host for the Continuum app.
  *
- * - Starts in [AuthRoutes] when [isAuthenticated] is false, [MainGraph] otherwise.
- * - Detects expanded screens (>= 840dp width) via [LocalConfiguration] and renders
- *   [ContinuumNavigationRail] instead of [ContinuumBottomBar].
- * - Each bottom nav tab uses saveState/restoreState to preserve back stacks.
+ * - Starts in [AuthRoutes] when [isAuthenticated] is false, [Dashboard] otherwise.
+ * - Detects expanded screens (>= 840dp) and renders [ContinuumNavigationRail] instead of bottom bar.
+ * - Dashboard is the MainGraph start destination; accessible from the logo icon on any tab screen.
+ * - Bottom nav: Notes | Flashcards | Tasks | Career | Social | Profile (6 tabs).
  * - Deep links registered:
  *     continuum://auth/verify-email?token={token}
  *     continuum://auth/reset-password?token={token}
@@ -140,30 +154,39 @@ fun AppNavHost(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
-    // Track FLAG_SECURE transitions
     val isSensitive = sensitiveRoutes.any { currentRoute?.startsWith(it.substringBefore("{")) == true }
     if (isSensitive) onSensitiveScreenEntered() else onSensitiveScreenExited()
 
     val windowWidthDp = LocalConfiguration.current.screenWidthDp.dp
     val isExpandedScreen = windowWidthDp >= 840.dp
-    val showMainNav = currentRoute?.startsWith(NavRoutes.Notes.ROOT) == true ||
-        currentRoute?.startsWith(NavRoutes.Flashcards.ROOT) == true ||
-        currentRoute?.startsWith(NavRoutes.Tasks.ROOT) == true ||
-        currentRoute?.startsWith(NavRoutes.Career.ROOT) == true ||
-        currentRoute?.startsWith(NavRoutes.Social.ROOT) == true
 
-    val startDestination = if (isAuthenticated) NavRoutes.Notes.ROOT else NavRoutes.Auth.ROOT
+    val showMainNav = currentRoute != null && (
+        currentRoute.startsWith(NavRoutes.Dashboard.ROOT) ||
+        currentRoute.startsWith(NavRoutes.Notes.ROOT) ||
+        currentRoute.startsWith(NavRoutes.Flashcards.ROOT) ||
+        currentRoute.startsWith(NavRoutes.Tasks.ROOT) ||
+        currentRoute.startsWith(NavRoutes.Career.ROOT) ||
+        currentRoute.startsWith(NavRoutes.Social.ROOT) ||
+        currentRoute.startsWith(NavRoutes.Profile.ROOT)
+    )
+
+    val startDestination = if (isAuthenticated) NavRoutes.Dashboard.ROOT else NavRoutes.Auth.ROOT
+
+    // Logo tap: navigate to Dashboard from any tab screen
+    val onLogoClick: () -> Unit = {
+        navController.navigate(NavRoutes.Dashboard.ROOT) {
+            popUpTo(NavRoutes.Dashboard.ROOT) { inclusive = false }
+            launchSingleTop = true
+        }
+    }
 
     if (isExpandedScreen && showMainNav) {
-        // Tablet / landscape: NavigationRail + content side-by-side
         Row(modifier = Modifier.fillMaxSize()) {
-            ContinuumNavigationRail(
-                currentRoute = currentRoute,
-                navController = navController
-            )
+            ContinuumNavigationRail(currentRoute = currentRoute, navController = navController)
             NavGraph(
                 navController = navController,
                 startDestination = startDestination,
+                onLogoClick = onLogoClick,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -171,16 +194,14 @@ fun AppNavHost(
         Scaffold(
             bottomBar = {
                 if (showMainNav) {
-                    ContinuumBottomBar(
-                        currentRoute = currentRoute,
-                        navController = navController
-                    )
+                    ContinuumBottomBar(currentRoute = currentRoute, navController = navController)
                 }
             }
         ) { innerPadding ->
             NavGraph(
                 navController = navController,
                 startDestination = startDestination,
+                onLogoClick = onLogoClick,
                 modifier = Modifier.padding(innerPadding)
             )
         }
@@ -195,6 +216,7 @@ fun AppNavHost(
 private fun NavGraph(
     navController: NavHostController,
     startDestination: String,
+    onLogoClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -204,14 +226,11 @@ private fun NavGraph(
     ) {
 
         // ---- Auth graph ----
-        navigation(
-            route = NavRoutes.Auth.ROOT,
-            startDestination = NavRoutes.Auth.LOGIN
-        ) {
+        navigation(route = NavRoutes.Auth.ROOT, startDestination = NavRoutes.Auth.LOGIN) {
             composable(route = NavRoutes.Auth.LOGIN) {
                 LoginScreen(
                     onLoginSuccess = {
-                        navController.navigate(NavRoutes.Notes.ROOT) {
+                        navController.navigate(NavRoutes.Dashboard.ROOT) {
                             popUpTo(NavRoutes.Auth.ROOT) { inclusive = true }
                         }
                     },
@@ -222,7 +241,7 @@ private fun NavGraph(
             composable(route = NavRoutes.Auth.REGISTER) {
                 RegisterScreen(
                     onRegisterSuccess = {
-                        navController.navigate(NavRoutes.Notes.ROOT) {
+                        navController.navigate(NavRoutes.Dashboard.ROOT) {
                             popUpTo(NavRoutes.Auth.ROOT) { inclusive = true }
                         }
                     },
@@ -230,16 +249,12 @@ private fun NavGraph(
                 )
             }
             composable(route = NavRoutes.Auth.FORGOT_PASSWORD) {
-                ForgotPasswordScreen(
-                    onNavigateBack = { navController.popBackStack() }
-                )
+                ForgotPasswordScreen(onNavigateBack = { navController.popBackStack() })
             }
             composable(
                 route = NavRoutes.Auth.RESET_PASSWORD,
                 arguments = listOf(navArgument("token") { type = NavType.StringType; defaultValue = "" }),
-                deepLinks = listOf(
-                    navDeepLink { uriPattern = "continuum://auth/reset-password?token={token}" }
-                )
+                deepLinks = listOf(navDeepLink { uriPattern = "continuum://auth/reset-password?token={token}" })
             ) { backStackEntry ->
                 val token = backStackEntry.arguments?.getString("token") ?: ""
                 ResetPasswordScreen(
@@ -254,15 +269,13 @@ private fun NavGraph(
             composable(
                 route = NavRoutes.Auth.VERIFY_EMAIL,
                 arguments = listOf(navArgument("token") { type = NavType.StringType; defaultValue = "" }),
-                deepLinks = listOf(
-                    navDeepLink { uriPattern = "continuum://auth/verify-email?token={token}" }
-                )
+                deepLinks = listOf(navDeepLink { uriPattern = "continuum://auth/verify-email?token={token}" })
             ) { backStackEntry ->
                 val token = backStackEntry.arguments?.getString("token") ?: ""
                 VerifyEmailScreen(
                     token = token,
                     onContinueToApp = {
-                        navController.navigate(NavRoutes.Notes.ROOT) {
+                        navController.navigate(NavRoutes.Dashboard.ROOT) {
                             popUpTo(NavRoutes.Auth.ROOT) { inclusive = true }
                         }
                     }
@@ -270,18 +283,42 @@ private fun NavGraph(
             }
         }
 
+        // ---- Dashboard graph ----
+        navigation(route = NavRoutes.Dashboard.ROOT, startDestination = NavRoutes.Dashboard.SCREEN) {
+            composable(NavRoutes.Dashboard.SCREEN) {
+                val networkMonitor = LocalNetworkMonitor.current
+                DashboardScreen(
+                    onNotesClick = {
+                        navController.navigate(NavRoutes.Notes.ROOT) {
+                            launchSingleTop = true; restoreState = true
+                        }
+                    },
+                    onTasksClick = {
+                        navController.navigate(NavRoutes.Tasks.ROOT) {
+                            launchSingleTop = true; restoreState = true
+                        }
+                    },
+                    onCareerClick = {
+                        navController.navigate(NavRoutes.Career.ROOT) {
+                            launchSingleTop = true; restoreState = true
+                        }
+                    },
+                    onNoteClick = { noteId -> navController.navigate(NavRoutes.Notes.detail(noteId)) },
+                    networkMonitor = networkMonitor
+                )
+            }
+        }
+
         // ---- Notes graph ----
-        navigation(
-            route = NavRoutes.Notes.ROOT,
-            startDestination = NavRoutes.Notes.LIST
-        ) {
+        navigation(route = NavRoutes.Notes.ROOT, startDestination = NavRoutes.Notes.LIST) {
             composable(NavRoutes.Notes.LIST) {
                 val networkMonitor = LocalNetworkMonitor.current
                 NotesListScreen(
                     onNoteClick = { noteId -> navController.navigate(NavRoutes.Notes.detail(noteId)) },
                     onCreateNote = { navController.navigate(NavRoutes.Notes.editor()) },
                     onDriveImport = { navController.navigate(NavRoutes.Notes.DRIVE_IMPORT) },
-                    networkMonitor = networkMonitor
+                    networkMonitor = networkMonitor,
+                    onLogoClick = onLogoClick
                 )
             }
             composable(
@@ -322,14 +359,12 @@ private fun NavGraph(
         }
 
         // ---- Flashcards graph ----
-        navigation(
-            route = NavRoutes.Flashcards.ROOT,
-            startDestination = NavRoutes.Flashcards.LIST
-        ) {
+        navigation(route = NavRoutes.Flashcards.ROOT, startDestination = NavRoutes.Flashcards.LIST) {
             composable(NavRoutes.Flashcards.LIST) {
                 FlashcardSetsListScreen(
                     onSetClick = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) },
-                    onStudy = { setId -> navController.navigate(NavRoutes.Flashcards.studyMode(setId)) }
+                    onStudy = { setId -> navController.navigate(NavRoutes.Flashcards.studyMode(setId)) },
+                    onLogoClick = onLogoClick
                 )
             }
             composable(
@@ -348,30 +383,24 @@ private fun NavGraph(
                 arguments = listOf(navArgument("setId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val setId = backStackEntry.arguments?.getString("setId") ?: return@composable
-                StudyModeScreen(
-                    setId = setId,
-                    onNavigateBack = { navController.popBackStack() }
-                )
+                StudyModeScreen(setId = setId, onNavigateBack = { navController.popBackStack() })
             }
         }
 
         // ---- Tasks graph ----
-        navigation(
-            route = NavRoutes.Tasks.ROOT,
-            startDestination = NavRoutes.Tasks.BOARD
-        ) {
+        navigation(route = NavRoutes.Tasks.ROOT, startDestination = NavRoutes.Tasks.BOARD) {
             composable(NavRoutes.Tasks.BOARD) {
                 val networkMonitor = LocalNetworkMonitor.current
                 TaskBoardScreen(
                     onCalendar = { navController.navigate(NavRoutes.Tasks.CALENDAR) },
-                    networkMonitor = networkMonitor
+                    networkMonitor = networkMonitor,
+                    onLogoClick = onLogoClick
                 )
             }
             composable(
                 route = NavRoutes.Tasks.DETAIL,
                 arguments = listOf(navArgument("taskId") { type = NavType.StringType })
             ) {
-                // Detail screen not separately defined in spec — board handles all interactions
                 PlaceholderScreen("Task Detail")
             }
             composable(NavRoutes.Tasks.CALENDAR) {
@@ -380,13 +409,11 @@ private fun NavGraph(
         }
 
         // ---- Career graph ----
-        navigation(
-            route = NavRoutes.Career.ROOT,
-            startDestination = NavRoutes.Career.APPLICATIONS_LIST
-        ) {
+        navigation(route = NavRoutes.Career.ROOT, startDestination = NavRoutes.Career.APPLICATIONS_LIST) {
             composable(NavRoutes.Career.APPLICATIONS_LIST) {
                 ApplicationsListScreen(
-                    onApplicationClick = { appId -> navController.navigate(NavRoutes.Career.applicationDetail(appId)) }
+                    onApplicationClick = { appId -> navController.navigate(NavRoutes.Career.applicationDetail(appId)) },
+                    onLogoClick = onLogoClick
                 )
             }
             composable(
@@ -421,23 +448,18 @@ private fun NavGraph(
                 arguments = listOf(navArgument("resumeId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val resumeId = backStackEntry.arguments?.getString("resumeId") ?: return@composable
-                ResumeFeedbackScreen(
-                    resumeId = resumeId,
-                    onNavigateBack = { navController.popBackStack() }
-                )
+                ResumeFeedbackScreen(resumeId = resumeId, onNavigateBack = { navController.popBackStack() })
             }
         }
 
         // ---- Social graph ----
-        navigation(
-            route = NavRoutes.Social.ROOT,
-            startDestination = NavRoutes.Social.ACTIVITY_FEED
-        ) {
+        navigation(route = NavRoutes.Social.ROOT, startDestination = NavRoutes.Social.ACTIVITY_FEED) {
             composable(NavRoutes.Social.ACTIVITY_FEED) {
                 val networkMonitor = LocalNetworkMonitor.current
                 ActivityFeedScreen(
                     onSharedNoteClick = { noteId -> navController.navigate(NavRoutes.Social.sharedNote(noteId)) },
-                    networkMonitor = networkMonitor
+                    networkMonitor = networkMonitor,
+                    onLogoClick = onLogoClick
                 )
             }
             composable(NavRoutes.Social.FRIENDS_LIST) {
@@ -451,10 +473,7 @@ private fun NavGraph(
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val noteId = backStackEntry.arguments?.getString("noteId") ?: return@composable
-                SharedNoteViewScreen(
-                    noteId = noteId,
-                    onNavigateBack = { navController.popBackStack() }
-                )
+                SharedNoteViewScreen(noteId = noteId, onNavigateBack = { navController.popBackStack() })
             }
             composable(NavRoutes.Social.CONVERSATIONS) {
                 val networkMonitor = LocalNetworkMonitor.current
@@ -462,7 +481,8 @@ private fun NavGraph(
                     onConversationClick = { conversationId ->
                         navController.navigate(NavRoutes.Social.conversationDetail(conversationId))
                     },
-                    networkMonitor = networkMonitor
+                    networkMonitor = networkMonitor,
+                    onLogoClick = onLogoClick
                 )
             }
             composable(
@@ -471,13 +491,34 @@ private fun NavGraph(
             ) { backStackEntry ->
                 val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
                 val tokenManager = LocalTokenManager.current
-                // Participant name is not in route — look it up from the back stack or use a placeholder
                 ConversationDetailScreen(
                     conversationId = conversationId,
                     participantName = "Conversation",
                     onNavigateBack = { navController.popBackStack() },
                     tokenManager = tokenManager
                 )
+            }
+        }
+
+        // ---- Profile graph ----
+        navigation(route = NavRoutes.Profile.ROOT, startDestination = NavRoutes.Profile.SCREEN) {
+            composable(NavRoutes.Profile.SCREEN) {
+                ProfileScreen(
+                    onLogoClick = onLogoClick,
+                    onEditProfile = { navController.navigate(NavRoutes.Profile.EDIT) },
+                    onSettings = { navController.navigate(NavRoutes.Profile.SETTINGS) },
+                    onLogout = {
+                        navController.navigate(NavRoutes.Auth.ROOT) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+            }
+            composable(NavRoutes.Profile.EDIT) {
+                EditProfileScreen(onNavigateBack = { navController.popBackStack() })
+            }
+            composable(NavRoutes.Profile.SETTINGS) {
+                SettingsScreen(onNavigateBack = { navController.popBackStack() })
             }
         }
     }
@@ -489,10 +530,7 @@ private fun NavGraph(
 
 @Composable
 private fun PlaceholderScreen(name: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(text = name)
     }
 }

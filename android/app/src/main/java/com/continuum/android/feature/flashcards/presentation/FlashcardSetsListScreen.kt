@@ -25,6 +25,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 fun FlashcardSetsListScreen(
     onSetClick: (String) -> Unit,
     onStudy: (String) -> Unit,
+    onLogoClick: (() -> Unit)? = null,
     viewModel: FlashcardsViewModel = hiltViewModel()
 ) {
     val state by viewModel.setsState.collectAsStateWithLifecycle()
@@ -36,7 +37,7 @@ fun FlashcardSetsListScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            PurpleTopAppBar(title = "Flashcards")
+            PurpleTopAppBar(title = "Flashcards", onLogoClick = onLogoClick)
 
             SwipeRefresh(
                 state = rememberSwipeRefreshState(state.isLoading),

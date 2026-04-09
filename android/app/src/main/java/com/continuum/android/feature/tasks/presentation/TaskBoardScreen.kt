@@ -26,6 +26,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 fun TaskBoardScreen(
     onCalendar: () -> Unit,
     networkMonitor: NetworkMonitor,
+    onLogoClick: (() -> Unit)? = null,
     viewModel: TasksViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -43,6 +44,7 @@ fun TaskBoardScreen(
             if (!isOnline) OfflineBanner()
             PurpleTopAppBar(
                 title = "Tasks",
+                onLogoClick = onLogoClick,
                 actions = {
                     IconButton(onClick = onCalendar) {
                         Icon(Icons.Default.CalendarMonth, "Calendar", tint = androidx.compose.ui.graphics.Color.White)

@@ -29,6 +29,7 @@ fun NotesListScreen(
     onCreateNote: () -> Unit,
     onDriveImport: () -> Unit,
     networkMonitor: NetworkMonitor,
+    onLogoClick: (() -> Unit)? = null,
     viewModel: NotesViewModel = hiltViewModel()
 ) {
     val listState by viewModel.listState.collectAsStateWithLifecycle()
@@ -48,6 +49,7 @@ fun NotesListScreen(
 
             PurpleTopAppBar(
                 title = "Notes",
+                onLogoClick = onLogoClick,
                 actions = {
                     IconButton(onClick = { showSearch = !showSearch }) {
                         Icon(Icons.Default.Search, contentDescription = "Search", tint = androidx.compose.ui.graphics.Color.White)

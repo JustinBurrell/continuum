@@ -27,6 +27,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 fun ActivityFeedScreen(
     onSharedNoteClick: (String) -> Unit,
     networkMonitor: NetworkMonitor,
+    onLogoClick: (() -> Unit)? = null,
     viewModel: SocialViewModel = hiltViewModel()
 ) {
     val state by viewModel.activityState.collectAsStateWithLifecycle()
@@ -48,7 +49,7 @@ fun ActivityFeedScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (!isOnline) OfflineBanner()
-        PurpleTopAppBar(title = "Activity")
+        PurpleTopAppBar(title = "Activity", onLogoClick = onLogoClick)
 
         SwipeRefresh(
             state = rememberSwipeRefreshState(state.isLoading),
