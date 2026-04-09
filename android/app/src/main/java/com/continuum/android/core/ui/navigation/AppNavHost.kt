@@ -25,6 +25,7 @@ import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.feature.auth.presentation.*
 import com.continuum.android.feature.flashcards.presentation.*
 import com.continuum.android.feature.notes.presentation.*
+import com.continuum.android.feature.tasks.presentation.*
 
 // ---------------------------------------------------------------------------
 // Route constants
@@ -356,16 +357,21 @@ private fun NavGraph(
             startDestination = NavRoutes.Tasks.BOARD
         ) {
             composable(NavRoutes.Tasks.BOARD) {
-                PlaceholderScreen("Tasks Board")
+                val networkMonitor = LocalNetworkMonitor.current
+                TaskBoardScreen(
+                    onCalendar = { navController.navigate(NavRoutes.Tasks.CALENDAR) },
+                    networkMonitor = networkMonitor
+                )
             }
             composable(
                 route = NavRoutes.Tasks.DETAIL,
                 arguments = listOf(navArgument("taskId") { type = NavType.StringType })
             ) {
+                // Detail screen not separately defined in spec — board handles all interactions
                 PlaceholderScreen("Task Detail")
             }
             composable(NavRoutes.Tasks.CALENDAR) {
-                PlaceholderScreen("Calendar")
+                CalendarViewScreen(onNavigateBack = { navController.popBackStack() })
             }
         }
 
