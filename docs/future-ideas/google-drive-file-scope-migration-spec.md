@@ -6,6 +6,16 @@
 
 Android is explicitly out of scope for this change window. This spec covers web (React) and backend (Express) only. Android integration details will be added after Android development is complete (target: after Sunday).
 
+## Branch and Commit Metadata
+
+Suggested branch name (per `docs/agile_workflow_guide.md`):
+
+- `docs/OAUTH-1-drive-file-migration-spec`
+
+Suggested commit type for this document:
+
+- `docs`
+
 ---
 
 ## 1. Objective
