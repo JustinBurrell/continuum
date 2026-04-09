@@ -25,6 +25,7 @@ import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.feature.auth.presentation.*
 import com.continuum.android.feature.flashcards.presentation.*
 import com.continuum.android.feature.notes.presentation.*
+import com.continuum.android.feature.career.presentation.*
 import com.continuum.android.feature.social.presentation.*
 import com.continuum.android.feature.tasks.presentation.*
 
@@ -382,28 +383,46 @@ private fun NavGraph(
             startDestination = NavRoutes.Career.APPLICATIONS_LIST
         ) {
             composable(NavRoutes.Career.APPLICATIONS_LIST) {
-                PlaceholderScreen("Applications List")
+                ApplicationsListScreen(
+                    onApplicationClick = { appId -> navController.navigate(NavRoutes.Career.applicationDetail(appId)) }
+                )
             }
             composable(
                 route = NavRoutes.Career.APPLICATION_DETAIL,
                 arguments = listOf(navArgument("appId") { type = NavType.StringType })
-            ) {
-                PlaceholderScreen("Application Detail")
+            ) { backStackEntry ->
+                val appId = backStackEntry.arguments?.getString("appId") ?: return@composable
+                ApplicationDetailScreen(
+                    appId = appId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onViewResume = { resumeId -> navController.navigate(NavRoutes.Career.resumeDetail(resumeId)) }
+                )
             }
             composable(NavRoutes.Career.RESUMES_LIST) {
-                PlaceholderScreen("Resumes List")
+                ResumesListScreen(
+                    onResumeClick = { resumeId -> navController.navigate(NavRoutes.Career.resumeDetail(resumeId)) }
+                )
             }
             composable(
                 route = NavRoutes.Career.RESUME_DETAIL,
                 arguments = listOf(navArgument("resumeId") { type = NavType.StringType })
-            ) {
-                PlaceholderScreen("Resume Detail")
+            ) { backStackEntry ->
+                val resumeId = backStackEntry.arguments?.getString("resumeId") ?: return@composable
+                ResumeDetailScreen(
+                    resumeId = resumeId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onGetFeedback = { navController.navigate(NavRoutes.Career.resumeFeedback(resumeId)) }
+                )
             }
             composable(
                 route = NavRoutes.Career.RESUME_FEEDBACK,
                 arguments = listOf(navArgument("resumeId") { type = NavType.StringType })
-            ) {
-                PlaceholderScreen("Resume Feedback")
+            ) { backStackEntry ->
+                val resumeId = backStackEntry.arguments?.getString("resumeId") ?: return@composable
+                ResumeFeedbackScreen(
+                    resumeId = resumeId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
         }
 
