@@ -31,11 +31,7 @@ fun ResumeFeedbackScreen(
         topBar = {
             PurpleTopAppBar(
                 title = "AI Feedback",
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = androidx.compose.ui.graphics.Color.White)
-                    }
-                }
+                onNavigateBack = onNavigateBack
             )
         }
     ) { innerPadding ->

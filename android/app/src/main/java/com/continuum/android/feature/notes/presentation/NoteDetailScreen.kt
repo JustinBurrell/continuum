@@ -45,11 +45,7 @@ fun NoteDetailScreen(
         topBar = {
             PurpleTopAppBar(
                 title = note?.title ?: "",
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = androidx.compose.ui.graphics.Color.White)
-                    }
-                },
+                onNavigateBack = onNavigateBack,
                 actions = {
                     if (note != null) {
                         IconButton(onClick = { onEdit(noteId) }) {

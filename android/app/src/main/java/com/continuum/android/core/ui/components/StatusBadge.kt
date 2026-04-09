@@ -53,3 +53,16 @@ fun StatusBadge(status: ApplicationStatus, modifier: Modifier = Modifier) {
         )
     }
 }
+
+/** Convenience overload that accepts a raw status string from the API. */
+@Composable
+fun StatusBadge(statusString: String, modifier: Modifier = Modifier) {
+    val status = when (statusString.lowercase()) {
+        "applied"   -> ApplicationStatus.Applied
+        "interview" -> ApplicationStatus.Interview
+        "offer"     -> ApplicationStatus.Offer
+        "rejected"  -> ApplicationStatus.Rejected
+        else        -> ApplicationStatus.Saved
+    }
+    StatusBadge(status = status, modifier = modifier)
+}

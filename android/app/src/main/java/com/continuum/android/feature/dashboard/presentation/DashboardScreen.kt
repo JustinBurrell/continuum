@@ -332,7 +332,7 @@ private fun TaskRow(task: Task) {
                 }
             }
             task.priority?.let { p ->
-                StatusBadge(label = p.replaceFirstChar { it.uppercase() }, type = p)
+                StatusBadge(statusString = p.replaceFirstChar { it.uppercase() })
             }
         }
     }

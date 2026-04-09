@@ -73,11 +73,7 @@ fun ResumeDetailScreen(
         topBar = {
             PurpleTopAppBar(
                 title = resume?.fileName ?: "Resume",
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = androidx.compose.ui.graphics.Color.White)
-                    }
-                },
+                onNavigateBack = onNavigateBack,
                 actions = {
                     TextButton(onClick = onGetFeedback) {
                         Text("AI Feedback", color = androidx.compose.ui.graphics.Color.White)

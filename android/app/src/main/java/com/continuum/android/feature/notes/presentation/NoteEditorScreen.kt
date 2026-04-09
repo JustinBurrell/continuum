@@ -22,7 +22,9 @@ import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteEditorScreen(
     noteId: String,  // "new" for create mode
@@ -61,11 +63,7 @@ fun NoteEditorScreen(
         topBar = {
             PurpleTopAppBar(
                 title = if (isCreating) "New Note" else "Edit Note",
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = androidx.compose.ui.graphics.Color.White)
-                    }
-                },
+                onNavigateBack = onNavigateBack,
                 actions = {
                     if (detailState.isSaving) {
                         CircularProgressIndicator(

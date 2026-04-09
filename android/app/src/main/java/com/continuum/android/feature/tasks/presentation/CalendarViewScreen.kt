@@ -55,11 +55,7 @@ fun CalendarViewScreen(
         topBar = {
             PurpleTopAppBar(
                 title = "Calendar",
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = androidx.compose.ui.graphics.Color.White)
-                    }
-                }
+                onNavigateBack = onNavigateBack
             )
         }
     ) { innerPadding ->

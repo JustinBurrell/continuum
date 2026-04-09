@@ -32,11 +32,7 @@ fun UserSearchScreen(
         topBar = {
             PurpleTopAppBar(
                 title = "Find people",
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = androidx.compose.ui.graphics.Color.White)
-                    }
-                }
+                onNavigateBack = onNavigateBack
             )
         }
     ) { innerPadding ->

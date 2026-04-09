@@ -44,11 +44,7 @@ fun GoogleDriveImportScreen(
         topBar = {
             PurpleTopAppBar(
                 title = "Import from Drive",
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = androidx.compose.ui.graphics.Color.White)
-                    }
-                }
+                onNavigateBack = onNavigateBack
             )
         }
     ) { innerPadding ->

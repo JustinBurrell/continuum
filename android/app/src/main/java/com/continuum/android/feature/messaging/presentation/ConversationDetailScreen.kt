@@ -48,11 +48,7 @@ fun ConversationDetailScreen(
         topBar = {
             PurpleTopAppBar(
                 title = participantName,
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = androidx.compose.ui.graphics.Color.White)
-                    }
-                }
+                onNavigateBack = onNavigateBack
             )
         },
         bottomBar = {

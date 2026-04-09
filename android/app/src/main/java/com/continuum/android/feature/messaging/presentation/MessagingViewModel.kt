@@ -9,6 +9,7 @@ import com.continuum.android.feature.messaging.domain.Message
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.util.UUID
 import javax.inject.Inject
 
@@ -49,7 +50,8 @@ class MessagingViewModel @Inject constructor(
 
         // Observe real-time new messages — update last message preview in conversation list
         viewModelScope.launch {
-            socketManager.newMessageFlow.collect { event ->
+            socketManager.newMessageFlow.collect { raw ->
+                val event = runCatching { JSONObject(raw) }.getOrNull() ?: return@collect
                 _conversationsState.update { state ->
                     state.copy(conversations = state.conversations.map { convo ->
                         if (convo.id == event.optString("conversationId")) {
@@ -72,7 +74,8 @@ class MessagingViewModel @Inject constructor(
 
         // Observe incoming real-time messages for this conversation
         viewModelScope.launch {
-            socketManager.newMessageFlow.collect { event ->
+            socketManager.newMessageFlow.collect { raw ->
+                val event = runCatching { JSONObject(raw) }.getOrNull() ?: return@collect
                 val convId = event.optString("conversationId")
                 if (convId == conversationId) {
                     val newMessage = Message(

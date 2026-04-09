@@ -8,7 +8,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskCreationBottomSheet(
     onDismiss: () -> Unit,
