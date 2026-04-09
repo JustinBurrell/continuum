@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
@@ -29,7 +28,8 @@ import java.util.*
 
 @Composable
 fun CalendarViewScreen(
-    onNavigateBack: () -> Unit,
+    onNavigateBack: (() -> Unit)?,
+    onLogoClick: (() -> Unit)? = null,
     viewModel: TasksViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -55,7 +55,8 @@ fun CalendarViewScreen(
         topBar = {
             PurpleTopAppBar(
                 title = "Calendar",
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                onLogoClick = onLogoClick
             )
         }
     ) { innerPadding ->

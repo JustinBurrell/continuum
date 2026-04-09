@@ -36,6 +36,8 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
+    onNavigateToPrivacy: () -> Unit,
+    onNavigateToTerms: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -196,6 +198,23 @@ fun LoginScreen(
             )
             TextButton(onClick = onNavigateToRegister, contentPadding = PaddingValues(4.dp)) {
                 Text("Sign up", color = BrandPurple, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        Text(
+            text = "By signing in you agree to our",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextMuted
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(onClick = onNavigateToTerms, contentPadding = PaddingValues(4.dp)) {
+                Text("Terms of Service", color = BrandPurple, style = MaterialTheme.typography.bodySmall)
+            }
+            Text("and", style = MaterialTheme.typography.bodySmall, color = TextMuted)
+            TextButton(onClick = onNavigateToPrivacy, contentPadding = PaddingValues(4.dp)) {
+                Text("Privacy Policy", color = BrandPurple, style = MaterialTheme.typography.bodySmall)
             }
         }
     }

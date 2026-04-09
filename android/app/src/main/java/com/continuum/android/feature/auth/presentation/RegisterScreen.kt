@@ -28,6 +28,8 @@ import com.continuum.android.core.ui.theme.*
 fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit,
+    onNavigateToPrivacy: () -> Unit,
+    onNavigateToTerms: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -127,11 +129,22 @@ fun RegisterScreen(
                     }
                 )
 
-                Text(
-                    text = "By creating an account you agree to our Terms of Service and Privacy Policy.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextMuted
-                )
+                Column {
+                    Text(
+                        text = "By creating an account you agree to our",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMuted
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TextButton(onClick = onNavigateToTerms, contentPadding = PaddingValues(4.dp)) {
+                            Text("Terms of Service", color = BrandPurple, style = MaterialTheme.typography.bodySmall)
+                        }
+                        Text("and", style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                        TextButton(onClick = onNavigateToPrivacy, contentPadding = PaddingValues(4.dp)) {
+                            Text("Privacy Policy", color = BrandPurple, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
 
                 if (uiState is AuthUiState.Error) {
                     Text(

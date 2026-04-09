@@ -32,8 +32,11 @@ import java.util.Calendar
 @Composable
 fun DashboardScreen(
     onNotesClick: () -> Unit,
+    onFlashcardsClick: () -> Unit,
     onTasksClick: () -> Unit,
-    onCareerClick: () -> Unit,
+    onApplicationsClick: () -> Unit,
+    onActivityClick: () -> Unit,
+    onMessagesClick: () -> Unit,
     onNoteClick: (String) -> Unit,
     networkMonitor: NetworkMonitor,
     viewModel: DashboardViewModel = hiltViewModel()
@@ -60,9 +63,25 @@ fun DashboardScreen(
                     contentDescription = "Continuum",
                     tint = White,
                     modifier = Modifier
-                        .width(140.dp)
-                        .height(32.dp)
+                        .width(132.dp)
+                        .height(26.dp)
                 )
+            },
+            actions = {
+                IconButton(onClick = onActivityClick) {
+                    Icon(
+                        imageVector = Icons.Default.NotificationsNone,
+                        contentDescription = "Activity",
+                        tint = White
+                    )
+                }
+                IconButton(onClick = onMessagesClick) {
+                    Icon(
+                        imageVector = Icons.Default.ChatBubbleOutline,
+                        contentDescription = "Messages",
+                        tint = White
+                    )
+                }
             }
         )
 
@@ -128,7 +147,7 @@ fun DashboardScreen(
                                 count = state.openApplicationCount,
                                 label = "Applications",
                                 icon = Icons.Default.Work,
-                                onClick = onCareerClick,
+                                onClick = onApplicationsClick,
                                 modifier = Modifier.weight(1f)
                             )
                         }

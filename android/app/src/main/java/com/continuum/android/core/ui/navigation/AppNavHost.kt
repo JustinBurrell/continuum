@@ -7,11 +7,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -45,6 +48,8 @@ object NavRoutes {
         const val FORGOT_PASSWORD = "auth/forgot-password"
         const val RESET_PASSWORD = "auth/reset-password"
         const val VERIFY_EMAIL = "auth/verify-email"
+        const val PRIVACY = "auth/privacy"
+        const val TERMS = "auth/terms"
     }
 
     object Dashboard {
@@ -77,9 +82,23 @@ object NavRoutes {
         const val ROOT = "tasks"
         const val BOARD = "tasks/board"
         const val DETAIL = "tasks/detail/{taskId}"
-        const val CALENDAR = "tasks/calendar"
 
         fun detail(taskId: String) = "tasks/detail/$taskId"
+    }
+
+    object Calendar {
+        const val ROOT = "calendar"
+        const val SCREEN = "calendar/main"
+    }
+
+    object Applications {
+        const val ROOT = "applications"
+        const val LIST = "applications/list"
+    }
+
+    object Resumes {
+        const val ROOT = "resumes"
+        const val LIST = "resumes/list"
     }
 
     object Career {
@@ -151,6 +170,9 @@ fun AppNavHost(
     onSensitiveScreenEntered: () -> Unit = {},
     onSensitiveScreenExited: () -> Unit = {}
 ) {
+    val navProfileViewModel: NavProfileViewModel = hiltViewModel()
+    val navProfile by navProfileViewModel.state.collectAsStateWithLifecycle()
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -165,12 +187,19 @@ fun AppNavHost(
         currentRoute.startsWith(NavRoutes.Notes.ROOT) ||
         currentRoute.startsWith(NavRoutes.Flashcards.ROOT) ||
         currentRoute.startsWith(NavRoutes.Tasks.ROOT) ||
+        currentRoute.startsWith(NavRoutes.Calendar.ROOT) ||
+        currentRoute.startsWith(NavRoutes.Applications.ROOT) ||
+        currentRoute.startsWith(NavRoutes.Resumes.ROOT) ||
         currentRoute.startsWith(NavRoutes.Career.ROOT) ||
         currentRoute.startsWith(NavRoutes.Social.ROOT) ||
         currentRoute.startsWith(NavRoutes.Profile.ROOT)
     )
 
     val startDestination = if (isAuthenticated) NavRoutes.Dashboard.ROOT else NavRoutes.Auth.ROOT
+
+    LaunchedEffect(isAuthenticated) {
+        if (isAuthenticated) navProfileViewModel.load()
+    }
 
     // Logo tap: navigate to Dashboard from any tab screen
     val onLogoClick: () -> Unit = {
@@ -182,7 +211,12 @@ fun AppNavHost(
 
     if (isExpandedScreen && showMainNav) {
         Row(modifier = Modifier.fillMaxSize()) {
-            ContinuumNavigationRail(currentRoute = currentRoute, navController = navController)
+            ContinuumNavigationRail(
+                currentRoute = currentRoute,
+                navController = navController,
+                profileAvatarUrl = navProfile.avatarUrl,
+                profileDisplayName = navProfile.displayName
+            )
             NavGraph(
                 navController = navController,
                 startDestination = startDestination,
@@ -194,7 +228,12 @@ fun AppNavHost(
         Scaffold(
             bottomBar = {
                 if (showMainNav) {
-                    ContinuumBottomBar(currentRoute = currentRoute, navController = navController)
+                    ContinuumBottomBar(
+                        currentRoute = currentRoute,
+                        navController = navController,
+                        profileAvatarUrl = navProfile.avatarUrl,
+                        profileDisplayName = navProfile.displayName
+                    )
                 }
             }
         ) { innerPadding ->
@@ -235,7 +274,9 @@ private fun NavGraph(
                         }
                     },
                     onNavigateToRegister = { navController.navigate(NavRoutes.Auth.REGISTER) },
-                    onNavigateToForgotPassword = { navController.navigate(NavRoutes.Auth.FORGOT_PASSWORD) }
+                    onNavigateToForgotPassword = { navController.navigate(NavRoutes.Auth.FORGOT_PASSWORD) },
+                    onNavigateToPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) },
+                    onNavigateToTerms = { navController.navigate(NavRoutes.Auth.TERMS) }
                 )
             }
             composable(route = NavRoutes.Auth.REGISTER) {
@@ -245,7 +286,9 @@ private fun NavGraph(
                             popUpTo(NavRoutes.Auth.ROOT) { inclusive = true }
                         }
                     },
-                    onNavigateToLogin = { navController.popBackStack() }
+                    onNavigateToLogin = { navController.popBackStack() },
+                    onNavigateToPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) },
+                    onNavigateToTerms = { navController.navigate(NavRoutes.Auth.TERMS) }
                 )
             }
             composable(route = NavRoutes.Auth.FORGOT_PASSWORD) {
@@ -281,6 +324,20 @@ private fun NavGraph(
                     }
                 )
             }
+            composable(route = NavRoutes.Auth.PRIVACY) {
+                LegalDocumentScreen(
+                    title = "Privacy Policy",
+                    path = "privacy",
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(route = NavRoutes.Auth.TERMS) {
+                LegalDocumentScreen(
+                    title = "Terms of Service",
+                    path = "terms",
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
         }
 
         // ---- Dashboard graph ----
@@ -298,11 +355,18 @@ private fun NavGraph(
                             launchSingleTop = true; restoreState = true
                         }
                     },
-                    onCareerClick = {
-                        navController.navigate(NavRoutes.Career.ROOT) {
+                    onFlashcardsClick = {
+                        navController.navigate(NavRoutes.Flashcards.ROOT) {
                             launchSingleTop = true; restoreState = true
                         }
                     },
+                    onApplicationsClick = {
+                        navController.navigate(NavRoutes.Applications.ROOT) {
+                            launchSingleTop = true; restoreState = true
+                        }
+                    },
+                    onActivityClick = { navController.navigate(NavRoutes.Social.ACTIVITY_FEED) },
+                    onMessagesClick = { navController.navigate(NavRoutes.Social.CONVERSATIONS) },
                     onNoteClick = { noteId -> navController.navigate(NavRoutes.Notes.detail(noteId)) },
                     networkMonitor = networkMonitor
                 )
@@ -392,7 +456,7 @@ private fun NavGraph(
             composable(NavRoutes.Tasks.BOARD) {
                 val networkMonitor = LocalNetworkMonitor.current
                 TaskBoardScreen(
-                    onCalendar = { navController.navigate(NavRoutes.Tasks.CALENDAR) },
+                    onCalendar = { navController.navigate(NavRoutes.Calendar.ROOT) },
                     networkMonitor = networkMonitor,
                     onLogoClick = onLogoClick
                 )
@@ -403,8 +467,31 @@ private fun NavGraph(
             ) {
                 PlaceholderScreen("Task Detail")
             }
-            composable(NavRoutes.Tasks.CALENDAR) {
-                CalendarViewScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        navigation(route = NavRoutes.Calendar.ROOT, startDestination = NavRoutes.Calendar.SCREEN) {
+            composable(NavRoutes.Calendar.SCREEN) {
+                CalendarViewScreen(
+                    onNavigateBack = null,
+                    onLogoClick = onLogoClick
+                )
+            }
+        }
+
+        navigation(route = NavRoutes.Applications.ROOT, startDestination = NavRoutes.Applications.LIST) {
+            composable(NavRoutes.Applications.LIST) {
+                ApplicationsListScreen(
+                    onApplicationClick = { appId -> navController.navigate(NavRoutes.Career.applicationDetail(appId)) },
+                    onLogoClick = onLogoClick
+                )
+            }
+        }
+
+        navigation(route = NavRoutes.Resumes.ROOT, startDestination = NavRoutes.Resumes.LIST) {
+            composable(NavRoutes.Resumes.LIST) {
+                ResumesListScreen(
+                    onResumeClick = { resumeId -> navController.navigate(NavRoutes.Career.resumeDetail(resumeId)) }
+                )
             }
         }
 

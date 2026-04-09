@@ -1,5 +1,7 @@
 package com.continuum.android.core.ui.components
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.continuum.android.R
 import com.continuum.android.core.ui.theme.BrandPurple
 import com.continuum.android.core.ui.theme.FrauncesFamily
@@ -72,11 +75,12 @@ fun PurpleTopAppBar(
                     }
                 }
                 else -> {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = {}, enabled = false) {
                         Icon(
                             painter = painterResource(R.drawable.ic_logo_symbol),
                             contentDescription = "Continuum",
                             tint = White,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
@@ -89,6 +93,8 @@ fun PurpleTopAppBar(
             navigationIconContentColor = White,
             actionIconContentColor = White,
         ),
+        windowInsets = WindowInsets(0, 0, 0, 0),
+        expandedHeight = 56.dp,
         modifier = modifier,
     )
 }
