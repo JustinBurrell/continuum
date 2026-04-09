@@ -21,6 +21,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.continuum.android.feature.auth.presentation.*
 
 // ---------------------------------------------------------------------------
 // Route constants
@@ -199,36 +200,65 @@ private fun NavGraph(
             route = NavRoutes.Auth.ROOT,
             startDestination = NavRoutes.Auth.LOGIN
         ) {
-            composable(
-                route = NavRoutes.Auth.LOGIN
-            ) {
-                PlaceholderScreen("Login")
+            composable(route = NavRoutes.Auth.LOGIN) {
+                LoginScreen(
+                    onLoginSuccess = {
+                        navController.navigate(NavRoutes.Notes.ROOT) {
+                            popUpTo(NavRoutes.Auth.ROOT) { inclusive = true }
+                        }
+                    },
+                    onNavigateToRegister = { navController.navigate(NavRoutes.Auth.REGISTER) },
+                    onNavigateToForgotPassword = { navController.navigate(NavRoutes.Auth.FORGOT_PASSWORD) }
+                )
             }
-            composable(
-                route = NavRoutes.Auth.REGISTER
-            ) {
-                PlaceholderScreen("Register")
+            composable(route = NavRoutes.Auth.REGISTER) {
+                RegisterScreen(
+                    onRegisterSuccess = {
+                        navController.navigate(NavRoutes.Notes.ROOT) {
+                            popUpTo(NavRoutes.Auth.ROOT) { inclusive = true }
+                        }
+                    },
+                    onNavigateToLogin = { navController.popBackStack() }
+                )
             }
-            composable(
-                route = NavRoutes.Auth.FORGOT_PASSWORD
-            ) {
-                PlaceholderScreen("Forgot Password")
+            composable(route = NavRoutes.Auth.FORGOT_PASSWORD) {
+                ForgotPasswordScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
             composable(
                 route = NavRoutes.Auth.RESET_PASSWORD,
+                arguments = listOf(navArgument("token") { type = NavType.StringType; defaultValue = "" }),
                 deepLinks = listOf(
                     navDeepLink { uriPattern = "continuum://auth/reset-password?token={token}" }
                 )
-            ) {
-                PlaceholderScreen("Reset Password")
+            ) { backStackEntry ->
+                val token = backStackEntry.arguments?.getString("token") ?: ""
+                ResetPasswordScreen(
+                    token = token,
+                    onNavigateToLogin = {
+                        navController.navigate(NavRoutes.Auth.LOGIN) {
+                            popUpTo(NavRoutes.Auth.ROOT) { inclusive = false }
+                        }
+                    }
+                )
             }
             composable(
                 route = NavRoutes.Auth.VERIFY_EMAIL,
+                arguments = listOf(navArgument("token") { type = NavType.StringType; defaultValue = "" }),
                 deepLinks = listOf(
                     navDeepLink { uriPattern = "continuum://auth/verify-email?token={token}" }
                 )
-            ) {
-                PlaceholderScreen("Verify Email")
+            ) { backStackEntry ->
+                val token = backStackEntry.arguments?.getString("token") ?: ""
+                VerifyEmailScreen(
+                    token = token,
+                    onContinueToApp = {
+                        navController.navigate(NavRoutes.Notes.ROOT) {
+                            popUpTo(NavRoutes.Auth.ROOT) { inclusive = true }
+                        }
+                    }
+                )
             }
         }
 
