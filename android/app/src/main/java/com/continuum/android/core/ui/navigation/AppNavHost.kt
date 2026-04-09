@@ -25,6 +25,7 @@ import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.feature.auth.presentation.*
 import com.continuum.android.feature.flashcards.presentation.*
 import com.continuum.android.feature.notes.presentation.*
+import com.continuum.android.feature.social.presentation.*
 import com.continuum.android.feature.tasks.presentation.*
 
 // ---------------------------------------------------------------------------
@@ -412,28 +413,36 @@ private fun NavGraph(
             startDestination = NavRoutes.Social.ACTIVITY_FEED
         ) {
             composable(NavRoutes.Social.ACTIVITY_FEED) {
-                PlaceholderScreen("Activity Feed")
+                val networkMonitor = LocalNetworkMonitor.current
+                ActivityFeedScreen(
+                    onSharedNoteClick = { noteId -> navController.navigate(NavRoutes.Social.sharedNote(noteId)) },
+                    networkMonitor = networkMonitor
+                )
             }
             composable(NavRoutes.Social.FRIENDS_LIST) {
-                PlaceholderScreen("Friends List")
+                FriendsListScreen(onUserSearch = { navController.navigate(NavRoutes.Social.USER_SEARCH) })
             }
             composable(NavRoutes.Social.USER_SEARCH) {
-                PlaceholderScreen("User Search")
+                UserSearchScreen(onNavigateBack = { navController.popBackStack() })
             }
             composable(
                 route = NavRoutes.Social.SHARED_NOTE,
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType })
-            ) {
-                PlaceholderScreen("Shared Note")
+            ) { backStackEntry ->
+                val noteId = backStackEntry.arguments?.getString("noteId") ?: return@composable
+                SharedNoteViewScreen(
+                    noteId = noteId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
             composable(NavRoutes.Social.CONVERSATIONS) {
-                PlaceholderScreen("Conversations")
+                PlaceholderScreen("Conversations") // wired in MOB-7
             }
             composable(
                 route = NavRoutes.Social.CONVERSATION_DETAIL,
                 arguments = listOf(navArgument("conversationId") { type = NavType.StringType })
             ) {
-                PlaceholderScreen("Conversation Detail")
+                PlaceholderScreen("Conversation Detail") // wired in MOB-7
             }
         }
     }
