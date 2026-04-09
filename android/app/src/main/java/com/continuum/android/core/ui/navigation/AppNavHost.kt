@@ -601,7 +601,10 @@ private fun NavGraph(
                         navController.navigate(NavRoutes.Auth.ROOT) {
                             popUpTo(0) { inclusive = true }
                         }
-                    }
+                    },
+                    onFriends = { navController.navigate(NavRoutes.Social.FRIENDS_LIST) },
+                    onMessages = { navController.navigate(NavRoutes.Social.CONVERSATIONS) },
+                    onActivity = { navController.navigate(NavRoutes.Social.ACTIVITY_FEED) }
                 )
             }
             composable(NavRoutes.Profile.EDIT) {

@@ -18,9 +18,14 @@ class SocialRepository @Inject constructor(
     private fun meId(): String =
         tokenManager.getJwtUserId() ?: error("Not signed in")
 
-    suspend fun getActivity(cursor: String? = null): Result<Pair<List<ActivityItem>, String?>> = runCatching {
-        val resp = api.getActivity(cursor)
+    suspend fun getActivity(cursor: String? = null, search: String? = null): Result<Pair<List<ActivityItem>, String?>> = runCatching {
+        val resp = api.getActivity(cursor, search)
         Pair(resp.feed.map { it.toDomain() }, resp.nextCursor)
+    }
+
+    suspend fun markActivitySeen(): Result<Unit> = runCatching {
+        api.markActivitySeen()
+        Unit
     }
 
     suspend fun getFriends(): Result<List<Friend>> = runCatching {
@@ -31,6 +36,16 @@ class SocialRepository @Inject constructor(
     suspend fun getFriendRequests(): Result<List<FriendRequest>> = runCatching {
         val me = meId()
         api.getFriends("pending").friends.mapNotNull { it.toIncomingRequest(me) }
+    }
+
+    suspend fun getSentRequests(): Result<List<FriendRequest>> = runCatching {
+        val me = meId()
+        api.getFriends("sent").friends.mapNotNull { it.toSentRequest(me) }
+    }
+
+    suspend fun cancelFriendRequest(requestId: String): Result<Unit> = runCatching {
+        api.cancelFriendRequest(requestId)
+        Unit
     }
 
     suspend fun sendFriendRequest(userId: String): Result<Unit> = runCatching {
@@ -124,6 +139,27 @@ class SocialRepository @Inject constructor(
             user2?.id == meId -> user2
             else -> return null
         }
+        return FriendRequest(
+            id = id,
+            sender = senderUser.toFriend(),
+            receiver = receiverUser.toFriend(),
+            status = status
+        )
+    }
+
+    private fun FriendshipJsonDto.toSentRequest(meId: String): FriendRequest? {
+        val senderId = requestedBy ?: return null
+        if (senderId != meId) return null
+        val receiverUser = when {
+            user1?.id != meId -> user1
+            user2?.id != meId -> user2
+            else -> return null
+        } ?: return null
+        val senderUser = when {
+            user1?.id == meId -> user1
+            user2?.id == meId -> user2
+            else -> return null
+        } ?: return null
         return FriendRequest(
             id = id,
             sender = senderUser.toFriend(),

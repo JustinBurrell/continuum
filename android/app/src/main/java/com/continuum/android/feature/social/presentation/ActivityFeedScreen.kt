@@ -28,15 +28,18 @@ fun ActivityFeedScreen(
     onSharedNoteClick: (String) -> Unit,
     networkMonitor: NetworkMonitor,
     onLogoClick: (() -> Unit)? = null,
+    onNavigateBack: (() -> Unit)? = null,
     viewModel: SocialViewModel = hiltViewModel()
 ) {
     val state by viewModel.activityState.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
     val listState = rememberLazyListState()
 
-    LaunchedEffect(Unit) { viewModel.loadActivity() }
+    LaunchedEffect(Unit) {
+        viewModel.loadActivity()
+        viewModel.markActivitySeen()
+    }
 
-    // Load more on scroll to end
     val shouldLoadMore by remember {
         derivedStateOf {
             val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
@@ -49,7 +52,24 @@ fun ActivityFeedScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (!isOnline) OfflineBanner()
-        PurpleTopAppBar(title = "Activity", onLogoClick = onLogoClick)
+        PurpleTopAppBar(
+            title = "Activity",
+            onLogoClick = onLogoClick,
+            onNavigateBack = onNavigateBack
+        )
+
+        OutlinedTextField(
+            value = state.searchQuery,
+            onValueChange = viewModel::setActivitySearch,
+            placeholder = { Text("Search activity…") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextMuted) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = BrandPurple,
+                cursorColor = BrandPurple
+            )
+        )
 
         SwipeRefresh(
             state = rememberSwipeRefreshState(state.isLoading),
@@ -66,8 +86,8 @@ fun ActivityFeedScreen(
                 state.items.isEmpty() -> {
                     EmptyState(
                         icon = Icons.Default.FiberNew,
-                        headline = "No activity yet",
-                        subtext = "Connect with friends to see their activity here",
+                        headline = if (state.searchQuery.isNotBlank()) "No results" else "No activity yet",
+                        subtext = if (state.searchQuery.isNotBlank()) "Try a different search term" else "Connect with friends to see their activity here",
                         modifier = Modifier.fillMaxSize()
                     )
                 }

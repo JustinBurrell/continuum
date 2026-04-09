@@ -15,12 +15,14 @@ import javax.inject.Inject
 data class ActivityUiState(
     val items: List<ActivityItem> = emptyList(),
     val isLoading: Boolean = false,
-    val nextCursor: String? = null
+    val nextCursor: String? = null,
+    val searchQuery: String = ""
 )
 
 data class FriendsUiState(
     val friends: List<Friend> = emptyList(),
     val incomingRequests: List<FriendRequest> = emptyList(),
+    val sentRequests: List<FriendRequest> = emptyList(),
     val isLoading: Boolean = false
 )
 
@@ -54,22 +56,38 @@ class SocialViewModel @Inject constructor(
     val sharedNoteState: StateFlow<SharedNoteUiState> = _sharedNoteState.asStateFlow()
 
     private var searchJob: Job? = null
+    private var activitySearchJob: Job? = null
 
     fun loadActivity() {
+        val search = _activityState.value.searchQuery.takeIf { it.isNotBlank() }
         viewModelScope.launch {
             _activityState.update { it.copy(isLoading = true) }
-            repository.getActivity()
+            repository.getActivity(search = search)
                 .onSuccess { (items, cursor) ->
-                    _activityState.value = ActivityUiState(items = items, isLoading = false, nextCursor = cursor)
+                    _activityState.update { it.copy(items = items, isLoading = false, nextCursor = cursor) }
                 }
                 .onFailure { _activityState.update { it.copy(isLoading = false) } }
         }
     }
 
+    fun markActivitySeen() {
+        viewModelScope.launch { repository.markActivitySeen() }
+    }
+
+    fun setActivitySearch(query: String) {
+        _activityState.update { it.copy(searchQuery = query) }
+        activitySearchJob?.cancel()
+        activitySearchJob = viewModelScope.launch {
+            delay(300)
+            loadActivity()
+        }
+    }
+
     fun loadMoreActivity() {
         val cursor = _activityState.value.nextCursor ?: return
+        val search = _activityState.value.searchQuery.takeIf { it.isNotBlank() }
         viewModelScope.launch {
-            repository.getActivity(cursor)
+            repository.getActivity(cursor, search)
                 .onSuccess { (newItems, newCursor) ->
                     _activityState.update {
                         it.copy(items = it.items + newItems, nextCursor = newCursor)
@@ -83,11 +101,19 @@ class SocialViewModel @Inject constructor(
             _friendsState.update { it.copy(isLoading = true) }
             val friendsResult = repository.getFriends()
             val requestsResult = repository.getFriendRequests()
+            val sentResult = repository.getSentRequests()
             _friendsState.value = FriendsUiState(
                 friends = friendsResult.getOrDefault(emptyList()),
                 incomingRequests = requestsResult.getOrDefault(emptyList()),
+                sentRequests = sentResult.getOrDefault(emptyList()),
                 isLoading = false
             )
+        }
+    }
+
+    fun cancelSentRequest(requestId: String) {
+        viewModelScope.launch {
+            repository.cancelFriendRequest(requestId).onSuccess { loadFriends() }
         }
     }
 

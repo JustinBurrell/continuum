@@ -24,6 +24,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 @Composable
 fun FriendsListScreen(
     onUserSearch: () -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     viewModel: SocialViewModel = hiltViewModel()
 ) {
     val state by viewModel.friendsState.collectAsStateWithLifecycle()
@@ -34,7 +35,7 @@ fun FriendsListScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            PurpleTopAppBar(title = "Friends")
+            PurpleTopAppBar(title = "Friends", onNavigateBack = onNavigateBack)
 
             TabRow(
                 selectedTabIndex = selectedTab,
@@ -50,7 +51,7 @@ fun FriendsListScreen(
                     onClick = { selectedTab = 1 }
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Pending", modifier = Modifier.padding(vertical = 12.dp))
+                        Text("Requests", modifier = Modifier.padding(vertical = 12.dp))
                         if (state.incomingRequests.isNotEmpty()) {
                             Spacer(Modifier.width(4.dp))
                             Badge(containerColor = BrandPurple) {
@@ -58,6 +59,12 @@ fun FriendsListScreen(
                             }
                         }
                     }
+                }
+                Tab(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 }
+                ) {
+                    Text("Sent", modifier = Modifier.padding(vertical = 12.dp))
                 }
             }
 
@@ -110,6 +117,29 @@ fun FriendsListScreen(
                                         request = request,
                                         onAccept = { viewModel.acceptRequest(request.id) },
                                         onDecline = { viewModel.declineRequest(request.id) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    2 -> {
+                        if (state.sentRequests.isEmpty()) {
+                            EmptyState(
+                                icon = Icons.Default.Send,
+                                headline = "No sent requests",
+                                subtext = "Requests you've sent will appear here",
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            LazyColumn(
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(state.sentRequests, key = { it.id }) { request ->
+                                    SentRequestCard(
+                                        request = request,
+                                        onCancel = { viewModel.cancelSentRequest(request.id) }
                                     )
                                 }
                             }
@@ -179,6 +209,32 @@ private fun FriendCard(friend: Friend, onRemove: () -> Unit) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SentRequestCard(request: FriendRequest, onCancel: () -> Unit) {
+    ContinuumCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                AvatarInitials(name = request.receiver.fullName, modifier = Modifier.size(40.dp).clip(CircleShape))
+                Column {
+                    Text(request.receiver.fullName, style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+                    request.receiver.username?.let {
+                        Text("@$it", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    }
+                }
+            }
+            TextButton(onClick = onCancel) { Text("Cancel", color = ErrorRed) }
         }
     }
 }

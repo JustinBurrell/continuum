@@ -27,6 +27,9 @@ fun ProfileScreen(
     onEditProfile: () -> Unit,
     onSettings: () -> Unit,
     onLogout: () -> Unit,
+    onFriends: () -> Unit = {},
+    onMessages: () -> Unit = {},
+    onActivity: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -101,17 +104,6 @@ fun ProfileScreen(
                 }
             }
 
-            // Stats row
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    StatTile("Notes", state.notesCount, Modifier.weight(1f))
-                    StatTile("Friends", state.friendsCount, Modifier.weight(1f))
-                }
-            }
-
             // Account section
             item {
                 ProfileSection(title = "Account") {
@@ -126,6 +118,35 @@ fun ProfileScreen(
                         label = "Change Password",
                         onClick = { showPasswordDialog = true }
                     )
+                    HorizontalDivider(color = Border)
+                    ProfileRow(
+                        icon = Icons.Default.Settings,
+                        label = "Settings",
+                        onClick = onSettings
+                    )
+                }
+            }
+
+            // Social section
+            item {
+                ProfileSection(title = "Social") {
+                    ProfileRow(
+                        icon = Icons.Default.People,
+                        label = "Friends",
+                        onClick = onFriends
+                    )
+                    HorizontalDivider(color = Border)
+                    ProfileRow(
+                        icon = Icons.Default.ChatBubbleOutline,
+                        label = "Messages",
+                        onClick = onMessages
+                    )
+                    HorizontalDivider(color = Border)
+                    ProfileRow(
+                        icon = Icons.Default.NotificationsNone,
+                        label = "Activity",
+                        onClick = onActivity
+                    )
                 }
             }
 
@@ -137,17 +158,6 @@ fun ProfileScreen(
                         label = if (profile.isGoogleLinked) "Google linked" else "Link Google Account",
                         tint = if (profile.isGoogleLinked) SuccessGreen else BrandPurple,
                         onClick = {}
-                    )
-                }
-            }
-
-            // Preferences section
-            item {
-                ProfileSection(title = "Preferences") {
-                    ProfileRow(
-                        icon = Icons.Default.Settings,
-                        label = "Settings",
-                        onClick = onSettings
                     )
                 }
             }
@@ -219,29 +229,6 @@ fun ProfileScreen(
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
-
-@Composable
-private fun StatTile(label: String, count: Int, modifier: Modifier = Modifier) {
-    ContinuumCard(modifier = modifier) {
-        Column(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "$count",
-                fontFamily = FrauncesFamily,
-                fontWeight = FontWeight.Black,
-                fontSize = 24.sp,
-                color = BrandPurple
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
-            )
-        }
-    }
-}
 
 @Composable
 private fun ProfileSection(title: String, content: @Composable () -> Unit) {

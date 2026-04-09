@@ -6,10 +6,22 @@ import retrofit2.http.*
 interface SocialApiService {
 
     @GET("activity")
-    suspend fun getActivity(@Query("cursor") cursor: String? = null): ActivityResponseDto
+    suspend fun getActivity(
+        @Query("cursor") cursor: String? = null,
+        @Query("search") search: String? = null
+    ): ActivityResponseDto
+
+    @PUT("activity/mark-seen")
+    suspend fun markActivitySeen(): retrofit2.Response<Unit>
 
     @GET("friends")
-    suspend fun getFriends(@Query("status") status: String? = null): FriendsListResponseDto
+    suspend fun getFriends(
+        @Query("status") status: String? = null,
+        @Query("search") search: String? = null
+    ): FriendsListResponseDto
+
+    @DELETE("friends/request/{id}")
+    suspend fun cancelFriendRequest(@Path("id") requestId: String): retrofit2.Response<Unit>
 
     @POST("friends/request")
     suspend fun sendFriendRequest(@Body request: SendFriendRequestDto): retrofit2.Response<Unit>
