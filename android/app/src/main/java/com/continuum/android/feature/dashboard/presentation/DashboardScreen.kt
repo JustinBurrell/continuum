@@ -20,7 +20,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.R
 import com.continuum.android.core.network.NetworkMonitor
-import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.notes.domain.Note
@@ -43,14 +42,7 @@ fun DashboardScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
-    val tokenManager = LocalTokenManager.current
-
-    // Derive first name from token on first composition
-    val firstName = remember {
-        tokenManager.getAccessToken()?.let { "there" } ?: "there"
-    }
-
-    LaunchedEffect(Unit) { viewModel.load(firstName) }
+    LaunchedEffect(Unit) { viewModel.load() }
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (!isOnline) OfflineBanner()
@@ -87,7 +79,7 @@ fun DashboardScreen(
 
         SwipeRefresh(
             state = rememberSwipeRefreshState(state.isLoading),
-            onRefresh = { viewModel.refresh(firstName) },
+            onRefresh = { viewModel.refresh() },
             modifier = Modifier.weight(1f)
         ) {
             if (state.isLoading) {
@@ -109,7 +101,7 @@ fun DashboardScreen(
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
-                                text = "Good ${greeting()}, $firstName",
+                                text = "Good ${greeting()}, ${state.firstName}",
                                 fontFamily = FrauncesFamily,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 22.sp,
@@ -125,31 +117,47 @@ fun DashboardScreen(
 
                     // Quick stats row
                     item {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            StatTile(
-                                count = state.notesTotal,
-                                label = "Notes",
-                                icon = Icons.Default.MenuBook,
-                                onClick = onNotesClick,
-                                modifier = Modifier.weight(1f)
-                            )
-                            StatTile(
-                                count = state.openTaskCount,
-                                label = "Open Tasks",
-                                icon = Icons.Default.CheckCircle,
-                                onClick = onTasksClick,
-                                modifier = Modifier.weight(1f)
-                            )
-                            StatTile(
-                                count = state.openApplicationCount,
-                                label = "Applications",
-                                icon = Icons.Default.Work,
-                                onClick = onApplicationsClick,
-                                modifier = Modifier.weight(1f)
-                            )
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            item {
+                                StatTile(
+                                    count = state.notesTotal,
+                                    label = "Notes",
+                                    icon = Icons.Default.MenuBook,
+                                    onClick = onNotesClick
+                                )
+                            }
+                            item {
+                                StatTile(
+                                    count = state.flashcardSetCount,
+                                    label = "Flashcards",
+                                    icon = Icons.Default.Style,
+                                    onClick = onFlashcardsClick
+                                )
+                            }
+                            item {
+                                StatTile(
+                                    count = state.openTaskCount,
+                                    label = "Open Tasks",
+                                    icon = Icons.Default.CheckCircle,
+                                    onClick = onTasksClick
+                                )
+                            }
+                            item {
+                                StatTile(
+                                    count = state.openApplicationCount,
+                                    label = "Applications",
+                                    icon = Icons.Default.Work,
+                                    onClick = onApplicationsClick
+                                )
+                            }
+                            item {
+                                StatTile(
+                                    count = state.newActivityCount,
+                                    label = "New Activity",
+                                    icon = Icons.Default.NotificationsNone,
+                                    onClick = onActivityClick
+                                )
+                            }
                         }
                     }
 
@@ -230,7 +238,9 @@ private fun StatTile(
     modifier: Modifier = Modifier
 ) {
     ContinuumCard(
-        modifier = modifier.clickable(onClick = onClick)
+        modifier = modifier
+            .width(112.dp)
+            .clickable(onClick = onClick)
     ) {
         Column(
             modifier = Modifier.padding(12.dp),

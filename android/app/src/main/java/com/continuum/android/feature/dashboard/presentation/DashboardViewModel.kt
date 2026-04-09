@@ -3,8 +3,11 @@ package com.continuum.android.feature.dashboard.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.continuum.android.feature.career.data.remote.CareerApiService
+import com.continuum.android.feature.flashcards.data.remote.FlashcardsApiService
 import com.continuum.android.feature.notes.data.remote.NotesApiService
 import com.continuum.android.feature.notes.domain.Note
+import com.continuum.android.feature.profile.data.repository.ProfileRepository
+import com.continuum.android.feature.social.data.remote.SocialApiService
 import com.continuum.android.feature.tasks.data.remote.TasksApiService
 import com.continuum.android.feature.tasks.domain.Task
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,12 +21,14 @@ import javax.inject.Inject
 
 data class DashboardUiState(
     val isLoading: Boolean = true,
-    val firstName: String = "",
+    val firstName: String = "there",
     val notesTotal: Int = 0,
+    val flashcardSetCount: Int = 0,
     val recentNotes: List<Note> = emptyList(),
     val upcomingTasks: List<Task> = emptyList(),
     val openTaskCount: Int = 0,
     val openApplicationCount: Int = 0,
+    val newActivityCount: Int = 0,
     val error: String? = null
 )
 
@@ -31,23 +36,32 @@ data class DashboardUiState(
 class DashboardViewModel @Inject constructor(
     private val notesApi: NotesApiService,
     private val tasksApi: TasksApiService,
-    private val careerApi: CareerApiService
+    private val careerApi: CareerApiService,
+    private val flashcardsApi: FlashcardsApiService,
+    private val socialApi: SocialApiService,
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DashboardUiState())
     val state: StateFlow<DashboardUiState> = _state.asStateFlow()
 
-    fun load(firstName: String) {
-        _state.update { it.copy(isLoading = true, firstName = firstName, error = null) }
+    fun load() {
+        _state.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             try {
+                val profileDeferred = async { profileRepository.getProfile() }
                 val notesDeferred = async { notesApi.getNotes() }
                 val tasksDeferred = async { tasksApi.getTasks() }
                 val appsDeferred  = async { careerApi.getApplicationsDashboard() }
+                val setsDeferred = async { flashcardsApi.getSets() }
+                val activityDeferred = async { socialApi.getActivity() }
 
+                val firstName = profileDeferred.await().getOrNull()?.firstName?.ifBlank { "there" } ?: "there"
                 val notesResp = notesDeferred.await()
                 val tasksResp = tasksDeferred.await()
                 val appsResp  = appsDeferred.await()
+                val setsResp = setsDeferred.await()
+                val activityResp = activityDeferred.await()
 
                 val recentNotes = notesResp.notes.take(5).map { dto ->
                     Note(
@@ -86,11 +100,14 @@ class DashboardViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isLoading = false,
+                        firstName = firstName,
                         notesTotal = notesResp.notes.size,
+                        flashcardSetCount = setsResp.sets.size,
                         recentNotes = recentNotes,
                         upcomingTasks = openTasks.take(3),
                         openTaskCount = openTasks.size,
-                        openApplicationCount = appsResp.total
+                        openApplicationCount = appsResp.total,
+                        newActivityCount = activityResp.total
                     )
                 }
             } catch (e: Exception) {
@@ -99,5 +116,5 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    fun refresh(firstName: String) = load(firstName)
+    fun refresh() = load()
 }
