@@ -1,14 +1,19 @@
 package com.continuum.android.core.ui
 
 import androidx.compose.runtime.compositionLocalOf
+import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.core.network.NetworkMonitor
 
 /**
- * CompositionLocal that provides [NetworkMonitor] throughout the Compose tree
- * without threading it as a parameter through every screen composable.
+ * CompositionLocals that provide singletons throughout the Compose tree
+ * without threading them as parameters through every screen composable.
  *
- * Provided in [MainActivity] via CompositionLocalProvider.
+ * Both are provided in [MainActivity] via CompositionLocalProvider.
  */
 val LocalNetworkMonitor = compositionLocalOf<NetworkMonitor> {
     error("No NetworkMonitor provided — wrap with CompositionLocalProvider")
+}
+
+val LocalTokenManager = compositionLocalOf<TokenManager> {
+    error("No TokenManager provided — wrap with CompositionLocalProvider")
 }

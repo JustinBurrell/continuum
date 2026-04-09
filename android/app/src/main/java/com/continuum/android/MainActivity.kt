@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.LocalNetworkMonitor
+import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.core.ui.navigation.AppNavHost
 import com.continuum.android.core.ui.theme.ContinuumTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,7 +30,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ContinuumTheme {
-                CompositionLocalProvider(LocalNetworkMonitor provides networkMonitor) {
+                CompositionLocalProvider(
+                    LocalNetworkMonitor provides networkMonitor,
+                    LocalTokenManager provides tokenManager
+                ) {
                     val navController = rememberNavController()
                     AppNavHost(
                         isAuthenticated = isAuthenticated,

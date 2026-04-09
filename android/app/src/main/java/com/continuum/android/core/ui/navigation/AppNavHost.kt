@@ -25,7 +25,9 @@ import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.feature.auth.presentation.*
 import com.continuum.android.feature.flashcards.presentation.*
 import com.continuum.android.feature.notes.presentation.*
+import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.career.presentation.*
+import com.continuum.android.feature.messaging.presentation.*
 import com.continuum.android.feature.social.presentation.*
 import com.continuum.android.feature.tasks.presentation.*
 
@@ -455,13 +457,27 @@ private fun NavGraph(
                 )
             }
             composable(NavRoutes.Social.CONVERSATIONS) {
-                PlaceholderScreen("Conversations") // wired in MOB-7
+                val networkMonitor = LocalNetworkMonitor.current
+                ConversationsScreen(
+                    onConversationClick = { conversationId ->
+                        navController.navigate(NavRoutes.Social.conversationDetail(conversationId))
+                    },
+                    networkMonitor = networkMonitor
+                )
             }
             composable(
                 route = NavRoutes.Social.CONVERSATION_DETAIL,
                 arguments = listOf(navArgument("conversationId") { type = NavType.StringType })
-            ) {
-                PlaceholderScreen("Conversation Detail") // wired in MOB-7
+            ) { backStackEntry ->
+                val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
+                val tokenManager = LocalTokenManager.current
+                // Participant name is not in route — look it up from the back stack or use a placeholder
+                ConversationDetailScreen(
+                    conversationId = conversationId,
+                    participantName = "Conversation",
+                    onNavigateBack = { navController.popBackStack() },
+                    tokenManager = tokenManager
+                )
             }
         }
     }
