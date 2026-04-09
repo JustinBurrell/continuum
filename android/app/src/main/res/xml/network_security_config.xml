@@ -2,6 +2,10 @@
 <network-security-config>
     <!-- Disallow all cleartext traffic in production -->
     <base-config cleartextTrafficPermitted="false" />
+    <!-- Allow cleartext to emulator host (10.0.2.2) for local backend dev -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
     <!-- Debug builds trust user-installed CAs (enables Charles/mitmproxy for API inspection) -->
     <debug-overrides>
         <trust-anchors>
