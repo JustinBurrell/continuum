@@ -15,6 +15,25 @@ val localProps = Properties().apply {
     if (f.exists()) load(f.inputStream())
 }
 
+// Read backend .env for local dev BASE_URL (mirrors how web/Vite resolves it)
+val backendEnv = Properties().apply {
+    val f = rootProject.file("../backend/.env")
+    if (f.exists()) {
+        f.readLines().forEach { line ->
+            val trimmed = line.trim()
+            if (trimmed.isNotEmpty() && !trimmed.startsWith("#")) {
+                val idx = trimmed.indexOf('=')
+                if (idx > 0) setProperty(trimmed.substring(0, idx).trim(), trimmed.substring(idx + 1).trim())
+            }
+        }
+    }
+}
+
+// Resolve BASE_URL: local.properties wins, then backend .env PORT, then production default
+val resolvedBaseUrl: String = localProps.getProperty("BASE_URL")
+    ?: backendEnv.getProperty("PORT")?.let { "http://10.0.2.2:$it/api/" }
+    ?: "https://api.usecontinuum.dev/api/"
+
 android {
     namespace = "com.continuum.android"
     compileSdk = 35
@@ -27,7 +46,7 @@ android {
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "BASE_URL", "\"${localProps.getProperty("BASE_URL", "https://continuum-backend-yrrr.onrender.com/api/")}\"")
+        buildConfigField("String", "BASE_URL", "\"$resolvedBaseUrl\"")
         buildConfigField("String", "WEB_CLIENT_ID", "\"${localProps.getProperty("WEB_CLIENT_ID", "")}\"")
     }
 
