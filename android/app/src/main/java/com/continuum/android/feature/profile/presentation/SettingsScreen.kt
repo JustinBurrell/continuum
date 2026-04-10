@@ -9,20 +9,34 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.components.MinimalTopBar
 import com.continuum.android.core.ui.theme.*
 
-/**
- * Preferences screen. Stores settings in DataStore (or just locally in state
- * for now — persisting to backend would require PATCH /api/auth/me/profile).
- */
 @Composable
 fun SettingsScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    var noteVisibilityPublic by remember { mutableStateOf(false) }
-    var showActivityFeed     by remember { mutableStateOf(true) }
-    var showFriendActivity   by remember { mutableStateOf(true) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val profile = state.profile
+
+    LaunchedEffect(Unit) { viewModel.load() }
+
+    var emailNotifications by remember(profile) { mutableStateOf(profile?.emailNotifications ?: true) }
+    var pushNotifications by remember(profile) { mutableStateOf(profile?.pushNotifications ?: true) }
+    var activityVisibility by remember(profile) { mutableStateOf(profile?.activityVisibility ?: "private") }
+
+    fun saveSettings() {
+        viewModel.updateProfileFields(
+            mapOf(
+                "settings.emailNotifications" to emailNotifications.toString(),
+                "settings.pushNotifications" to pushNotifications.toString(),
+                "settings.activityVisibility" to activityVisibility
+            )
+        )
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         MinimalTopBar(title = "Settings", onNavigateBack = onNavigateBack)
@@ -31,38 +45,55 @@ fun SettingsScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            item { SettingsSectionLabel("Activity Visibility") }
             item {
-                SettingsSectionLabel("Note Visibility")
-            }
-            item {
-                SettingsToggleRow(
-                    icon = Icons.Default.Public,
-                    label = "Default notes public",
-                    description = "New notes visible to friends by default",
-                    checked = noteVisibilityPublic,
-                    onCheckedChange = { noteVisibilityPublic = it }
-                )
+                val options = listOf("private", "friends", "public")
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    options.forEach { option ->
+                        FilterChip(
+                            selected = activityVisibility == option,
+                            onClick = {
+                                activityVisibility = option
+                                saveSettings()
+                            },
+                            label = { Text(option.replaceFirstChar { it.uppercase() }) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = BrandPurple,
+                                selectedLabelColor = White
+                            )
+                        )
+                    }
+                }
             }
 
             item { Spacer(Modifier.height(8.dp)) }
-            item { SettingsSectionLabel("Activity Feed") }
+            item { SettingsSectionLabel("Notifications") }
 
             item {
                 SettingsToggleRow(
-                    icon = Icons.Default.Feed,
-                    label = "Show activity feed",
-                    description = "See what your friends are working on",
-                    checked = showActivityFeed,
-                    onCheckedChange = { showActivityFeed = it }
+                    icon = Icons.Default.Email,
+                    label = "Email notifications",
+                    description = "Receive email notifications for activity",
+                    checked = emailNotifications,
+                    onCheckedChange = {
+                        emailNotifications = it
+                        saveSettings()
+                    }
                 )
             }
             item {
                 SettingsToggleRow(
-                    icon = Icons.Default.People,
-                    label = "Share my activity",
-                    description = "Let friends see your notes and flashcards",
-                    checked = showFriendActivity,
-                    onCheckedChange = { showFriendActivity = it }
+                    icon = Icons.Default.Notifications,
+                    label = "Push notifications",
+                    description = "Receive push notifications on this device",
+                    checked = pushNotifications,
+                    onCheckedChange = {
+                        pushNotifications = it
+                        saveSettings()
+                    }
                 )
             }
         }
