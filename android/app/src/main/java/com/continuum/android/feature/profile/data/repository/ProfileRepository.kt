@@ -47,6 +47,10 @@ class ProfileRepository @Inject constructor(
         api.getProfile().resolve().toDomain()
     }
 
+    suspend fun getLastViewedActivityAt(): String? = try {
+        api.getProfile().resolve().lastViewedActivityAt
+    } catch (_: Exception) { null }
+
     suspend fun updateProfileMultipart(fields: Map<String, String>): Result<Profile> = runCatching {
         val textType = "text/plain".toMediaType()
         val parts = fields.mapValues { (_, v) -> v.toRequestBody(textType) }

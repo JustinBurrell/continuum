@@ -64,13 +64,15 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val profileDeferred = async { profileRepository.getProfile() }
+                val lastSeenDeferred = async { profileRepository.getLastViewedActivityAt() }
                 val notesDeferred = async { notesApi.getNotes() }
                 val tasksDeferred = async { tasksApi.getTasks() }
                 val appsDeferred  = async { careerApi.getApplicationsDashboard() }
                 val setsDeferred = async { flashcardsApi.getSets() }
-                val activityDeferred = async { socialApi.getActivity() }
 
                 val firstName = profileDeferred.await().getOrNull()?.firstName?.ifBlank { "there" } ?: "there"
+                val lastSeen = lastSeenDeferred.await()
+                val activityDeferred = async { socialApi.getActivity(since = lastSeen) }
                 val notesResp = notesDeferred.await()
                 val tasksResp = tasksDeferred.await()
                 val appsResp  = appsDeferred.await()
@@ -178,7 +180,7 @@ class DashboardViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         firstName = firstName,
-                        notesTotal = notesResp.notes.size,
+                        notesTotal = notesResp.pagination?.total ?: notesResp.notes.size,
                         flashcardSetCount = setsResp.sets.size,
                         recentNotes = recentNotes,
                         flashcardSets = flashcardSets,

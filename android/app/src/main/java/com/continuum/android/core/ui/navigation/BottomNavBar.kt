@@ -75,12 +75,15 @@ fun ContinuumBottomBar(
             NavigationBarItem(
                 selected = selected,
                 onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                    if (!selected) {
+                        navController.navigate(item.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                inclusive = false
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
                 },
                 icon = {
@@ -126,12 +129,15 @@ fun ContinuumNavigationRail(
             NavigationRailItem(
                 selected = selected,
                 onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                    if (!selected) {
+                        navController.navigate(item.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                inclusive = false
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
                 },
                 icon = {
@@ -170,7 +176,9 @@ private fun isSelectedRoute(currentRoute: String?, itemRoute: String): Boolean {
         NavRoutes.Dashboard.ROOT -> currentRoute.startsWith(NavRoutes.Dashboard.ROOT)
         NavRoutes.Applications.ROOT ->
             currentRoute.startsWith(NavRoutes.Applications.ROOT) ||
-                currentRoute.startsWith("career/applications")
+                currentRoute.startsWith(NavRoutes.Career.ROOT)
+        NavRoutes.Profile.ROOT ->
+            currentRoute.startsWith(NavRoutes.Profile.ROOT)
         else -> currentRoute.startsWith(itemRoute)
     }
 }

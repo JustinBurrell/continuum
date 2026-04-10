@@ -28,6 +28,7 @@ data class ProfileDto(
     val pendingDeletion: Boolean = false,
     val scheduledDeletionAt: String? = null,
     val settings: ProfileSettingsDto? = null,
+    val lastViewedActivityAt: String? = null,
     val createdAt: String = ""
 )
 

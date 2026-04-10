@@ -26,9 +26,18 @@ data class NoteSummaryDto(
 )
 
 @JsonClass(generateAdapter = true)
+data class PaginationDto(
+    val total: Int = 0,
+    val page: Int = 1,
+    val limit: Int = 20,
+    val pages: Int = 1
+)
+
+@JsonClass(generateAdapter = true)
 data class NotesListResponseDto(
     val success: Boolean = false,
-    val notes: List<NoteDto> = emptyList()
+    val notes: List<NoteDto> = emptyList(),
+    val pagination: PaginationDto? = null
 )
 
 @JsonClass(generateAdapter = true)

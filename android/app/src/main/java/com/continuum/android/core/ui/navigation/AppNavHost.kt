@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -203,17 +204,8 @@ fun AppNavHost(
     val windowWidthDp = LocalConfiguration.current.screenWidthDp.dp
     val isExpandedScreen = windowWidthDp >= 840.dp
 
-    val showMainNav = currentRoute != null && (
-        currentRoute.startsWith(NavRoutes.Dashboard.ROOT) ||
-        currentRoute.startsWith(NavRoutes.Notes.ROOT) ||
-        currentRoute.startsWith(NavRoutes.Flashcards.ROOT) ||
-        currentRoute.startsWith(NavRoutes.Tasks.ROOT) ||
-        currentRoute.startsWith(NavRoutes.Calendar.ROOT) ||
-        currentRoute.startsWith(NavRoutes.Applications.ROOT) ||
-        currentRoute.startsWith(NavRoutes.Career.ROOT) ||
-        currentRoute.startsWith(NavRoutes.Social.ROOT) ||
-        currentRoute.startsWith(NavRoutes.Profile.ROOT)
-    )
+    val isMainScreen = currentRoute != null && !currentRoute.startsWith(NavRoutes.Auth.ROOT)
+    val showMainNav = isMainScreen
 
     val startDestination = if (isAuthenticated) NavRoutes.Dashboard.ROOT else NavRoutes.Auth.ROOT
 
@@ -224,8 +216,12 @@ fun AppNavHost(
     // Logo tap: navigate to Dashboard from any tab screen
     val onLogoClick: () -> Unit = {
         navController.navigate(NavRoutes.Dashboard.ROOT) {
-            popUpTo(NavRoutes.Dashboard.ROOT) { inclusive = false }
+            popUpTo(navController.graph.findStartDestination().id) {
+                inclusive = false
+                saveState = true
+            }
             launchSingleTop = true
+            restoreState = true
         }
     }
 
