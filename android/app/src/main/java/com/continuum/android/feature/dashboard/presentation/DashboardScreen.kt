@@ -316,6 +316,7 @@ private fun SectionHeader(title: String, onSeeAll: () -> Unit) {
 @Composable
 private fun NotePreviewCard(note: Note, onClick: () -> Unit) {
     ContinuumCard(
+        style = CardStyle.Elevated,
         modifier = Modifier
             .width(200.dp)
             .clickable(onClick = onClick)
@@ -358,6 +359,7 @@ private fun NotePreviewCard(note: Note, onClick: () -> Unit) {
 @Composable
 private fun FlashcardSetPreviewCard(set: FlashcardSet, onClick: () -> Unit) {
     ContinuumCard(
+        style = CardStyle.Elevated,
         modifier = Modifier
             .width(220.dp)
             .clickable(onClick = onClick)
