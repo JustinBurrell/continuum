@@ -2,6 +2,8 @@ package com.continuum.android.feature.tasks.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.continuum.android.core.data.DataRefreshNotifier
+import com.continuum.android.core.data.RefreshScope
 import com.continuum.android.feature.tasks.data.repository.TasksRepository
 import com.continuum.android.feature.tasks.domain.Task
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,7 +30,8 @@ data class TaskDetailUiState(
 
 @HiltViewModel
 class TasksViewModel @Inject constructor(
-    private val repository: TasksRepository
+    private val repository: TasksRepository,
+    private val dataRefreshNotifier: DataRefreshNotifier
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TasksUiState())
@@ -93,7 +96,7 @@ class TasksViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             repository.createTask(title, description, "todo", priority, type, dueDate, duration, isShared)
-                .onSuccess { loadTasks(); onCreated() }
+                .onSuccess { loadTasks(); dataRefreshNotifier.notifyDataChanged(RefreshScope.TASKS); onCreated() }
         }
     }
 
@@ -131,6 +134,7 @@ class TasksViewModel @Inject constructor(
                     _state.update { state ->
                         state.copy(tasks = state.tasks.map { if (it.id == taskId) task else it })
                     }
+                    dataRefreshNotifier.notifyDataChanged(RefreshScope.TASKS)
                 }
         }
     }
@@ -139,6 +143,7 @@ class TasksViewModel @Inject constructor(
         viewModelScope.launch {
             repository.deleteTask(taskId).onSuccess {
                 _state.update { it.copy(tasks = it.tasks.filter { t -> t.id != taskId }) }
+                dataRefreshNotifier.notifyDataChanged(RefreshScope.TASKS)
             }
         }
     }

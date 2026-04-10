@@ -2,6 +2,7 @@ package com.continuum.android.feature.dashboard.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.continuum.android.core.data.DataRefreshNotifier
 import com.continuum.android.feature.career.data.remote.CareerApiService
 import com.continuum.android.feature.career.domain.Application
 import com.continuum.android.feature.flashcards.data.remote.FlashcardsApiService
@@ -45,11 +46,18 @@ class DashboardViewModel @Inject constructor(
     private val careerApi: CareerApiService,
     private val flashcardsApi: FlashcardsApiService,
     private val socialApi: SocialApiService,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val dataRefreshNotifier: DataRefreshNotifier
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DashboardUiState())
     val state: StateFlow<DashboardUiState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            dataRefreshNotifier.refreshEvents.collect { load() }
+        }
+    }
 
     fun load() {
         _state.update { it.copy(isLoading = true, error = null) }

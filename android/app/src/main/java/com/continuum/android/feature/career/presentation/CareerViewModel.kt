@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.continuum.android.core.data.DataRefreshNotifier
+import com.continuum.android.core.data.RefreshScope
 import com.continuum.android.feature.career.data.repository.CareerRepository
 import com.continuum.android.feature.career.domain.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,7 +42,8 @@ data class FeedbackUiState(
 
 @HiltViewModel
 class CareerViewModel @Inject constructor(
-    private val repository: CareerRepository
+    private val repository: CareerRepository,
+    private val dataRefreshNotifier: DataRefreshNotifier
 ) : ViewModel() {
     private var applicationsSearchJob: Job? = null
     private var resumesSearchJob: Job? = null
@@ -88,7 +91,7 @@ class CareerViewModel @Inject constructor(
     fun createApplication(company: String, position: String, status: String = "draft", jobUrl: String? = null, onCreated: () -> Unit = {}) {
         viewModelScope.launch {
             repository.createApplication(company, position, status, jobUrl)
-                .onSuccess { loadApplications(); onCreated() }
+                .onSuccess { loadApplications(); dataRefreshNotifier.notifyDataChanged(RefreshScope.APPLICATIONS); onCreated() }
         }
     }
 
@@ -99,6 +102,7 @@ class CareerViewModel @Inject constructor(
                     _applicationsState.update { state ->
                         state.copy(applications = state.applications.map { if (it.id == id) updated else it })
                     }
+                    dataRefreshNotifier.notifyDataChanged(RefreshScope.APPLICATIONS)
                 }
         }
     }
@@ -113,6 +117,7 @@ class CareerViewModel @Inject constructor(
         viewModelScope.launch {
             repository.deleteApplication(id).onSuccess {
                 _applicationsState.update { it.copy(applications = it.applications.filter { a -> a.id != id }) }
+                dataRefreshNotifier.notifyDataChanged(RefreshScope.APPLICATIONS)
             }
         }
     }

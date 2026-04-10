@@ -2,6 +2,8 @@ package com.continuum.android.feature.notes.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.continuum.android.core.data.DataRefreshNotifier
+import com.continuum.android.core.data.RefreshScope
 import com.continuum.android.feature.notes.data.repository.NotesRepository
 import com.continuum.android.feature.notes.domain.DriveFile
 import com.continuum.android.feature.notes.domain.Note
@@ -37,7 +39,8 @@ data class DriveFilesUiState(
 
 @HiltViewModel
 class NotesViewModel @Inject constructor(
-    private val repository: NotesRepository
+    private val repository: NotesRepository,
+    private val dataRefreshNotifier: DataRefreshNotifier
 ) : ViewModel() {
 
     private val _listState = MutableStateFlow(NotesUiState())
@@ -125,6 +128,7 @@ class NotesViewModel @Inject constructor(
             repository.createNote(title, content, tags, visibility)
                 .onSuccess { note ->
                     loadNotes()
+                    dataRefreshNotifier.notifyDataChanged(RefreshScope.NOTES)
                     onCreated(note.id)
                 }
         }
@@ -133,7 +137,10 @@ class NotesViewModel @Inject constructor(
     fun deleteNote(id: String) {
         viewModelScope.launch {
             repository.deleteNote(id)
-                .onSuccess { loadNotes() }
+                .onSuccess {
+                    loadNotes()
+                    dataRefreshNotifier.notifyDataChanged(RefreshScope.NOTES)
+                }
         }
     }
 

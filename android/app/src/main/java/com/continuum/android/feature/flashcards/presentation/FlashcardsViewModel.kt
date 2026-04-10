@@ -2,6 +2,8 @@ package com.continuum.android.feature.flashcards.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.continuum.android.core.data.DataRefreshNotifier
+import com.continuum.android.core.data.RefreshScope
 import com.continuum.android.feature.flashcards.data.remote.dto.CardResultDto
 import com.continuum.android.feature.flashcards.data.repository.FlashcardsRepository
 import com.continuum.android.feature.flashcards.domain.Flashcard
@@ -49,7 +51,8 @@ data class SetDetailUiState(
 
 @HiltViewModel
 class FlashcardsViewModel @Inject constructor(
-    private val repository: FlashcardsRepository
+    private val repository: FlashcardsRepository,
+    private val dataRefreshNotifier: DataRefreshNotifier
 ) : ViewModel() {
 
     private val _setsState = MutableStateFlow(SetsUiState())
@@ -186,20 +189,23 @@ class FlashcardsViewModel @Inject constructor(
     fun createSet(title: String, description: String, onCreated: () -> Unit) {
         viewModelScope.launch {
             repository.createSet(title, description)
-                .onSuccess { loadSets(); onCreated() }
+                .onSuccess { loadSets(); dataRefreshNotifier.notifyDataChanged(RefreshScope.FLASHCARDS); onCreated() }
         }
     }
 
     fun generateSet(content: String, title: String, onCreated: () -> Unit) {
         viewModelScope.launch {
             repository.generateSet(content, title)
-                .onSuccess { loadSets(); onCreated() }
+                .onSuccess { loadSets(); dataRefreshNotifier.notifyDataChanged(RefreshScope.FLASHCARDS); onCreated() }
         }
     }
 
     fun deleteSet(setId: String) {
         viewModelScope.launch {
-            repository.deleteSet(setId).onSuccess { loadSets() }
+            repository.deleteSet(setId).onSuccess {
+                loadSets()
+                dataRefreshNotifier.notifyDataChanged(RefreshScope.FLASHCARDS)
+            }
         }
     }
 
