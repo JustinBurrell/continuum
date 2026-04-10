@@ -20,9 +20,10 @@ import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.social.domain.ActivityItem
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityFeedScreen(
     onSharedNoteClick: (String) -> Unit,
@@ -67,8 +68,8 @@ fun ActivityFeedScreen(
             )
         )
 
-        SwipeRefresh(
-            state = rememberSwipeRefreshState(state.isLoading),
+        PullToRefreshBox(
+            isRefreshing = state.isLoading,
             onRefresh = { viewModel.loadActivity() },
             modifier = Modifier.weight(1f)
         ) {

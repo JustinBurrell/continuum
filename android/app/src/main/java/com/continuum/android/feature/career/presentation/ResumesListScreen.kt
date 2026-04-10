@@ -20,9 +20,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.career.domain.Resume
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResumesListScreen(
     onResumeClick: (String) -> Unit,
@@ -66,8 +67,8 @@ fun ResumesListScreen(
                 )
             )
 
-            SwipeRefresh(
-                state = rememberSwipeRefreshState(state.isLoading),
+            PullToRefreshBox(
+                isRefreshing = state.isLoading,
                 onRefresh = { viewModel.loadResumes() },
                 modifier = Modifier.weight(1f)
             ) {

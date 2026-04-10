@@ -19,9 +19,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,8 +112,8 @@ fun FlashcardSetsListScreen(
                 }
             }
 
-            SwipeRefresh(
-                state = rememberSwipeRefreshState(state.isLoading),
+            PullToRefreshBox(
+                isRefreshing = state.isLoading,
                 onRefresh = { viewModel.loadSets() },
                 modifier = Modifier.weight(1f)
             ) {

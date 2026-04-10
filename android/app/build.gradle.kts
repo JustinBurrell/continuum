@@ -153,7 +153,6 @@ dependencies {
 
     // Accompanist
     implementation(libs.accompanist.permissions)
-    implementation(libs.accompanist.swiperefresh)
 
     // Lottie Animations
     implementation(libs.lottie.compose)

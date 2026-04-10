@@ -18,9 +18,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.career.domain.Application
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
 private val statusTabs = listOf("all", "draft", "applied", "interview", "offer", "rejected", "withdrawn")
 
@@ -95,8 +94,8 @@ fun ApplicationsListScreen(
                 }
             }
 
-            SwipeRefresh(
-                state = rememberSwipeRefreshState(state.isLoading),
+            PullToRefreshBox(
+                isRefreshing = state.isLoading,
                 onRefresh = { viewModel.loadApplications() },
                 modifier = Modifier.weight(1f)
             ) {

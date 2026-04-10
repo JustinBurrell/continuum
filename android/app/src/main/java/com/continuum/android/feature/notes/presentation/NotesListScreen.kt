@@ -20,9 +20,10 @@ import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.notes.domain.Note
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesListScreen(
     onNoteClick: (String) -> Unit,
@@ -126,8 +127,8 @@ fun NotesListScreen(
                 }
             }
 
-            SwipeRefresh(
-                state = rememberSwipeRefreshState(listState.isLoading),
+            PullToRefreshBox(
+                isRefreshing = listState.isLoading,
                 onRefresh = { viewModel.loadNotes() },
                 modifier = Modifier.weight(1f)
             ) {

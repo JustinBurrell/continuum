@@ -18,9 +18,10 @@ import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.tasks.domain.Task
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskBoardScreen(
     onCalendar: () -> Unit,
@@ -107,8 +108,8 @@ fun TaskBoardScreen(
                 }
             }
 
-            SwipeRefresh(
-                state = rememberSwipeRefreshState(state.isLoading),
+            PullToRefreshBox(
+                isRefreshing = state.isLoading,
                 onRefresh = { viewModel.loadTasks() },
                 modifier = Modifier.weight(1f)
             ) {

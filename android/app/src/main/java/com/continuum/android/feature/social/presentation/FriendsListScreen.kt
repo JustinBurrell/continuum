@@ -18,9 +18,10 @@ import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.social.domain.Friend
 import com.continuum.android.feature.social.domain.FriendRequest
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsListScreen(
     onUserSearch: () -> Unit,
@@ -68,8 +69,8 @@ fun FriendsListScreen(
                 }
             }
 
-            SwipeRefresh(
-                state = rememberSwipeRefreshState(state.isLoading),
+            PullToRefreshBox(
+                isRefreshing = state.isLoading,
                 onRefresh = { viewModel.loadFriends() },
                 modifier = Modifier.weight(1f)
             ) {

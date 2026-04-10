@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,10 +29,9 @@ import com.continuum.android.feature.flashcards.domain.FlashcardSet
 import com.continuum.android.feature.notes.domain.Note
 import com.continuum.android.feature.social.domain.ActivityItem
 import com.continuum.android.feature.tasks.domain.Task
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import java.util.Calendar
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     onNotesClick: () -> Unit,
@@ -61,8 +61,8 @@ fun DashboardScreen(
             onMessagesClick = onMessagesClick,
         )
 
-        SwipeRefresh(
-            state = rememberSwipeRefreshState(state.isLoading),
+        PullToRefreshBox(
+            isRefreshing = state.isLoading,
             onRefresh = { viewModel.refresh() },
             modifier = Modifier.weight(1f)
         ) {
