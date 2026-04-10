@@ -27,10 +27,18 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 class AuthInterceptor @Inject constructor(
     private val tokenManager: TokenManager
 ) : Interceptor {
+    private val deviceUserAgent: String by lazy {
+        val manufacturer = android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
+        val model = android.os.Build.MODEL
+        val androidVersion = android.os.Build.VERSION.RELEASE
+        "ContinuumAndroid/${com.continuum.android.BuildConfig.VERSION_NAME} ($manufacturer $model; Android $androidVersion)"
+    }
+
     override fun intercept(chain: Interceptor.Chain): Response {
         val token = tokenManager.getAccessToken()
         val request = chain.request().newBuilder()
             .addHeader("X-Client-Type", "android")
+            .header("User-Agent", deviceUserAgent)
             .apply { token?.let { addHeader("Authorization", "Bearer $it") } }
             .build()
         return chain.proceed(request)

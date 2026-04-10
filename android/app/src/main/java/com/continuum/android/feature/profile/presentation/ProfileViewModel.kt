@@ -173,5 +173,35 @@ class ProfileViewModel @Inject constructor(
         onComplete()
     }
 
+    fun uploadAvatar(file: java.io.File) {
+        _state.update { it.copy(isSaving = true, error = null) }
+        viewModelScope.launch {
+            repository.uploadAvatar(file).fold(
+                onSuccess = { profile ->
+                    _state.update { it.copy(isSaving = false, profile = profile, successMessage = "Avatar updated") }
+                    profileUpdateNotifier.notifyProfileUpdated()
+                },
+                onFailure = { e ->
+                    _state.update { it.copy(isSaving = false, error = e.message) }
+                }
+            )
+        }
+    }
+
+    fun unlinkGoogle() {
+        _state.update { it.copy(isSaving = true, error = null) }
+        viewModelScope.launch {
+            repository.unlinkGoogle().fold(
+                onSuccess = {
+                    _state.update { it.copy(isSaving = false, successMessage = "Google account unlinked") }
+                    load()
+                },
+                onFailure = { e ->
+                    _state.update { it.copy(isSaving = false, error = e.message) }
+                }
+            )
+        }
+    }
+
     fun clearMessage() = _state.update { it.copy(successMessage = null, error = null) }
 }

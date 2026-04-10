@@ -44,4 +44,7 @@ interface ProfileApiService {
     @Multipart
     @PATCH("auth/me/profile")
     suspend fun uploadAvatar(@Part avatar: MultipartBody.Part): ProfileResponseDto
+
+    @DELETE("auth/me/google/link")
+    suspend fun unlinkGoogle(): SimpleMessageDto
 }

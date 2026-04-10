@@ -5,7 +5,10 @@ import com.continuum.android.feature.profile.data.remote.dto.*
 import com.continuum.android.feature.profile.domain.Profile
 import com.continuum.android.feature.profile.domain.Session
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -105,5 +108,17 @@ class ProfileRepository @Inject constructor(
 
     suspend fun restoreAccount(): Result<Profile> = runCatching {
         api.restoreAccount().resolve().toDomain()
+    }
+
+    suspend fun uploadAvatar(file: File): Result<Profile> = runCatching {
+        val mediaType = "image/*".toMediaType()
+        val requestBody = file.asRequestBody(mediaType)
+        val part = MultipartBody.Part.createFormData("avatar", file.name, requestBody)
+        api.uploadAvatar(part).resolve().toDomain()
+    }
+
+    suspend fun unlinkGoogle(): Result<Unit> = runCatching {
+        api.unlinkGoogle()
+        Unit
     }
 }
