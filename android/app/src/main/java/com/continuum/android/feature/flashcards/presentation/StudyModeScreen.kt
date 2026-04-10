@@ -141,7 +141,7 @@ fun StudyModeScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         ContinuumButton(
-                            text = "Again",
+                            text = "Still Learning",
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 viewModel.answerCard(setId, correct = false)
@@ -194,18 +194,22 @@ private fun FlipCard(
     Card(
         modifier = modifier
             .graphicsLayer { rotationY = rotation; cameraDistance = 12f * density }
-            .pointerInput(Unit) {
-                detectHorizontalDragGestures(
-                    onDragEnd = {
-                        when {
-                            dragOffsetX < -120f -> onSwipeLeft()
-                            dragOffsetX > 120f -> onSwipeRight()
-                        }
-                        dragOffsetX = 0f
-                    },
-                    onHorizontalDrag = { _, delta -> dragOffsetX += delta }
-                )
-            },
+            .then(
+                if (isFlipped) {
+                    Modifier.pointerInput(Unit) {
+                        detectHorizontalDragGestures(
+                            onDragEnd = {
+                                when {
+                                    dragOffsetX < -120f -> onSwipeLeft()
+                                    dragOffsetX > 120f -> onSwipeRight()
+                                }
+                                dragOffsetX = 0f
+                            },
+                            onHorizontalDrag = { _, delta -> dragOffsetX += delta }
+                        )
+                    }
+                } else Modifier
+            ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -259,7 +263,7 @@ private fun StudySummaryScreen(
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("$incorrect", style = MaterialTheme.typography.displaySmall, color = ErrorRed)
-                    Text("Again", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    Text("Still Learning", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                 }
             }
 
