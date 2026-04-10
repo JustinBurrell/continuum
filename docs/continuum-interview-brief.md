@@ -21,13 +21,17 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | Metric | Count |
 |--------|-------|
 | Database collections | 15 |
-| API endpoints | ~70 across 16 route groups |
-| Frontend pages | 27 |
-| UI components | 26 |
+| API endpoints | ~108 across 17 route groups |
+| Frontend pages (web) | 27 |
+| Frontend screens (Android) | 30+ |
+| Web UI components | 26 |
+| Android composables | 40+ (reusable + screen-level) |
 | Jest integration tests | 223 |
 | Backend controllers | 15 |
 | Services | 4 (AI, Activity, Share, Account) |
 | Middleware types | 5 (auth, rate limiting, validation, uploads, error handling) |
+| Android API coverage | ~91/108 endpoints (~84%) |
+| Android offline tables | Room + SyncQueue (WorkManager-backed) |
 
 ---
 
@@ -37,7 +41,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 |-------|-------|
 | Backend | Node.js, Express 5, MongoDB, Mongoose, Socket.io, Redis, Groq SDK |
 | Frontend | Vite, React 18, Tailwind CSS 3, React Query v5, React Router v6 |
-| Mobile | Kotlin, Jetpack Compose, Android SDK (in progress) |
+| Mobile | Kotlin 2.1, Jetpack Compose (Material 3), Hilt, Retrofit 2, Room, Coil 3, Socket.io, Lottie |
 | AI | Groq API (llama-3.1-8b-instant) — summaries, flashcards, resume feedback |
 | Storage | Cloudinary (images, PDFs) |
 | Email | Resend — transactional from `noreply@usecontinuum.dev` (custom domain) |
@@ -536,6 +540,44 @@ Key implementation decisions:
 
 ---
 
+## Android Architecture
+
+The native Android app (Kotlin 2.1 + Jetpack Compose) was built to achieve full feature parity with the React web app. Key architectural decisions:
+
+**Why native Kotlin, not React Native:**
+- EncryptedSharedPreferences with Android KeyStore (AES-256-GCM in hardware secure enclave) — no React Native equivalent
+- Google Credential Manager for phishing-resistant Sign-In (native API, no WebView)
+- FLAG_SECURE for screenshot prevention on sensitive screens
+- Compose renders directly to the Android canvas — zero JS bridge overhead for gesture-heavy study mode
+
+**Mobile-specific auth pattern:**
+- Web uses httpOnly cookies for refresh tokens; Android can't read browser cookies
+- 4 mobile-specific backend endpoints (`mobile/login`, `mobile/refresh`, `google/mobile`, `mobile/logout`) return tokens in the JSON body instead of cookies
+- Tokens stored in EncryptedSharedPreferences backed by Android KeyStore
+- OkHttp `TokenAuthenticator` handles 401 recovery with automatic request queuing (equivalent to web's Axios interceptor, but OkHttp deduplicates refresh calls natively)
+
+**Offline layer (Android-only):**
+- Room SQLite database as local cache (ViewModels read Room first, then API)
+- SyncQueue entity queues mutations made while offline
+- WorkManager `SyncWorker` syncs pending items via `POST /api/sync` on reconnection
+- `NetworkMonitor` (ConnectivityManager-based StateFlow) drives a global OfflineBanner
+
+**Cross-screen reactivity:**
+- `DataRefreshNotifier` (SharedFlow) — ViewModels emit `RefreshScope` events on mutations; DashboardViewModel subscribes and auto-reloads
+- `ProfileUpdateNotifier` — Triggers nav avatar refresh after profile edits
+- `TokenManager.logoutEvent` — Broadcasts remote session invalidation; AppNavHost navigates to login
+
+**UX patterns:**
+- 5-item icon-only bottom nav (Notes, Flashcards, Center Logo → Dashboard, Applications, Profile)
+- Instagram-style scrollable dashboard header with logo + action icons
+- Flashcard study mode: card flip animation, swipe disabled until answer revealed, "Still Learning" / "Got it" tracking with study session recording
+- Slide-in/fade-out navigation transitions (300ms tween)
+- Flat cards (Notion-style) for lists; elevated cards (Duolingo-style) for interactive elements
+
+For full details see `docs/android/architecture.md`, `docs/android/react-to-android.md`, and `docs/android/api-coverage.md`.
+
+---
+
 ## What Makes This Stand Out as a Senior Project
 
 1. **Real architectural decisions** — Cursor pagination, Redis pub/sub, httpOnly cookies, encrypted tokens at rest. Not just "I used React and Node." Every decision has a reason you can defend.
@@ -546,9 +588,11 @@ Key implementation decisions:
 
 4. **The process matches the code** — Conventional commits, protected main, CI on every PR, Swagger docs, schema diagrams. Hiring managers looking at the repo see someone who would fit into a professional engineering team immediately.
 
-5. **Breadth without sacrificing depth** — 27 pages, 15 collections, 70 endpoints, real-time, AI, OAuth — and the auth flow is more secure than most production apps.
+5. **Breadth without sacrificing depth** — 30+ screens on Android, 27 pages on web, 15 collections, 108 endpoints, real-time, AI, OAuth, offline sync — and the auth flow is more secure than most production apps.
 
 6. **Deployed and accessible** — Not a localhost demo. Live at a real URL with a public API explorer.
+
+7. **True cross-platform with shared backend** — Web and Android consume the exact same REST API. The Android app adds 4 mobile-specific auth endpoints and a full offline layer — the same pattern used at companies like Instagram and Notion.
 
 ---
 
@@ -558,13 +602,16 @@ Key implementation decisions:
 Lead with cursor pagination — explain why offset fails at scale, why compound keys prevent timestamp collisions, and how Redis caching per cursor page works. Then cover the Socket.io + Redis adapter pattern for horizontal scaling. These are real production patterns, not textbook answers.
 
 ### Behavioral / "Tell me about a project"
-Built over 8 weeks, solo, for an incubator. Started with a formal security audit before writing a line of frontend code. Used conventional commits and protected branches from day one. Deployed to production with a real CI pipeline blocking bad merges.
+Built over 8 weeks, solo, for an incubator. Started with a formal security audit before writing a line of frontend code. Used conventional commits and protected branches from day one. Deployed to production with a real CI pipeline blocking bad merges. Then built a native Android app achieving full feature parity with the web in under 2 weeks — including offline support, real-time messaging, and hardware-backed token storage. Both clients share a single backend with zero API duplication.
 
 ### Security-Focused Interview
-Walk through the auth flow: httpOnly cookie for refresh token (XSS protection), SHA-256 hash in DB (breach protection), refresh token rotation (replay attack prevention — stolen token can only be used once), one-time OAuth codes (no JWT in browser history), AES-256 encrypted Google tokens (defense in depth), 4-tier rate limiting (brute force + abuse prevention).
+Walk through the auth flow: httpOnly cookie for refresh token (XSS protection), SHA-256 hash in DB (breach protection), refresh token rotation (replay attack prevention — stolen token can only be used once), one-time OAuth codes (no JWT in browser history), AES-256 encrypted Google tokens (defense in depth), 4-tier rate limiting (brute force + abuse prevention). On Android: EncryptedSharedPreferences with Android KeyStore (hardware secure enclave), Credential Manager for phishing-resistant Google Sign-In (no WebView), FLAG_SECURE on sensitive screens, remote logout detection via SharedFlow.
 
 ### "Why this stack?"
-Express 5 for native async/await error propagation. MongoDB for flexible schema during rapid feature iteration. Redis chosen for dual purpose — caching and Socket.io pub/sub. Groq over OpenAI because free-tier rate limits (14.4K RPD) are viable for a multi-user product at launch. Vercel + Render because both have zero-config deploys for Vite SPA and Node.js respectively.
+Express 5 for native async/await error propagation. MongoDB for flexible schema during rapid feature iteration. Redis chosen for dual purpose — caching and Socket.io pub/sub. Groq over OpenAI because free-tier rate limits (14.4K RPD) are viable for a multi-user product at launch. Vercel + Render because both have zero-config deploys for Vite SPA and Node.js respectively. Native Kotlin + Compose over React Native for hardware KeyStore access, Credential Manager, FLAG_SECURE, and 60fps animations without a JS bridge.
+
+### Mobile Architecture Interview
+Explain the offline-first pattern: Room database as local cache, SyncQueue entity for offline mutations, WorkManager SyncWorker that batches and uploads on reconnection via POST /api/sync. Cover the TokenAuthenticator pattern — OkHttp natively queues concurrent requests behind a single refresh call, unlike web's Axios interceptor which needs an explicit guard. Discuss DataRefreshNotifier (SharedFlow event bus for cross-screen data freshness) and ProfileUpdateNotifier (nav avatar auto-refresh after profile edits).
 
 ---
 
