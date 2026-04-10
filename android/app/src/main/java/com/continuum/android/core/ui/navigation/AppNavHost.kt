@@ -498,14 +498,6 @@ private fun NavGraph(
             }
         }
 
-        navigation(route = NavRoutes.Resumes.ROOT, startDestination = NavRoutes.Resumes.LIST) {
-            composable(NavRoutes.Resumes.LIST) {
-                ResumesListScreen(
-                    onResumeClick = { resumeId -> navController.navigate(NavRoutes.Career.resumeDetail(resumeId)) }
-                )
-            }
-        }
-
         // ---- Career graph ----
         navigation(route = NavRoutes.Career.ROOT, startDestination = NavRoutes.Career.APPLICATIONS_LIST) {
             composable(NavRoutes.Career.APPLICATIONS_LIST) {
