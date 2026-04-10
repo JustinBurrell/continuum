@@ -2,6 +2,7 @@ package com.continuum.android.feature.profile.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.continuum.android.core.data.ProfileUpdateNotifier
 import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.feature.profile.domain.Profile
@@ -31,7 +32,8 @@ data class ProfileUiState(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val repository: ProfileRepository,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val profileUpdateNotifier: ProfileUpdateNotifier
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileUiState())
@@ -72,6 +74,7 @@ class ProfileViewModel @Inject constructor(
             repository.updateProfileMultipart(fields).fold(
                 onSuccess = { profile ->
                     _state.update { it.copy(isSaving = false, profile = profile, successMessage = "Profile updated") }
+                    profileUpdateNotifier.notifyProfileUpdated()
                 },
                 onFailure = { e ->
                     _state.update { it.copy(isSaving = false, error = e.message) }
@@ -86,6 +89,7 @@ class ProfileViewModel @Inject constructor(
             repository.updateUsername(username).fold(
                 onSuccess = { profile ->
                     _state.update { it.copy(isSaving = false, profile = profile, successMessage = "Username updated") }
+                    profileUpdateNotifier.notifyProfileUpdated()
                 },
                 onFailure = { e ->
                     val msg = e.message ?: "Failed to update username"

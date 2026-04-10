@@ -2,6 +2,7 @@ package com.continuum.android.feature.profile.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.continuum.android.core.data.ProfileUpdateNotifier
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,11 +20,18 @@ data class NavProfileUiState(
 
 @HiltViewModel
 class NavProfileViewModel @Inject constructor(
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val profileUpdateNotifier: ProfileUpdateNotifier
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(NavProfileUiState())
     val state: StateFlow<NavProfileUiState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            profileUpdateNotifier.updates.collect { load() }
+        }
+    }
 
     fun load() {
         viewModelScope.launch {
