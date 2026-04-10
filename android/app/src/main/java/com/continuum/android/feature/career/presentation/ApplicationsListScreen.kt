@@ -22,7 +22,7 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 
-private val statusTabs = listOf("all", "saved", "applied", "interview", "offer", "rejected")
+private val statusTabs = listOf("all", "draft", "applied", "interview", "offer", "rejected", "withdrawn")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

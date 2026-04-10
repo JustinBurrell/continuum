@@ -74,7 +74,11 @@ fun NoteEditorScreen(
                     } else {
                         IconButton(onClick = { showVisibilitySheet = true }) {
                             Icon(
-                                if (visibility == "private") Icons.Default.Lock else Icons.Default.People,
+                                when (visibility) {
+                                    "friends" -> Icons.Default.People
+                                    "specific" -> Icons.Default.PersonAdd
+                                    else -> Icons.Default.Lock
+                                },
                                 "Visibility",
                                 tint = androidx.compose.ui.graphics.Color.White
                             )
@@ -194,7 +198,7 @@ fun NoteEditorScreen(
             Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
                 Text("Who can see this?", style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
                 Spacer(Modifier.height(16.dp))
-                listOf("private" to "Only me", "friends" to "My friends").forEach { (value, label) ->
+                listOf("private" to "Only me", "friends" to "My friends", "specific" to "Specific people").forEach { (value, label) ->
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically

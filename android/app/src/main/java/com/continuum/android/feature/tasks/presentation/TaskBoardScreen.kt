@@ -94,7 +94,7 @@ fun TaskBoardScreen(
             val statuses = listOf(
                 "todo" to "To Do",
                 "in_progress" to "In Progress",
-                "done" to "Done"
+                "completed" to "Completed"
             )
             TabRow(
                 selectedTabIndex = statuses.indexOfFirst { it.first == state.selectedStatus }.coerceAtLeast(0),
@@ -145,13 +145,13 @@ fun TaskBoardScreen(
                                 task = task,
                                 moveLabel = when (state.selectedStatus) {
                                     "todo" -> "Start"
-                                    "in_progress" -> "Done"
+                                    "in_progress" -> "Complete"
                                     else -> "Reopen"
                                 },
                                 onMove = {
                                     val target = when (state.selectedStatus) {
                                         "todo" -> "in_progress"
-                                        "in_progress" -> "done"
+                                        "in_progress" -> "completed"
                                         else -> "todo"
                                     }
                                     viewModel.moveTask(task.id, target)

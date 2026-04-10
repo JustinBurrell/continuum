@@ -49,7 +49,7 @@ data class TaskEntity(
     @PrimaryKey val id: String,
     val title: String,
     val description: String,
-    val status: String,       // "todo" | "in_progress" | "done"
+    val status: String,       // "todo" | "in_progress" | "completed"
     val priority: String?,
     val dueDate: String?,
     val updatedAt: String

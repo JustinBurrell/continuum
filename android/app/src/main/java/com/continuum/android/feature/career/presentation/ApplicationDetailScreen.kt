@@ -19,7 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 
-private val statusOptions = listOf("saved", "applied", "interview", "offer", "rejected")
+private val statusOptions = listOf("draft", "applied", "interview", "offer", "rejected", "withdrawn")
 
 @Composable
 fun ApplicationDetailScreen(

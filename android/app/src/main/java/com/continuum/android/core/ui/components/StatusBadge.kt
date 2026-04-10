@@ -21,21 +21,23 @@ import com.continuum.android.core.ui.theme.WarningAmber
 import com.continuum.android.core.ui.theme.WarningAmberBg
 
 enum class ApplicationStatus {
-    Saved,
+    Draft,
     Applied,
     Interview,
     Offer,
     Rejected,
+    Withdrawn,
 }
 
 private data class BadgeColors(val bg: Color, val text: Color)
 
 private fun colorsFor(status: ApplicationStatus): BadgeColors = when (status) {
-    ApplicationStatus.Saved -> BadgeColors(bg = Color(0xFFF3F4F6), text = TextSecondary)
+    ApplicationStatus.Draft -> BadgeColors(bg = Color(0xFFF3F4F6), text = TextSecondary)
     ApplicationStatus.Applied -> BadgeColors(bg = PurpleTint, text = BrandPurple)
     ApplicationStatus.Interview -> BadgeColors(bg = WarningAmberBg, text = WarningAmber)
     ApplicationStatus.Offer -> BadgeColors(bg = SuccessGreenBg, text = SuccessGreen)
     ApplicationStatus.Rejected -> BadgeColors(bg = ErrorRedBg, text = ErrorRed)
+    ApplicationStatus.Withdrawn -> BadgeColors(bg = Color(0xFFF3F4F6), text = TextSecondary)
 }
 
 @Composable
@@ -62,7 +64,8 @@ fun StatusBadge(statusString: String, modifier: Modifier = Modifier) {
         "interview" -> ApplicationStatus.Interview
         "offer"     -> ApplicationStatus.Offer
         "rejected"  -> ApplicationStatus.Rejected
-        else        -> ApplicationStatus.Saved
+        "withdrawn" -> ApplicationStatus.Withdrawn
+        else        -> ApplicationStatus.Draft
     }
     StatusBadge(status = status, modifier = modifier)
 }

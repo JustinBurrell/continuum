@@ -141,24 +141,17 @@ fun EditProfileScreen(
             Text("ACTIVITY VISIBILITY", style = MaterialTheme.typography.labelSmall, color = TextMuted)
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
-                    selected = activityVisibility == "private",
-                    onClick = { activityVisibility = "private" },
-                    label = { Text("Private") },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = BrandPurple,
-                        selectedLabelColor = White
+                listOf("private" to "Private", "friends" to "Friends", "public" to "Public").forEach { (value, label) ->
+                    FilterChip(
+                        selected = activityVisibility == value,
+                        onClick = { activityVisibility = value },
+                        label = { Text(label) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = BrandPurple,
+                            selectedLabelColor = White
+                        )
                     )
-                )
-                FilterChip(
-                    selected = activityVisibility == "friends",
-                    onClick = { activityVisibility = "friends" },
-                    label = { Text("Friends") },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = BrandPurple,
-                        selectedLabelColor = White
-                    )
-                )
+                }
             }
 
             ContinuumButton(

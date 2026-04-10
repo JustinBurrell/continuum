@@ -88,7 +88,7 @@ class DashboardViewModel @Inject constructor(
                 }
 
                 val openTasks = tasksResp.tasks
-                    .filter { it.status != "completed" && it.status != "done" }
+                    .filter { it.status != "completed" }
                     .map { dto ->
                         Task(
                             id = dto.id,

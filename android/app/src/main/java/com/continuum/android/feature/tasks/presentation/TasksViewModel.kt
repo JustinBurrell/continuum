@@ -36,7 +36,7 @@ class TasksViewModel @Inject constructor(
     val inProgressTasks: StateFlow<List<Task>> = _state.map { it.tasks.filter { t -> t.status == "in_progress" } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val doneTasks: StateFlow<List<Task>> = _state.map { it.tasks.filter { t -> t.status == "done" } }
+    val completedTasks: StateFlow<List<Task>> = _state.map { it.tasks.filter { t -> t.status == "completed" } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun loadTasks() {

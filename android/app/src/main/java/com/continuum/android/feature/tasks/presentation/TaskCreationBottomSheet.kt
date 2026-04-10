@@ -22,7 +22,7 @@ fun TaskCreationBottomSheet(
     var dueDate by remember { mutableStateOf("") }
 
     val priorities = listOf("low", "medium", "high")
-    val types = listOf("Homework", "Study", "Project", "Exam Prep")
+    val types = listOf("homework", "study", "project", "exam", "club", "professional", "personal", "other")
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -66,26 +66,13 @@ fun TaskCreationBottomSheet(
 
             // Type
             Text("Type", style = MaterialTheme.typography.labelLarge, color = TextSecondary)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                types.take(2).forEach { t ->
+            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                types.forEach { t ->
                     FilterChip(
                         selected = selectedType == t,
                         onClick = { selectedType = if (selectedType == t) null else t },
-                        label = { Text(t) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = BrandPurple,
-                            selectedLabelColor = White
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                types.drop(2).forEach { t ->
-                    FilterChip(
-                        selected = selectedType == t,
-                        onClick = { selectedType = if (selectedType == t) null else t },
-                        label = { Text(t) },
+                        label = { Text(t.replaceFirstChar { it.uppercase() }) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = BrandPurple,
                             selectedLabelColor = White
