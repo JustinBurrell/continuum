@@ -22,7 +22,7 @@ interface NotesApiService {
     @POST("notes")
     suspend fun createNote(@Body request: CreateNoteRequestDto): NoteResponseDto
 
-    @PATCH("notes/{id}")
+    @PUT("notes/{id}")
     suspend fun updateNote(
         @Path("id") id: String,
         @Body request: UpdateNoteRequestDto

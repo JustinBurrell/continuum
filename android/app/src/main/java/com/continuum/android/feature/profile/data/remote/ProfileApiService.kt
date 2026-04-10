@@ -23,8 +23,8 @@ interface ProfileApiService {
     @PATCH("auth/me/password")
     suspend fun changePassword(@Body request: ChangePasswordRequestDto): SimpleMessageDto
 
-    @HTTP(method = "DELETE", path = "auth/me", hasBody = true)
-    suspend fun deleteAccount(@Body request: DeleteAccountRequestDto): SimpleMessageDto
+    @DELETE("auth/me")
+    suspend fun deleteAccount(): SimpleMessageDto
 
     @POST("auth/send-verification")
     suspend fun sendVerificationEmail(): SimpleMessageDto

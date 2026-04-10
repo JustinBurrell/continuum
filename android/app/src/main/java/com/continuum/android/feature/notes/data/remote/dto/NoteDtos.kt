@@ -57,6 +57,7 @@ data class UpdateNoteRequestDto(
 @JsonClass(generateAdapter = true)
 data class ImportNoteRequestDto(
     val googleDocId: String,
+    val googleDocUrl: String,
     val title: String
 )
 

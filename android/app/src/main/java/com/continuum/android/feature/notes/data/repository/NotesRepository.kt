@@ -98,8 +98,8 @@ class NotesRepository @Inject constructor(
         api.getDriveFiles().files.map { DriveFile(it.id, it.name, it.modifiedTime) }
     }
 
-    suspend fun importFromDrive(googleDocId: String, title: String): Result<Note> = runCatching {
-        val note = api.importFromDrive(ImportNoteRequestDto(googleDocId, title)).note
+    suspend fun importFromDrive(googleDocId: String, googleDocUrl: String, title: String): Result<Note> = runCatching {
+        val note = api.importFromDrive(ImportNoteRequestDto(googleDocId, googleDocUrl, title)).note
         noteDao.insert(note.toEntity())
         note.toDomain()
     }

@@ -52,7 +52,7 @@ data class FlashcardSetResponseDto(
 @JsonClass(generateAdapter = true)
 data class CreateSetRequestDto(
     val title: String,
-    val description: String = ""
+    val visibility: String = "private"
 )
 
 @JsonClass(generateAdapter = true)

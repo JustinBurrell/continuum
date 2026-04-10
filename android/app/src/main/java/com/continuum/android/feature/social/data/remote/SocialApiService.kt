@@ -8,7 +8,7 @@ interface SocialApiService {
     @GET("activity")
     suspend fun getActivity(
         @Query("cursor") cursor: String? = null,
-        @Query("search") search: String? = null
+        @Query("limit") limit: Int? = null
     ): ActivityResponseDto
 
     @PUT("activity/mark-seen")

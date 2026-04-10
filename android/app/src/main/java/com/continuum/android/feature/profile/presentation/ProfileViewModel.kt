@@ -134,10 +134,10 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun deleteAccount(password: String, onComplete: () -> Unit) {
+    fun deleteAccount(onComplete: () -> Unit) {
         _state.update { it.copy(deleteLoading = true, error = null) }
         viewModelScope.launch {
-            repository.deleteAccount(password).fold(
+            repository.deleteAccount().fold(
                 onSuccess = {
                     tokenManager.clearTokens()
                     _state.update { it.copy(deleteLoading = false) }

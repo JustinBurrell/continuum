@@ -27,8 +27,8 @@ class CareerRepository @Inject constructor(private val api: CareerApiService) {
 
     suspend fun deleteApplication(id: String): Result<Unit> = runCatching { api.deleteApplication(id); Unit }
 
-    suspend fun getResumes(search: String? = null): Result<List<Resume>> = runCatching {
-        api.getResumes(search = search?.takeIf { it.isNotBlank() }).resumes.map { it.toDomain() }
+    suspend fun getResumes(): Result<List<Resume>> = runCatching {
+        api.getResumes().resumes.map { it.toDomain() }
     }
 
     suspend fun uploadResume(filePart: MultipartBody.Part): Result<Resume> = runCatching {

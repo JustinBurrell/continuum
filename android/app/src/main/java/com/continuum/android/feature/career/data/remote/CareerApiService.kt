@@ -28,7 +28,7 @@ interface CareerApiService {
     suspend fun deleteApplication(@Path("id") id: String): retrofit2.Response<Unit>
 
     @GET("resumes")
-    suspend fun getResumes(@Query("search") search: String? = null): ResumesResponseDto
+    suspend fun getResumes(): ResumesResponseDto
 
     @Multipart
     @POST("resumes/upload")

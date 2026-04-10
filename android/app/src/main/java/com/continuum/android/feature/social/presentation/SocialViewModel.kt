@@ -58,13 +58,20 @@ class SocialViewModel @Inject constructor(
     private var searchJob: Job? = null
     private var activitySearchJob: Job? = null
 
+    private var allActivityItems: List<ActivityItem> = emptyList()
+
     fun loadActivity() {
-        val search = _activityState.value.searchQuery.takeIf { it.isNotBlank() }
         viewModelScope.launch {
             _activityState.update { it.copy(isLoading = true) }
-            repository.getActivity(search = search)
+            repository.getActivity()
                 .onSuccess { (items, cursor) ->
-                    _activityState.update { it.copy(items = items, isLoading = false, nextCursor = cursor) }
+                    allActivityItems = items
+                    val query = _activityState.value.searchQuery
+                    val filtered = if (query.isBlank()) items else items.filter {
+                        it.actorName.contains(query, ignoreCase = true) ||
+                        it.resourceTitle?.contains(query, ignoreCase = true) == true
+                    }
+                    _activityState.update { it.copy(items = filtered, isLoading = false, nextCursor = cursor) }
                 }
                 .onFailure { _activityState.update { it.copy(isLoading = false) } }
         }
@@ -79,18 +86,27 @@ class SocialViewModel @Inject constructor(
         activitySearchJob?.cancel()
         activitySearchJob = viewModelScope.launch {
             delay(300)
-            loadActivity()
+            val filtered = if (query.isBlank()) allActivityItems else allActivityItems.filter {
+                it.actorName.contains(query, ignoreCase = true) ||
+                it.resourceTitle?.contains(query, ignoreCase = true) == true
+            }
+            _activityState.update { it.copy(items = filtered) }
         }
     }
 
     fun loadMoreActivity() {
         val cursor = _activityState.value.nextCursor ?: return
-        val search = _activityState.value.searchQuery.takeIf { it.isNotBlank() }
         viewModelScope.launch {
-            repository.getActivity(cursor, search)
+            repository.getActivity(cursor)
                 .onSuccess { (newItems, newCursor) ->
+                    allActivityItems = allActivityItems + newItems
+                    val query = _activityState.value.searchQuery
+                    val filtered = if (query.isBlank()) allActivityItems else allActivityItems.filter {
+                        it.actorName.contains(query, ignoreCase = true) ||
+                        it.resourceTitle?.contains(query, ignoreCase = true) == true
+                    }
                     _activityState.update {
-                        it.copy(items = it.items + newItems, nextCursor = newCursor)
+                        it.copy(items = filtered, nextCursor = newCursor)
                     }
                 }
         }

@@ -30,7 +30,8 @@ data class ForgotPasswordRequestDto(
 
 @JsonClass(generateAdapter = true)
 data class ResetPasswordRequestDto(
-    val password: String
+    val token: String,
+    val newPassword: String
 )
 
 @JsonClass(generateAdapter = true)
@@ -57,6 +58,11 @@ data class AuthResponseDto(
 data class GetMeResponseDto(
     val success: Boolean = false,
     val user: UserDto = UserDto()
+)
+
+@JsonClass(generateAdapter = true)
+data class MobileLogoutRequestDto(
+    val refreshToken: String
 )
 
 @JsonClass(generateAdapter = true)

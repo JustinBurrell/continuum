@@ -18,8 +18,8 @@ class SocialRepository @Inject constructor(
     private fun meId(): String =
         tokenManager.getJwtUserId() ?: error("Not signed in")
 
-    suspend fun getActivity(cursor: String? = null, search: String? = null): Result<Pair<List<ActivityItem>, String?>> = runCatching {
-        val resp = api.getActivity(cursor, search)
+    suspend fun getActivity(cursor: String? = null): Result<Pair<List<ActivityItem>, String?>> = runCatching {
+        val resp = api.getActivity(cursor)
         Pair(resp.feed.map { it.toDomain() }, resp.nextCursor)
     }
 

@@ -262,6 +262,7 @@ router.patch('/me/profile', authMiddleware, (req, res, next) => {
  *         $ref: '#/components/responses/Unauthorized'
  */
 router.post('/logout', authMiddleware, authController.logout);
+router.post('/mobile/logout', authMiddleware, authController.mobileLogout);
 
 /**
  * @swagger

@@ -30,9 +30,9 @@ class SyncRepository @Inject constructor(
         pending.forEach { item ->
             operations.put(JSONObject().apply {
                 put("operation", item.operation)
-                put("resourceType", item.resourceType)
-                item.resourceId?.let { put("resourceId", it) }
-                put("payload", JSONObject(item.payload))
+                put("collection", item.resourceType)
+                item.resourceId?.let { put("documentId", it) }
+                put("data", JSONObject(item.payload))
                 put("clientTimestamp", item.createdAt)
             })
         }

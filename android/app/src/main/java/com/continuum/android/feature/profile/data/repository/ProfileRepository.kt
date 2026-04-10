@@ -70,8 +70,8 @@ class ProfileRepository @Inject constructor(
         Unit
     }
 
-    suspend fun deleteAccount(password: String): Result<Unit> = runCatching {
-        api.deleteAccount(DeleteAccountRequestDto(password))
+    suspend fun deleteAccount(): Result<Unit> = runCatching {
+        api.deleteAccount()
         Unit
     }
 

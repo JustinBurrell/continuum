@@ -18,14 +18,14 @@ interface AuthApiService {
     suspend fun forgotPassword(@Body request: ForgotPasswordRequestDto): SimpleSuccessDto
 
     @POST("auth/reset-password")
-    suspend fun resetPassword(
-        @Query("token") token: String,
-        @Body request: ResetPasswordRequestDto
-    ): SimpleSuccessDto
+    suspend fun resetPassword(@Body request: ResetPasswordRequestDto): SimpleSuccessDto
 
     @GET("auth/verify-email")
     suspend fun verifyEmail(@Query("token") token: String): SimpleSuccessDto
 
     @GET("auth/me")
     suspend fun getMe(): GetMeResponseDto
+
+    @POST("auth/mobile/logout")
+    suspend fun mobileLogout(@Body request: MobileLogoutRequestDto): SimpleSuccessDto
 }

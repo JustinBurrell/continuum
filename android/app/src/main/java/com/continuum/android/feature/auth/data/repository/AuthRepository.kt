@@ -47,7 +47,14 @@ class AuthRepository @Inject constructor(
             RegisterRequestDto(firstName, lastName, username, email, password)
         )
         if (response.token.isNotBlank()) {
-            tokenManager.saveTokens(response.token, response.refreshToken)
+            val refresh = response.refreshToken.takeIf { it.isNotBlank() }
+            if (refresh != null) {
+                tokenManager.saveTokens(response.token, refresh)
+            } else {
+                tokenManager.saveTokens(response.token, "")
+                val loginResponse = api.login(LoginRequestDto(email, password))
+                tokenManager.saveTokens(loginResponse.token, loginResponse.refreshToken)
+            }
         }
         response.user.toDomain()
     }
@@ -58,7 +65,7 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun resetPassword(token: String, password: String): Result<Unit> = runCatching {
-        api.resetPassword(token, ResetPasswordRequestDto(password))
+        api.resetPassword(ResetPasswordRequestDto(token = token, newPassword = password))
         Unit
     }
 
@@ -72,7 +79,17 @@ class AuthRepository @Inject constructor(
         response.user.toDomain()
     }
 
-    fun logout() = tokenManager.clearTokens()
+    suspend fun logout() {
+        try {
+            val refresh = tokenManager.getRefreshToken()
+            if (!refresh.isNullOrBlank()) {
+                api.mobileLogout(MobileLogoutRequestDto(refresh))
+            }
+        } catch (_: Exception) {
+            // Server revocation is best-effort; always clear local tokens
+        }
+        tokenManager.clearTokens()
+    }
 
     fun isLoggedIn(): Boolean = tokenManager.getAccessToken() != null
 }

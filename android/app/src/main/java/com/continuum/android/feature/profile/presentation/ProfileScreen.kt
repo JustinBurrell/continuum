@@ -283,8 +283,8 @@ fun ProfileScreen(
             username = state.profile?.username ?: "",
             isLoading = state.deleteLoading,
             onDismiss = { showDeleteDialog = false },
-            onConfirm = { password ->
-                viewModel.deleteAccount(password, onLogout)
+            onConfirm = {
+                viewModel.deleteAccount(onLogout)
             }
         )
     }

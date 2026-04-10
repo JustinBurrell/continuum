@@ -85,7 +85,7 @@ class CareerViewModel @Inject constructor(
         }
     }
 
-    fun createApplication(company: String, position: String, status: String = "saved", jobUrl: String? = null, onCreated: () -> Unit = {}) {
+    fun createApplication(company: String, position: String, status: String = "draft", jobUrl: String? = null, onCreated: () -> Unit = {}) {
         viewModelScope.launch {
             repository.createApplication(company, position, status, jobUrl)
                 .onSuccess { loadApplications(); onCreated() }
@@ -117,11 +117,21 @@ class CareerViewModel @Inject constructor(
         }
     }
 
+    private var allResumes: List<Resume> = emptyList()
+
     fun loadResumes() {
         viewModelScope.launch {
             _resumesState.update { it.copy(isLoading = true, error = null) }
-            repository.getResumes(search = _resumesState.value.searchQuery)
-                .onSuccess { resumes -> _resumesState.update { it.copy(resumes = resumes, isLoading = false) } }
+            repository.getResumes()
+                .onSuccess { resumes ->
+                    allResumes = resumes
+                    val query = _resumesState.value.searchQuery
+                    val filtered = if (query.isBlank()) resumes else resumes.filter {
+                        it.fileName.contains(query, ignoreCase = true) ||
+                        it.targetRole.contains(query, ignoreCase = true)
+                    }
+                    _resumesState.update { it.copy(resumes = filtered, isLoading = false) }
+                }
                 .onFailure { e -> _resumesState.update { it.copy(isLoading = false, error = e.message) } }
         }
     }
@@ -131,7 +141,11 @@ class CareerViewModel @Inject constructor(
         resumesSearchJob?.cancel()
         resumesSearchJob = viewModelScope.launch {
             delay(250)
-            loadResumes()
+            val filtered = if (query.isBlank()) allResumes else allResumes.filter {
+                it.fileName.contains(query, ignoreCase = true) ||
+                it.targetRole.contains(query, ignoreCase = true)
+            }
+            _resumesState.update { it.copy(resumes = filtered) }
         }
     }
 

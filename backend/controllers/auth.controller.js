@@ -650,6 +650,24 @@ exports.logout = async (req, res) => {
 };
 
 // ----------------------------------------
+// POST /api/auth/mobile/logout
+// Purpose: Revoke the refresh token sent in the request body (for mobile clients)
+// ----------------------------------------
+exports.mobileLogout = async (req, res) => {
+    const { refreshToken } = req.body;
+
+    if (refreshToken) {
+        const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+        await RefreshToken.findOneAndUpdate(
+            { tokenHash, revokedAt: null },
+            { revokedAt: new Date() }
+        );
+    }
+
+    res.status(200).json({ success: true, message: 'Logged out' });
+};
+
+// ----------------------------------------
 // POST /api/auth/logout-all
 // Purpose: Immediately invalidate all sessions — increments tokenVersion so existing JWTs are
 //          rejected by auth middleware on the next request, then revokes all refresh tokens

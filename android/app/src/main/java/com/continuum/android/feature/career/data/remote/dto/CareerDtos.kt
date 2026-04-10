@@ -8,7 +8,7 @@ data class ApplicationDto(
     @Json(name = "_id") val id: String = "",
     val company: String = "",
     val position: String = "",
-    val status: String = "saved",
+    val status: String = "draft",
     @Json(name = "appliedAt") val appliedAt: String? = null,
     val jobUrl: String? = null,
     val notes: String = "",
@@ -40,13 +40,21 @@ data class ApplicationResponseDto(
 data class CreateApplicationRequestDto(
     val company: String,
     val position: String,
-    val status: String = "saved",
-    val jobUrl: String? = null
+    val status: String = "draft",
+    val jobUrl: String? = null,
+    val location: String? = null,
+    val salary: String? = null,
+    val notes: String? = null
 )
 
 @JsonClass(generateAdapter = true)
 data class UpdateApplicationRequestDto(
+    val company: String? = null,
+    val position: String? = null,
     val status: String? = null,
+    val location: String? = null,
+    val salary: String? = null,
+    val jobUrl: String? = null,
     val notes: String? = null
 )
 

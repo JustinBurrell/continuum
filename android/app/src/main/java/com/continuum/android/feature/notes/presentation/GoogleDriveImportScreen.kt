@@ -130,7 +130,7 @@ fun GoogleDriveImportScreen(
                             DriveFileItem(
                                 file = file,
                                 isImporting = driveState.isImporting,
-                                onClick = { viewModel.importFromDrive(file.id, file.name) }
+                                onClick = { viewModel.importFromDrive(file.id, "https://docs.google.com/document/d/${file.id}/edit", file.name) }
                             )
                         }
                     }

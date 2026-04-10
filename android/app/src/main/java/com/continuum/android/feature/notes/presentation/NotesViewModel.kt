@@ -161,10 +161,10 @@ class NotesViewModel @Inject constructor(
         }
     }
 
-    fun importFromDrive(googleDocId: String, title: String) {
+    fun importFromDrive(googleDocId: String, googleDocUrl: String, title: String) {
         viewModelScope.launch {
             _driveState.update { it.copy(isImporting = true) }
-            repository.importFromDrive(googleDocId, title)
+            repository.importFromDrive(googleDocId, googleDocUrl, title)
                 .onSuccess { note ->
                     _driveState.update { it.copy(isImporting = false, importedNoteId = note.id) }
                     loadNotes()
