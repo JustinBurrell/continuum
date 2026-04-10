@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
+import com.continuum.android.core.ui.components.ContinuumButton
 import com.continuum.android.core.ui.components.MinimalTopBar
 import com.continuum.android.core.ui.theme.*
 
@@ -22,11 +24,25 @@ fun SettingsScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val profile = state.profile
 
+    var emailNotifications by remember { mutableStateOf(true) }
+    var pushNotifications by remember { mutableStateOf(true) }
+    var activityVisibility by remember { mutableStateOf("friends") }
+
     LaunchedEffect(Unit) { viewModel.load() }
 
-    var emailNotifications by remember(profile) { mutableStateOf(profile?.emailNotifications ?: true) }
-    var pushNotifications by remember(profile) { mutableStateOf(profile?.pushNotifications ?: true) }
-    var activityVisibility by remember(profile) { mutableStateOf(profile?.activityVisibility ?: "private") }
+    LaunchedEffect(profile) {
+        val p = profile ?: return@LaunchedEffect
+        emailNotifications = p.emailNotifications
+        pushNotifications = p.pushNotifications
+        activityVisibility = p.activityVisibility.ifBlank { "friends" }
+    }
+
+    LaunchedEffect(state.successMessage) {
+        if (state.successMessage != null) {
+            delay(1800)
+            viewModel.clearMessage()
+        }
+    }
 
     fun saveSettings() {
         viewModel.updateProfileFields(
@@ -41,11 +57,27 @@ fun SettingsScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         MinimalTopBar(title = "Settings", onNavigateBack = onNavigateBack)
 
+        if (state.isLoading && profile == null) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = BrandPurple)
+            }
+            return@Column
+        }
+
         LazyColumn(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            item { SettingsSectionLabel("Activity Visibility") }
+            item {
+                Text(
+                    "Changes are not saved until you tap Save changes.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
+            item { SettingsSectionLabel("Activity visibility") }
             item {
                 val options = listOf("private", "friends", "public")
                 Row(
@@ -55,10 +87,7 @@ fun SettingsScreen(
                     options.forEach { option ->
                         FilterChip(
                             selected = activityVisibility == option,
-                            onClick = {
-                                activityVisibility = option
-                                saveSettings()
-                            },
+                            onClick = { activityVisibility = option },
                             label = { Text(option.replaceFirstChar { it.uppercase() }) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = BrandPurple,
@@ -78,10 +107,7 @@ fun SettingsScreen(
                     label = "Email notifications",
                     description = "Receive email notifications for activity",
                     checked = emailNotifications,
-                    onCheckedChange = {
-                        emailNotifications = it
-                        saveSettings()
-                    }
+                    onCheckedChange = { emailNotifications = it }
                 )
             }
             item {
@@ -90,11 +116,42 @@ fun SettingsScreen(
                     label = "Push notifications",
                     description = "Receive push notifications on this device",
                     checked = pushNotifications,
-                    onCheckedChange = {
-                        pushNotifications = it
-                        saveSettings()
-                    }
+                    onCheckedChange = { pushNotifications = it }
                 )
+            }
+
+            item { Spacer(Modifier.height(16.dp)) }
+
+            item {
+                ContinuumButton(
+                    text = if (state.isSaving) "Saving…" else "Save changes",
+                    onClick = { saveSettings() },
+                    enabled = !state.isSaving,
+                    loading = state.isSaving,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            state.successMessage?.let { msg ->
+                item {
+                    Text(
+                        text = msg,
+                        color = SuccessGreen,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
+
+            state.error?.let { err ->
+                item {
+                    Text(
+                        text = err,
+                        color = ErrorRed,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
             }
         }
     }

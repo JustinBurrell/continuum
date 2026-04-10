@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,17 +25,30 @@ fun EditProfileScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val profile = state.profile
 
-    var firstName by remember(profile) { mutableStateOf(profile?.firstName ?: "") }
-    var lastName by remember(profile) { mutableStateOf(profile?.lastName ?: "") }
-    var bio by remember(profile) { mutableStateOf(profile?.bio ?: "") }
-    var linkedinUrl by remember(profile) { mutableStateOf(profile?.linkedinUrl ?: "") }
-    var instagramHandle by remember(profile) { mutableStateOf(profile?.instagramHandle ?: "") }
-    var activityVisibility by remember(profile) { mutableStateOf(profile?.activityVisibility ?: "friends") }
-    var username by remember(profile) { mutableStateOf(profile?.username ?: "") }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var bio by remember { mutableStateOf("") }
+    var linkedinUrl by remember { mutableStateOf("") }
+    var instagramHandle by remember { mutableStateOf("") }
+    var activityVisibility by remember { mutableStateOf("friends") }
+    var username by remember { mutableStateOf("") }
 
     var linkedinError by remember { mutableStateOf<String?>(null) }
     var instagramError by remember { mutableStateOf<String?>(null) }
     var usernameError by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) { viewModel.load() }
+
+    LaunchedEffect(profile) {
+        val p = profile ?: return@LaunchedEffect
+        firstName = p.firstName
+        lastName = p.lastName
+        bio = p.bio.orEmpty()
+        linkedinUrl = p.linkedinUrl.orEmpty()
+        instagramHandle = p.instagramHandle.orEmpty()
+        activityVisibility = p.activityVisibility.ifBlank { "friends" }
+        username = p.username
+    }
 
     LaunchedEffect(state.successMessage) {
         if (state.successMessage != null) {
@@ -85,6 +99,12 @@ fun EditProfileScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (state.isLoading && profile == null) {
+                Box(Modifier.fillMaxWidth().height(120.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = BrandPurple)
+                }
+            }
+
             Text("PERSONAL INFO", style = MaterialTheme.typography.labelSmall, color = TextMuted)
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
