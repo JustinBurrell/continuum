@@ -83,13 +83,27 @@ class SocialRepository @Inject constructor(
         )
     }
 
+    suspend fun getCommentsForTarget(targetType: String, targetId: String): Result<List<Comment>> = runCatching {
+        api.getComments(targetType, targetId).comments.toNestedComments()
+    }
+
     suspend fun addComment(noteId: String, content: String): Result<Unit> = runCatching {
         api.createComment(CreateCommentRequestDto(targetId = noteId, targetType = "note", content = content))
         Unit
     }
 
+    suspend fun addCommentGeneric(targetType: String, targetId: String, content: String, parentId: String? = null): Result<Unit> = runCatching {
+        api.createComment(CreateCommentRequestDto(targetId = targetId, targetType = targetType, content = content, parentId = parentId))
+        Unit
+    }
+
     suspend fun likeComment(commentId: String): Result<Unit> = runCatching {
         api.toggleCommentLike(commentId)
+        Unit
+    }
+
+    suspend fun deleteComment(commentId: String): Result<Unit> = runCatching {
+        api.deleteComment(commentId)
         Unit
     }
 

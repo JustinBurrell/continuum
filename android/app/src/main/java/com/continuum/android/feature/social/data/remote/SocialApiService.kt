@@ -49,4 +49,7 @@ interface SocialApiService {
 
     @POST("comments/{commentId}/like")
     suspend fun toggleCommentLike(@Path("commentId") commentId: String): retrofit2.Response<Unit>
+
+    @DELETE("comments/{commentId}")
+    suspend fun deleteComment(@Path("commentId") commentId: String): retrofit2.Response<Unit>
 }

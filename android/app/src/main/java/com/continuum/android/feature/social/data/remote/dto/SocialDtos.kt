@@ -98,7 +98,8 @@ data class CommentsListResponseDto(
 data class CreateCommentRequestDto(
     val targetId: String,
     val targetType: String = "note",
-    val content: String
+    val content: String,
+    val parentId: String? = null
 )
 
 @JsonClass(generateAdapter = true)
