@@ -26,6 +26,17 @@
 
 Users can register with email/password OR Google OAuth. Both paths create the same User document. Login and register return a short-lived JWT (1d) and a long-lived refresh token (30d). Each device gets its own refresh token. The JWT payload includes `sessionId` (the RefreshToken `_id`) so per-session revocation takes effect immediately without waiting for token expiry. `logout-all` increments `tokenVersion` to immediately invalidate all sessions across all devices.
 
+### **Mobile Authentication**
+
+The Android native app cannot use httpOnly cookies (no browser cookie jar). Four mobile-specific endpoints return tokens in the JSON response body for storage in Android's EncryptedSharedPreferences:
+
+- `POST /api/auth/mobile/login` - Same validation as `/login`. Returns `{ token, refreshToken, user }` in the body (no cookie). Stores device metadata from `User-Agent` header for session labeling (e.g. "Pixel 8 on Android 15").
+- `POST /api/auth/mobile/refresh` - Token rotation. Body: `{ refreshToken }`. Returns `{ token, refreshToken }`. Old token is revoked immediately.
+- `POST /api/auth/google/mobile` - Accepts a Google ID token from Android's Credential Manager. Body: `{ idToken }`. Verifies via `google-auth-library`, finds/creates user, returns `{ token, refreshToken, user }`. Does not use redirect-based OAuth flow.
+- `POST /api/auth/mobile/logout` - Server-side logout for mobile. Body: `{ refreshToken }`. Hashes the refresh token (SHA-256), finds and deletes the matching RefreshToken document, effectively revoking the session. Protected by auth middleware.
+
+All four endpoints are defined in `routes/auth.routes.js` and handled by `controllers/mobileAuth.controller.js`. The mobile client identifies itself via the `X-Client-Type: android` header on every request.
+
 ### **User Profile**
 - `PATCH /api/auth/me/profile` - Update user profile information (name, bio, avatarUrl, settings)
 - `PATCH /api/auth/me/username` - Change username. Validates format (3–30 chars, letters/numbers/underscores/hyphens) and checks uniqueness. Returns 409 if taken.
@@ -182,11 +193,14 @@ Resume PDFs are stored as Cloudinary `authenticated` resources — direct URLs r
 ### **Application Tracking**
 - `POST /api/applications` - Create job/internship application entry
 - `GET /api/applications` - List applications with status and search filters
-- `PUT /api/applications/:applicationId` - Update application status, notes, or details
-- `DELETE /api/applications/:applicationId` - Soft delete application entry
+- `GET /api/applications/:id` - Get single application by ID with contacts and reminders
+- `PUT /api/applications/:id` - Update application status, notes, or details
+- `DELETE /api/applications/:id` - Soft delete application entry
 - `GET /api/applications/dashboard` - Get pipeline overview with status counts
-- `POST /api/applications/:applicationId/contacts` - Add networking contact
-- `POST /api/applications/:applicationId/reminders` - Add follow-up reminder
+- `POST /api/applications/:id/contacts` - Add networking contact
+- `DELETE /api/applications/:id/contacts/:contactId` - Remove a contact from an application
+- `POST /api/applications/:id/reminders` - Add follow-up reminder
+- `DELETE /api/applications/:id/reminders/:reminderId` - Remove a reminder from an application
 
 ---
 
@@ -269,7 +283,7 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp) except `DE
 | Shared Tasks | 3 | Yes |
 | Flashcard Set Sharing | 3 | Stretch |
 | Resume | 6 | Yes |
-| Applications | 7 | Yes |
+| Applications | 10 | Yes |
 | Messaging | 5 | Yes |
 | Activity Feed | 2 | Stretch |
 | Offline Sync | 1 | Stretch |
