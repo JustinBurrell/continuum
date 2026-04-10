@@ -1,5 +1,6 @@
 package com.continuum.android.feature.auth.data.repository
 
+import com.continuum.android.core.data.local.LogoutReason
 import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.auth.data.remote.AuthApiService
 import com.continuum.android.feature.auth.data.remote.dto.*
@@ -88,7 +89,7 @@ class AuthRepository @Inject constructor(
         } catch (_: Exception) {
             // Server revocation is best-effort; always clear local tokens
         }
-        tokenManager.clearTokens()
+        tokenManager.clearTokens(LogoutReason.USER_INITIATED)
     }
 
     fun isLoggedIn(): Boolean = tokenManager.getAccessToken() != null

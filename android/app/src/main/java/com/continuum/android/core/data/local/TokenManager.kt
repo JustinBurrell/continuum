@@ -5,9 +5,14 @@ import android.util.Base64
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
+
+enum class LogoutReason { USER_INITIATED, REMOTE_INVALIDATION }
 
 @Singleton
 class TokenManager @Inject constructor(@ApplicationContext context: Context) {
@@ -24,6 +29,9 @@ class TokenManager @Inject constructor(@ApplicationContext context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
+    private val _logoutEvent = MutableSharedFlow<LogoutReason>(extraBufferCapacity = 1)
+    val logoutEvent: SharedFlow<LogoutReason> = _logoutEvent.asSharedFlow()
+
     fun saveTokens(jwt: String, refreshToken: String) {
         prefs.edit()
             .putString(KEY_ACCESS_TOKEN, jwt)
@@ -35,11 +43,12 @@ class TokenManager @Inject constructor(@ApplicationContext context: Context) {
 
     fun getRefreshToken(): String? = prefs.getString(KEY_REFRESH_TOKEN, null)
 
-    fun clearTokens() {
+    fun clearTokens(reason: LogoutReason = LogoutReason.USER_INITIATED) {
         prefs.edit()
             .remove(KEY_ACCESS_TOKEN)
             .remove(KEY_REFRESH_TOKEN)
             .apply()
+        _logoutEvent.tryEmit(reason)
     }
 
     /** Decodes `userId` from the JWT access token payload (no signature verification). */

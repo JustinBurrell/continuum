@@ -10,6 +10,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -25,6 +28,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.continuum.android.core.data.local.LogoutReason
 import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.feature.auth.presentation.*
@@ -171,8 +175,22 @@ fun AppNavHost(
     onSensitiveScreenEntered: () -> Unit = {},
     onSensitiveScreenExited: () -> Unit = {}
 ) {
+    val tokenManager = LocalTokenManager.current
     val navProfileViewModel: NavProfileViewModel = hiltViewModel()
     val navProfile by navProfileViewModel.state.collectAsStateWithLifecycle()
+
+    var remoteLogoutMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        tokenManager.logoutEvent.collect { reason ->
+            if (reason == LogoutReason.REMOTE_INVALIDATION) {
+                remoteLogoutMessage = "Your session was ended from another device"
+            }
+            navController.navigate(NavRoutes.Auth.ROOT) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -225,6 +243,8 @@ fun AppNavHost(
                     navController = navController,
                     startDestination = startDestination,
                     onLogoClick = onLogoClick,
+                    remoteLogoutMessage = remoteLogoutMessage,
+                    onRemoteLogoutShown = { remoteLogoutMessage = null },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -248,6 +268,8 @@ fun AppNavHost(
                     navController = navController,
                     startDestination = startDestination,
                     onLogoClick = onLogoClick,
+                    remoteLogoutMessage = remoteLogoutMessage,
+                    onRemoteLogoutShown = { remoteLogoutMessage = null },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -264,6 +286,8 @@ private fun NavGraph(
     navController: NavHostController,
     startDestination: String,
     onLogoClick: () -> Unit,
+    remoteLogoutMessage: String? = null,
+    onRemoteLogoutShown: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -312,7 +336,9 @@ private fun NavGraph(
                     onNavigateToRegister = { navController.navigate(NavRoutes.Auth.REGISTER) },
                     onNavigateToForgotPassword = { navController.navigate(NavRoutes.Auth.FORGOT_PASSWORD) },
                     onNavigateToPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) },
-                    onNavigateToTerms = { navController.navigate(NavRoutes.Auth.TERMS) }
+                    onNavigateToTerms = { navController.navigate(NavRoutes.Auth.TERMS) },
+                    remoteLogoutMessage = remoteLogoutMessage,
+                    onRemoteLogoutShown = onRemoteLogoutShown
                 )
             }
             composable(route = NavRoutes.Auth.REGISTER) {

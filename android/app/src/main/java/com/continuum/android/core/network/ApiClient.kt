@@ -1,6 +1,7 @@
 package com.continuum.android.core.network
 
 import com.continuum.android.BuildConfig
+import com.continuum.android.core.data.local.LogoutReason
 import com.continuum.android.core.data.local.TokenManager
 import okhttp3.Authenticator
 import okhttp3.MediaType.Companion.toMediaType
@@ -91,11 +92,11 @@ class TokenAuthenticator @Inject constructor(
                         .header("X-Retry-After-Refresh", "true")
                         .build()
                 } else {
-                    tokenManager.clearTokens()
+                    tokenManager.clearTokens(LogoutReason.REMOTE_INVALIDATION)
                     null
                 }
             } catch (e: Exception) {
-                tokenManager.clearTokens()
+                tokenManager.clearTokens(LogoutReason.REMOTE_INVALIDATION)
                 null
             }
         }

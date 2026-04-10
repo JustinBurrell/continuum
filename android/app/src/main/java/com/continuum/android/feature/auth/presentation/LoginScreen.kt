@@ -38,11 +38,14 @@ fun LoginScreen(
     onNavigateToForgotPassword: () -> Unit,
     onNavigateToPrivacy: () -> Unit,
     onNavigateToTerms: () -> Unit,
+    remoteLogoutMessage: String? = null,
+    onRemoteLogoutShown: () -> Unit = {},
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -55,10 +58,21 @@ fun LoginScreen(
         }
     }
 
+    LaunchedEffect(remoteLogoutMessage) {
+        if (remoteLogoutMessage != null) {
+            snackbarHostState.showSnackbar(remoteLogoutMessage, duration = SnackbarDuration.Long)
+            onRemoteLogoutShown()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = PageBackground
+    ) { scaffoldPadding ->
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(PageBackground)
+            .padding(scaffoldPadding)
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 48.dp),
@@ -218,4 +232,5 @@ fun LoginScreen(
             }
         }
     }
+    } // Scaffold
 }
