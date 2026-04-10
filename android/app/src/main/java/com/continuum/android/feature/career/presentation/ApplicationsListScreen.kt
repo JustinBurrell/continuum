@@ -28,6 +28,7 @@ private val statusTabs = listOf("all", "draft", "applied", "interview", "offer",
 @Composable
 fun ApplicationsListScreen(
     onApplicationClick: (String) -> Unit,
+    onResumesClick: (() -> Unit)? = null,
     onLogoClick: (() -> Unit)? = null,
     viewModel: CareerViewModel = hiltViewModel()
 ) {
@@ -41,7 +42,16 @@ fun ApplicationsListScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            InlineScreenHeader(title = "Applications")
+            InlineScreenHeader(
+                title = "Applications",
+                trailing = {
+                    if (onResumesClick != null) {
+                        IconButton(onClick = onResumesClick) {
+                            Icon(Icons.Default.Description, contentDescription = "Resumes", tint = BrandPurple)
+                        }
+                    }
+                }
+            )
 
             OutlinedTextField(
                 value = state.searchQuery,

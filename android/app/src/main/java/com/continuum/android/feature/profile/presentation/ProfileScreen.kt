@@ -41,6 +41,8 @@ fun ProfileScreen(
     onFriends: () -> Unit = {},
     onMessages: () -> Unit = {},
     onActivity: () -> Unit = {},
+    onCalendar: () -> Unit = {},
+    onResumes: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -200,6 +202,10 @@ fun ProfileScreen(
                     ProfileRow(icon = Icons.Default.ChatBubbleOutline, label = "Messages", onClick = onMessages)
                     HorizontalDivider(color = Border)
                     ProfileRow(icon = Icons.Default.NotificationsNone, label = "Activity", onClick = onActivity)
+                    HorizontalDivider(color = Border)
+                    ProfileRow(icon = Icons.Default.CalendarMonth, label = "Calendar", onClick = onCalendar)
+                    HorizontalDivider(color = Border)
+                    ProfileRow(icon = Icons.Default.Description, label = "Resumes", onClick = onResumes)
                 }
             }
 

@@ -492,6 +492,7 @@ private fun NavGraph(
             composable(NavRoutes.Applications.LIST) {
                 ApplicationsListScreen(
                     onApplicationClick = { appId -> navController.navigate(NavRoutes.Career.applicationDetail(appId)) },
+                    onResumesClick = { navController.navigate(NavRoutes.Career.RESUMES_LIST) },
                     onLogoClick = onLogoClick
                 )
             }
@@ -611,7 +612,9 @@ private fun NavGraph(
                     },
                     onFriends = { navController.navigate(NavRoutes.Social.FRIENDS_LIST) },
                     onMessages = { navController.navigate(NavRoutes.Social.CONVERSATIONS) },
-                    onActivity = { navController.navigate(NavRoutes.Social.ACTIVITY_FEED) }
+                    onActivity = { navController.navigate(NavRoutes.Social.ACTIVITY_FEED) },
+                    onCalendar = { navController.navigate(NavRoutes.Calendar.ROOT) },
+                    onResumes = { navController.navigate(NavRoutes.Career.RESUMES_LIST) }
                 )
             }
             composable(NavRoutes.Profile.EDIT) {
