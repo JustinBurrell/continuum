@@ -58,6 +58,15 @@ data class MessagesResponseDto(
 data class SendMessageRequestDto(val content: String)
 
 @JsonClass(generateAdapter = true)
+data class StartConversationRequestDto(val participantId: String)
+
+@JsonClass(generateAdapter = true)
+data class StartConversationResponseDto(
+    val success: Boolean = false,
+    val conversation: ConversationJsonDto = ConversationJsonDto()
+)
+
+@JsonClass(generateAdapter = true)
 data class MessageResponseDto(
     val success: Boolean = false,
     val message: MessageJsonDto = MessageJsonDto()

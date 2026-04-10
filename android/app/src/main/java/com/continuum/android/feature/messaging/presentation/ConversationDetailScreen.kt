@@ -6,8 +6,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.messaging.domain.Message
@@ -25,19 +25,20 @@ fun ConversationDetailScreen(
     conversationId: String,
     participantName: String,
     onNavigateBack: () -> Unit,
-    tokenManager: TokenManager,
     viewModel: MessagingViewModel = hiltViewModel()
 ) {
     val state by viewModel.detailState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     var messageInput by remember { mutableStateOf("") }
+    var showSearch by remember { mutableStateOf(false) }
 
-    // TODO: get current user id from token/prefs — use placeholder for now
-    val currentUserId = remember { tokenManager.getAccessToken()?.take(8) ?: "me" }
+    val currentUserId = remember { viewModel.currentUserId }
 
-    LaunchedEffect(conversationId) { viewModel.loadMessages(conversationId) }
+    LaunchedEffect(conversationId) {
+        viewModel.setParticipantName(participantName)
+        viewModel.loadMessages(conversationId)
+    }
 
-    // Scroll to bottom when messages change
     LaunchedEffect(state.messages.size) {
         if (state.messages.isNotEmpty()) {
             listState.scrollToItem(state.messages.size - 1)
@@ -46,10 +47,35 @@ fun ConversationDetailScreen(
 
     Scaffold(
         topBar = {
-            MinimalTopBar(
-                title = participantName,
-                onNavigateBack = onNavigateBack
-            )
+            Column {
+                MinimalTopBar(
+                    title = participantName,
+                    onNavigateBack = onNavigateBack,
+                    actions = {
+                        IconButton(onClick = { showSearch = !showSearch }) {
+                            Icon(
+                                if (showSearch) Icons.Default.Close else Icons.Default.Search,
+                                contentDescription = "Search messages",
+                                tint = TextSecondary
+                            )
+                        }
+                    }
+                )
+                if (showSearch) {
+                    OutlinedTextField(
+                        value = state.searchQuery,
+                        onValueChange = viewModel::setMessageSearch,
+                        placeholder = { Text("Search in conversation…") },
+                        leadingIcon = { Icon(Icons.Default.Search, null, tint = TextMuted) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BrandPurple,
+                            cursorColor = BrandPurple
+                        )
+                    )
+                }
+            }
         },
         bottomBar = {
             Surface(shadowElevation = 8.dp) {
@@ -77,7 +103,7 @@ fun ConversationDetailScreen(
                         onClick = {
                             val content = messageInput.trim()
                             if (content.isNotBlank()) {
-                                viewModel.sendMessage(conversationId, content, currentUserId, "Me")
+                                viewModel.sendMessage(conversationId, content)
                                 messageInput = ""
                             }
                         },

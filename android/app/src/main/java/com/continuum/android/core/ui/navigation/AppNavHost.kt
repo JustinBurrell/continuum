@@ -659,12 +659,10 @@ private fun NavGraph(
                 arguments = listOf(navArgument("conversationId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
-                val tokenManager = LocalTokenManager.current
                 ConversationDetailScreen(
                     conversationId = conversationId,
                     participantName = "Conversation",
-                    onNavigateBack = { navController.popBackStack() },
-                    tokenManager = tokenManager
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
         }

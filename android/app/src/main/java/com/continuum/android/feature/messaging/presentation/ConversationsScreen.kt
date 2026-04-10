@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -40,6 +39,19 @@ fun ConversationsScreen(
         if (!isOnline) OfflineBanner()
         InlineScreenHeader(title = "Messages")
 
+        OutlinedTextField(
+            value = state.searchQuery,
+            onValueChange = viewModel::setConversationSearch,
+            placeholder = { Text("Search conversations…") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextMuted) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = BrandPurple,
+                cursorColor = BrandPurple
+            )
+        )
+
         PullToRefreshBox(
             isRefreshing = state.isLoading,
             onRefresh = { viewModel.loadConversations() },
@@ -55,8 +67,8 @@ fun ConversationsScreen(
                 state.conversations.isEmpty() -> {
                     EmptyState(
                         icon = Icons.Default.ChatBubbleOutline,
-                        headline = "No conversations yet",
-                        subtext = "Message a friend from their profile",
+                        headline = if (state.searchQuery.isNotBlank()) "No results" else "No conversations yet",
+                        subtext = if (state.searchQuery.isNotBlank()) "Try a different search" else "Message a friend from their profile",
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -69,7 +81,8 @@ fun ConversationsScreen(
                         items(state.conversations, key = { it.id }) { convo ->
                             ConversationCard(
                                 conversation = convo,
-                                onClick = { onConversationClick(convo.id) }
+                                onClick = { onConversationClick(convo.id) },
+                                onDelete = { viewModel.deleteConversation(convo.id) }
                             )
                         }
                     }
@@ -79,57 +92,74 @@ fun ConversationsScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ConversationCard(conversation: Conversation, onClick: () -> Unit) {
-    ContinuumCard(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AvatarInitials(
-                name = conversation.participantName,
-                modifier = Modifier.size(48.dp).clip(CircleShape)
-            )
+private fun ConversationCard(conversation: Conversation, onClick: () -> Unit, onDelete: () -> Unit) {
+    val swipeState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) { onDelete(); false } else false
+        }
+    )
 
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        conversation.participantName,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = TextPrimary
-                    )
-                    Text(
-                        conversation.lastMessageAt.take(10),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextMuted
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        conversation.lastMessage,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary,
-                        maxLines = 1,
-                        modifier = Modifier.weight(1f)
-                    )
-                    if (conversation.unreadCount > 0) {
-                        Badge(containerColor = BrandPurple, modifier = Modifier.padding(start = 8.dp)) {
-                            Text(
-                                "${conversation.unreadCount}",
-                                color = White,
-                                style = MaterialTheme.typography.labelSmall
-                            )
+    SwipeToDismissBox(
+        state = swipeState,
+        backgroundContent = {
+            Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
+                Icon(Icons.Default.Delete, null, tint = ErrorRed)
+            }
+        },
+        enableDismissFromStartToEnd = false
+    ) {
+        ContinuumCard(
+            modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AvatarInitials(
+                    name = conversation.participantName,
+                    modifier = Modifier.size(48.dp).clip(CircleShape)
+                )
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            conversation.participantName,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = TextPrimary
+                        )
+                        Text(
+                            conversation.lastMessageAt.take(10),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextMuted
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            conversation.lastMessage,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary,
+                            maxLines = 1,
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (conversation.unreadCount > 0) {
+                            Badge(containerColor = BrandPurple, modifier = Modifier.padding(start = 8.dp)) {
+                                Text(
+                                    "${conversation.unreadCount}",
+                                    color = White,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
                         }
                     }
                 }

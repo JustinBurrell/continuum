@@ -17,13 +17,25 @@ class MessagingRepository @Inject constructor(
     private fun meId(): String =
         tokenManager.getJwtUserId() ?: error("Not signed in")
 
-    suspend fun getConversations(): Result<List<Conversation>> = runCatching {
+    fun currentUserId(): String = meId()
+
+    suspend fun getConversations(search: String? = null): Result<List<Conversation>> = runCatching {
         val me = meId()
-        api.getConversations().conversations.map { it.toDomain(me) }
+        api.getConversations(search?.takeIf { it.isNotBlank() }).conversations.map { it.toDomain(me) }
     }
 
-    suspend fun getMessages(conversationId: String): Result<List<Message>> = runCatching {
-        api.getMessages(conversationId).messages.map { it.toDomain() }
+    suspend fun startConversation(participantId: String): Result<Conversation> = runCatching {
+        val me = meId()
+        api.startConversation(StartConversationRequestDto(participantId)).conversation.toDomain(me)
+    }
+
+    suspend fun deleteConversation(conversationId: String): Result<Unit> = runCatching {
+        api.deleteConversation(conversationId)
+        Unit
+    }
+
+    suspend fun getMessages(conversationId: String, search: String? = null): Result<List<Message>> = runCatching {
+        api.getMessages(conversationId, search?.takeIf { it.isNotBlank() }).messages.map { it.toDomain() }
     }
 
     suspend fun sendMessage(conversationId: String, content: String): Result<Message> = runCatching {
