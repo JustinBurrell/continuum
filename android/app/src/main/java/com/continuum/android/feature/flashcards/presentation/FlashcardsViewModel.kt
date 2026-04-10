@@ -2,6 +2,7 @@ package com.continuum.android.feature.flashcards.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.continuum.android.feature.flashcards.data.remote.dto.CardResultDto
 import com.continuum.android.feature.flashcards.data.repository.FlashcardsRepository
 import com.continuum.android.feature.flashcards.domain.Flashcard
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
@@ -28,7 +29,15 @@ data class StudyUiState(
     val correctCount: Int = 0,
     val incorrectCount: Int = 0,
     val isComplete: Boolean = false,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val cardResults: List<CardResultDto> = emptyList(),
+    val startTimeMs: Long = System.currentTimeMillis()
+)
+
+data class StudyHistoryUiState(
+    val sessions: List<FlashcardsRepository.StudySession> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
 )
 
 data class SetDetailUiState(
@@ -51,6 +60,9 @@ class FlashcardsViewModel @Inject constructor(
 
     private val _detailState = MutableStateFlow(SetDetailUiState())
     val detailState: StateFlow<SetDetailUiState> = _detailState.asStateFlow()
+
+    private val _historyState = MutableStateFlow(StudyHistoryUiState())
+    val historyState: StateFlow<StudyHistoryUiState> = _historyState.asStateFlow()
 
     private var searchJob: Job? = null
 
@@ -130,16 +142,31 @@ class FlashcardsViewModel @Inject constructor(
             repository.updateProgress(setId, card.id, correct)
         }
 
+        val newResults = state.cardResults + CardResultDto(card.id, correct)
         val nextIndex = state.currentIndex + 1
         val isComplete = nextIndex >= state.cards.size
+
+        val newCorrect = if (correct) state.correctCount + 1 else state.correctCount
+        val newIncorrect = if (!correct) state.incorrectCount + 1 else state.incorrectCount
+
         _studyState.update {
             it.copy(
                 currentIndex = if (isComplete) it.currentIndex else nextIndex,
                 isFlipped = false,
-                correctCount = if (correct) it.correctCount + 1 else it.correctCount,
-                incorrectCount = if (!correct) it.incorrectCount + 1 else it.incorrectCount,
-                isComplete = isComplete
+                correctCount = newCorrect,
+                incorrectCount = newIncorrect,
+                isComplete = isComplete,
+                cardResults = newResults
             )
+        }
+
+        if (isComplete) {
+            val totalCards = state.cards.size
+            val score = if (totalCards > 0) (newCorrect * 100) / totalCards else 0
+            val durationSeconds = ((System.currentTimeMillis() - state.startTimeMs) / 1000).toInt()
+            viewModelScope.launch {
+                repository.submitStudySession(setId, durationSeconds, totalCards, newCorrect, score, newResults)
+            }
         }
     }
 
@@ -194,6 +221,30 @@ class FlashcardsViewModel @Inject constructor(
         viewModelScope.launch {
             repository.deleteCard(setId, cardId)
                 .onSuccess { loadSetDetail(setId) }
+        }
+    }
+
+    fun loadStudyHistory() {
+        _historyState.update { it.copy(isLoading = true, error = null) }
+        viewModelScope.launch {
+            repository.getUserStudySessions()
+                .onSuccess { sessions -> _historyState.update { it.copy(sessions = sessions, isLoading = false) } }
+                .onFailure { e -> _historyState.update { it.copy(isLoading = false, error = e.message) } }
+        }
+    }
+
+    fun loadSetStudyHistory(setId: String) {
+        _historyState.update { it.copy(isLoading = true, error = null) }
+        viewModelScope.launch {
+            repository.getSetStudySessions(setId)
+                .onSuccess { sessions -> _historyState.update { it.copy(sessions = sessions, isLoading = false) } }
+                .onFailure { e -> _historyState.update { it.copy(isLoading = false, error = e.message) } }
+        }
+    }
+
+    fun duplicateSet(setId: String) {
+        viewModelScope.launch {
+            repository.duplicateSet(setId).onSuccess { loadSets() }
         }
     }
 }

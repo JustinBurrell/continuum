@@ -101,6 +101,56 @@ class FlashcardsRepository @Inject constructor(
         api.updateCardProgress(setId, cardId, CardProgressRequestDto(correct))
     }
 
+    suspend fun updateSet(setId: String, title: String?, description: String?, visibility: String?): Result<FlashcardSet> = runCatching {
+        val set = api.updateSet(setId, UpdateSetRequestDto(title, description, visibility)).set
+        setDao.insert(set.toEntity())
+        set.toDomain()
+    }
+
+    suspend fun shareSet(setId: String, userIds: List<String>): Result<FlashcardSet> = runCatching {
+        api.shareSet(setId, ShareSetRequestDto(userIds)).set.toDomain()
+    }
+
+    suspend fun duplicateSet(setId: String): Result<FlashcardSet> = runCatching {
+        val set = api.duplicateSet(setId).set
+        setDao.insert(set.toEntity())
+        set.toDomain()
+    }
+
+    data class StudySession(
+        val id: String,
+        val setId: String,
+        val completedAt: String,
+        val durationSeconds: Int,
+        val totalCards: Int,
+        val correctCount: Int,
+        val score: Int
+    )
+
+    suspend fun submitStudySession(
+        setId: String, durationSeconds: Int, totalCards: Int, correctCount: Int,
+        score: Int, cardResults: List<CardResultDto>
+    ): Result<StudySession> = runCatching {
+        val session = api.submitStudySession(
+            SubmitStudySessionRequestDto(setId, durationSeconds, totalCards, correctCount, score, cardResults)
+        ).session
+        session.toDomainSession()
+    }
+
+    suspend fun getUserStudySessions(): Result<List<StudySession>> = runCatching {
+        api.getUserStudySessions().sessions.map { it.toDomainSession() }
+    }
+
+    suspend fun getSetStudySessions(setId: String): Result<List<StudySession>> = runCatching {
+        api.getSetStudySessions(setId).sessions.map { it.toDomainSession() }
+    }
+
+    private fun StudySessionDto.toDomainSession() = StudySession(
+        id = id, setId = setId, completedAt = completedAt,
+        durationSeconds = durationSeconds, totalCards = totalCards,
+        correctCount = correctCount, score = score
+    )
+
     private fun FlashcardSetDto.toEntity() = FlashcardSetEntity(
         id = id,
         title = title,
