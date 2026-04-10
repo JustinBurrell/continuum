@@ -29,7 +29,6 @@ import java.util.*
 @Composable
 fun CalendarViewScreen(
     onNavigateBack: (() -> Unit)?,
-    onLogoClick: (() -> Unit)? = null,
     viewModel: TasksViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -53,10 +52,9 @@ fun CalendarViewScreen(
 
     Scaffold(
         topBar = {
-            PurpleTopAppBar(
+            MinimalTopBar(
                 title = "Calendar",
-                onNavigateBack = onNavigateBack,
-                onLogoClick = onLogoClick
+                onNavigateBack = onNavigateBack
             )
         }
     ) { innerPadding ->

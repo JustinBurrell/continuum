@@ -71,12 +71,12 @@ fun ResumeDetailScreen(
 
     Scaffold(
         topBar = {
-            PurpleTopAppBar(
+            MinimalTopBar(
                 title = resume?.fileName ?: "Resume",
                 onNavigateBack = onNavigateBack,
                 actions = {
                     TextButton(onClick = onGetFeedback) {
-                        Text("AI Feedback", color = androidx.compose.ui.graphics.Color.White)
+                        Text("AI Feedback", color = BrandPurple)
                     }
                 }
             )

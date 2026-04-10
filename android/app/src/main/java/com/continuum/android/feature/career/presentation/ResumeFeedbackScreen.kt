@@ -29,7 +29,7 @@ fun ResumeFeedbackScreen(
 
     Scaffold(
         topBar = {
-            PurpleTopAppBar(
+            MinimalTopBar(
                 title = "AI Feedback",
                 onNavigateBack = onNavigateBack
             )

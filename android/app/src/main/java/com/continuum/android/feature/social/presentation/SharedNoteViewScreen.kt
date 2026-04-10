@@ -41,7 +41,7 @@ fun SharedNoteViewScreen(
 
     Scaffold(
         topBar = {
-            PurpleTopAppBar(
+            MinimalTopBar(
                 title = state.note?.title ?: "Shared Note",
                 onNavigateBack = onNavigateBack
             )

@@ -73,7 +73,7 @@ fun EditProfileScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        PurpleTopAppBar(
+        MinimalTopBar(
             title = "Edit Profile",
             onNavigateBack = onNavigateBack
         )

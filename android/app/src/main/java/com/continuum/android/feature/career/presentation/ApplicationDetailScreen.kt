@@ -39,7 +39,7 @@ fun ApplicationDetailScreen(
 
     Scaffold(
         topBar = {
-            PurpleTopAppBar(
+            MinimalTopBar(
                 title = app?.company ?: "Application",
                 onNavigateBack = onNavigateBack
             )

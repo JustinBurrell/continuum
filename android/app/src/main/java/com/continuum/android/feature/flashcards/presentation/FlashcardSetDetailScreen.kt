@@ -39,12 +39,12 @@ fun FlashcardSetDetailScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
-                PurpleTopAppBar(
+                MinimalTopBar(
                     title = state.set?.title ?: "",
                     onNavigateBack = onNavigateBack,
                     actions = {
                         TextButton(onClick = onStudy) {
-                            Text("Study", color = androidx.compose.ui.graphics.Color.White)
+                            Text("Study", color = BrandPurple)
                         }
                     }
                 )

@@ -35,7 +35,7 @@ fun FriendsListScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            PurpleTopAppBar(title = "Friends", onNavigateBack = onNavigateBack)
+            MinimalTopBar(title = "Friends", onNavigateBack = onNavigateBack)
 
             TabRow(
                 selectedTabIndex = selectedTab,

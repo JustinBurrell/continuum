@@ -43,16 +43,16 @@ fun NoteDetailScreen(
 
     Scaffold(
         topBar = {
-            PurpleTopAppBar(
+            MinimalTopBar(
                 title = note?.title ?: "",
                 onNavigateBack = onNavigateBack,
                 actions = {
                     if (note != null) {
                         IconButton(onClick = { onEdit(noteId) }) {
-                            Icon(Icons.Default.Edit, "Edit", tint = androidx.compose.ui.graphics.Color.White)
+                            Icon(Icons.Default.Edit, "Edit", tint = TextPrimary)
                         }
                         IconButton(onClick = { /* share */ }) {
-                            Icon(Icons.Default.Share, "Share", tint = androidx.compose.ui.graphics.Color.White)
+                            Icon(Icons.Default.Share, "Share", tint = TextPrimary)
                         }
                     }
                 }

@@ -30,7 +30,7 @@ fun UserSearchScreen(
 
     Scaffold(
         topBar = {
-            PurpleTopAppBar(
+            MinimalTopBar(
                 title = "Find people",
                 onNavigateBack = onNavigateBack
             )

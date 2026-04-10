@@ -9,7 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.continuum.android.core.ui.components.PurpleTopAppBar
+import com.continuum.android.core.ui.components.MinimalTopBar
 import com.continuum.android.core.ui.theme.*
 
 /**
@@ -25,7 +25,7 @@ fun SettingsScreen(
     var showFriendActivity   by remember { mutableStateOf(true) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        PurpleTopAppBar(title = "Settings", onNavigateBack = onNavigateBack)
+        MinimalTopBar(title = "Settings", onNavigateBack = onNavigateBack)
 
         LazyColumn(
             contentPadding = PaddingValues(16.dp),

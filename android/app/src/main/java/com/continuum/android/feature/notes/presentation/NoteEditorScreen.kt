@@ -61,13 +61,13 @@ fun NoteEditorScreen(
 
     Scaffold(
         topBar = {
-            PurpleTopAppBar(
+            MinimalTopBar(
                 title = if (isCreating) "New Note" else "Edit Note",
                 onNavigateBack = onNavigateBack,
                 actions = {
                     if (detailState.isSaving) {
                         CircularProgressIndicator(
-                            color = androidx.compose.ui.graphics.Color.White,
+                            color = BrandPurple,
                             strokeWidth = 2.dp,
                             modifier = Modifier.size(20.dp).padding(end = 12.dp)
                         )
@@ -80,7 +80,7 @@ fun NoteEditorScreen(
                                     else -> Icons.Default.Lock
                                 },
                                 "Visibility",
-                                tint = androidx.compose.ui.graphics.Color.White
+                                tint = TextPrimary
                             )
                         }
                     }
@@ -90,7 +90,7 @@ fun NoteEditorScreen(
                                 viewModel.createNote(title, richTextState.toHtml(), tags, visibility) { onNavigateBack() }
                             }
                         }) {
-                            Text("Save", color = androidx.compose.ui.graphics.Color.White)
+                            Text("Save", color = BrandPurple)
                         }
                     }
                 }

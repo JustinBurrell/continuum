@@ -10,7 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import com.continuum.android.BuildConfig
-import com.continuum.android.core.ui.components.PurpleTopAppBar
+import com.continuum.android.core.ui.components.MinimalTopBar
 
 @Composable
 fun LegalDocumentScreen(
@@ -28,7 +28,7 @@ fun LegalDocumentScreen(
 
     Scaffold(
         topBar = {
-            PurpleTopAppBar(
+            MinimalTopBar(
                 title = title,
                 onNavigateBack = onNavigateBack
             )

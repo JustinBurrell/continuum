@@ -42,7 +42,7 @@ fun GoogleDriveImportScreen(
 
     Scaffold(
         topBar = {
-            PurpleTopAppBar(
+            MinimalTopBar(
                 title = "Import from Drive",
                 onNavigateBack = onNavigateBack
             )

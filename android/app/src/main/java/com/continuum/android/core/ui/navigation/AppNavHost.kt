@@ -483,8 +483,7 @@ private fun NavGraph(
         navigation(route = NavRoutes.Calendar.ROOT, startDestination = NavRoutes.Calendar.SCREEN) {
             composable(NavRoutes.Calendar.SCREEN) {
                 CalendarViewScreen(
-                    onNavigateBack = null,
-                    onLogoClick = onLogoClick
+                    onNavigateBack = null
                 )
             }
         }

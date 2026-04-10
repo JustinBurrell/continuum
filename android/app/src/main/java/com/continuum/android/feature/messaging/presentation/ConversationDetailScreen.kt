@@ -46,7 +46,7 @@ fun ConversationDetailScreen(
 
     Scaffold(
         topBar = {
-            PurpleTopAppBar(
+            MinimalTopBar(
                 title = participantName,
                 onNavigateBack = onNavigateBack
             )
