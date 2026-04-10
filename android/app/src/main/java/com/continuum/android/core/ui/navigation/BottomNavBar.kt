@@ -6,13 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Style
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -27,38 +24,40 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.continuum.android.R
 import com.continuum.android.core.ui.theme.BrandPurple
 import com.continuum.android.core.ui.theme.PurpleTint
 import com.continuum.android.core.ui.theme.TextMuted
 import com.continuum.android.core.ui.theme.White
 
-// ---------------------------------------------------------------------------
-// Nav item definitions
-// ---------------------------------------------------------------------------
+sealed class NavItem(val route: String, val contentDescription: String) {
+    data class IconItem(
+        val itemRoute: String,
+        val description: String,
+        val icon: ImageVector,
+    ) : NavItem(itemRoute, description)
 
-data class BottomNavItem(
-    val route: String,
-    val label: String,
-    val icon: ImageVector
+    data class LogoItem(
+        val itemRoute: String,
+    ) : NavItem(itemRoute, "Dashboard")
+
+    data class ProfileItem(
+        val itemRoute: String,
+    ) : NavItem(itemRoute, "Profile")
+}
+
+val bottomNavItems: List<NavItem> = listOf(
+    NavItem.IconItem(NavRoutes.Notes.ROOT, "Notes", Icons.AutoMirrored.Filled.MenuBook),
+    NavItem.IconItem(NavRoutes.Flashcards.ROOT, "Flashcards", Icons.Default.Style),
+    NavItem.LogoItem(NavRoutes.Dashboard.ROOT),
+    NavItem.IconItem(NavRoutes.Applications.ROOT, "Applications", Icons.Default.Work),
+    NavItem.ProfileItem(NavRoutes.Profile.ROOT),
 )
-
-val bottomNavItems = listOf(
-    BottomNavItem(NavRoutes.Notes.ROOT, "Notes", Icons.Default.MenuBook),
-    BottomNavItem(NavRoutes.Flashcards.ROOT, "Flashcards", Icons.Default.Style),
-    BottomNavItem(NavRoutes.Tasks.ROOT, "Tasks", Icons.Default.CheckCircle),
-    BottomNavItem(NavRoutes.Profile.ROOT, "Profile", Icons.Default.Person),
-    BottomNavItem(NavRoutes.Calendar.ROOT, "Calendar", Icons.Default.CalendarMonth),
-    BottomNavItem(NavRoutes.Applications.ROOT, "Applications", Icons.Default.Work),
-    BottomNavItem(NavRoutes.Resumes.ROOT, "Resumes", Icons.Outlined.Description)
-)
-
-// ---------------------------------------------------------------------------
-// Bottom navigation bar (compact + medium screens)
-// ---------------------------------------------------------------------------
 
 @Composable
 fun ContinuumBottomBar(
@@ -68,7 +67,7 @@ fun ContinuumBottomBar(
     profileDisplayName: String = "Profile"
 ) {
     NavigationBar(
-        containerColor = Color.White,
+        containerColor = White,
         tonalElevation = 0.dp
     ) {
         bottomNavItems.forEach { item ->
@@ -85,30 +84,34 @@ fun ContinuumBottomBar(
                     }
                 },
                 icon = {
-                    if (item.route == NavRoutes.Profile.ROOT) {
-                        ProfileNavIcon(
+                    when (item) {
+                        is NavItem.IconItem -> Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.contentDescription,
+                        )
+                        is NavItem.LogoItem -> Icon(
+                            painter = painterResource(R.drawable.ic_logo_symbol),
+                            contentDescription = "Dashboard",
+                            tint = if (selected) BrandPurple else TextMuted,
+                            modifier = Modifier.size(28.dp),
+                        )
+                        is NavItem.ProfileItem -> ProfileNavIcon(
                             selected = selected,
                             avatarUrl = profileAvatarUrl,
-                            displayName = profileDisplayName
+                            displayName = profileDisplayName,
                         )
-                    } else {
-                        Icon(imageVector = item.icon, contentDescription = item.label)
                     }
                 },
                 alwaysShowLabel = false,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = BrandPurple,
                     unselectedIconColor = TextMuted,
-                    indicatorColor = Color.Transparent
-                )
+                    indicatorColor = Color.Transparent,
+                ),
             )
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Navigation rail (expanded screens — tablets, landscape)
-// ---------------------------------------------------------------------------
 
 @Composable
 fun ContinuumNavigationRail(
@@ -117,9 +120,7 @@ fun ContinuumNavigationRail(
     profileAvatarUrl: String? = null,
     profileDisplayName: String = "Profile"
 ) {
-    NavigationRail(
-        containerColor = Color.White
-    ) {
+    NavigationRail(containerColor = White) {
         bottomNavItems.forEach { item ->
             val selected = isSelectedRoute(currentRoute, item.route)
             NavigationRailItem(
@@ -134,22 +135,30 @@ fun ContinuumNavigationRail(
                     }
                 },
                 icon = {
-                    if (item.route == NavRoutes.Profile.ROOT) {
-                        ProfileNavIcon(
+                    when (item) {
+                        is NavItem.IconItem -> Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.contentDescription,
+                        )
+                        is NavItem.LogoItem -> Icon(
+                            painter = painterResource(R.drawable.ic_logo_symbol),
+                            contentDescription = "Dashboard",
+                            tint = if (selected) BrandPurple else TextMuted,
+                            modifier = Modifier.size(28.dp),
+                        )
+                        is NavItem.ProfileItem -> ProfileNavIcon(
                             selected = selected,
                             avatarUrl = profileAvatarUrl,
-                            displayName = profileDisplayName
+                            displayName = profileDisplayName,
                         )
-                    } else {
-                        Icon(imageVector = item.icon, contentDescription = item.label)
                     }
                 },
                 alwaysShowLabel = false,
                 colors = NavigationRailItemDefaults.colors(
                     selectedIconColor = BrandPurple,
                     unselectedIconColor = TextMuted,
-                    indicatorColor = Color.Transparent
-                )
+                    indicatorColor = Color.Transparent,
+                ),
             )
         }
     }
@@ -158,12 +167,10 @@ fun ContinuumNavigationRail(
 private fun isSelectedRoute(currentRoute: String?, itemRoute: String): Boolean {
     if (currentRoute == null) return false
     return when (itemRoute) {
+        NavRoutes.Dashboard.ROOT -> currentRoute.startsWith(NavRoutes.Dashboard.ROOT)
         NavRoutes.Applications.ROOT ->
             currentRoute.startsWith(NavRoutes.Applications.ROOT) ||
                 currentRoute.startsWith("career/applications")
-        NavRoutes.Resumes.ROOT ->
-            currentRoute.startsWith(NavRoutes.Resumes.ROOT) ||
-                currentRoute.startsWith("career/resumes")
         else -> currentRoute.startsWith(itemRoute)
     }
 }
@@ -182,10 +189,10 @@ private fun ProfileNavIcon(
             .border(
                 width = if (selected) 2.dp else 0.dp,
                 color = if (selected) BrandPurple else Color.Transparent,
-                shape = CircleShape
+                shape = CircleShape,
             )
             .background(if (selected) White else PurpleTint),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         if (!avatarUrl.isNullOrBlank()) {
             AsyncImage(
@@ -194,13 +201,13 @@ private fun ProfileNavIcon(
                 modifier = Modifier
                     .size(iconSize - 2.dp)
                     .clip(CircleShape),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
             )
         } else {
             Icon(
                 imageVector = Icons.Default.Person,
                 contentDescription = displayName,
-                tint = if (selected) BrandPurple else TextMuted
+                tint = if (selected) BrandPurple else TextMuted,
             )
         }
     }

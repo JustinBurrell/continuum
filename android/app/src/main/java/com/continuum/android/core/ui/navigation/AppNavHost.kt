@@ -189,7 +189,6 @@ fun AppNavHost(
         currentRoute.startsWith(NavRoutes.Tasks.ROOT) ||
         currentRoute.startsWith(NavRoutes.Calendar.ROOT) ||
         currentRoute.startsWith(NavRoutes.Applications.ROOT) ||
-        currentRoute.startsWith(NavRoutes.Resumes.ROOT) ||
         currentRoute.startsWith(NavRoutes.Career.ROOT) ||
         currentRoute.startsWith(NavRoutes.Social.ROOT) ||
         currentRoute.startsWith(NavRoutes.Profile.ROOT)
