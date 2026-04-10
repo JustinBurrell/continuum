@@ -13,15 +13,27 @@ data class ApplicationDto(
     val jobUrl: String? = null,
     val notes: String = "",
     val contacts: List<ContactDto> = emptyList(),
+    val followUpReminders: List<ReminderDto> = emptyList(),
+    val location: String? = null,
+    val salary: String? = null,
     val updatedAt: String = ""
 )
 
 @JsonClass(generateAdapter = true)
 data class ContactDto(
+    @Json(name = "_id") val id: String = "",
     val name: String = "",
     val role: String = "",
     val email: String? = null,
     val linkedIn: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class ReminderDto(
+    @Json(name = "_id") val id: String = "",
+    val date: String? = null,
+    val description: String = "",
+    val completed: Boolean = false
 )
 
 @JsonClass(generateAdapter = true)
@@ -125,4 +137,18 @@ data class ApplicationsDashboardResponseDto(
     val success: Boolean = false,
     val total: Int = 0,
     val pipeline: ApplicationsPipelineDto = ApplicationsPipelineDto()
+)
+
+@JsonClass(generateAdapter = true)
+data class AddContactRequestDto(
+    val name: String,
+    val role: String? = null,
+    val email: String? = null,
+    val linkedIn: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class AddReminderRequestDto(
+    val date: String,
+    val description: String
 )

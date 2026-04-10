@@ -218,6 +218,47 @@ exports.addReminder = async (req, res) => {
 };
 
 // ----------------------------------------
+// GET /api/applications/:id
+// ----------------------------------------
+exports.getApplicationById = async (req, res) => {
+    const application = await Application.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!application) {
+        return res.status(404).json({ success: false, error: 'Application not found' });
+    }
+    res.status(200).json({ success: true, application });
+};
+
+// ----------------------------------------
+// DELETE /api/applications/:id/contacts/:contactId
+// ----------------------------------------
+exports.deleteContact = async (req, res) => {
+    const application = await Application.findOneAndUpdate(
+        { _id: req.params.id, userId: req.user._id },
+        { $pull: { contacts: { _id: req.params.contactId } } },
+        { new: true }
+    );
+    if (!application) {
+        return res.status(404).json({ success: false, error: 'Application not found' });
+    }
+    res.status(200).json({ success: true, application });
+};
+
+// ----------------------------------------
+// DELETE /api/applications/:id/reminders/:reminderId
+// ----------------------------------------
+exports.deleteReminder = async (req, res) => {
+    const application = await Application.findOneAndUpdate(
+        { _id: req.params.id, userId: req.user._id },
+        { $pull: { followUpReminders: { _id: req.params.reminderId } } },
+        { new: true }
+    );
+    if (!application) {
+        return res.status(404).json({ success: false, error: 'Application not found' });
+    }
+    res.status(200).json({ success: true, application });
+};
+
+// ----------------------------------------
 // DELETE /api/applications/:id
 // Purpose: Permanently delete an application (owner only, hard delete)
 // ----------------------------------------
