@@ -374,6 +374,7 @@ private fun NavGraph(
                     },
                     onActivityClick = { navController.navigate(NavRoutes.Social.ACTIVITY_FEED) },
                     onMessagesClick = { navController.navigate(NavRoutes.Social.CONVERSATIONS) },
+                    onCalendarClick = { navController.navigate(NavRoutes.Calendar.ROOT) },
                     onNoteClick = { noteId -> navController.navigate(NavRoutes.Notes.detail(noteId)) },
                     onFlashcardSetClick = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) },
                     onApplicationClick = { appId -> navController.navigate(NavRoutes.Career.applicationDetail(appId)) },

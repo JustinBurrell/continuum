@@ -40,6 +40,7 @@ fun DashboardScreen(
     onApplicationsClick: () -> Unit,
     onActivityClick: () -> Unit,
     onMessagesClick: () -> Unit,
+    onCalendarClick: () -> Unit = {},
     onNoteClick: (String) -> Unit,
     onFlashcardSetClick: (String) -> Unit,
     onApplicationClick: (String) -> Unit,
@@ -54,34 +55,10 @@ fun DashboardScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         if (!isOnline) OfflineBanner()
 
-        // Top app bar — wordmark centered, logo icon does nothing (already on Dashboard)
-        PurpleTopAppBar(
-            titleContent = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_logo_wordmark),
-                    contentDescription = "Continuum",
-                    tint = White,
-                    modifier = Modifier
-                        .width(132.dp)
-                        .height(26.dp)
-                )
-            },
-            actions = {
-                IconButton(onClick = onActivityClick) {
-                    Icon(
-                        imageVector = Icons.Default.NotificationsNone,
-                        contentDescription = "Activity",
-                        tint = White
-                    )
-                }
-                IconButton(onClick = onMessagesClick) {
-                    Icon(
-                        imageVector = Icons.Default.ChatBubbleOutline,
-                        contentDescription = "Messages",
-                        tint = White
-                    )
-                }
-            }
+        ContinuumTopHeader(
+            onCalendarClick = onCalendarClick,
+            onActivityClick = onActivityClick,
+            onMessagesClick = onMessagesClick,
         )
 
         SwipeRefresh(
@@ -290,6 +267,7 @@ private fun StatTile(
     modifier: Modifier = Modifier
 ) {
     ContinuumCard(
+        style = CardStyle.Elevated,
         modifier = modifier
             .width(112.dp)
             .clickable(onClick = onClick)
@@ -486,7 +464,7 @@ private fun ApplicationRow(application: Application, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            StatusBadge(statusString = application.status.replaceFirstChar { it.uppercase() })
+            StatusBadge(statusString = application.status)
         }
     }
 }
