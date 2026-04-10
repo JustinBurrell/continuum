@@ -3,6 +3,7 @@ package com.continuum.android.feature.social.domain
 data class ActivityItem(
     val id: String,
     val type: String,
+    val actorId: String?,
     val actorName: String,
     val actorAvatar: String?,
     val resourceId: String?,
@@ -23,6 +24,7 @@ data class ActivityItem(
 
 data class Friend(
     val id: String,
+    val userId: String,
     val firstName: String,
     val lastName: String,
     val username: String?,
@@ -60,6 +62,7 @@ data class UserSearchResult(
 
 data class Comment(
     val id: String,
+    val authorId: String?,
     val authorName: String,
     val authorAvatar: String?,
     val content: String,
@@ -74,3 +77,22 @@ data class SharedNote(
     val content: String,
     val comments: List<Comment>
 )
+
+data class UserProfile(
+    val id: String,
+    val firstName: String,
+    val lastName: String,
+    val username: String?,
+    val avatarUrl: String?,
+    val bio: String?,
+    val friendStatus: String,
+    val notesCount: Int,
+    val setsCount: Int,
+    val streak: Int
+) {
+    val fullName: String get() = "$firstName $lastName".trim()
+    val initials: String get() = buildString {
+        firstName.firstOrNull()?.let { append(it.uppercaseChar()) }
+        lastName.firstOrNull()?.let { append(it.uppercaseChar()) }
+    }
+}

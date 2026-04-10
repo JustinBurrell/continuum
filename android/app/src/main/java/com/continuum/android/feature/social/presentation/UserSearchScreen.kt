@@ -1,5 +1,6 @@
 package com.continuum.android.feature.social.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,6 +24,7 @@ import com.continuum.android.feature.social.domain.UserSearchResult
 @Composable
 fun UserSearchScreen(
     onNavigateBack: () -> Unit,
+    onUserClick: (String) -> Unit = {},
     viewModel: SocialViewModel = hiltViewModel()
 ) {
     val state by viewModel.searchState.collectAsStateWithLifecycle()
@@ -83,7 +85,11 @@ fun UserSearchScreen(
                 else -> {
                     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         items(state.results, key = { it.id }) { user ->
-                            UserSearchCard(user = user, onAddFriend = { viewModel.sendFriendRequest(user.id) })
+                            UserSearchCard(
+                                user = user,
+                                onAddFriend = { viewModel.sendFriendRequest(user.id) },
+                                onClick = { onUserClick(user.id) }
+                            )
                         }
                     }
                 }
@@ -93,8 +99,8 @@ fun UserSearchScreen(
 }
 
 @Composable
-private fun UserSearchCard(user: UserSearchResult, onAddFriend: () -> Unit) {
-    ContinuumCard(modifier = Modifier.fillMaxWidth()) {
+private fun UserSearchCard(user: UserSearchResult, onAddFriend: () -> Unit, onClick: () -> Unit) {
+    ContinuumCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,

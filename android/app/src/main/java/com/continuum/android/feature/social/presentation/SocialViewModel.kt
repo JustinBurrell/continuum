@@ -38,6 +38,12 @@ data class SharedNoteUiState(
     val isSendingComment: Boolean = false
 )
 
+data class UserProfileUiState(
+    val user: UserProfile? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
 @HiltViewModel
 class SocialViewModel @Inject constructor(
     private val repository: SocialRepository
@@ -54,6 +60,9 @@ class SocialViewModel @Inject constructor(
 
     private val _sharedNoteState = MutableStateFlow(SharedNoteUiState())
     val sharedNoteState: StateFlow<SharedNoteUiState> = _sharedNoteState.asStateFlow()
+
+    private val _userProfileState = MutableStateFlow(UserProfileUiState())
+    val userProfileState: StateFlow<UserProfileUiState> = _userProfileState.asStateFlow()
 
     private var searchJob: Job? = null
     private var activitySearchJob: Job? = null
@@ -193,6 +202,23 @@ class SocialViewModel @Inject constructor(
     fun likeComment(noteId: String, commentId: String) {
         viewModelScope.launch {
             repository.likeComment(commentId)
+        }
+    }
+
+    fun loadUserProfile(userId: String) {
+        _userProfileState.update { it.copy(isLoading = true, error = null) }
+        viewModelScope.launch {
+            repository.getUserProfile(userId)
+                .onSuccess { user -> _userProfileState.update { it.copy(user = user, isLoading = false) } }
+                .onFailure { e -> _userProfileState.update { it.copy(isLoading = false, error = e.message) } }
+        }
+    }
+
+    fun sendFriendRequestFromProfile(userId: String) {
+        viewModelScope.launch {
+            repository.sendFriendRequest(userId).onSuccess {
+                _userProfileState.update { it.copy(user = it.user?.copy(friendStatus = "pending")) }
+            }
         }
     }
 }

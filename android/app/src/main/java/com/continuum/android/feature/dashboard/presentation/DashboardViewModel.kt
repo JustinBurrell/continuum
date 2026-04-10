@@ -134,6 +134,7 @@ class DashboardViewModel @Inject constructor(
                     ActivityItem(
                         id = dto.id,
                         type = dto.type,
+                        actorId = dto.userId?.id,
                         actorName = actorName,
                         actorAvatar = dto.userId?.avatarUrl,
                         resourceId = dto.targetId,

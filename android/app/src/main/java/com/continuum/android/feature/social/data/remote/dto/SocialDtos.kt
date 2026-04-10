@@ -81,6 +81,7 @@ data class UserSnapshotDto(
 @JsonClass(generateAdapter = true)
 data class CommentJsonDto(
     @Json(name = "_id") val id: String = "",
+    val userId: String? = null,
     val content: String = "",
     val userSnapshot: UserSnapshotDto? = null,
     val likes: List<String> = emptyList(),
@@ -107,3 +108,25 @@ data class SendFriendRequestDto(val recipientId: String)
 
 @JsonClass(generateAdapter = true)
 data class FriendRequestActionDto(val action: String)
+
+@JsonClass(generateAdapter = true)
+data class UserProfileDto(
+    @Json(name = "_id") val id: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
+    val username: String? = null,
+    @Json(name = "avatarUrl") val avatarUrl: String? = null,
+    val bio: String? = null,
+    val linkedinUrl: String? = null,
+    val instagramHandle: String? = null,
+    val friendStatus: String = "none",
+    val notesCount: Int = 0,
+    val setsCount: Int = 0,
+    val streak: Int = 0
+)
+
+@JsonClass(generateAdapter = true)
+data class UserProfileResponseDto(
+    val success: Boolean = false,
+    val user: UserProfileDto = UserProfileDto()
+)

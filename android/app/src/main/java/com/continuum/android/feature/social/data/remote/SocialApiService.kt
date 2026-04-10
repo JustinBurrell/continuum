@@ -38,6 +38,9 @@ interface SocialApiService {
     @GET("users/search")
     suspend fun searchUsers(@Query("q") query: String): UserSearchResponseDto
 
+    @GET("users/{userId}")
+    suspend fun getUserProfile(@Path("userId") userId: String): UserProfileResponseDto
+
     @GET("comments/{targetType}/{targetId}")
     suspend fun getComments(
         @Path("targetType") targetType: String,

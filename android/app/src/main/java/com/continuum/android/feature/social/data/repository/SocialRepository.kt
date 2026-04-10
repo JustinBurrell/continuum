@@ -107,6 +107,16 @@ class SocialRepository @Inject constructor(
         Unit
     }
 
+    suspend fun getUserProfile(userId: String): Result<UserProfile> = runCatching {
+        val dto = api.getUserProfile(userId).user
+        UserProfile(
+            id = dto.id, firstName = dto.firstName, lastName = dto.lastName,
+            username = dto.username, avatarUrl = dto.avatarUrl, bio = dto.bio,
+            friendStatus = dto.friendStatus, notesCount = dto.notesCount,
+            setsCount = dto.setsCount, streak = dto.streak
+        )
+    }
+
     private fun ActivityFeedItemDto.toDomain(): ActivityItem {
         val u = userId
         val actorName = when {
@@ -119,6 +129,7 @@ class SocialRepository @Inject constructor(
         return ActivityItem(
             id = id,
             type = type,
+            actorId = u?.id,
             actorName = actorName,
             actorAvatar = u?.avatarUrl,
             resourceId = targetId,
@@ -133,6 +144,7 @@ class SocialRepository @Inject constructor(
         val other = if (a.id == meId) b else a
         return Friend(
             id = id,
+            userId = other.id,
             firstName = other.firstName,
             lastName = other.lastName,
             username = other.username,
@@ -184,6 +196,7 @@ class SocialRepository @Inject constructor(
 
     private fun SocialUserSummaryDto.toFriend() = Friend(
         id = id,
+        userId = id,
         firstName = firstName,
         lastName = lastName,
         username = username,
@@ -212,6 +225,7 @@ class SocialRepository @Inject constructor(
         }
         return Comment(
             id = id,
+            authorId = userId,
             authorName = authorName,
             authorAvatar = snap?.avatarUrl,
             content = content,

@@ -1,5 +1,6 @@
 package com.continuum.android.feature.social.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,6 +26,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 @Composable
 fun FriendsListScreen(
     onUserSearch: () -> Unit,
+    onUserClick: (String) -> Unit = {},
     onNavigateBack: (() -> Unit)? = null,
     viewModel: SocialViewModel = hiltViewModel()
 ) {
@@ -93,7 +95,8 @@ fun FriendsListScreen(
                                 items(state.friends, key = { it.id }) { friend ->
                                     FriendCard(
                                         friend = friend,
-                                        onRemove = { friendToRemove = friend }
+                                        onRemove = { friendToRemove = friend },
+                                        onClick = { onUserClick(friend.userId) }
                                     )
                                 }
                             }
@@ -176,7 +179,7 @@ fun FriendsListScreen(
 }
 
 @Composable
-private fun FriendCard(friend: Friend, onRemove: () -> Unit) {
+private fun FriendCard(friend: Friend, onRemove: () -> Unit, onClick: () -> Unit) {
     val swipeToDismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) { onRemove(); false } else false
@@ -192,7 +195,7 @@ private fun FriendCard(friend: Friend, onRemove: () -> Unit) {
         },
         enableDismissFromStartToEnd = false
     ) {
-        ContinuumCard(modifier = Modifier.fillMaxWidth()) {
+        ContinuumCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),

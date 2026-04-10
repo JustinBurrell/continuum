@@ -27,6 +27,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 @Composable
 fun ActivityFeedScreen(
     onSharedNoteClick: (String) -> Unit,
+    onUserClick: (String) -> Unit = {},
     networkMonitor: NetworkMonitor,
     onLogoClick: (() -> Unit)? = null,
     onNavigateBack: (() -> Unit)? = null,
@@ -102,7 +103,8 @@ fun ActivityFeedScreen(
                                     if (item.type == "note_shared" && item.resourceId != null) {
                                         onSharedNoteClick(item.resourceId)
                                     }
-                                }
+                                },
+                                onUserClick = { item.actorId?.let(onUserClick) }
                             )
                         }
                     }
@@ -113,7 +115,7 @@ fun ActivityFeedScreen(
 }
 
 @Composable
-private fun ActivityCard(item: ActivityItem, onClick: () -> Unit) {
+private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: () -> Unit) {
     val isClickable = item.type == "note_shared" && item.resourceId != null
 
     ContinuumCard(
@@ -128,7 +130,10 @@ private fun ActivityCard(item: ActivityItem, onClick: () -> Unit) {
         ) {
             AvatarInitials(
                 name = item.actorName,
-                modifier = Modifier.size(40.dp).clip(CircleShape)
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onUserClick)
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(item.displayText, style = MaterialTheme.typography.bodyMedium, color = TextPrimary)

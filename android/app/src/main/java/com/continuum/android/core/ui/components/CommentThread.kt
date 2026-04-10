@@ -1,5 +1,6 @@
 package com.continuum.android.core.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -20,6 +21,7 @@ fun CommentThread(
     onAddComment: (content: String, parentId: String?) -> Unit,
     onLikeComment: (commentId: String) -> Unit,
     onDeleteComment: ((commentId: String) -> Unit)? = null,
+    onUserClick: ((userId: String) -> Unit)? = null,
     isSending: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -40,6 +42,7 @@ fun CommentThread(
                 onLike = { onLikeComment(comment.id) },
                 onReply = { replyingTo = comment.id },
                 onDelete = onDeleteComment?.let { { it(comment.id) } },
+                onUserClick = onUserClick?.let { nav -> comment.authorId?.let { { nav(it) } } },
                 depth = 0
             )
             comment.replies.forEach { reply ->
@@ -48,6 +51,7 @@ fun CommentThread(
                     onLike = { onLikeComment(reply.id) },
                     onReply = null,
                     onDelete = onDeleteComment?.let { { it(reply.id) } },
+                    onUserClick = onUserClick?.let { nav -> reply.authorId?.let { { nav(it) } } },
                     depth = 1
                 )
             }
@@ -110,6 +114,7 @@ private fun CommentItem(
     onLike: () -> Unit,
     onReply: (() -> Unit)?,
     onDelete: (() -> Unit)?,
+    onUserClick: (() -> Unit)?,
     depth: Int
 ) {
     Row(
@@ -120,11 +125,18 @@ private fun CommentItem(
     ) {
         AvatarInitials(
             name = comment.authorName,
-            size = if (depth == 0) 32.dp else 24.dp
+            size = if (depth == 0) 32.dp else 24.dp,
+            modifier = if (onUserClick != null) Modifier.clickable(onClick = onUserClick) else Modifier
         )
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(comment.authorName, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                Text(
+                    comment.authorName,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (onUserClick != null) BrandPurple else TextPrimary,
+                    modifier = if (onUserClick != null) Modifier.clickable(onClick = onUserClick) else Modifier
+                )
                 Spacer(Modifier.width(Spacing.sm))
                 Text(comment.createdAt.take(10), style = MaterialTheme.typography.labelSmall, color = TextMuted)
             }

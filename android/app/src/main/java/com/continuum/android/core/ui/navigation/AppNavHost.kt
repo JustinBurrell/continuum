@@ -124,10 +124,12 @@ object NavRoutes {
         const val ACTIVITY_FEED = "social/activity"
         const val FRIENDS_LIST = "social/friends"
         const val USER_SEARCH = "social/search"
+        const val USER_PROFILE = "social/user/{userId}"
         const val SHARED_NOTE = "social/shared-note/{noteId}"
         const val CONVERSATIONS = "social/conversations"
         const val CONVERSATION_DETAIL = "social/conversations/{conversationId}"
 
+        fun userProfile(userId: String) = "social/user/$userId"
         fun sharedNote(noteId: String) = "social/shared-note/$noteId"
         fun conversationDetail(conversationId: String) = "social/conversations/$conversationId"
     }
@@ -608,15 +610,32 @@ private fun NavGraph(
                 val networkMonitor = LocalNetworkMonitor.current
                 ActivityFeedScreen(
                     onSharedNoteClick = { noteId -> navController.navigate(NavRoutes.Social.sharedNote(noteId)) },
+                    onUserClick = { userId -> navController.navigate(NavRoutes.Social.userProfile(userId)) },
                     networkMonitor = networkMonitor,
                     onLogoClick = onLogoClick
                 )
             }
             composable(NavRoutes.Social.FRIENDS_LIST) {
-                FriendsListScreen(onUserSearch = { navController.navigate(NavRoutes.Social.USER_SEARCH) })
+                FriendsListScreen(
+                    onUserSearch = { navController.navigate(NavRoutes.Social.USER_SEARCH) },
+                    onUserClick = { userId -> navController.navigate(NavRoutes.Social.userProfile(userId)) }
+                )
             }
             composable(NavRoutes.Social.USER_SEARCH) {
-                UserSearchScreen(onNavigateBack = { navController.popBackStack() })
+                UserSearchScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onUserClick = { userId -> navController.navigate(NavRoutes.Social.userProfile(userId)) }
+                )
+            }
+            composable(
+                route = NavRoutes.Social.USER_PROFILE,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
+                UserProfileScreen(
+                    userId = userId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
             composable(
                 route = NavRoutes.Social.SHARED_NOTE,
