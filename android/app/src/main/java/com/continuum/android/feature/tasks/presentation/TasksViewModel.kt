@@ -20,6 +20,12 @@ data class TasksUiState(
     val error: String? = null
 )
 
+data class TaskDetailUiState(
+    val task: Task? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
 @HiltViewModel
 class TasksViewModel @Inject constructor(
     private val repository: TasksRepository
@@ -27,6 +33,9 @@ class TasksViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(TasksUiState())
     val state: StateFlow<TasksUiState> = _state.asStateFlow()
+
+    private val _taskDetailState = MutableStateFlow(TaskDetailUiState())
+    val taskDetailState: StateFlow<TaskDetailUiState> = _taskDetailState.asStateFlow()
 
     private var searchJob: Job? = null
 
@@ -98,6 +107,27 @@ class TasksViewModel @Inject constructor(
             }
             result
                 .onSuccess { task ->
+                    _state.update { state ->
+                        state.copy(tasks = state.tasks.map { if (it.id == taskId) task else it })
+                    }
+                }
+        }
+    }
+
+    fun loadTaskDetail(taskId: String) {
+        _taskDetailState.update { it.copy(isLoading = true, error = null) }
+        viewModelScope.launch {
+            repository.getTask(taskId)
+                .onSuccess { task -> _taskDetailState.update { it.copy(task = task, isLoading = false) } }
+                .onFailure { e -> _taskDetailState.update { it.copy(isLoading = false, error = e.message) } }
+        }
+    }
+
+    fun updateTaskStatus(taskId: String, status: String) {
+        viewModelScope.launch {
+            repository.updateStatus(taskId, status)
+                .onSuccess { task ->
+                    _taskDetailState.update { it.copy(task = task) }
                     _state.update { state ->
                         state.copy(tasks = state.tasks.map { if (it.id == taskId) task else it })
                     }

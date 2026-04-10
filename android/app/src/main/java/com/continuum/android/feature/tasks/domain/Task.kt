@@ -1,5 +1,11 @@
 package com.continuum.android.feature.tasks.domain
 
+data class TaskParticipant(
+    val userId: String,
+    val status: String,
+    val completedAt: String? = null
+)
+
 data class Task(
     val id: String,
     val title: String,
@@ -9,7 +15,13 @@ data class Task(
     val type: String?,
     val dueDate: String?,
     val duration: Int?,
+    val reminderMinutes: Int? = 30,
+    val noteId: String? = null,
     val isShared: Boolean,
+    val participants: List<TaskParticipant> = emptyList(),
+    val recurrenceFrequency: String? = "none",
+    val completedAt: String? = null,
+    val createdAt: String? = null,
     val updatedAt: String
 ) {
     val isOverdue: Boolean
@@ -21,5 +33,5 @@ data class Task(
         } catch (_: Exception) { false }
 
     val dueDateShort: String?
-        get() = dueDate?.take(10) // "yyyy-MM-dd"
+        get() = dueDate?.take(10)
 }

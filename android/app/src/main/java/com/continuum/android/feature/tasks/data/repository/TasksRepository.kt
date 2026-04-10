@@ -5,6 +5,7 @@ import com.continuum.android.core.data.local.TaskEntity
 import com.continuum.android.feature.tasks.data.remote.TasksApiService
 import com.continuum.android.feature.tasks.data.remote.dto.*
 import com.continuum.android.feature.tasks.domain.Task
+import com.continuum.android.feature.tasks.domain.TaskParticipant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.io.IOException
@@ -69,12 +70,21 @@ class TasksRepository @Inject constructor(
         task.toDomain()
     }
 
+    suspend fun getTask(id: String): Result<Task> = runCatching {
+        api.getTask(id).task.toDomain()
+    }
+
+    suspend fun updateTask(id: String, title: String?, description: String?, priority: String?, dueDate: String?): Result<Task> = runCatching {
+        val task = api.updateTask(id, UpdateTaskRequestDto(title = title, description = description, priority = priority, dueDate = dueDate)).task
+        taskDao.insert(task.toEntity())
+        task.toDomain()
+    }
+
     suspend fun deleteTask(id: String): Result<Unit> = runCatching {
         api.deleteTask(id)
         taskDao.deleteById(id)
     }
 
-    // Mappers
     private fun TaskDto.toEntity() = TaskEntity(
         id = id, title = title, description = description, status = status,
         priority = priority, dueDate = dueDate, updatedAt = updatedAt
@@ -87,6 +97,9 @@ class TasksRepository @Inject constructor(
     private fun TaskDto.toDomain() = Task(
         id = id, title = title, description = description, status = status,
         priority = priority, type = type, dueDate = dueDate, duration = duration,
-        isShared = isShared, updatedAt = updatedAt
+        reminderMinutes = reminderMinutes, noteId = noteId, isShared = isShared,
+        participants = participants?.map { TaskParticipant(it.userId, it.status, it.completedAt) } ?: emptyList(),
+        recurrenceFrequency = recurrence?.frequency,
+        completedAt = completedAt, createdAt = createdAt, updatedAt = updatedAt
     )
 }

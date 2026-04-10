@@ -524,14 +524,19 @@ private fun NavGraph(
                 TaskBoardScreen(
                     onCalendar = { navController.navigate(NavRoutes.Calendar.ROOT) },
                     networkMonitor = networkMonitor,
-                    onLogoClick = onLogoClick
+                    onLogoClick = onLogoClick,
+                    onTaskClick = { taskId -> navController.navigate(NavRoutes.Tasks.detail(taskId)) }
                 )
             }
             composable(
                 route = NavRoutes.Tasks.DETAIL,
                 arguments = listOf(navArgument("taskId") { type = NavType.StringType })
-            ) {
-                PlaceholderScreen("Task Detail")
+            ) { backStackEntry ->
+                val taskId = backStackEntry.arguments?.getString("taskId") ?: return@composable
+                TaskDetailScreen(
+                    taskId = taskId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
         }
 

@@ -8,6 +8,9 @@ interface TasksApiService {
     @GET("tasks")
     suspend fun getTasks(@Query("search") search: String? = null): TasksResponseDto
 
+    @GET("tasks/{id}")
+    suspend fun getTask(@Path("id") id: String): TaskResponseDto
+
     @GET("tasks/shared")
     suspend fun getSharedTasks(@Query("search") search: String? = null): TasksResponseDto
 

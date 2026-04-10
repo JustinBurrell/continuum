@@ -27,6 +27,7 @@ fun TaskBoardScreen(
     onCalendar: () -> Unit,
     networkMonitor: NetworkMonitor,
     onLogoClick: (() -> Unit)? = null,
+    onTaskClick: (String) -> Unit = {},
     viewModel: TasksViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -154,7 +155,8 @@ fun TaskBoardScreen(
                                     }
                                     viewModel.moveTask(task.id, target)
                                 },
-                                onDelete = if (task.isShared) null else { { viewModel.deleteTask(task.id) } }
+                                onDelete = if (task.isShared) null else { { viewModel.deleteTask(task.id) } },
+                                onClick = { onTaskClick(task.id) }
                             )
                         }
                     }
@@ -189,9 +191,10 @@ private fun TaskCard(
     task: Task,
     moveLabel: String,
     onMove: () -> Unit,
-    onDelete: (() -> Unit)?
+    onDelete: (() -> Unit)?,
+    onClick: () -> Unit = {}
 ) {
-    ContinuumCard(modifier = Modifier.fillMaxWidth()) {
+    ContinuumCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(task.title, style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
 
