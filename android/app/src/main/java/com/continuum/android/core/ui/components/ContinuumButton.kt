@@ -3,7 +3,6 @@ package com.continuum.android.core.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -12,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.continuum.android.core.ui.theme.AppShape
 import com.continuum.android.core.ui.theme.BrandPurple
 import com.continuum.android.core.ui.theme.ErrorRed
 import com.continuum.android.core.ui.theme.White
@@ -27,7 +27,7 @@ fun ContinuumButton(
     enabled: Boolean = true,
     loading: Boolean = false,
 ) {
-    val shape = RoundedCornerShape(8.dp)
+    val shape = AppShape.button
 
     when (variant) {
         ContinuumButtonVariant.Secondary -> {

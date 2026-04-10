@@ -155,6 +155,9 @@ dependencies {
     implementation(libs.accompanist.permissions)
     implementation(libs.accompanist.swiperefresh)
 
+    // Lottie Animations
+    implementation(libs.lottie.compose)
+
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
 
