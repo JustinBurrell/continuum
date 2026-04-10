@@ -40,7 +40,7 @@ fun FlashcardSetsListScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            PurpleTopAppBar(title = "Flashcards", onLogoClick = onLogoClick)
+            InlineScreenHeader(title = "Flashcards")
 
             OutlinedTextField(
                 value = state.searchQuery,

@@ -41,7 +41,7 @@ fun ApplicationsListScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            PurpleTopAppBar(title = "Applications", onLogoClick = onLogoClick)
+            InlineScreenHeader(title = "Applications")
 
             OutlinedTextField(
                 value = state.searchQuery,

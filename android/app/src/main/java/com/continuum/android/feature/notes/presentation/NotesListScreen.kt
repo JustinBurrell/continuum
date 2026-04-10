@@ -47,12 +47,11 @@ fun NotesListScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             if (!isOnline) OfflineBanner()
 
-            PurpleTopAppBar(
+            InlineScreenHeader(
                 title = "Notes",
-                onLogoClick = onLogoClick,
-                actions = {
+                trailing = {
                     IconButton(onClick = onDriveImport) {
-                        Icon(Icons.Default.CloudDownload, contentDescription = "Import from Drive", tint = androidx.compose.ui.graphics.Color.White)
+                        Icon(Icons.Default.CloudDownload, contentDescription = "Import from Drive", tint = BrandPurple)
                     }
                 }
             )

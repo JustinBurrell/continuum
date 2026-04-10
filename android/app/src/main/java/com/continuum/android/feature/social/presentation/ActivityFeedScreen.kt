@@ -52,11 +52,7 @@ fun ActivityFeedScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (!isOnline) OfflineBanner()
-        PurpleTopAppBar(
-            title = "Activity",
-            onLogoClick = onLogoClick,
-            onNavigateBack = onNavigateBack
-        )
+        InlineScreenHeader(title = "Activity")
 
         OutlinedTextField(
             value = state.searchQuery,

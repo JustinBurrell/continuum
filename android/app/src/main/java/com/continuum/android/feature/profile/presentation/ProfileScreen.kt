@@ -57,7 +57,7 @@ fun ProfileScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        PurpleTopAppBar(title = "Profile", onLogoClick = onLogoClick)
+        InlineScreenHeader(title = "Profile")
 
         if (state.isLoading) {
             LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {

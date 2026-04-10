@@ -42,7 +42,7 @@ fun ResumesListScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            PurpleTopAppBar(title = "Resumes")
+            InlineScreenHeader(title = "Resumes")
 
             OutlinedTextField(
                 value = state.searchQuery,

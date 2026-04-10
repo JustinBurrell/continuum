@@ -38,10 +38,7 @@ fun TaskBoardScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             if (!isOnline) OfflineBanner()
-            PurpleTopAppBar(
-                title = "Tasks",
-                onLogoClick = onLogoClick,
-            )
+            InlineScreenHeader(title = "Tasks")
 
             OutlinedTextField(
                 value = state.searchQuery,

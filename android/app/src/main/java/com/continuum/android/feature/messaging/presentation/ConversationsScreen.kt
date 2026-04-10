@@ -37,7 +37,7 @@ fun ConversationsScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (!isOnline) OfflineBanner()
-        PurpleTopAppBar(title = "Messages", onLogoClick = onLogoClick)
+        InlineScreenHeader(title = "Messages")
 
         SwipeRefresh(
             state = rememberSwipeRefreshState(state.isLoading),
