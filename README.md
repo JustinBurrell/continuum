@@ -36,6 +36,7 @@ The demo account comes pre-loaded with notes, flashcard sets, tasks, job applica
 - **Social** -- friend requests, activity feed, and direct messaging
 - **Career** -- job application tracker with status pipeline and AI resume feedback (scored, section-by-section)
 - **Auth** -- email/password and Google OAuth with JWT + refresh token rotation
+- **Android** -- native Kotlin app with full web parity, offline support via Room + WorkManager, hardware-backed token storage, and real-time messaging via Socket.io
 
 ---
 
@@ -53,12 +54,13 @@ See [docs/backend/system-design.md](docs/backend/system-design.md) for the full 
 continuum/
   backend/     Node.js + Express REST API, MongoDB
   web/         Vite + React 18 SPA
-  mobile/      Kotlin, Jetpack Compose, Android SDK (In-Progress)
+  android/     Native Android app — Kotlin + Jetpack Compose
   docs/        Architecture, API reference, design specs, future roadmap
 ```
 
 - [backend/README.md](backend/README.md) -- API surface, auth, real-time, caching, AI integration, security
 - [web/README.md](web/README.md) -- component architecture, state management, routing, UI system
+- [android/README.md](android/README.md) -- architecture, offline sync, setup, features, security
 
 ---
 
@@ -69,7 +71,7 @@ continuum/
 | ------- | -------------------------------------------------------------------------- |
 | Backend | Node.js, Express 5, MongoDB, Mongoose, Socket.io, Redis, Groq SDK          |
 | Web     | Vite, React 18, Tailwind CSS 3, React Query v5, React Router v6            |
-| Mobile  | Kotlin, Jetpack Compose, Android SDK (In-Progress)                         |
+| Android | Kotlin 2.1, Jetpack Compose (Material 3), Hilt, Retrofit 2, Room, Coil 3   |
 | AI      | Groq API (llama-3.1-8b-instant) for summaries, flashcards, resume analysis |
 | Storage | Cloudinary (images, PDFs)                                                  |
 | Email   | Resend                                                                     |
@@ -115,6 +117,18 @@ cp .env.example .env   # set VITE_API_URL=http://localhost:5001
 npm run dev
 ```
 
+### Android
+
+```bash
+# Open android/ in Android Studio (File > Open > select android/ directory)
+# Create android/local.properties with:
+#   BASE_URL=https://api.usecontinuum.dev/api/
+#   WEB_CLIENT_ID=<your Google Web OAuth client ID>
+# Sync Gradle, then Run > Run 'app' on an API 26+ emulator or device
+```
+
+For local backend development, omit `BASE_URL` — the build script auto-detects the backend port and uses `http://10.0.2.2:<PORT>/api/` (the emulator's localhost alias). See [android/README.md](android/README.md) for full setup details.
+
 ### Tests
 
 ```bash
@@ -123,3 +137,18 @@ npm test
 ```
 
 Jest + Supertest integration suite covering auth, notes, tasks, flashcards, applications, messages, and activity. Uses an in-memory MongoDB, no Atlas connection needed.
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [docs/backend/api_reference_guide.md](docs/backend/api_reference_guide.md) | Complete REST API reference (~108 endpoints) |
+| [docs/backend/system-design.md](docs/backend/system-design.md) | System architecture diagrams |
+| [docs/database/mongodb_schema_explaination.md](docs/database/mongodb_schema_explaination.md) | MongoDB schema design and data model decisions |
+| [docs/continuum-interview-brief.md](docs/continuum-interview-brief.md) | Interview-ready technical deep dive |
+| [docs/android/architecture.md](docs/android/architecture.md) | Android MVVM + Clean Architecture reference |
+| [docs/android/react-to-android.md](docs/android/react-to-android.md) | How the React web app was ported to native Kotlin |
+| [docs/android/api-coverage.md](docs/android/api-coverage.md) | Android endpoint-by-endpoint API coverage matrix |
+| [docs/future-ideas/demo-video-script.md](docs/future-ideas/demo-video-script.md) | Scene-by-scene Android demo recording script |
