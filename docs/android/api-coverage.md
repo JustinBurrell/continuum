@@ -13,7 +13,7 @@ For **web routes vs `AppNavHost`** (parity audit and follow-up list), see [`web-
 |--------------|-------------------|-----------------|-------|
 | Auth | 26 | 18 | 4 mobile-specific endpoints; Google OAuth redirect/callback (web-only) not applicable; admin endpoints excluded |
 | Notes | 13 | 10 | PDF download, upload from file, and refresh (Google Docs re-sync) not yet wired |
-| Flashcards | 13 | 12 | Card progress update not yet wired (tracked client-side during study) |
+| Flashcards | 13 | 12 | Card progress update not yet wired (tracked client-side during study); study history has dedicated screen |
 | Tasks | 9 | 9 | Includes `PATCH /tasks/:id/participants` from task detail share sheet |
 | Calendar | 1 | 1 | |
 | Applications | 9 | 9 | Includes 3 endpoints added during this branch |
@@ -22,12 +22,12 @@ For **web routes vs `AppNavHost`** (parity audit and follow-up list), see [`web-
 | Friends | 5 | 5 | |
 | Users | 3 | 3 | |
 | Comments | 4 | 4 | |
-| Study Sessions | 5 | 4 | Single session by ID not yet wired |
+| Study Sessions | 4 | 4 | Listed endpoints wired; optional GET single-session-by-id not in coverage table |
 | Conversations | 5 | 5 | |
 | Messages | 2 | 0 | Mark-as-read and delete-message are per-message endpoints; conversations cover the primary flow |
 | Sync | 1 | 1 | |
 | Google Drive | 1 | 1 | `files` list only; `docs/:docId/preview` handled inline |
-| **Total** | **~108** | **~92** | ~85% coverage; remaining are niche or web-only endpoints |
+| **Total** | **~108** | **~93** | ~86% coverage; remaining are niche or web-only endpoints |
 
 ---
 
@@ -166,8 +166,8 @@ For **web routes vs `AppNavHost`** (parity audit and follow-up list), see [`web-
 | Method | Path | Android Screen | ViewModel Method | Room Cached |
 |--------|------|---------------|-----------------|-------------|
 | POST | /api/study-sessions | StudyModeScreen | FlashcardsViewModel.submitStudySession() | No |
-| GET | /api/study-sessions | (Study history) | FlashcardsViewModel.loadStudyHistory() | No |
-| GET | /api/study-sessions/streak | DashboardScreen | (included in profile) | No |
+| GET | /api/study-sessions | FlashcardStudyHistoryScreen | FlashcardsViewModel.loadStudyHistory() | No |
+| GET | /api/study-sessions/streak | FlashcardStudyHistoryScreen, DashboardScreen | FlashcardsViewModel.loadStudyHistory() (history); streak elsewhere | No |
 | GET | /api/study-sessions/set/:setId | FlashcardSetDetailScreen | FlashcardsViewModel.loadSetStudyHistory() | No |
 
 ### Conversations

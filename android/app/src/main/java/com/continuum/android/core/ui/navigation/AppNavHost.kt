@@ -98,11 +98,6 @@ object NavRoutes {
         const val SCREEN = "calendar/main"
     }
 
-    object Resumes {
-        const val ROOT = "resumes"
-        const val LIST = "resumes/list"
-    }
-
     object Career {
         const val ROOT = "career"
         const val APPLICATIONS_LIST = "career/applications"

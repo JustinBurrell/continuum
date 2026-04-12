@@ -4,7 +4,7 @@
 
 **Android:** [`android/app/src/main/java/com/continuum/android/core/ui/navigation/AppNavHost.kt`](../../android/app/src/main/java/com/continuum/android/core/ui/navigation/AppNavHost.kt) and [`NavRoutes`](../../android/app/src/main/java/com/continuum/android/core/ui/navigation/AppNavHost.kt) (same file).
 
-**Audited:** April 10, 2026.
+**Last reviewed:** April 10, 2026.
 
 ---
 
@@ -59,12 +59,12 @@ Web uses query / location `state` for some ids (e.g. `/notes/view`, `/users/view
 | `/flashcards` | `FlashcardSets` | `flashcards/list` | **Parity** | |
 | `/flashcards/view` | `FlashcardSetDetail` | `flashcards/set/{setId}` | **Parity** | |
 | `/flashcards/study` | `StudyMode` | `flashcards/study/{setId}` | **Parity** | |
-| `/flashcards/history` | `FlashcardHistory` | — | **Gap** | No `NavRoutes` destination. `FlashcardsViewModel.loadStudyHistory()` exists but nothing in `AppNavHost` calls it; global study history UI not wired. |
-| `/tasks` | `Tasks` | `tasks/board`, `tasks/detail/{taskId}` | **Partial** | Feature parity; **IA:** web sidebar has top-level Tasks; Android bottom nav has Notes, Flashcards, Dashboard, Applications, Profile — Tasks reached via dashboard (and related shortcuts), not a tab. Same pattern for **Calendar**, **Activity**, **Friends**, **Messages** vs web “Social” + “Workspace” groups. |
-| `/calendar` | `Calendar` | `calendar/main` | **Partial** | Same IA note as Tasks. |
+| `/flashcards/history` | `FlashcardHistory` | `flashcards/history` | **Parity** | `FlashcardStudyHistoryScreen` + header entry from flashcards list. |
+| `/tasks` | `Tasks` | `tasks/board`, `tasks/detail/{taskId}` | **Partial** | Same features; Android uses a narrower primary chrome (see below). |
+| `/calendar` | `Calendar` | `calendar/main` | **Partial** | Same as Tasks — reachable, not a bottom-tab peer of web sidebar. |
 | `/friends` | `Friends` | `social/friends`, `social/search` | **Parity** | Search is explicit route on Android. |
 | `/messages` | `MessagesLayout` | `social/conversations`, conversation detail | **Parity** | |
-| `/applications` | `ApplicationsList` | `applications/list` **and** `career/applications` | **Partial** | Same `ApplicationsListScreen` is mounted under two graphs; bottom bar uses `applications/list`. Consider consolidating routes to avoid dual back-stack roots (follow-up). |
+| `/applications` | `ApplicationsList` | `career/applications` | **Parity** | Single graph: bottom bar “Applications” uses `NavRoutes.Career.ROOT` → applications list. |
 | `/applications/view` | `ApplicationDetail` | `career/applications/{appId}` | **Parity** | |
 | `/resumes` | `Resumes` | `career/resumes`, `career/resumes/{resumeId}`, feedback route | **Parity** | |
 | `/activity` | `Activity` | `social/activity` | **Parity** | |
@@ -73,29 +73,11 @@ Web uses query / location `state` for some ids (e.g. `/notes/view`, `/users/view
 
 ---
 
-## Information architecture (by design)
+## Information architecture (intentional)
 
-The web **Sidebar** groups Dashboard, Notes, Flashcards, Tasks, Calendar, Applications, Resumes, Messages, Friends, and Activity as first-class links.
+The web **Sidebar** lists Dashboard, Notes, Flashcards, Tasks, Calendar, Applications, Resumes, Messages, Friends, and Activity as first-class links.
 
-Android intentionally uses a **narrower bottom bar** (see [`react-to-android.md`](./react-to-android.md) — “UX Revamp”) and relies on **Dashboard**, **Profile**, and cross-links for Tasks, Calendar, Activity, Friends, and Messages. This audit records that as **Partial** parity for *discoverability*, not missing backend capability.
-
----
-
-## Prioritized follow-ups
-
-Track these as GitHub issues or future PRs.
-
-1. **P1 — Flashcard study history route**  
-   Add a `NavHost` destination (e.g. `flashcards/history`) and a screen that uses `FlashcardsViewModel.loadStudyHistory()`, or expose the same data from an existing screen with clear navigation from `FlashcardSetsListScreen` / set detail. Closes the only clear **Gap** in the authenticated table.
-
-2. **P2 — Dual applications list roots**  
-   `NavRoutes.Applications.LIST` and `NavRoutes.Career.APPLICATIONS_LIST` both host `ApplicationsListScreen`. Decide: single graph + deep links from bottom bar, or document why two entries are required (e.g. save state / tab behavior).
-
-3. **P3 — IA / discoverability**  
-   If product wants closer web parity, consider a Tasks (and/or Social hub) entry on the bottom bar or rail, or a “More” overflow — today parity is “reachable” but not “sidebar-equivalent.”
-
-4. **P4 — Code hygiene**  
-   Remove unused `PlaceholderScreen` from `AppNavHost.kt` if it remains unreferenced (cleanup, not user-facing).
+Android uses a **narrower bottom bar / rail** and surfaces Tasks, Calendar, Activity, Friends, and Messages through **Dashboard**, **Profile**, and in-feature navigation. That is an intentional native UX choice (see [`react-to-android.md`](./react-to-android.md) — “UX Revamp”), not a parity gap for backend capability.
 
 ---
 

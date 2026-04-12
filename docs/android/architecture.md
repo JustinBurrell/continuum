@@ -192,6 +192,7 @@ Main graph
 │   └── drive-import
 ├── Flashcards graph (flashcards/)
 │   ├── list
+│   ├── history
 │   ├── detail/{setId}
 │   └── study/{setId}
 ├── Tasks graph (tasks/)
@@ -199,8 +200,6 @@ Main graph
 │   └── detail/{taskId}
 ├── Calendar graph (calendar/)
 │   └── main
-├── Applications graph (applications/)
-│   └── list
 ├── Career graph (career/)
 │   ├── applications
 │   ├── application/{appId}
