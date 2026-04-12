@@ -209,7 +209,7 @@ Main graph
 │   ├── user/{userId}
 │   ├── shared-note/{noteId}
 │   ├── conversations
-│   └── conversation/{conversationId}
+│   └── conversations/{conversationId}?participantName={name}
 └── Profile graph (profile/)
     ├── screen
     ├── edit
@@ -223,6 +223,10 @@ All navigation uses slide-in/fade-out transitions (`slideIntoContainer` + `fadeO
 ### Sensitive Routes
 
 Screens containing private data (`Notes.DETAIL`, `Career.RESUME_DETAIL`, `Career.APPLICATION_DETAIL`, `Social.CONVERSATION_DETAIL`, `Social.SHARED_NOTE`) apply `FLAG_SECURE` to prevent screenshots and remove the screen from the recent apps thumbnail.
+
+### Demo mode (`LocalIsDemo`)
+
+`AppNavHost` provides `CompositionLocalProvider(LocalIsDemo provides navProfile.isDemo)` so feature screens can hide create/share/delete affordances and read-only composers (notes, tasks, flashcards, friends, shared notes, DMs) when the signed-in account is the demo user, matching the web app’s read-only demo behavior.
 
 ---
 

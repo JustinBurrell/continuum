@@ -12,7 +12,7 @@ Backend API docs: https://api.usecontinuum.dev/api-docs
 | Auth | 26 | 18 | 4 mobile-specific endpoints; Google OAuth redirect/callback (web-only) not applicable; admin endpoints excluded |
 | Notes | 13 | 10 | PDF download, upload from file, and refresh (Google Docs re-sync) not yet wired |
 | Flashcards | 13 | 12 | Card progress update not yet wired (tracked client-side during study) |
-| Tasks | 9 | 8 | Participant management (multi-user tasks) partially wired |
+| Tasks | 9 | 9 | Includes `PATCH /tasks/:id/participants` from task detail share sheet |
 | Calendar | 1 | 1 | |
 | Applications | 9 | 9 | Includes 3 endpoints added during this branch |
 | Resumes | 6 | 5 | Resume upload uses multipart; download not yet wired |
@@ -25,7 +25,7 @@ Backend API docs: https://api.usecontinuum.dev/api-docs
 | Messages | 2 | 0 | Mark-as-read and delete-message are per-message endpoints; conversations cover the primary flow |
 | Sync | 1 | 1 | |
 | Google Drive | 1 | 1 | `files` list only; `docs/:docId/preview` handled inline |
-| **Total** | **~108** | **~91** | ~84% coverage; remaining are niche or web-only endpoints |
+| **Total** | **~108** | **~92** | ~85% coverage; remaining are niche or web-only endpoints |
 
 ---
 
@@ -97,6 +97,7 @@ Backend API docs: https://api.usecontinuum.dev/api-docs
 | PUT | /api/tasks/:id | TaskDetailScreen | TasksViewModel.updateTask() | No |
 | PATCH | /api/tasks/:id/status | TaskDetailScreen | TasksViewModel.updateTaskStatus() | No |
 | PATCH | /api/tasks/:id/participant-status | TaskBoardScreen | TasksViewModel.moveTask() | No |
+| PATCH | /api/tasks/:id/participants | TaskDetailScreen | TasksViewModel.saveTaskParticipants() | No |
 | DELETE | /api/tasks/:id | TaskDetailScreen | TasksViewModel.deleteTask() | Yes |
 
 ### Calendar
