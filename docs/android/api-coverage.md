@@ -1,6 +1,6 @@
 # Android API Coverage
 
-Last updated: April 2026
+Last updated: April 10, 2026
 Backend API docs: https://api.usecontinuum.dev/api-docs
 
 ---
@@ -59,7 +59,7 @@ Backend API docs: https://api.usecontinuum.dev/api-docs
 | Method | Path | Android Screen | ViewModel Method | Room Cached |
 |--------|------|---------------|-----------------|-------------|
 | GET | /api/notes | NotesListScreen | NotesViewModel.loadNotes() | Yes |
-| GET | /api/notes/shared | NotesListScreen (shared tab) | NotesViewModel.loadNotes(shared=true) | No |
+| GET | /api/notes/shared | NotesListScreen (shared tab), UserProfileScreen (friend) | NotesViewModel.loadNotes(shared=true); SocialRepository.getFriendProfileExtras() | No |
 | GET | /api/notes/:id | NoteDetailScreen | NotesViewModel.loadNote() | Yes |
 | POST | /api/notes | NoteDetailScreen | NotesViewModel.createNote() | Yes |
 | PUT | /api/notes/:id | NoteEditorScreen | NotesViewModel.autoSave() | Yes |
@@ -74,7 +74,7 @@ Backend API docs: https://api.usecontinuum.dev/api-docs
 | Method | Path | Android Screen | ViewModel Method | Room Cached |
 |--------|------|---------------|-----------------|-------------|
 | GET | /api/flashcard-sets | FlashcardSetsListScreen | FlashcardsViewModel.loadSets() | Yes |
-| GET | /api/flashcard-sets/shared | FlashcardSetsListScreen (shared tab) | FlashcardsViewModel.loadSets(shared=true) | No |
+| GET | /api/flashcard-sets/shared | FlashcardSetsListScreen (shared tab), UserProfileScreen (friend) | FlashcardsViewModel.loadSets(shared=true); SocialRepository.getFriendProfileExtras() | No |
 | GET | /api/flashcard-sets/:id | FlashcardSetDetailScreen | FlashcardsViewModel.loadSetDetail() | Yes |
 | POST | /api/flashcard-sets | FlashcardSetsListScreen | FlashcardsViewModel.createSet() | Yes |
 | PATCH | /api/flashcard-sets/:id | FlashcardSetDetailScreen | FlashcardsViewModel.updateSet() | No |
@@ -91,7 +91,7 @@ Backend API docs: https://api.usecontinuum.dev/api-docs
 | Method | Path | Android Screen | ViewModel Method | Room Cached |
 |--------|------|---------------|-----------------|-------------|
 | GET | /api/tasks | TaskBoardScreen | TasksViewModel.loadTasks() | Yes |
-| GET | /api/tasks/shared | TaskBoardScreen (shared tab) | TasksViewModel.loadTasks(shared=true) | No |
+| GET | /api/tasks/shared | TaskBoardScreen (shared tab), UserProfileScreen (friend) | TasksViewModel.loadTasks(shared=true); SocialRepository.getFriendProfileExtras() | No |
 | GET | /api/tasks/:id | TaskDetailScreen | TasksViewModel.loadTaskDetail() | No |
 | POST | /api/tasks | TaskBoardScreen | TasksViewModel.createTask() | Yes |
 | PUT | /api/tasks/:id | TaskDetailScreen | TasksViewModel.updateTask() | No |
@@ -134,7 +134,7 @@ Backend API docs: https://api.usecontinuum.dev/api-docs
 
 | Method | Path | Android Screen | ViewModel Method | Room Cached |
 |--------|------|---------------|-----------------|-------------|
-| GET | /api/activity | ActivityFeedScreen, DashboardScreen | SocialViewModel.loadActivity() | No |
+| GET | /api/activity | ActivityFeedScreen, DashboardScreen, UserProfileScreen (friend) | SocialViewModel.loadActivity(); SocialRepository.getFriendProfileExtras() | No |
 | PUT | /api/activity/mark-seen | ActivityFeedScreen | SocialViewModel.markActivitySeen() | No |
 | GET | /api/users/search | UserSearchScreen | SocialViewModel.searchUsers() | No |
 | GET | /api/users/:id | UserProfileScreen | SocialViewModel.loadUserProfile() | No |
@@ -155,7 +155,7 @@ Backend API docs: https://api.usecontinuum.dev/api-docs
 | Method | Path | Android Screen | ViewModel Method | Room Cached |
 |--------|------|---------------|-----------------|-------------|
 | POST | /api/comments | CommentThread | SocialViewModel/via CommentThread | No |
-| GET | /api/comments/:targetType/:targetId | SharedNoteViewScreen, TaskDetailScreen | SocialRepository.getCommentsForTarget() | No |
+| GET | /api/comments/:targetType/:targetId | SharedNoteViewScreen, TaskDetailScreen | SocialRepository.getCommentsForTarget(); comment author → profile from SharedNoteViewScreen | No |
 | POST | /api/comments/:id/like | CommentThread | SocialViewModel.likeComment() | No |
 | DELETE | /api/comments/:id | CommentThread | SocialRepository.deleteComment() | No |
 

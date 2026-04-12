@@ -209,7 +209,7 @@ Main graph
 │   ├── user/{userId}
 │   ├── shared-note/{noteId}
 │   ├── conversations
-│   └── conversations/{conversationId}?participantName={name}
+│   └── conversations/{conversationId}?participantName={name}&participantId={id}
 └── Profile graph (profile/)
     ├── screen
     ├── edit
@@ -227,6 +227,16 @@ Screens containing private data (`Notes.DETAIL`, `Career.RESUME_DETAIL`, `Career
 ### Demo mode (`LocalIsDemo`)
 
 `AppNavHost` provides `CompositionLocalProvider(LocalIsDemo provides navProfile.isDemo)` so feature screens can hide create/share/delete affordances and read-only composers when the signed-in account is the demo user, matching the web app’s read-only demo behavior. Gates are applied across **notes** (lists, detail, editor, Drive import), **tasks** (board, detail), **flashcards** (set list, set detail, study session server sync), **career** (applications list/detail, resumes list, resume PDF viewer actions), **social** (friends, activity mark-seen, user search add), **messaging**, **profile** (edit profile blocked; settings toggles disabled; account rows), and anywhere else mutations would write data. **Dashboard** empty sections and **Calendar** add copy-only demo hints so empty or read-only surfaces do not imply the user can create data there while on demo.
+
+The **demo banner** copy matches the web `AppLayout` strip (“exploring Continuum as a demo account…”) with the same register CTA label.
+
+### User profile parity
+
+`UserProfileScreen` mirrors the web `UserProfile` page in important ways: opening your own `social/user/{id}` route immediately returns you to the main **Profile** tab; for **friends**, the screen loads shared notes, tasks, and flashcard sets (same shared-list APIs as the web client) filtered to that profile’s owner id, plus a short slice of **activity** where `actorId` matches the profile. `SocialRepository.getFriendProfileExtras()` runs those reads in parallel after `GET /users/:id` succeeds.
+
+Shared list responses sometimes return `userId` as either a string id or a populated `{ "_id": "..." }` object. Moshi uses a small **`OwnerRefJsonAdapter`** (registered in `ApiClient`) so `NoteDto` and `FlashcardSetDto` can deserialize both shapes; the domain models expose optional `ownerUserId` where needed for filtering.
+
+**Messaging:** `ConversationDetailScreen` receives optional `participantId` in the route query string so the top bar title (and the other party’s name on message bubbles) can navigate to `social/user/{userId}`. **Shared notes:** comment author names on `SharedNoteViewScreen` navigate to that user’s profile when `authorId` is present.
 
 ---
 
