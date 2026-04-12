@@ -55,7 +55,7 @@ val bottomNavItems: List<NavItem> = listOf(
     NavItem.IconItem(NavRoutes.Notes.ROOT, "Notes", Icons.AutoMirrored.Filled.MenuBook),
     NavItem.IconItem(NavRoutes.Flashcards.ROOT, "Flashcards", Icons.Default.Style),
     NavItem.LogoItem(NavRoutes.Dashboard.ROOT),
-    NavItem.IconItem(NavRoutes.Applications.ROOT, "Applications", Icons.Default.Work),
+    NavItem.IconItem(NavRoutes.Career.ROOT, "Applications", Icons.Default.Work),
     NavItem.ProfileItem(NavRoutes.Profile.ROOT),
 )
 

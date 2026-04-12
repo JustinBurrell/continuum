@@ -98,11 +98,6 @@ object NavRoutes {
         const val SCREEN = "calendar/main"
     }
 
-    object Applications {
-        const val ROOT = "applications"
-        const val LIST = "applications/list"
-    }
-
     object Resumes {
         const val ROOT = "resumes"
         const val LIST = "resumes/list"
@@ -451,7 +446,7 @@ private fun NavGraph(
                         }
                     },
                     onApplicationsClick = {
-                        navController.navigate(NavRoutes.Applications.ROOT) {
+                        navController.navigate(NavRoutes.Career.ROOT) {
                             launchSingleTop = true; restoreState = true
                         }
                     },
@@ -587,21 +582,12 @@ private fun NavGraph(
             }
         }
 
-        navigation(route = NavRoutes.Applications.ROOT, startDestination = NavRoutes.Applications.LIST) {
-            composable(NavRoutes.Applications.LIST) {
-                ApplicationsListScreen(
-                    onApplicationClick = { appId -> navController.navigate(NavRoutes.Career.applicationDetail(appId)) },
-                    onResumesClick = { navController.navigate(NavRoutes.Career.RESUMES_LIST) },
-                    onLogoClick = onLogoClick
-                )
-            }
-        }
-
         // ---- Career graph ----
         navigation(route = NavRoutes.Career.ROOT, startDestination = NavRoutes.Career.APPLICATIONS_LIST) {
             composable(NavRoutes.Career.APPLICATIONS_LIST) {
                 ApplicationsListScreen(
                     onApplicationClick = { appId -> navController.navigate(NavRoutes.Career.applicationDetail(appId)) },
+                    onResumesClick = { navController.navigate(NavRoutes.Career.RESUMES_LIST) },
                     onLogoClick = onLogoClick
                 )
             }
