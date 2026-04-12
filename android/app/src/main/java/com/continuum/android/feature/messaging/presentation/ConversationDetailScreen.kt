@@ -1,5 +1,7 @@
 package com.continuum.android.feature.messaging.presentation
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,7 +27,9 @@ import com.continuum.android.feature.messaging.domain.Message
 fun ConversationDetailScreen(
     conversationId: String,
     participantName: String,
+    participantId: String = "",
     onNavigateBack: () -> Unit,
+    onOpenParticipantProfile: (String) -> Unit = {},
     viewModel: MessagingViewModel = hiltViewModel()
 ) {
     val state by viewModel.detailState.collectAsStateWithLifecycle()
@@ -53,6 +57,9 @@ fun ConversationDetailScreen(
                 MinimalTopBar(
                     title = participantName,
                     onNavigateBack = onNavigateBack,
+                    onTitleClick = participantId.takeIf { it.isNotBlank() }?.let { pid ->
+                        { onOpenParticipantProfile(pid) }
+                    },
                     actions = {
                         IconButton(onClick = { showSearch = !showSearch }) {
                             Icon(
@@ -157,7 +164,13 @@ fun ConversationDetailScreen(
                     items(state.messages, key = { it.id }) { message ->
                         MessageBubble(
                             message = message,
-                            isMine = message.senderId == currentUserId
+                            isMine = message.senderId == currentUserId,
+                            onSenderProfileClick =
+                                if (message.senderId != currentUserId && message.senderId.isNotBlank()) {
+                                    { onOpenParticipantProfile(message.senderId) }
+                                } else {
+                                    null
+                                }
                         )
                     }
                 }
@@ -167,7 +180,7 @@ fun ConversationDetailScreen(
 }
 
 @Composable
-private fun MessageBubble(message: Message, isMine: Boolean) {
+private fun MessageBubble(message: Message, isMine: Boolean, onSenderProfileClick: (() -> Unit)?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start
@@ -186,12 +199,23 @@ private fun MessageBubble(message: Message, isMine: Boolean) {
                 if (!isMine) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.then(
+                            if (onSenderProfileClick != null) {
+                                Modifier.clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = onSenderProfileClick
+                                )
+                            } else {
+                                Modifier
+                            }
+                        )
                     ) {
                         Text(
                             text = message.senderName,
                             style = MaterialTheme.typography.labelMedium,
-                            color = TextPrimary
+                            color = if (onSenderProfileClick != null) BrandPurple else TextPrimary
                         )
                         VerifiedRoleBadges(roles = message.senderRoles, expanded = false)
                     }

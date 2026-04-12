@@ -1,5 +1,7 @@
 package com.continuum.android.feature.social.presentation
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,6 +31,7 @@ import com.mohamedrejeb.richeditor.ui.material3.RichText
 fun SharedNoteViewScreen(
     noteId: String,
     onNavigateBack: () -> Unit,
+    onCommentAuthorClick: (String) -> Unit = {},
     viewModel: SocialViewModel = hiltViewModel()
 ) {
     val state by viewModel.sharedNoteState.collectAsStateWithLifecycle()
@@ -125,6 +128,7 @@ fun SharedNoteViewScreen(
                             CommentItem(
                                 comment = comment,
                                 onLike = if (isDemo) null else { { viewModel.likeComment(noteId, comment.id) } },
+                                onAuthorProfile = onCommentAuthorClick,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                             )
                         }
@@ -148,8 +152,10 @@ fun SharedNoteViewScreen(
 private fun CommentItem(
     comment: Comment,
     onLike: (() -> Unit)?,
+    onAuthorProfile: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val authorClick = comment.authorId?.takeIf { it.isNotBlank() }?.let { id -> { onAuthorProfile(id) } }
     Column(modifier = modifier) {
         ContinuumCard(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -159,8 +165,26 @@ private fun CommentItem(
                 ) {
                     AvatarInitials(name = comment.authorName, modifier = Modifier.size(28.dp).clip(CircleShape))
                     Column(modifier = Modifier.weight(1f)) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(comment.authorName, style = MaterialTheme.typography.labelLarge, color = TextPrimary)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.then(
+                                if (authorClick != null) {
+                                    Modifier.clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = authorClick
+                                    )
+                                } else {
+                                    Modifier
+                                }
+                            )
+                        ) {
+                            Text(
+                                comment.authorName,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = if (authorClick != null) BrandPurple else TextPrimary
+                            )
                             VerifiedRoleBadges(roles = comment.authorRoles, expanded = false)
                         }
                         Text(comment.createdAt.take(10), style = MaterialTheme.typography.bodySmall, color = TextMuted)
@@ -183,6 +207,7 @@ private fun CommentItem(
             CommentItem(
                 comment = reply,
                 onLike = onLike,
+                onAuthorProfile = onAuthorProfile,
                 modifier = Modifier.padding(start = 24.dp, top = 4.dp)
             )
         }

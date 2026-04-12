@@ -1,5 +1,6 @@
 package com.continuum.android.feature.notes.data.remote.dto
 
+import com.continuum.android.core.network.json.OwnerRef
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -16,7 +17,9 @@ data class NoteDto(
     val hasFlashcards: Boolean = false,
     val summary: NoteSummaryDto? = null,
     val updatedAt: String = "",
-    val createdAt: String = ""
+    val createdAt: String = "",
+    /** Populated on shared-notes list; string or object from API — see [OwnerRef]. */
+    @Json(name = "userId") val owner: OwnerRef? = null
 )
 
 @JsonClass(generateAdapter = true)

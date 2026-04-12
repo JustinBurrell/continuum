@@ -26,7 +26,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationsScreen(
-    onConversationClick: (conversationId: String, participantName: String) -> Unit,
+    onConversationClick: (conversationId: String, participantName: String, participantId: String) -> Unit,
     networkMonitor: NetworkMonitor,
     onLogoClick: (() -> Unit)? = null,
     viewModel: MessagingViewModel = hiltViewModel()
@@ -83,7 +83,9 @@ fun ConversationsScreen(
                         items(state.conversations, key = { it.id }) { convo ->
                             ConversationCard(
                                 conversation = convo,
-                                onClick = { onConversationClick(convo.id, convo.participantName) },
+                                onClick = {
+                                    onConversationClick(convo.id, convo.participantName, convo.participantId)
+                                },
                                 onDelete = if (isDemo) null else { { viewModel.deleteConversation(convo.id) } }
                             )
                         }

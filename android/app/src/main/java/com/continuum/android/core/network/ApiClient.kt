@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 import okhttp3.Interceptor
+import com.continuum.android.core.network.json.OwnerRefJsonAdapter
 import com.continuum.android.feature.tasks.data.remote.dto.TaskParticipantDtoAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -124,6 +125,7 @@ class ApiClient @Inject constructor(
 
     val moshi: Moshi = Moshi.Builder()
         .add(TaskParticipantDtoAdapter())
+        .add(OwnerRefJsonAdapter())
         .addLast(KotlinJsonAdapterFactory())
         .build()
 

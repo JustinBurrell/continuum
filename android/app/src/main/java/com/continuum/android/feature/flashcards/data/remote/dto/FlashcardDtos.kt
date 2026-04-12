@@ -1,5 +1,6 @@
 package com.continuum.android.feature.flashcards.data.remote.dto
 
+import com.continuum.android.core.network.json.OwnerRef
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -14,7 +15,8 @@ data class FlashcardSetDto(
     @Json(name = "lastStudiedAt") val lastStudiedAt: String? = null,
     val lastStudied: String? = null,
     val updatedAt: String = "",
-    val flashcards: List<FlashcardDto>? = null
+    val flashcards: List<FlashcardDto>? = null,
+    @Json(name = "userId") val owner: OwnerRef? = null
 ) {
     fun resolvedCardCount(): Int = when {
         totalCards > 0 -> totalCards

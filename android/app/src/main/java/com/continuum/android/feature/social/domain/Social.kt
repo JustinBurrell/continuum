@@ -81,6 +81,32 @@ data class SharedNote(
     val comments: List<Comment>
 )
 
+/** Friend-only summaries on another user's profile (from shared list APIs, filtered by owner). */
+data class FriendSharedNoteSummary(
+    val id: String,
+    val title: String,
+    val type: String
+)
+
+data class FriendSharedTaskSummary(
+    val id: String,
+    val title: String,
+    val status: String
+)
+
+data class FriendSharedSetSummary(
+    val id: String,
+    val title: String,
+    val cardCount: Int
+)
+
+data class FriendProfileExtras(
+    val sharedNotes: List<FriendSharedNoteSummary> = emptyList(),
+    val sharedTasks: List<FriendSharedTaskSummary> = emptyList(),
+    val sharedSets: List<FriendSharedSetSummary> = emptyList(),
+    val recentActivity: List<ActivityItem> = emptyList()
+)
+
 data class UserProfile(
     val id: String,
     val firstName: String,

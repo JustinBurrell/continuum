@@ -41,7 +41,9 @@ data class SharedNoteUiState(
 data class UserProfileUiState(
     val user: UserProfile? = null,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val friendExtras: FriendProfileExtras = FriendProfileExtras(),
+    val friendExtrasLoading: Boolean = false
 )
 
 data class ThreadCommentsUiState(
@@ -267,14 +269,46 @@ class SocialViewModel @Inject constructor(
     }
 
     fun loadUserProfile(userId: String) {
-        _userProfileState.value = UserProfileUiState(user = null, isLoading = true, error = null)
+        _userProfileState.value = UserProfileUiState(
+            user = null,
+            isLoading = true,
+            error = null,
+            friendExtras = FriendProfileExtras(),
+            friendExtrasLoading = false
+        )
         viewModelScope.launch {
             repository.getUserProfile(userId)
                 .onSuccess { user ->
-                    _userProfileState.update { it.copy(user = user, isLoading = false, error = null) }
+                    _userProfileState.update {
+                        it.copy(user = user, isLoading = false, error = null)
+                    }
+                    if (user.friendStatus == "friends") {
+                        _userProfileState.update { it.copy(friendExtrasLoading = true) }
+                        repository.getFriendProfileExtras(userId)
+                            .onSuccess { extras ->
+                                _userProfileState.update {
+                                    it.copy(friendExtras = extras, friendExtrasLoading = false)
+                                }
+                            }
+                            .onFailure {
+                                _userProfileState.update { it.copy(friendExtrasLoading = false) }
+                            }
+                    } else {
+                        _userProfileState.update {
+                            it.copy(friendExtras = FriendProfileExtras(), friendExtrasLoading = false)
+                        }
+                    }
                 }
                 .onFailure { e ->
-                    _userProfileState.update { it.copy(user = null, isLoading = false, error = e.message) }
+                    _userProfileState.update {
+                        it.copy(
+                            user = null,
+                            isLoading = false,
+                            error = e.message,
+                            friendExtras = FriendProfileExtras(),
+                            friendExtrasLoading = false
+                        )
+                    }
                 }
         }
     }

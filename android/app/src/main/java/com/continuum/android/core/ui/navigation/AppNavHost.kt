@@ -131,12 +131,19 @@ object NavRoutes {
         const val USER_PROFILE = "social/user/{userId}"
         const val SHARED_NOTE = "social/shared-note/{noteId}"
         const val CONVERSATIONS = "social/conversations"
-        const val CONVERSATION_DETAIL = "social/conversations/{conversationId}?participantName={participantName}"
+        const val CONVERSATION_DETAIL =
+            "social/conversations/{conversationId}?participantName={participantName}&participantId={participantId}"
 
         fun userProfile(userId: String) = "social/user/$userId"
         fun sharedNote(noteId: String) = "social/shared-note/$noteId"
-        fun conversationDetail(conversationId: String, participantName: String = "") =
-            "social/conversations/$conversationId?participantName=${android.net.Uri.encode(participantName)}"
+        fun conversationDetail(
+            conversationId: String,
+            participantName: String = "",
+            participantId: String = ""
+        ) =
+            "social/conversations/$conversationId?participantName=${android.net.Uri.encode(participantName)}&participantId=${
+                android.net.Uri.encode(participantId)
+            }"
     }
 
     object Profile {
@@ -656,17 +663,40 @@ private fun NavGraph(
                 arguments = listOf(navArgument("userId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
+                val tokenManager = LocalTokenManager.current
                 val socialGraphEntry = remember(backStackEntry) {
                     navController.getBackStackEntry(NavRoutes.Social.ROOT)
                 }
                 val messagingViewModel: MessagingViewModel = hiltViewModel(socialGraphEntry)
                 UserProfileScreen(
                     userId = userId,
+                    currentUserId = tokenManager.getJwtUserId(),
                     onNavigateBack = { navController.popBackStack() },
+                    onViewingSelf = {
+                        navController.popBackStack()
+                        navController.navigate(NavRoutes.Profile.SCREEN) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     onMessageFriend = { uid, displayName ->
                         messagingViewModel.startConversation(uid) { convId ->
-                            navController.navigate(NavRoutes.Social.conversationDetail(convId, displayName))
+                            navController.navigate(
+                                NavRoutes.Social.conversationDetail(convId, displayName, uid)
+                            )
                         }
+                    },
+                    onOpenSharedNote = { noteId ->
+                        navController.navigate(NavRoutes.Social.sharedNote(noteId))
+                    },
+                    onOpenTask = { taskId ->
+                        navController.navigate(NavRoutes.Tasks.detail(taskId))
+                    },
+                    onOpenSet = { setId ->
+                        navController.navigate(NavRoutes.Flashcards.setDetail(setId))
                     }
                 )
             }
@@ -675,13 +705,21 @@ private fun NavGraph(
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val noteId = backStackEntry.arguments?.getString("noteId") ?: return@composable
-                SharedNoteViewScreen(noteId = noteId, onNavigateBack = { navController.popBackStack() })
+                SharedNoteViewScreen(
+                    noteId = noteId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onCommentAuthorClick = { uid ->
+                        navController.navigate(NavRoutes.Social.userProfile(uid))
+                    }
+                )
             }
             composable(NavRoutes.Social.CONVERSATIONS) {
                 val networkMonitor = LocalNetworkMonitor.current
                 ConversationsScreen(
-                    onConversationClick = { conversationId, participantName ->
-                        navController.navigate(NavRoutes.Social.conversationDetail(conversationId, participantName))
+                    onConversationClick = { conversationId, participantName, participantId ->
+                        navController.navigate(
+                            NavRoutes.Social.conversationDetail(conversationId, participantName, participantId)
+                        )
                     },
                     networkMonitor = networkMonitor,
                     onLogoClick = onLogoClick
@@ -694,6 +732,10 @@ private fun NavGraph(
                     navArgument("participantName") {
                         type = NavType.StringType
                         defaultValue = ""
+                    },
+                    navArgument("participantId") {
+                        type = NavType.StringType
+                        defaultValue = ""
                     }
                 )
             ) { backStackEntry ->
@@ -701,10 +743,15 @@ private fun NavGraph(
                 val participantName = android.net.Uri.decode(
                     backStackEntry.arguments?.getString("participantName").orEmpty()
                 ).ifBlank { "Conversation" }
+                val participantId = backStackEntry.arguments?.getString("participantId").orEmpty()
                 ConversationDetailScreen(
                     conversationId = conversationId,
                     participantName = participantName,
-                    onNavigateBack = { navController.popBackStack() }
+                    participantId = participantId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onOpenParticipantProfile = { uid ->
+                        navController.navigate(NavRoutes.Social.userProfile(uid))
+                    }
                 )
             }
         }

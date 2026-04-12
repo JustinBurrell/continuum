@@ -160,11 +160,12 @@ class FlashcardsRepository @Inject constructor(
     )
     private fun FlashcardSetEntity.toDomain() = FlashcardSet(
         id = id, title = title, description = description, cardCount = cardCount,
-        isAIGenerated = false, lastStudied = null, updatedAt = updatedAt
+        isAIGenerated = false, lastStudied = null, updatedAt = updatedAt, ownerUserId = null
     )
     private fun FlashcardSetDto.toDomain() = FlashcardSet(
         id = id, title = title, description = description, cardCount = resolvedCardCount(),
-        isAIGenerated = isAIGenerated, lastStudied = resolvedLastStudied(), updatedAt = updatedAt
+        isAIGenerated = isAIGenerated, lastStudied = resolvedLastStudied(), updatedAt = updatedAt,
+        ownerUserId = owner?.id?.takeIf { it.isNotBlank() }
     )
     private fun FlashcardDto.toEntity(parentSetId: String) = FlashcardEntity(
         id = id,

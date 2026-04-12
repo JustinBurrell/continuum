@@ -1,8 +1,12 @@
 package com.continuum.android.feature.social.data.repository
 
 import com.continuum.android.core.data.local.TokenManager
+import com.continuum.android.feature.flashcards.data.remote.FlashcardsApiService
 import com.continuum.android.feature.notes.data.remote.NotesApiService
 import com.continuum.android.feature.social.data.remote.SocialApiService
+import com.continuum.android.feature.tasks.data.remote.TasksApiService
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import com.continuum.android.feature.social.data.remote.dto.*
 import com.continuum.android.feature.social.domain.*
 import javax.inject.Inject
@@ -12,6 +16,8 @@ import javax.inject.Singleton
 class SocialRepository @Inject constructor(
     private val api: SocialApiService,
     private val notesApi: NotesApiService,
+    private val tasksApi: TasksApiService,
+    private val flashcardsApi: FlashcardsApiService,
     private val tokenManager: TokenManager
 ) {
 
@@ -106,6 +112,58 @@ class SocialRepository @Inject constructor(
         api.deleteComment(commentId)
         Unit
     }
+
+    /**
+     * Loads shared notes / tasks / sets visible to the current user and filters to items
+     * owned by [profileUserId], plus up to [activityLimit] activity feed rows for that actor.
+     */
+    suspend fun getFriendProfileExtras(profileUserId: String, activityLimit: Int = 8): Result<FriendProfileExtras> =
+        runCatching {
+            coroutineScope {
+                val notesJob = async { notesApi.getSharedNotes() }
+                val tasksJob = async { tasksApi.getSharedTasks() }
+                val setsJob = async { flashcardsApi.getSharedSets() }
+                val activityJob = async { api.getActivity(null) }
+
+                val sharedNotes = notesJob.await().notes.mapNotNull { dto ->
+                    val owner = dto.owner?.id?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+                    if (owner != profileUserId) return@mapNotNull null
+                    FriendSharedNoteSummary(
+                        id = dto.id,
+                        title = dto.title,
+                        type = dto.type?.ifBlank { "general" } ?: "general"
+                    )
+                }
+
+                val sharedTasks = tasksJob.await().tasks.mapNotNull { dto ->
+                    val owner = dto.userId?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+                    if (owner != profileUserId) return@mapNotNull null
+                    FriendSharedTaskSummary(id = dto.id, title = dto.title, status = dto.status)
+                }
+
+                val sharedSets = setsJob.await().sets.mapNotNull { dto ->
+                    val owner = dto.owner?.id?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+                    if (owner != profileUserId) return@mapNotNull null
+                    FriendSharedSetSummary(
+                        id = dto.id,
+                        title = dto.title,
+                        cardCount = dto.resolvedCardCount()
+                    )
+                }
+
+                val recentActivity = activityJob.await().feed
+                    .map { it.toDomain() }
+                    .filter { it.actorId == profileUserId }
+                    .take(activityLimit)
+
+                FriendProfileExtras(
+                    sharedNotes = sharedNotes,
+                    sharedTasks = sharedTasks,
+                    sharedSets = sharedSets,
+                    recentActivity = recentActivity
+                )
+            }
+        }
 
     suspend fun getUserProfile(userId: String): Result<UserProfile> = runCatching {
         val dto = api.getUserProfile(userId).user

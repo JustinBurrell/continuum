@@ -93,7 +93,8 @@ class DashboardViewModel @Inject constructor(
                         quickSummary = dto.summary?.quick,
                         detailedSummary = dto.summary?.detailed,
                         updatedAt = dto.updatedAt,
-                        createdAt = dto.createdAt
+                        createdAt = dto.createdAt,
+                        ownerUserId = dto.owner?.id?.takeIf { it.isNotBlank() }
                     )
                 }
 
@@ -132,7 +133,8 @@ class DashboardViewModel @Inject constructor(
                         cardCount = dto.resolvedCardCount(),
                         isAIGenerated = dto.isAIGenerated,
                         lastStudied = dto.resolvedLastStudied(),
-                        updatedAt = dto.updatedAt
+                        updatedAt = dto.updatedAt,
+                        ownerUserId = null
                     )
                 }
 

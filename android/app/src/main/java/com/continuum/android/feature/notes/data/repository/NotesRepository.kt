@@ -129,7 +129,8 @@ class NotesRepository @Inject constructor(
         quickSummary = null,
         detailedSummary = null,
         updatedAt = updatedAt,
-        createdAt = createdAt
+        createdAt = createdAt,
+        ownerUserId = null
     )
 
     private fun NoteDto.toDomain() = Note(
@@ -145,6 +146,7 @@ class NotesRepository @Inject constructor(
         quickSummary = summary?.quick,
         detailedSummary = summary?.detailed,
         updatedAt = updatedAt,
-        createdAt = createdAt
+        createdAt = createdAt,
+        ownerUserId = owner?.id?.takeIf { it.isNotBlank() }
     )
 }

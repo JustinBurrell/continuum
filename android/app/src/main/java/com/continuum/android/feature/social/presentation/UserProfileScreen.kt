@@ -1,5 +1,6 @@
 package com.continuum.android.feature.social.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,19 +23,41 @@ import coil3.compose.AsyncImage
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.feature.social.domain.ActivityItem
+import com.continuum.android.feature.social.domain.FriendSharedNoteSummary
+import com.continuum.android.feature.social.domain.FriendSharedSetSummary
+import com.continuum.android.feature.social.domain.FriendSharedTaskSummary
 
 @Composable
 fun UserProfileScreen(
     userId: String,
+    currentUserId: String?,
     onNavigateBack: () -> Unit,
+    onViewingSelf: () -> Unit,
     onMessageFriend: (userId: String, displayName: String) -> Unit = { _, _ -> },
+    onOpenSharedNote: (String) -> Unit = {},
+    onOpenTask: (String) -> Unit = {},
+    onOpenSet: (String) -> Unit = {},
     viewModel: SocialViewModel = hiltViewModel()
 ) {
     val state by viewModel.userProfileState.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
     val isDemo = LocalIsDemo.current
 
-    LaunchedEffect(userId) { viewModel.loadUserProfile(userId) }
+    LaunchedEffect(userId, currentUserId) {
+        if (currentUserId != null && userId == currentUserId) {
+            onViewingSelf()
+        } else {
+            viewModel.loadUserProfile(userId)
+        }
+    }
+
+    if (currentUserId != null && userId == currentUserId) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = BrandPurple)
+        }
+        return
+    }
 
     Scaffold(
         topBar = { MinimalTopBar(title = "Profile", onNavigateBack = onNavigateBack) },
@@ -190,6 +214,31 @@ fun UserProfileScreen(
                             }
                         }
                     }
+
+                    if (user.friendStatus == "friends") {
+                        if (state.friendExtrasLoading) {
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(28.dp),
+                                    strokeWidth = 2.dp,
+                                    color = BrandPurple
+                                )
+                            }
+                        }
+                        FriendProfileSections(
+                            notes = state.friendExtras.sharedNotes,
+                            tasks = state.friendExtras.sharedTasks,
+                            sets = state.friendExtras.sharedSets,
+                            activity = state.friendExtras.recentActivity,
+                            onOpenSharedNote = onOpenSharedNote,
+                            onOpenTask = onOpenTask,
+                            onOpenSet = onOpenSet
+                        )
+                    }
                 }
             }
             else -> {
@@ -202,6 +251,95 @@ fun UserProfileScreen(
             }
         }
     }
+}
+
+@Composable
+private fun FriendProfileSections(
+    notes: List<FriendSharedNoteSummary>,
+    tasks: List<FriendSharedTaskSummary>,
+    sets: List<FriendSharedSetSummary>,
+    activity: List<ActivityItem>,
+    onOpenSharedNote: (String) -> Unit,
+    onOpenTask: (String) -> Unit,
+    onOpenSet: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.lg)) {
+        if (notes.isNotEmpty()) {
+            ProfileSectionTitle("Shared notes")
+            notes.forEach { n ->
+                ContinuumCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenSharedNote(n.id) }
+                ) {
+                    Column(Modifier.padding(Spacing.md)) {
+                        Text(n.title, style = MaterialTheme.typography.titleSmall, color = TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(n.type, style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                    }
+                }
+            }
+        }
+        if (tasks.isNotEmpty()) {
+            ProfileSectionTitle("Shared tasks")
+            tasks.forEach { t ->
+                ContinuumCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenTask(t.id) }
+                ) {
+                    Column(Modifier.padding(Spacing.md)) {
+                        Text(t.title, style = MaterialTheme.typography.titleSmall, color = TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(t.status.replace("_", " "), style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                    }
+                }
+            }
+        }
+        if (sets.isNotEmpty()) {
+            ProfileSectionTitle("Shared flashcard sets")
+            sets.forEach { s ->
+                ContinuumCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenSet(s.id) }
+                ) {
+                    Column(Modifier.padding(Spacing.md)) {
+                        Text(s.title, style = MaterialTheme.typography.titleSmall, color = TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text("${s.cardCount} cards", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                    }
+                }
+            }
+        }
+        if (activity.isNotEmpty()) {
+            ProfileSectionTitle("Recent activity")
+            activity.forEach { item ->
+                ContinuumCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(Spacing.md)) {
+                        Text(item.displayText, style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
+                        Text(item.createdAt.take(10), style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                    }
+                }
+            }
+        }
+        if (notes.isEmpty() && tasks.isEmpty() && sets.isEmpty() && activity.isEmpty()) {
+            Text(
+                "No shared content or activity yet.",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextMuted,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileSectionTitle(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = TextPrimary,
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 @Composable
