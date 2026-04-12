@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.core.network.NetworkMonitor
@@ -26,9 +28,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val isAuthenticated = tokenManager.getAccessToken() != null
-
         setContent {
+            val isAuthenticated by tokenManager.isLoggedIn.collectAsStateWithLifecycle()
             ContinuumTheme {
                 CompositionLocalProvider(
                     LocalNetworkMonitor provides networkMonitor,

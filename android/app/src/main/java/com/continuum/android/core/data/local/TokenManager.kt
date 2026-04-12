@@ -6,8 +6,11 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,11 +35,20 @@ class TokenManager @Inject constructor(@ApplicationContext context: Context) {
     private val _logoutEvent = MutableSharedFlow<LogoutReason>(extraBufferCapacity = 1)
     val logoutEvent: SharedFlow<LogoutReason> = _logoutEvent.asSharedFlow()
 
+    /** Reactive session flag so UI can reload nav profile after login and clear on logout. */
+    private val _isLoggedIn = MutableStateFlow(false)
+    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
+
+    init {
+        _isLoggedIn.value = getAccessToken() != null
+    }
+
     fun saveTokens(jwt: String, refreshToken: String) {
         prefs.edit()
             .putString(KEY_ACCESS_TOKEN, jwt)
             .putString(KEY_REFRESH_TOKEN, refreshToken)
             .apply()
+        _isLoggedIn.value = true
     }
 
     fun getAccessToken(): String? = prefs.getString(KEY_ACCESS_TOKEN, null)
@@ -48,6 +60,7 @@ class TokenManager @Inject constructor(@ApplicationContext context: Context) {
             .remove(KEY_ACCESS_TOKEN)
             .remove(KEY_REFRESH_TOKEN)
             .apply()
+        _isLoggedIn.value = false
         _logoutEvent.tryEmit(reason)
     }
 

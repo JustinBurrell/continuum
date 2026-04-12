@@ -33,6 +33,10 @@ class NavProfileViewModel @Inject constructor(
         }
     }
 
+    fun clear() {
+        _state.value = NavProfileUiState()
+    }
+
     fun load() {
         viewModelScope.launch {
             profileRepository.getProfile()
@@ -48,6 +52,7 @@ class NavProfileViewModel @Inject constructor(
                         )
                     }
                 }
+                .onFailure { _state.value = NavProfileUiState() }
         }
     }
 }
