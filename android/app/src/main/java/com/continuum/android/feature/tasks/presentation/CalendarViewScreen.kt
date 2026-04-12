@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.tasks.domain.Task
@@ -32,6 +33,7 @@ fun CalendarViewScreen(
     viewModel: TasksViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val isDemo = LocalIsDemo.current
     var currentCalendar by remember { mutableStateOf(Calendar.getInstance()) }
     var selectedDate by remember { mutableStateOf<String?>(null) }
     var selectedDayTasks by remember { mutableStateOf<List<Task>>(emptyList()) }
@@ -98,6 +100,15 @@ fun CalendarViewScreen(
             }
 
             Spacer(Modifier.height(8.dp))
+
+            if (isDemo) {
+                Text(
+                    "Demo: calendar is read-only (browse due dates; create or move tasks after registering).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextMuted,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
             // Day of week headers
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -175,6 +186,14 @@ fun CalendarViewScreen(
 
                 if (selectedDayTasks.isEmpty()) {
                     Text("No tasks on this day.", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                    if (isDemo) {
+                        Text(
+                            "Demo: no edits from this screen—register for a full account to manage tasks.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextMuted,
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
+                    }
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(selectedDayTasks, key = { it.id }) { task ->

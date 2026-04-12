@@ -226,7 +226,7 @@ Screens containing private data (`Notes.DETAIL`, `Career.RESUME_DETAIL`, `Career
 
 ### Demo mode (`LocalIsDemo`)
 
-`AppNavHost` provides `CompositionLocalProvider(LocalIsDemo provides navProfile.isDemo)` so feature screens can hide create/share/delete affordances and read-only composers when the signed-in account is the demo user, matching the web app’s read-only demo behavior. Gates are applied across **notes** (lists, detail, editor, Drive import), **tasks** (board, detail), **flashcards** (set list, set detail, study session server sync), **career** (applications list/detail, resumes list, resume PDF viewer actions), **social** (friends, activity mark-seen, user search add), **messaging**, **profile** (edit profile blocked; settings toggles disabled; account rows), and anywhere else mutations would write data.
+`AppNavHost` provides `CompositionLocalProvider(LocalIsDemo provides navProfile.isDemo)` so feature screens can hide create/share/delete affordances and read-only composers when the signed-in account is the demo user, matching the web app’s read-only demo behavior. Gates are applied across **notes** (lists, detail, editor, Drive import), **tasks** (board, detail), **flashcards** (set list, set detail, study session server sync), **career** (applications list/detail, resumes list, resume PDF viewer actions), **social** (friends, activity mark-seen, user search add), **messaging**, **profile** (edit profile blocked; settings toggles disabled; account rows), and anywhere else mutations would write data. **Dashboard** empty sections and **Calendar** add copy-only demo hints so empty or read-only surfaces do not imply the user can create data there while on demo.
 
 ---
 

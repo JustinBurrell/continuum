@@ -25,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.R
 import com.continuum.android.core.network.NetworkMonitor
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.career.domain.Application
@@ -33,6 +34,10 @@ import com.continuum.android.feature.notes.domain.Note
 import com.continuum.android.feature.social.domain.ActivityItem
 import com.continuum.android.feature.tasks.domain.Task
 import java.util.Calendar
+
+/** Appended to dashboard empty-state subtext when the demo account is active. */
+private fun dashboardEmptySubtext(isDemo: Boolean, base: String): String =
+    if (isDemo) "${base.trimEnd()} — Demo: read-only preview; register to add your own data." else base
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +59,7 @@ fun DashboardScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
+    val isDemo = LocalIsDemo.current
     LaunchedEffect(Unit) { viewModel.load() }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -158,7 +164,7 @@ fun DashboardScreen(
                             EmptyState(
                                 icon = Icons.Default.MenuBook,
                                 headline = "No notes yet",
-                                subtext = "Create your first note to see it here"
+                                subtext = dashboardEmptySubtext(isDemo, "Create your first note to see it here")
                             )
                         }
                     } else {
@@ -180,7 +186,7 @@ fun DashboardScreen(
                             EmptyState(
                                 icon = Icons.Default.Style,
                                 headline = "No flashcard sets yet",
-                                subtext = "Create your first set to see it here"
+                                subtext = dashboardEmptySubtext(isDemo, "Create your first set to see it here")
                             )
                         }
                     } else {
@@ -205,7 +211,7 @@ fun DashboardScreen(
                             EmptyState(
                                 icon = Icons.Default.NotificationsNone,
                                 headline = "No activity yet",
-                                subtext = "Recent updates from your network appear here"
+                                subtext = dashboardEmptySubtext(isDemo, "Recent updates from your network appear here")
                             )
                         }
                     } else {
@@ -227,7 +233,7 @@ fun DashboardScreen(
                             EmptyState(
                                 icon = Icons.Default.Work,
                                 headline = "No applications yet",
-                                subtext = "Track your job applications to see them here"
+                                subtext = dashboardEmptySubtext(isDemo, "Track your job applications to see them here")
                             )
                         }
                     } else {
@@ -248,7 +254,7 @@ fun DashboardScreen(
                             EmptyState(
                                 icon = Icons.Default.CheckCircle,
                                 headline = "All clear",
-                                subtext = "No open tasks right now"
+                                subtext = dashboardEmptySubtext(isDemo, "No open tasks right now")
                             )
                         }
                     } else {
