@@ -50,6 +50,14 @@ data class SetDetailStudyHistoryUiState(
     val error: String? = null
 )
 
+data class StudySessionDetailUiState(
+    val loading: Boolean = false,
+    val error: String? = null,
+    val outcomes: List<FlashcardsRepository.StudySessionCardOutcome> = emptyList(),
+    /** True after a terminal success (including empty outcomes) or failure; failures can be retried. */
+    val fetchCompleted: Boolean = false
+)
+
 data class SetDetailUiState(
     val set: FlashcardSet? = null,
     val cards: List<Flashcard> = emptyList(),
@@ -77,6 +85,9 @@ class FlashcardsViewModel @Inject constructor(
 
     private val _setDetailHistoryState = MutableStateFlow(SetDetailStudyHistoryUiState())
     val setDetailHistoryState: StateFlow<SetDetailStudyHistoryUiState> = _setDetailHistoryState.asStateFlow()
+
+    private val _sessionDetailCache = MutableStateFlow<Map<String, StudySessionDetailUiState>>(emptyMap())
+    val sessionDetailCache: StateFlow<Map<String, StudySessionDetailUiState>> = _sessionDetailCache.asStateFlow()
 
     private var searchJob: Job? = null
 
@@ -275,6 +286,51 @@ class FlashcardsViewModel @Inject constructor(
                 }
                 .onFailure { e ->
                     _setDetailHistoryState.update { it.copy(isLoading = false, error = e.message) }
+                }
+        }
+    }
+
+    /**
+     * Loads per-card outcomes for GET /study-sessions/:id. Cached until process death;
+     * skips refetch when [sessionId] already has a successful non-empty payload or is loading.
+     */
+    fun loadStudySessionDetail(sessionId: String) {
+        val existing = _sessionDetailCache.value[sessionId]
+        if (existing?.loading == true) return
+        if (existing?.fetchCompleted == true && existing.error == null) return
+
+        if (existing?.fetchCompleted == true && existing.error != null) {
+            _sessionDetailCache.update { it - sessionId }
+        }
+
+        _sessionDetailCache.update { map ->
+            map + (sessionId to StudySessionDetailUiState(loading = true, error = null, outcomes = emptyList()))
+        }
+        viewModelScope.launch {
+            repository.getStudySessionDetail(sessionId)
+                .onSuccess { outcomes ->
+                    _sessionDetailCache.update { map ->
+                        map + (
+                            sessionId to StudySessionDetailUiState(
+                                loading = false,
+                                error = null,
+                                outcomes = outcomes,
+                                fetchCompleted = true
+                            )
+                            )
+                    }
+                }
+                .onFailure { e ->
+                    _sessionDetailCache.update { map ->
+                        map + (
+                            sessionId to StudySessionDetailUiState(
+                                loading = false,
+                                error = e.message,
+                                outcomes = emptyList(),
+                                fetchCompleted = true
+                            )
+                            )
+                    }
                 }
         }
     }

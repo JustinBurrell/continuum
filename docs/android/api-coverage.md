@@ -169,6 +169,7 @@ For **web routes vs `AppNavHost`** (parity audit and follow-up list), see [`web-
 | GET | /api/study-sessions | FlashcardStudyHistoryScreen | FlashcardsViewModel.loadStudyHistory() | No |
 | GET | /api/study-sessions/streak | FlashcardStudyHistoryScreen, DashboardScreen | FlashcardsViewModel.loadStudyHistory() (history); streak elsewhere | No |
 | GET | /api/study-sessions/set/:setId | FlashcardSetDetailScreen | FlashcardsViewModel.loadSetStudyHistory() | No |
+| GET | /api/study-sessions/:id | FlashcardStudyHistoryScreen, FlashcardSetDetailScreen | `FlashcardStudySessionRow` → `FlashcardsViewModel.loadStudySessionDetail()` | No |
 
 ### Conversations
 

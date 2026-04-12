@@ -127,6 +127,12 @@ class FlashcardsRepository @Inject constructor(
         val score: Int
     )
 
+    data class StudySessionCardOutcome(
+        val front: String,
+        val back: String?,
+        val correct: Boolean
+    )
+
     suspend fun submitStudySession(
         setId: String, durationSeconds: Int, totalCards: Int, correctCount: Int,
         score: Int, cardResults: List<CardResultDto>
@@ -148,6 +154,24 @@ class FlashcardsRepository @Inject constructor(
     ): Result<List<StudySession>> = runCatching {
         api.getSetStudySessions(setId, page = page, limit = limit).sessions.map { it.toDomainSession() }
     }
+
+    suspend fun getStudySessionDetail(sessionId: String): Result<List<StudySessionCardOutcome>> = runCatching {
+        val session = api.getStudySessionById(sessionId).session
+        session.cardResults.orEmpty().map { row ->
+            val card = row.cardId
+            StudySessionCardOutcome(
+                front = card?.front?.takeIf { it.isNotBlank() } ?: "Card",
+                back = card?.back?.takeIf { it.isNotBlank() },
+                correct = row.correct
+            )
+        }
+    }
+
+    private fun StudySessionListItemDto.toDomainSession() = StudySession(
+        id = id, setId = setId, completedAt = completedAt,
+        durationSeconds = durationSeconds, totalCards = totalCards,
+        correctCount = correctCount, score = score
+    )
 
     private fun StudySessionDto.toDomainSession() = StudySession(
         id = id, setId = setId, completedAt = completedAt,

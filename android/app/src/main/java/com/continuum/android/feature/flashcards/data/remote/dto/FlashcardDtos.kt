@@ -102,6 +102,33 @@ data class CardResultDto(
     val correct: Boolean
 )
 
+/** Populated `cardId` on GET /study-sessions/:id (card front/back for history UI). */
+@JsonClass(generateAdapter = true)
+data class StudySessionPopulatedCardDto(
+    @Json(name = "_id") val id: String = "",
+    val front: String = "",
+    val back: String = ""
+)
+
+@JsonClass(generateAdapter = true)
+data class StudySessionCardResultDetailDto(
+    val cardId: StudySessionPopulatedCardDto? = null,
+    val correct: Boolean = false
+)
+
+/** List/history rows from GET /study-sessions and GET …/set/:id (no populated card bodies). */
+@JsonClass(generateAdapter = true)
+data class StudySessionListItemDto(
+    @Json(name = "_id") val id: String = "",
+    val setId: String = "",
+    val completedAt: String = "",
+    val durationSeconds: Int = 0,
+    val totalCards: Int = 0,
+    val correctCount: Int = 0,
+    val score: Int = 0
+)
+
+/** POST submit and GET /study-sessions/:id — may include populated `cardResults`. */
 @JsonClass(generateAdapter = true)
 data class StudySessionDto(
     @Json(name = "_id") val id: String = "",
@@ -110,7 +137,8 @@ data class StudySessionDto(
     val durationSeconds: Int = 0,
     val totalCards: Int = 0,
     val correctCount: Int = 0,
-    val score: Int = 0
+    val score: Int = 0,
+    val cardResults: List<StudySessionCardResultDetailDto>? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -122,7 +150,7 @@ data class StudySessionResponseDto(
 @JsonClass(generateAdapter = true)
 data class StudySessionsListResponseDto(
     val success: Boolean = false,
-    val sessions: List<StudySessionDto> = emptyList()
+    val sessions: List<StudySessionListItemDto> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)

@@ -82,4 +82,8 @@ interface FlashcardsApiService {
 
     @GET("study-sessions/streak")
     suspend fun getStreak(): StudyStreakResponseDto
+
+    /** Full session with populated `cardResults.cardId` (must stay below `streak` and `set/` paths). */
+    @GET("study-sessions/{sessionId}")
+    suspend fun getStudySessionById(@Path("sessionId") sessionId: String): StudySessionResponseDto
 }

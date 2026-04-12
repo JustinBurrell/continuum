@@ -187,7 +187,10 @@ fun FlashcardSetDetailScreen(
                                         items(historyState.sessions, key = { it.id }) { session ->
                                             FlashcardStudySessionRow(
                                                 session = session,
-                                                titleLine = "${session.correctCount}/${session.totalCards} correct"
+                                                titleLine = "${session.correctCount}/${session.totalCards} correct",
+                                                subtitleLine = "${session.score}% score · ${session.totalCards} cards · " +
+                                                    "${formatStudySessionDuration(session.durationSeconds)} · " +
+                                                    session.completedAt.take(10)
                                             )
                                         }
                                     }

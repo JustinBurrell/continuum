@@ -101,7 +101,10 @@ fun FlashcardStudyHistoryScreen(
                                 FlashcardStudySessionRow(
                                     session = session,
                                     titleLine = "Set ${session.setId.takeLast(8)}",
-                                    onClick = { onOpenSet(session.setId) }
+                                    subtitleLine = "${session.correctCount}/${session.totalCards} correct · " +
+                                        "${formatStudySessionDuration(session.durationSeconds)} · " +
+                                        session.completedAt.take(10),
+                                    onOpenSetClick = { onOpenSet(session.setId) }
                                 )
                             }
                         }
