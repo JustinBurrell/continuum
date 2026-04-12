@@ -28,6 +28,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 fun FlashcardSetsListScreen(
     onSetClick: (String) -> Unit,
     onStudy: (String) -> Unit,
+    onStudyHistory: () -> Unit = {},
     onLogoClick: (() -> Unit)? = null,
     viewModel: FlashcardsViewModel = hiltViewModel()
 ) {
@@ -41,7 +42,18 @@ fun FlashcardSetsListScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            InlineScreenHeader(title = "Flashcards")
+            InlineScreenHeader(
+                title = "Flashcards",
+                trailing = {
+                    IconButton(onClick = onStudyHistory) {
+                        Icon(
+                            Icons.Default.History,
+                            contentDescription = "Study history",
+                            tint = BrandPurple
+                        )
+                    }
+                }
+            )
 
             OutlinedTextField(
                 value = state.searchQuery,

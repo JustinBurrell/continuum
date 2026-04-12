@@ -137,12 +137,16 @@ class FlashcardsRepository @Inject constructor(
         session.toDomainSession()
     }
 
-    suspend fun getUserStudySessions(): Result<List<StudySession>> = runCatching {
-        api.getUserStudySessions().sessions.map { it.toDomainSession() }
+    suspend fun getUserStudySessions(page: Int? = null, limit: Int? = null): Result<List<StudySession>> = runCatching {
+        api.getUserStudySessions(page = page, limit = limit).sessions.map { it.toDomainSession() }
     }
 
-    suspend fun getSetStudySessions(setId: String): Result<List<StudySession>> = runCatching {
-        api.getSetStudySessions(setId).sessions.map { it.toDomainSession() }
+    suspend fun getSetStudySessions(
+        setId: String,
+        page: Int? = null,
+        limit: Int? = null
+    ): Result<List<StudySession>> = runCatching {
+        api.getSetStudySessions(setId, page = page, limit = limit).sessions.map { it.toDomainSession() }
     }
 
     private fun StudySessionDto.toDomainSession() = StudySession(

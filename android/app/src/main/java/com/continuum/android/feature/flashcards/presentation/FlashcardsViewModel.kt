@@ -10,6 +10,7 @@ import com.continuum.android.feature.flashcards.domain.Flashcard
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -39,7 +40,9 @@ data class StudyUiState(
 data class StudyHistoryUiState(
     val sessions: List<FlashcardsRepository.StudySession> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    /** Populated for global history screen; cleared when loading per-set history. */
+    val streak: Int = 0
 )
 
 data class SetDetailUiState(
@@ -238,18 +241,29 @@ class FlashcardsViewModel @Inject constructor(
     fun loadStudyHistory() {
         _historyState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            repository.getUserStudySessions()
-                .onSuccess { sessions -> _historyState.update { it.copy(sessions = sessions, isLoading = false) } }
-                .onFailure { e -> _historyState.update { it.copy(isLoading = false, error = e.message) } }
+            val streakDeferred = async { repository.getStreak() }
+            val sessionsResult = repository.getUserStudySessions(page = 1, limit = 50)
+            val streak = streakDeferred.await().getOrDefault(0)
+            sessionsResult
+                .onSuccess { sessions ->
+                    _historyState.update {
+                        it.copy(sessions = sessions, streak = streak, isLoading = false, error = null)
+                    }
+                }
+                .onFailure { e ->
+                    _historyState.update { it.copy(isLoading = false, error = e.message, streak = streak) }
+                }
         }
     }
 
     fun loadSetStudyHistory(setId: String) {
-        _historyState.update { it.copy(isLoading = true, error = null) }
+        _historyState.update { it.copy(isLoading = true, error = null, streak = 0) }
         viewModelScope.launch {
             repository.getSetStudySessions(setId)
-                .onSuccess { sessions -> _historyState.update { it.copy(sessions = sessions, isLoading = false) } }
-                .onFailure { e -> _historyState.update { it.copy(isLoading = false, error = e.message) } }
+                .onSuccess { sessions ->
+                    _historyState.update { it.copy(sessions = sessions, isLoading = false, streak = 0, error = null) }
+                }
+                .onFailure { e -> _historyState.update { it.copy(isLoading = false, error = e.message, streak = 0) } }
         }
     }
 

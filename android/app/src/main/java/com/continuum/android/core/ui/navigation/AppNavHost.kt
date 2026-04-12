@@ -77,6 +77,7 @@ object NavRoutes {
     object Flashcards {
         const val ROOT = "flashcards"
         const val LIST = "flashcards/list"
+        const val HISTORY = "flashcards/history"
         const val SET_DETAIL = "flashcards/set/{setId}"
         const val STUDY_MODE = "flashcards/study/{setId}"
 
@@ -157,6 +158,7 @@ object NavRoutes {
 
 val sensitiveRoutes = setOf(
     NavRoutes.Notes.DETAIL,
+    NavRoutes.Flashcards.HISTORY,
     NavRoutes.Career.RESUME_DETAIL,
     NavRoutes.Career.RESUME_FEEDBACK,
     NavRoutes.Career.APPLICATION_DETAIL,
@@ -523,7 +525,14 @@ private fun NavGraph(
                 FlashcardSetsListScreen(
                     onSetClick = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) },
                     onStudy = { setId -> navController.navigate(NavRoutes.Flashcards.studyMode(setId)) },
+                    onStudyHistory = { navController.navigate(NavRoutes.Flashcards.HISTORY) },
                     onLogoClick = onLogoClick
+                )
+            }
+            composable(NavRoutes.Flashcards.HISTORY) {
+                FlashcardStudyHistoryScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onOpenSet = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) }
                 )
             }
             composable(
