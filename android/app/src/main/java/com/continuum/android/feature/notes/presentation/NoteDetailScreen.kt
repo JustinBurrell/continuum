@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
@@ -29,6 +30,7 @@ fun NoteDetailScreen(
 ) {
     val detailState by viewModel.detailState.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
+    val isDemo = LocalIsDemo.current
     val note = detailState.note
 
     var showSummary by remember { mutableStateOf(false) }
@@ -47,7 +49,7 @@ fun NoteDetailScreen(
                 title = note?.title ?: "",
                 onNavigateBack = onNavigateBack,
                 actions = {
-                    if (note != null) {
+                    if (note != null && !isDemo) {
                         IconButton(onClick = { onEdit(noteId) }) {
                             Icon(Icons.Default.Edit, "Edit", tint = TextPrimary)
                         }

@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.social.domain.Comment
@@ -31,6 +32,7 @@ fun SharedNoteViewScreen(
     viewModel: SocialViewModel = hiltViewModel()
 ) {
     val state by viewModel.sharedNoteState.collectAsStateWithLifecycle()
+    val isDemo = LocalIsDemo.current
     var commentInput by remember { mutableStateOf("") }
     val richTextState = rememberRichTextState()
 
@@ -47,34 +49,36 @@ fun SharedNoteViewScreen(
             )
         },
         bottomBar = {
-            Surface(shadowElevation = 8.dp) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .imePadding(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value = commentInput,
-                        onValueChange = { commentInput = it },
-                        placeholder = { Text("Add a comment...") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrandPurple, unfocusedBorderColor = Border)
-                    )
-                    IconButton(
-                        onClick = {
-                            if (commentInput.isNotBlank()) {
-                                viewModel.addComment(noteId, commentInput)
-                                commentInput = ""
-                            }
-                        },
-                        enabled = commentInput.isNotBlank() && !state.isSendingComment
+            if (!isDemo) {
+                Surface(shadowElevation = 8.dp) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .imePadding(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Send, "Send", tint = if (commentInput.isNotBlank()) BrandPurple else TextMuted)
+                        OutlinedTextField(
+                            value = commentInput,
+                            onValueChange = { commentInput = it },
+                            placeholder = { Text("Add a comment...") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrandPurple, unfocusedBorderColor = Border)
+                        )
+                        IconButton(
+                            onClick = {
+                                if (commentInput.isNotBlank()) {
+                                    viewModel.addComment(noteId, commentInput)
+                                    commentInput = ""
+                                }
+                            },
+                            enabled = commentInput.isNotBlank() && !state.isSendingComment
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.Send, "Send", tint = if (commentInput.isNotBlank()) BrandPurple else TextMuted)
+                        }
                     }
                 }
             }
@@ -120,7 +124,7 @@ fun SharedNoteViewScreen(
                         items(state.note!!.comments, key = { it.id }) { comment ->
                             CommentItem(
                                 comment = comment,
-                                onLike = { viewModel.likeComment(noteId, comment.id) },
+                                onLike = if (isDemo) null else { { viewModel.likeComment(noteId, comment.id) } },
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                             )
                         }
@@ -143,7 +147,7 @@ fun SharedNoteViewScreen(
 @Composable
 private fun CommentItem(
     comment: Comment,
-    onLike: () -> Unit,
+    onLike: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -151,18 +155,25 @@ private fun CommentItem(
             Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
                     AvatarInitials(name = comment.authorName, modifier = Modifier.size(28.dp).clip(CircleShape))
-                    Text(comment.authorName, style = MaterialTheme.typography.labelLarge, color = TextPrimary)
-                    Text(comment.createdAt.take(10), style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(comment.authorName, style = MaterialTheme.typography.labelLarge, color = TextPrimary)
+                            VerifiedRoleBadges(roles = comment.authorRoles, expanded = false)
+                        }
+                        Text(comment.createdAt.take(10), style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                    }
                 }
                 Text(comment.content, style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onLike, modifier = Modifier.size(28.dp)) {
-                        Icon(Icons.Default.ThumbUp, null, tint = TextMuted, modifier = Modifier.size(16.dp))
+                if (onLike != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = onLike, modifier = Modifier.size(28.dp)) {
+                            Icon(Icons.Default.ThumbUp, null, tint = TextMuted, modifier = Modifier.size(16.dp))
+                        }
+                        Text("${comment.likes}", style = MaterialTheme.typography.bodySmall, color = TextMuted)
                     }
-                    Text("${comment.likes}", style = MaterialTheme.typography.bodySmall, color = TextMuted)
                 }
             }
         }
@@ -171,7 +182,7 @@ private fun CommentItem(
         comment.replies.forEach { reply ->
             CommentItem(
                 comment = reply,
-                onLike = {},
+                onLike = onLike,
                 modifier = Modifier.padding(start = 24.dp, top = 4.dp)
             )
         }

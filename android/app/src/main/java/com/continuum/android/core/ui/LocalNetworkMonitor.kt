@@ -17,3 +17,8 @@ val LocalNetworkMonitor = compositionLocalOf<NetworkMonitor> {
 val LocalTokenManager = compositionLocalOf<TokenManager> {
     error("No TokenManager provided — wrap with CompositionLocalProvider")
 }
+
+/** True when the signed-in account is the read-only demo user (from nav profile). */
+val LocalIsDemo = compositionLocalOf<Boolean> {
+    false
+}

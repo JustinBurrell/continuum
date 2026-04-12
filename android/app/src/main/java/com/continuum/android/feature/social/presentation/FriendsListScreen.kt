@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.social.domain.Friend
@@ -31,6 +32,7 @@ fun FriendsListScreen(
     viewModel: SocialViewModel = hiltViewModel()
 ) {
     val state by viewModel.friendsState.collectAsStateWithLifecycle()
+    val isDemo = LocalIsDemo.current
     var selectedTab by remember { mutableIntStateOf(0) }
     var friendToRemove by remember { mutableStateOf<Friend?>(null) }
 
@@ -95,7 +97,7 @@ fun FriendsListScreen(
                                 items(state.friends, key = { it.id }) { friend ->
                                     FriendCard(
                                         friend = friend,
-                                        onRemove = { friendToRemove = friend },
+                                        onRemove = if (isDemo) null else { { friendToRemove = friend } },
                                         onClick = { onUserClick(friend.userId) }
                                     )
                                 }
@@ -119,8 +121,8 @@ fun FriendsListScreen(
                                 items(state.incomingRequests, key = { it.id }) { request ->
                                     FriendRequestCard(
                                         request = request,
-                                        onAccept = { viewModel.acceptRequest(request.id) },
-                                        onDecline = { viewModel.declineRequest(request.id) }
+                                        onAccept = if (isDemo) null else { { viewModel.acceptRequest(request.id) } },
+                                        onDecline = if (isDemo) null else { { viewModel.declineRequest(request.id) } }
                                     )
                                 }
                             }
@@ -143,7 +145,7 @@ fun FriendsListScreen(
                                 items(state.sentRequests, key = { it.id }) { request ->
                                     SentRequestCard(
                                         request = request,
-                                        onCancel = { viewModel.cancelSentRequest(request.id) }
+                                        onCancel = if (isDemo) null else { { viewModel.cancelSentRequest(request.id) } }
                                     )
                                 }
                             }
@@ -153,13 +155,15 @@ fun FriendsListScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = onUserSearch,
-            containerColor = BrandPurple,
-            contentColor = White,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
-        ) {
-            Icon(Icons.Default.PersonAdd, "Find friends")
+        if (!isDemo) {
+            FloatingActionButton(
+                onClick = onUserSearch,
+                containerColor = BrandPurple,
+                contentColor = White,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+            ) {
+                Icon(Icons.Default.PersonAdd, "Find friends")
+            }
         }
     }
 
@@ -179,22 +183,8 @@ fun FriendsListScreen(
 }
 
 @Composable
-private fun FriendCard(friend: Friend, onRemove: () -> Unit, onClick: () -> Unit) {
-    val swipeToDismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) { onRemove(); false } else false
-        }
-    )
-
-    SwipeToDismissBox(
-        state = swipeToDismissState,
-        backgroundContent = {
-            Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
-                Icon(Icons.Default.PersonRemove, null, tint = ErrorRed)
-            }
-        },
-        enableDismissFromStartToEnd = false
-    ) {
+private fun FriendCard(friend: Friend, onRemove: (() -> Unit)?, onClick: () -> Unit) {
+    val card: @Composable () -> Unit = {
         ContinuumCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -203,7 +193,10 @@ private fun FriendCard(friend: Friend, onRemove: () -> Unit, onClick: () -> Unit
             ) {
                 AvatarInitials(name = friend.fullName, modifier = Modifier.size(40.dp).clip(CircleShape))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(friend.fullName, style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(friend.fullName, style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+                        VerifiedRoleBadges(roles = friend.roles, expanded = false)
+                    }
                     friend.username?.let {
                         Text("@$it", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                     }
@@ -215,10 +208,34 @@ private fun FriendCard(friend: Friend, onRemove: () -> Unit, onClick: () -> Unit
             }
         }
     }
+
+    if (onRemove == null) {
+        card()
+    } else {
+        val swipeToDismissState = rememberSwipeToDismissBoxState(
+            confirmValueChange = { value ->
+                if (value == SwipeToDismissBoxValue.EndToStart) {
+                    onRemove()
+                    false
+                } else false
+            }
+        )
+        SwipeToDismissBox(
+            state = swipeToDismissState,
+            backgroundContent = {
+                Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
+                    Icon(Icons.Default.PersonRemove, null, tint = ErrorRed)
+                }
+            },
+            enableDismissFromStartToEnd = false
+        ) {
+            card()
+        }
+    }
 }
 
 @Composable
-private fun SentRequestCard(request: FriendRequest, onCancel: () -> Unit) {
+private fun SentRequestCard(request: FriendRequest, onCancel: (() -> Unit)?) {
     ContinuumCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -238,13 +255,19 @@ private fun SentRequestCard(request: FriendRequest, onCancel: () -> Unit) {
                     }
                 }
             }
-            TextButton(onClick = onCancel) { Text("Cancel", color = ErrorRed) }
+            onCancel?.let { cancel ->
+                TextButton(onClick = cancel) { Text("Cancel", color = ErrorRed) }
+            }
         }
     }
 }
 
 @Composable
-private fun FriendRequestCard(request: FriendRequest, onAccept: () -> Unit, onDecline: () -> Unit) {
+private fun FriendRequestCard(
+    request: FriendRequest,
+    onAccept: (() -> Unit)?,
+    onDecline: (() -> Unit)?
+) {
     ContinuumCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -264,9 +287,11 @@ private fun FriendRequestCard(request: FriendRequest, onAccept: () -> Unit, onDe
                     }
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onDecline) { Text("Decline", color = ErrorRed) }
-                ContinuumButton(text = "Accept", onClick = onAccept, modifier = Modifier.height(36.dp))
+            if (onAccept != null && onDecline != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = onDecline) { Text("Decline", color = ErrorRed) }
+                    ContinuumButton(text = "Accept", onClick = onAccept, modifier = Modifier.height(36.dp))
+                }
             }
         }
     }

@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
@@ -37,8 +38,10 @@ fun TaskDetailScreen(
 ) {
     val socialVm: SocialViewModel = hiltViewModel()
     val friendsState by socialVm.friendsState.collectAsStateWithLifecycle()
+    val threadComments by socialVm.threadCommentsState.collectAsStateWithLifecycle()
     val detailState by viewModel.taskDetailState.collectAsStateWithLifecycle()
     val tokenManager = LocalTokenManager.current
+    val isDemo = LocalIsDemo.current
 
     var showEditSheet by remember { mutableStateOf(false) }
     var showShareSheet by remember { mutableStateOf(false) }
@@ -46,6 +49,11 @@ fun TaskDetailScreen(
     var showMenu by remember { mutableStateOf(false) }
 
     LaunchedEffect(taskId) { viewModel.loadTaskDetail(taskId) }
+
+    DisposableEffect(taskId) {
+        socialVm.loadThreadComments("task", taskId)
+        onDispose { socialVm.clearThreadComments() }
+    }
 
     LaunchedEffect(showShareSheet) {
         if (showShareSheet) socialVm.loadFriends()
@@ -60,12 +68,12 @@ fun TaskDetailScreen(
                     val task = detailState.task
                     val myId = tokenManager.getJwtUserId()
                     val isOwner = task != null && myId != null && task.userId == myId
-                    if (task != null && isOwner) {
+                    if (task != null && isOwner && !isDemo) {
                         IconButton(onClick = { showEditSheet = true }) {
                             Icon(Icons.Default.Edit, "Edit", tint = TextPrimary)
                         }
                     }
-                    if (task != null) {
+                    if (task != null && isOwner && !isDemo) {
                         IconButton(onClick = { showMenu = true }) {
                             Icon(Icons.Default.MoreVert, "More", tint = TextPrimary)
                         }
@@ -115,11 +123,12 @@ fun TaskDetailScreen(
                         task = task,
                         isOwner = isOwner,
                         myParticipant = myParticipant,
+                        isDemo = isDemo,
                         onStatusChange = { status -> viewModel.updateTaskStatus(taskId, status) },
                         onUserProfileClick = onUserProfileClick
                     )
 
-                    if (isOwner) {
+                    if (isOwner && !isDemo) {
                         Spacer(Modifier.height(Spacing.md))
                         OutlinedButton(
                             onClick = { showShareSheet = true },
@@ -136,6 +145,20 @@ fun TaskDetailScreen(
                             )
                         }
                     }
+
+                    Spacer(Modifier.height(Spacing.lg))
+                    CommentThread(
+                        comments = threadComments.comments,
+                        onAddComment = { content, parentId ->
+                            socialVm.addThreadComment(content, parentId)
+                        },
+                        onLikeComment = { commentId -> socialVm.likeThreadComment(commentId) },
+                        onDeleteComment = null,
+                        onUserClick = { uid -> onUserProfileClick(uid) },
+                        isSending = threadComments.isSending,
+                        readOnly = isDemo,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
 
                 if (showEditSheet) {
@@ -191,6 +214,7 @@ private fun TaskDetailContent(
     task: Task,
     isOwner: Boolean,
     myParticipant: TaskParticipant?,
+    isDemo: Boolean,
     onStatusChange: (String) -> Unit,
     onUserProfileClick: (String) -> Unit
 ) {
@@ -260,7 +284,8 @@ private fun TaskDetailContent(
                 statusOptions.forEach { status ->
                     FilterChip(
                         selected = task.status == status,
-                        onClick = { if (task.status != status) onStatusChange(status) },
+                        onClick = { if (!isDemo && task.status != status) onStatusChange(status) },
+                        enabled = !isDemo,
                         label = { Text(status.replace("_", " ").replaceFirstChar { it.uppercase() }) }
                     )
                 }
@@ -273,7 +298,8 @@ private fun TaskDetailContent(
                 statusOptions.forEach { status ->
                     FilterChip(
                         selected = myParticipant.status == status,
-                        onClick = { if (myParticipant.status != status) onStatusChange(status) },
+                        onClick = { if (!isDemo && myParticipant.status != status) onStatusChange(status) },
+                        enabled = !isDemo,
                         label = { Text(status.replace("_", " ").replaceFirstChar { it.uppercase() }) }
                     )
                 }

@@ -156,6 +156,7 @@ class SocialRepository @Inject constructor(
             actorId = u?.id,
             actorName = actorName,
             actorAvatar = u?.avatarUrl,
+            actorRoles = u?.roles ?: emptyList(),
             resourceId = targetId,
             resourceTitle = title,
             createdAt = createdAt
@@ -173,7 +174,8 @@ class SocialRepository @Inject constructor(
             lastName = other.lastName,
             username = other.username,
             avatar = other.avatarUrl,
-            mutualFriendsCount = 0
+            mutualFriendsCount = 0,
+            roles = other.roles
         )
     }
 
@@ -225,7 +227,8 @@ class SocialRepository @Inject constructor(
         lastName = lastName,
         username = username,
         avatar = avatarUrl,
-        mutualFriendsCount = 0
+        mutualFriendsCount = 0,
+        roles = roles
     )
 
     private fun UserSearchDto.toDomain() = UserSearchResult(
@@ -252,6 +255,7 @@ class SocialRepository @Inject constructor(
             authorId = userId,
             authorName = authorName,
             authorAvatar = snap?.avatarUrl,
+            authorRoles = snap?.roles ?: emptyList(),
             content = content,
             likes = likes.size,
             replies = replies,

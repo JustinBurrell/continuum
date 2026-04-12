@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 
@@ -24,10 +26,12 @@ import com.continuum.android.core.ui.theme.*
 fun UserProfileScreen(
     userId: String,
     onNavigateBack: () -> Unit,
+    onMessageFriend: (userId: String, displayName: String) -> Unit = { _, _ -> },
     viewModel: SocialViewModel = hiltViewModel()
 ) {
     val state by viewModel.userProfileState.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
+    val isDemo = LocalIsDemo.current
 
     LaunchedEffect(userId) { viewModel.loadUserProfile(userId) }
 
@@ -113,13 +117,23 @@ fun UserProfileScreen(
                                         style = MaterialTheme.typography.labelMedium
                                     )
                                 }
-                                OutlinedButton(
-                                    onClick = { viewModel.removeFriendFromProfile(userId) },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Icon(Icons.Default.PersonRemove, null, modifier = Modifier.size(18.dp))
-                                    Spacer(Modifier.width(8.dp))
-                                    Text("Remove friend", color = ErrorRed)
+                                if (!isDemo) {
+                                    OutlinedButton(
+                                        onClick = { onMessageFriend(userId, user.fullName) },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Icon(Icons.AutoMirrored.Filled.Chat, null, modifier = Modifier.size(18.dp))
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("Message")
+                                    }
+                                    OutlinedButton(
+                                        onClick = { viewModel.removeFriendFromProfile(userId) },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Icon(Icons.Default.PersonRemove, null, modifier = Modifier.size(18.dp))
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("Remove friend", color = ErrorRed)
+                                    }
                                 }
                             }
                         }
@@ -133,16 +147,18 @@ fun UserProfileScreen(
                                         style = MaterialTheme.typography.labelMedium
                                     )
                                 }
-                                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
-                                    ContinuumButton(
-                                        text = "Accept",
-                                        onClick = { viewModel.acceptIncomingFromProfile(userId) },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    OutlinedButton(
-                                        onClick = { viewModel.declineIncomingFromProfile(userId) },
-                                        modifier = Modifier.weight(1f)
-                                    ) { Text("Decline") }
+                                if (!isDemo) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
+                                        ContinuumButton(
+                                            text = "Accept",
+                                            onClick = { viewModel.acceptIncomingFromProfile(userId) },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        OutlinedButton(
+                                            onClick = { viewModel.declineIncomingFromProfile(userId) },
+                                            modifier = Modifier.weight(1f)
+                                        ) { Text("Decline") }
+                                    }
                                 }
                             }
                         }
@@ -156,18 +172,22 @@ fun UserProfileScreen(
                                         style = MaterialTheme.typography.labelMedium
                                     )
                                 }
-                                OutlinedButton(
-                                    onClick = { viewModel.cancelOutgoingFromProfile(userId) },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) { Text("Cancel request") }
+                                if (!isDemo) {
+                                    OutlinedButton(
+                                        onClick = { viewModel.cancelOutgoingFromProfile(userId) },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) { Text("Cancel request") }
+                                }
                             }
                         }
                         else -> {
-                            ContinuumButton(
-                                text = "Add Friend",
-                                onClick = { viewModel.sendFriendRequestFromProfile(userId) },
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            if (!isDemo) {
+                                ContinuumButton(
+                                    text = "Add Friend",
+                                    onClick = { viewModel.sendFriendRequestFromProfile(userId) },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
                 }

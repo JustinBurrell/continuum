@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.continuum.android.core.data.local.LogoutReason
 import com.continuum.android.core.ui.components.DemoBanner
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.feature.auth.presentation.*
@@ -129,11 +131,12 @@ object NavRoutes {
         const val USER_PROFILE = "social/user/{userId}"
         const val SHARED_NOTE = "social/shared-note/{noteId}"
         const val CONVERSATIONS = "social/conversations"
-        const val CONVERSATION_DETAIL = "social/conversations/{conversationId}"
+        const val CONVERSATION_DETAIL = "social/conversations/{conversationId}?participantName={participantName}"
 
         fun userProfile(userId: String) = "social/user/$userId"
         fun sharedNote(noteId: String) = "social/shared-note/$noteId"
-        fun conversationDetail(conversationId: String) = "social/conversations/$conversationId"
+        fun conversationDetail(conversationId: String, participantName: String = "") =
+            "social/conversations/$conversationId?participantName=${android.net.Uri.encode(participantName)}"
     }
 
     object Profile {
@@ -240,55 +243,57 @@ fun AppNavHost(
         tokenManager.clearTokens()
     }
 
-    if (isExpandedScreen && showMainNav) {
-        Row(modifier = Modifier.fillMaxSize()) {
-            ContinuumNavigationRail(
-                currentRoute = currentRoute,
-                navController = navController,
-                profileAvatarUrl = navProfile.avatarUrl,
-                profileDisplayName = navProfile.displayName,
-                profileImageCacheKey = profileImageCacheKey,
-            )
-            androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
-                if (showDemoBanner) {
-                    DemoBanner(onWantFullExperience = onDemoRegister)
-                }
-                NavGraph(
+    CompositionLocalProvider(LocalIsDemo provides navProfile.isDemo) {
+        if (isExpandedScreen && showMainNav) {
+            Row(modifier = Modifier.fillMaxSize()) {
+                ContinuumNavigationRail(
+                    currentRoute = currentRoute,
                     navController = navController,
-                    startDestination = startDestination,
-                    onLogoClick = onLogoClick,
-                    remoteLogoutMessage = remoteLogoutMessage,
-                    onRemoteLogoutShown = { remoteLogoutMessage = null },
-                    modifier = Modifier.weight(1f)
+                    profileAvatarUrl = navProfile.avatarUrl,
+                    profileDisplayName = navProfile.displayName,
+                    profileImageCacheKey = profileImageCacheKey,
                 )
-            }
-        }
-    } else {
-        Scaffold(
-            bottomBar = {
-                if (showMainNav) {
-                    ContinuumBottomBar(
-                        currentRoute = currentRoute,
+                androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
+                    if (showDemoBanner) {
+                        DemoBanner(onWantFullExperience = onDemoRegister)
+                    }
+                    NavGraph(
                         navController = navController,
-                        profileAvatarUrl = navProfile.avatarUrl,
-                        profileDisplayName = navProfile.displayName,
-                        profileImageCacheKey = profileImageCacheKey,
+                        startDestination = startDestination,
+                        onLogoClick = onLogoClick,
+                        remoteLogoutMessage = remoteLogoutMessage,
+                        onRemoteLogoutShown = { remoteLogoutMessage = null },
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
-        ) { innerPadding ->
-            androidx.compose.foundation.layout.Column(modifier = Modifier.padding(innerPadding)) {
-                if (showDemoBanner) {
-                    DemoBanner(onWantFullExperience = onDemoRegister)
+        } else {
+            Scaffold(
+                bottomBar = {
+                    if (showMainNav) {
+                        ContinuumBottomBar(
+                            currentRoute = currentRoute,
+                            navController = navController,
+                            profileAvatarUrl = navProfile.avatarUrl,
+                            profileDisplayName = navProfile.displayName,
+                            profileImageCacheKey = profileImageCacheKey,
+                        )
+                    }
                 }
-                NavGraph(
-                    navController = navController,
-                    startDestination = startDestination,
-                    onLogoClick = onLogoClick,
-                    remoteLogoutMessage = remoteLogoutMessage,
-                    onRemoteLogoutShown = { remoteLogoutMessage = null },
-                    modifier = Modifier.weight(1f)
-                )
+            ) { innerPadding ->
+                androidx.compose.foundation.layout.Column(modifier = Modifier.padding(innerPadding)) {
+                    if (showDemoBanner) {
+                        DemoBanner(onWantFullExperience = onDemoRegister)
+                    }
+                    NavGraph(
+                        navController = navController,
+                        startDestination = startDestination,
+                        onLogoClick = onLogoClick,
+                        remoteLogoutMessage = remoteLogoutMessage,
+                        onRemoteLogoutShown = { remoteLogoutMessage = null },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     }
@@ -445,6 +450,9 @@ private fun NavGraph(
                         }
                     },
                     onActivityClick = { navController.navigate(NavRoutes.Social.ACTIVITY_FEED) },
+                    onActivityActorClick = { userId ->
+                        navController.navigate(NavRoutes.Social.userProfile(userId))
+                    },
                     onMessagesClick = { navController.navigate(NavRoutes.Social.CONVERSATIONS) },
                     onCalendarClick = { navController.navigate(NavRoutes.Calendar.ROOT) },
                     onNoteClick = { noteId -> navController.navigate(NavRoutes.Notes.detail(noteId)) },
@@ -648,9 +656,18 @@ private fun NavGraph(
                 arguments = listOf(navArgument("userId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
+                val socialGraphEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(NavRoutes.Social.ROOT)
+                }
+                val messagingViewModel: MessagingViewModel = hiltViewModel(socialGraphEntry)
                 UserProfileScreen(
                     userId = userId,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onMessageFriend = { uid, displayName ->
+                        messagingViewModel.startConversation(uid) { convId ->
+                            navController.navigate(NavRoutes.Social.conversationDetail(convId, displayName))
+                        }
+                    }
                 )
             }
             composable(
@@ -663,8 +680,8 @@ private fun NavGraph(
             composable(NavRoutes.Social.CONVERSATIONS) {
                 val networkMonitor = LocalNetworkMonitor.current
                 ConversationsScreen(
-                    onConversationClick = { conversationId ->
-                        navController.navigate(NavRoutes.Social.conversationDetail(conversationId))
+                    onConversationClick = { conversationId, participantName ->
+                        navController.navigate(NavRoutes.Social.conversationDetail(conversationId, participantName))
                     },
                     networkMonitor = networkMonitor,
                     onLogoClick = onLogoClick
@@ -672,12 +689,21 @@ private fun NavGraph(
             }
             composable(
                 route = NavRoutes.Social.CONVERSATION_DETAIL,
-                arguments = listOf(navArgument("conversationId") { type = NavType.StringType })
+                arguments = listOf(
+                    navArgument("conversationId") { type = NavType.StringType },
+                    navArgument("participantName") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    }
+                )
             ) { backStackEntry ->
                 val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
+                val participantName = android.net.Uri.decode(
+                    backStackEntry.arguments?.getString("participantName").orEmpty()
+                ).ifBlank { "Conversation" }
                 ConversationDetailScreen(
                     conversationId = conversationId,
-                    participantName = "Conversation",
+                    participantName = participantName,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

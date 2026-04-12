@@ -1,8 +1,10 @@
 package com.continuum.android.feature.dashboard.presentation
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
@@ -12,6 +14,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +42,7 @@ fun DashboardScreen(
     onTasksClick: () -> Unit,
     onApplicationsClick: () -> Unit,
     onActivityClick: () -> Unit,
+    onActivityActorClick: (String) -> Unit = {},
     onMessagesClick: () -> Unit,
     onCalendarClick: () -> Unit = {},
     onNoteClick: (String) -> Unit,
@@ -206,7 +210,11 @@ fun DashboardScreen(
                         }
                     } else {
                         items(state.recentActivity, key = { it.id }) { item ->
-                            ActivityRow(item = item, onClick = onActivityClick)
+                            ActivityRow(
+                                item = item,
+                                onClick = onActivityClick,
+                                onActorClick = onActivityActorClick
+                            )
                         }
                     }
 
@@ -395,7 +403,7 @@ private fun FlashcardSetPreviewCard(set: FlashcardSet, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ActivityRow(item: ActivityItem, onClick: () -> Unit) {
+private fun ActivityRow(item: ActivityItem, onClick: () -> Unit, onActorClick: (String) -> Unit) {
     ContinuumCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -406,28 +414,46 @@ private fun ActivityRow(item: ActivityItem, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                color = PurpleTint,
-                shape = RoundedCornerShape(6.dp),
-                modifier = Modifier.size(28.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.NotificationsNone,
-                        contentDescription = null,
-                        tint = BrandPurple,
-                        modifier = Modifier.size(16.dp)
-                    )
+            val actorId = item.actorId
+            if (actorId != null) {
+                AvatarInitials(
+                    name = item.actorName,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { onActorClick(actorId) }
+                )
+            } else {
+                Surface(
+                    color = PurpleTint,
+                    shape = RoundedCornerShape(6.dp),
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.NotificationsNone,
+                            contentDescription = null,
+                            tint = BrandPurple,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.displayText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextPrimary,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = item.displayText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextPrimary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    VerifiedRoleBadges(roles = item.actorRoles, expanded = false)
+                }
                 Text(
                     text = item.createdAt.take(10),
                     style = MaterialTheme.typography.bodySmall,

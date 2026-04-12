@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.network.NetworkMonitor
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.messaging.domain.Conversation
@@ -25,13 +26,14 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationsScreen(
-    onConversationClick: (String) -> Unit,
+    onConversationClick: (conversationId: String, participantName: String) -> Unit,
     networkMonitor: NetworkMonitor,
     onLogoClick: (() -> Unit)? = null,
     viewModel: MessagingViewModel = hiltViewModel()
 ) {
     val state by viewModel.conversationsState.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
+    val isDemo = LocalIsDemo.current
 
     LaunchedEffect(Unit) { viewModel.loadConversations() }
 
@@ -81,8 +83,8 @@ fun ConversationsScreen(
                         items(state.conversations, key = { it.id }) { convo ->
                             ConversationCard(
                                 conversation = convo,
-                                onClick = { onConversationClick(convo.id) },
-                                onDelete = { viewModel.deleteConversation(convo.id) }
+                                onClick = { onConversationClick(convo.id, convo.participantName) },
+                                onDelete = if (isDemo) null else { { viewModel.deleteConversation(convo.id) } }
                             )
                         }
                     }
@@ -94,22 +96,12 @@ fun ConversationsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ConversationCard(conversation: Conversation, onClick: () -> Unit, onDelete: () -> Unit) {
-    val swipeState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) { onDelete(); false } else false
-        }
-    )
-
-    SwipeToDismissBox(
-        state = swipeState,
-        backgroundContent = {
-            Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
-                Icon(Icons.Default.Delete, null, tint = ErrorRed)
-            }
-        },
-        enableDismissFromStartToEnd = false
-    ) {
+private fun ConversationCard(
+    conversation: Conversation,
+    onClick: () -> Unit,
+    onDelete: (() -> Unit)?
+) {
+    val card: @Composable () -> Unit = {
         ContinuumCard(
             modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
         ) {
@@ -127,13 +119,16 @@ private fun ConversationCard(conversation: Conversation, onClick: () -> Unit, on
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.Top
                     ) {
-                        Text(
-                            conversation.participantName,
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = TextPrimary
-                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                conversation.participantName,
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = TextPrimary
+                            )
+                            VerifiedRoleBadges(roles = conversation.participantRoles, expanded = false)
+                        }
                         Text(
                             conversation.lastMessageAt.take(10),
                             style = MaterialTheme.typography.bodySmall,
@@ -164,6 +159,30 @@ private fun ConversationCard(conversation: Conversation, onClick: () -> Unit, on
                     }
                 }
             }
+        }
+    }
+
+    if (onDelete == null) {
+        card()
+    } else {
+        val swipeState = rememberSwipeToDismissBoxState(
+            confirmValueChange = { value ->
+                if (value == SwipeToDismissBoxValue.EndToStart) {
+                    onDelete()
+                    false
+                } else false
+            }
+        )
+        SwipeToDismissBox(
+            state = swipeState,
+            backgroundContent = {
+                Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
+                    Icon(Icons.Default.Delete, null, tint = ErrorRed)
+                }
+            },
+            enableDismissFromStartToEnd = false
+        ) {
+            card()
         }
     }
 }

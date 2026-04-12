@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
@@ -37,6 +38,7 @@ fun NotesListScreen(
     val filteredNotes by viewModel.filteredNotes.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
+    val isDemo = LocalIsDemo.current
     val noteTypes = remember { listOf("all", "general", "lecture", "research", "todo", "journal") }
 
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
@@ -51,8 +53,10 @@ fun NotesListScreen(
             InlineScreenHeader(
                 title = "Notes",
                 trailing = {
-                    IconButton(onClick = onDriveImport) {
-                        Icon(Icons.Default.CloudDownload, contentDescription = "Import from Drive", tint = BrandPurple)
+                    if (!isDemo) {
+                        IconButton(onClick = onDriveImport) {
+                            Icon(Icons.Default.CloudDownload, contentDescription = "Import from Drive", tint = BrandPurple)
+                        }
                     }
                 }
             )
@@ -175,8 +179,8 @@ fun NotesListScreen(
                                 NoteCard(
                                     note = note,
                                     onClick = { onNoteClick(note.id) },
-                                    onLongClick = if (listState.isSharedTab) null else { { contextMenuNote = note } },
-                                    onDelete = if (listState.isSharedTab) null else { { noteToDelete = note } }
+                                    onLongClick = if (listState.isSharedTab || isDemo) null else { { contextMenuNote = note } },
+                                    onDelete = if (listState.isSharedTab || isDemo) null else { { noteToDelete = note } }
                                 )
                             }
                         }
@@ -185,15 +189,17 @@ fun NotesListScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = onCreateNote,
-            containerColor = BrandPurple,
-            contentColor = White,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Create note")
+        if (!isDemo) {
+            FloatingActionButton(
+                onClick = onCreateNote,
+                containerColor = BrandPurple,
+                contentColor = White,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Create note")
+            }
         }
     }
 

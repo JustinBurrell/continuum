@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.flashcards.domain.Flashcard
@@ -30,6 +31,7 @@ fun FlashcardSetDetailScreen(
     viewModel: FlashcardsViewModel = hiltViewModel()
 ) {
     val state by viewModel.detailState.collectAsStateWithLifecycle()
+    val isDemo = LocalIsDemo.current
     var showAddSheet by remember { mutableStateOf(false) }
     var editingCard by remember { mutableStateOf<Flashcard?>(null) }
     var cardToDelete by remember { mutableStateOf<Flashcard?>(null) }
@@ -79,8 +81,8 @@ fun FlashcardSetDetailScreen(
                         items(state.cards, key = { it.id }) { card ->
                             CardItem(
                                 card = card,
-                                onEdit = { editingCard = card },
-                                onDelete = { cardToDelete = card }
+                                onEdit = if (isDemo) null else { { editingCard = card } },
+                                onDelete = if (isDemo) null else { { cardToDelete = card } }
                             )
                         }
                     }
@@ -88,13 +90,15 @@ fun FlashcardSetDetailScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = { showAddSheet = true },
-            containerColor = BrandPurple,
-            contentColor = White,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
-        ) {
-            Icon(Icons.Default.Add, "Add card")
+        if (!isDemo) {
+            FloatingActionButton(
+                onClick = { showAddSheet = true },
+                containerColor = BrandPurple,
+                contentColor = White,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+            ) {
+                Icon(Icons.Default.Add, "Add card")
+            }
         }
     }
 
@@ -136,34 +140,11 @@ fun FlashcardSetDetailScreen(
 @Composable
 private fun CardItem(
     card: Flashcard,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onEdit: (() -> Unit)?,
+    onDelete: (() -> Unit)?
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val swipeToDismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.StartToEnd) { onEdit(); false }
-            else if (value == SwipeToDismissBoxValue.EndToStart) { onDelete(); false }
-            else false
-        }
-    )
-
-    SwipeToDismissBox(
-        state = swipeToDismissState,
-        backgroundContent = {
-            Box(Modifier.fillMaxSize()) {
-                if (swipeToDismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) {
-                    Box(Modifier.fillMaxSize().padding(start = 16.dp), contentAlignment = Alignment.CenterStart) {
-                        Icon(Icons.Default.Edit, null, tint = BrandPurple)
-                    }
-                } else {
-                    Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
-                        Icon(Icons.Default.Delete, null, tint = ErrorRed)
-                    }
-                }
-            }
-        }
-    ) {
+    val cardContent: @Composable () -> Unit = {
         ContinuumCard(
             modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded }
         ) {
@@ -187,6 +168,41 @@ private fun CardItem(
                     }
                 }
             }
+        }
+    }
+
+    if (onEdit == null && onDelete == null) {
+        cardContent()
+    } else {
+        val swipeToDismissState = rememberSwipeToDismissBoxState(
+            confirmValueChange = { value ->
+                if (value == SwipeToDismissBoxValue.StartToEnd) {
+                    onEdit?.invoke()
+                    false
+                } else if (value == SwipeToDismissBoxValue.EndToStart) {
+                    onDelete?.invoke()
+                    false
+                } else false
+            }
+        )
+
+        SwipeToDismissBox(
+            state = swipeToDismissState,
+            backgroundContent = {
+                Box(Modifier.fillMaxSize()) {
+                    if (swipeToDismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) {
+                        Box(Modifier.fillMaxSize().padding(start = 16.dp), contentAlignment = Alignment.CenterStart) {
+                            Icon(Icons.Default.Edit, null, tint = BrandPurple)
+                        }
+                    } else {
+                        Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
+                            Icon(Icons.Default.Delete, null, tint = ErrorRed)
+                        }
+                    }
+                }
+            }
+        ) {
+            cardContent()
         }
     }
 }

@@ -11,6 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
 import javax.inject.Inject
@@ -61,10 +62,13 @@ class MessagingViewModel @Inject constructor(
         viewModelScope.launch {
             socketManager.newMessageFlow.collect { raw ->
                 val event = runCatching { JSONObject(raw) }.getOrNull() ?: return@collect
+                val nested = event.optJSONObject("message")
+                val convId = event.optString("conversationId").ifBlank { nested?.optString("conversationId").orEmpty() }
+                val preview = nested?.optString("content").orEmpty().ifBlank { event.optString("content") }
                 _conversationsState.update { state ->
                     state.copy(conversations = state.conversations.map { convo ->
-                        if (convo.id == event.optString("conversationId")) {
-                            convo.copy(lastMessage = event.optString("content", convo.lastMessage))
+                        if (convo.id == convId && preview.isNotBlank()) {
+                            convo.copy(lastMessage = preview)
                         } else convo
                     })
                 }
@@ -111,19 +115,8 @@ class MessagingViewModel @Inject constructor(
 
         viewModelScope.launch {
             socketManager.newMessageFlow.collect { raw ->
-                val event = runCatching { JSONObject(raw) }.getOrNull() ?: return@collect
-                val convId = event.optString("conversationId")
-                if (convId == conversationId) {
-                    val newMessage = Message(
-                        id = event.optString("_id", UUID.randomUUID().toString()),
-                        conversationId = convId,
-                        senderId = event.optString("senderId"),
-                        senderName = event.optString("senderName"),
-                        content = event.optString("content"),
-                        createdAt = event.optString("createdAt")
-                    )
-                    _detailState.update { it.copy(messages = it.messages + newMessage) }
-                }
+                val newMessage = parseSocketMessage(raw, conversationId) ?: return@collect
+                _detailState.update { it.copy(messages = it.messages + newMessage) }
             }
         }
     }
@@ -151,6 +144,7 @@ class MessagingViewModel @Inject constructor(
             conversationId = conversationId,
             senderId = uid,
             senderName = "Me",
+            senderRoles = emptyList(),
             content = content,
             createdAt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
                 .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
@@ -179,6 +173,58 @@ class MessagingViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+    }
+
+    private fun parseSocketMessage(raw: String, activeConversationId: String): Message? {
+        val root = runCatching { JSONObject(raw) }.getOrNull() ?: return null
+        val msg = root.optJSONObject("message") ?: root
+        val convId = root.optString("conversationId").ifBlank { msg.optString("conversationId") }
+        if (convId != activeConversationId) return null
+
+        val id = msg.optString("_id").ifBlank { UUID.randomUUID().toString() }
+        val content = msg.optString("content")
+        val createdAt = msg.optString("createdAt")
+        val senderVal = msg.opt("senderId")
+        return when (senderVal) {
+            is JSONObject -> {
+                val s = senderVal
+                val sid = s.optString("_id").ifBlank { s.optString("id") }
+                val senderName = when {
+                    s.optString("firstName").isNotBlank() || s.optString("lastName").isNotBlank() ->
+                        "${s.optString("firstName")} ${s.optString("lastName")}".trim()
+                    else -> s.optString("username").ifBlank { "Someone" }
+                }
+                val roles = jsonStringList(s.optJSONArray("roles"))
+                Message(
+                    id = id,
+                    conversationId = convId,
+                    senderId = sid,
+                    senderName = senderName,
+                    senderRoles = roles,
+                    content = content,
+                    createdAt = createdAt
+                )
+            }
+            else -> Message(
+                id = id,
+                conversationId = convId,
+                senderId = msg.optString("senderId"),
+                senderName = root.optString("senderName").ifBlank { "Someone" },
+                senderRoles = jsonStringList(root.optJSONArray("senderRoles")),
+                content = content,
+                createdAt = createdAt
+            )
+        }
+    }
+
+    private fun jsonStringList(arr: JSONArray?): List<String> {
+        if (arr == null) return emptyList()
+        return buildList {
+            for (i in 0 until arr.length()) {
+                val t = arr.optString(i).takeIf { it.isNotBlank() }
+                if (t != null) add(t)
+            }
         }
     }
 }

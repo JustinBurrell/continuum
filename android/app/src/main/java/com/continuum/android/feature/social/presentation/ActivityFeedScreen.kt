@@ -136,7 +136,15 @@ private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: (
                     .clickable(onClick = onUserClick)
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text(item.displayText, style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        item.displayText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextPrimary,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    VerifiedRoleBadges(roles = item.actorRoles, expanded = false)
+                }
                 Text(item.createdAt.take(10), style = MaterialTheme.typography.bodySmall, color = TextMuted)
             }
             Icon(

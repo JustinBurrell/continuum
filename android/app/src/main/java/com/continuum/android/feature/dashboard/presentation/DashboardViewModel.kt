@@ -148,6 +148,7 @@ class DashboardViewModel @Inject constructor(
                         actorId = dto.userId?.id,
                         actorName = actorName,
                         actorAvatar = dto.userId?.avatarUrl,
+                        actorRoles = dto.userId?.roles ?: emptyList(),
                         resourceId = dto.targetId,
                         resourceTitle = dto.metadata?.noteTitle
                             ?: dto.metadata?.setTitle

@@ -23,6 +23,7 @@ fun CommentThread(
     onDeleteComment: ((commentId: String) -> Unit)? = null,
     onUserClick: ((userId: String) -> Unit)? = null,
     isSending: Boolean = false,
+    readOnly: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var newComment by remember { mutableStateOf("") }
@@ -40,9 +41,10 @@ fun CommentThread(
             CommentItem(
                 comment = comment,
                 onLike = { onLikeComment(comment.id) },
-                onReply = { replyingTo = comment.id },
-                onDelete = onDeleteComment?.let { { it(comment.id) } },
+                onReply = if (readOnly) null else { { replyingTo = comment.id } },
+                onDelete = if (readOnly) null else onDeleteComment?.let { { it(comment.id) } },
                 onUserClick = onUserClick?.let { nav -> comment.authorId?.let { { nav(it) } } },
+                readOnly = readOnly,
                 depth = 0
             )
             comment.replies.forEach { reply ->
@@ -50,14 +52,15 @@ fun CommentThread(
                     comment = reply,
                     onLike = { onLikeComment(reply.id) },
                     onReply = null,
-                    onDelete = onDeleteComment?.let { { it(reply.id) } },
+                    onDelete = if (readOnly) null else onDeleteComment?.let { { it(reply.id) } },
                     onUserClick = onUserClick?.let { nav -> reply.authorId?.let { { nav(it) } } },
+                    readOnly = readOnly,
                     depth = 1
                 )
             }
         }
 
-        if (replyingTo != null) {
+        if (!readOnly && replyingTo != null) {
             Surface(color = BrandPurple.copy(alpha = 0.08f), shape = AppShape.chip) {
                 Row(
                     Modifier.padding(horizontal = Spacing.sm, vertical = Spacing.xs),
@@ -72,36 +75,38 @@ fun CommentThread(
             }
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedTextField(
-                value = newComment,
-                onValueChange = { newComment = it },
-                placeholder = { Text("Add a comment…") },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = BrandPurple,
-                    unfocusedBorderColor = Border
-                )
-            )
-            Spacer(Modifier.width(Spacing.sm))
-            IconButton(
-                onClick = {
-                    if (newComment.isNotBlank()) {
-                        onAddComment(newComment.trim(), replyingTo)
-                        newComment = ""
-                        replyingTo = null
-                    }
-                },
-                enabled = newComment.isNotBlank() && !isSending
+        if (!readOnly) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                if (isSending) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = BrandPurple)
-                } else {
-                    Icon(Icons.Default.Send, "Send", tint = if (newComment.isNotBlank()) BrandPurple else TextMuted)
+                OutlinedTextField(
+                    value = newComment,
+                    onValueChange = { newComment = it },
+                    placeholder = { Text("Add a comment…") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = BrandPurple,
+                        unfocusedBorderColor = Border
+                    )
+                )
+                Spacer(Modifier.width(Spacing.sm))
+                IconButton(
+                    onClick = {
+                        if (newComment.isNotBlank()) {
+                            onAddComment(newComment.trim(), replyingTo)
+                            newComment = ""
+                            replyingTo = null
+                        }
+                    },
+                    enabled = newComment.isNotBlank() && !isSending
+                ) {
+                    if (isSending) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = BrandPurple)
+                    } else {
+                        Icon(Icons.Default.Send, "Send", tint = if (newComment.isNotBlank()) BrandPurple else TextMuted)
+                    }
                 }
             }
         }
@@ -115,6 +120,7 @@ private fun CommentItem(
     onReply: (() -> Unit)?,
     onDelete: (() -> Unit)?,
     onUserClick: (() -> Unit)?,
+    readOnly: Boolean,
     depth: Int
 ) {
     Row(
@@ -129,7 +135,7 @@ private fun CommentItem(
             modifier = if (onUserClick != null) Modifier.clickable(onClick = onUserClick) else Modifier
         )
         Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     comment.authorName,
                     style = MaterialTheme.typography.labelMedium,
@@ -137,24 +143,33 @@ private fun CommentItem(
                     color = if (onUserClick != null) BrandPurple else TextPrimary,
                     modifier = if (onUserClick != null) Modifier.clickable(onClick = onUserClick) else Modifier
                 )
+                VerifiedRoleBadges(roles = comment.authorRoles, expanded = false)
                 Spacer(Modifier.width(Spacing.sm))
                 Text(comment.createdAt.take(10), style = MaterialTheme.typography.labelSmall, color = TextMuted)
             }
             Text(comment.content, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onLike, contentPadding = PaddingValues(0.dp)) {
-                    Icon(Icons.Default.ThumbUp, null, modifier = Modifier.size(14.dp), tint = TextMuted)
-                    Spacer(Modifier.width(4.dp))
-                    Text("${comment.likes}", style = MaterialTheme.typography.labelSmall, color = TextMuted)
-                }
-                onReply?.let {
-                    TextButton(onClick = it, contentPadding = PaddingValues(0.dp)) {
-                        Text("Reply", style = MaterialTheme.typography.labelSmall, color = BrandPurple)
+                if (readOnly) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.ThumbUp, null, modifier = Modifier.size(14.dp), tint = TextMuted)
+                        Spacer(Modifier.width(4.dp))
+                        Text("${comment.likes}", style = MaterialTheme.typography.labelSmall, color = TextMuted)
                     }
-                }
-                onDelete?.let {
-                    TextButton(onClick = it, contentPadding = PaddingValues(0.dp)) {
-                        Text("Delete", style = MaterialTheme.typography.labelSmall, color = ErrorRed)
+                } else {
+                    TextButton(onClick = onLike, contentPadding = PaddingValues(0.dp)) {
+                        Icon(Icons.Default.ThumbUp, null, modifier = Modifier.size(14.dp), tint = TextMuted)
+                        Spacer(Modifier.width(4.dp))
+                        Text("${comment.likes}", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                    }
+                    onReply?.let {
+                        TextButton(onClick = it, contentPadding = PaddingValues(0.dp)) {
+                            Text("Reply", style = MaterialTheme.typography.labelSmall, color = BrandPurple)
+                        }
+                    }
+                    onDelete?.let {
+                        TextButton(onClick = it, contentPadding = PaddingValues(0.dp)) {
+                            Text("Delete", style = MaterialTheme.typography.labelSmall, color = ErrorRed)
+                        }
                     }
                 }
             }

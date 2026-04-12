@@ -6,6 +6,7 @@ data class ActivityItem(
     val actorId: String?,
     val actorName: String,
     val actorAvatar: String?,
+    val actorRoles: List<String> = emptyList(),
     val resourceId: String?,
     val resourceTitle: String?,
     val createdAt: String
@@ -29,7 +30,8 @@ data class Friend(
     val lastName: String,
     val username: String?,
     val avatar: String?,
-    val mutualFriendsCount: Int
+    val mutualFriendsCount: Int,
+    val roles: List<String> = emptyList()
 ) {
     val fullName: String get() = "$firstName $lastName".trim()
     val initials: String get() = buildString {
@@ -65,6 +67,7 @@ data class Comment(
     val authorId: String?,
     val authorName: String,
     val authorAvatar: String?,
+    val authorRoles: List<String> = emptyList(),
     val content: String,
     val likes: Int,
     val replies: List<Comment>,

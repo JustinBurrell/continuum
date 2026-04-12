@@ -17,10 +17,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import com.mohamedrejeb.richeditor.ui.material3.RichText
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import androidx.compose.material3.ExperimentalMaterial3Api
 
@@ -35,6 +37,7 @@ fun NoteEditorScreen(
     val isCreating = noteId == "new"
     val detailState by viewModel.detailState.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
+    val isDemo = LocalIsDemo.current
 
     var title by remember { mutableStateOf("") }
     var tagInput by remember { mutableStateOf("") }
@@ -74,19 +77,21 @@ fun NoteEditorScreen(
                             modifier = Modifier.size(20.dp).padding(end = 12.dp)
                         )
                     } else {
-                        IconButton(onClick = { showVisibilitySheet = true }) {
-                            Icon(
-                                when (visibility) {
-                                    "friends" -> Icons.Default.People
-                                    "specific" -> Icons.Default.PersonAdd
-                                    else -> Icons.Default.Lock
-                                },
-                                "Visibility",
-                                tint = TextPrimary
-                            )
+                        if (!isDemo) {
+                            IconButton(onClick = { showVisibilitySheet = true }) {
+                                Icon(
+                                    when (visibility) {
+                                        "friends" -> Icons.Default.People
+                                        "specific" -> Icons.Default.PersonAdd
+                                        else -> Icons.Default.Lock
+                                    },
+                                    "Visibility",
+                                    tint = TextPrimary
+                                )
+                            }
                         }
                     }
-                    if (isCreating) {
+                    if (isCreating && !isDemo) {
                         TextButton(onClick = {
                             if (title.isNotBlank()) {
                                 viewModel.createNote(title, richTextState.toHtml(), tags, visibility) { onNavigateBack() }
@@ -111,11 +116,13 @@ fun NoteEditorScreen(
             OutlinedTextField(
                 value = title,
                 onValueChange = {
+                    if (isDemo) return@OutlinedTextField
                     title = it
                     if (!isCreating && noteId != "new") {
                         viewModel.scheduleAutoSave(noteId, it, richTextState.toHtml(), tags, visibility)
                     }
                 },
+                readOnly = isDemo,
                 placeholder = { Text("Note title", color = TextMuted) },
                 singleLine = true,
                 textStyle = MaterialTheme.typography.headlineMedium.copy(color = TextPrimary),
@@ -136,7 +143,7 @@ fun NoteEditorScreen(
                     items(tags) { tag ->
                         InputChip(
                             selected = false,
-                            onClick = { tags = tags - tag },
+                            onClick = { if (!isDemo) tags = tags - tag },
                             label = { Text(tag, style = MaterialTheme.typography.labelSmall) },
                             trailingIcon = { Icon(Icons.Default.Close, null, modifier = Modifier.size(14.dp)) },
                             colors = InputChipDefaults.inputChipColors(
@@ -148,7 +155,8 @@ fun NoteEditorScreen(
                 }
                 OutlinedTextField(
                     value = tagInput,
-                    onValueChange = { tagInput = it },
+                    onValueChange = { if (!isDemo) tagInput = it },
+                    readOnly = isDemo,
                     placeholder = { Text("Add tag", color = TextMuted, style = MaterialTheme.typography.bodySmall) },
                     singleLine = true,
                     modifier = Modifier.width(100.dp),
@@ -173,25 +181,31 @@ fun NoteEditorScreen(
 
             HorizontalDivider(color = Border, modifier = Modifier.padding(vertical = 4.dp))
 
-            // Formatting toolbar
-            FormattingToolbar(
-                richTextState = richTextState,
-                onContentChange = {
-                    if (!isCreating) {
-                        viewModel.scheduleAutoSave(noteId, title, richTextState.toHtml(), tags, visibility)
+            if (!isDemo) {
+                FormattingToolbar(
+                    richTextState = richTextState,
+                    onContentChange = {
+                        if (!isCreating) {
+                            viewModel.scheduleAutoSave(noteId, title, richTextState.toHtml(), tags, visibility)
+                        }
                     }
-                }
-            )
+                )
+                HorizontalDivider(color = Border)
+            }
 
-            HorizontalDivider(color = Border)
-
-            // Rich text editor
-            RichTextEditor(
-                state = richTextState,
-                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = TextPrimary),
-                placeholder = { Text("Start writing...", color = TextMuted) }
-            )
+            if (isDemo) {
+                RichText(
+                    state = richTextState,
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            } else {
+                RichTextEditor(
+                    state = richTextState,
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = TextPrimary),
+                    placeholder = { Text("Start writing...", color = TextMuted) }
+                )
+            }
         }
     }
 

@@ -44,6 +44,14 @@ data class UserProfileUiState(
     val error: String? = null
 )
 
+data class ThreadCommentsUiState(
+    val comments: List<Comment> = emptyList(),
+    val isLoading: Boolean = false,
+    val isSending: Boolean = false,
+    val targetType: String? = null,
+    val targetId: String? = null
+)
+
 @HiltViewModel
 class SocialViewModel @Inject constructor(
     private val repository: SocialRepository
@@ -63,6 +71,9 @@ class SocialViewModel @Inject constructor(
 
     private val _userProfileState = MutableStateFlow(UserProfileUiState())
     val userProfileState: StateFlow<UserProfileUiState> = _userProfileState.asStateFlow()
+
+    private val _threadCommentsState = MutableStateFlow(ThreadCommentsUiState())
+    val threadCommentsState: StateFlow<ThreadCommentsUiState> = _threadCommentsState.asStateFlow()
 
     private var searchJob: Job? = null
     private var activitySearchJob: Job? = null
@@ -182,6 +193,7 @@ class SocialViewModel @Inject constructor(
     }
 
     fun loadSharedNote(noteId: String) {
+        _threadCommentsState.value = ThreadCommentsUiState()
         viewModelScope.launch {
             _sharedNoteState.update { it.copy(isLoading = true, error = null) }
             repository.getSharedNote(noteId)
@@ -202,6 +214,55 @@ class SocialViewModel @Inject constructor(
     fun likeComment(noteId: String, commentId: String) {
         viewModelScope.launch {
             repository.likeComment(commentId)
+        }
+    }
+
+    fun loadThreadComments(targetType: String, targetId: String) {
+        viewModelScope.launch {
+            _threadCommentsState.value = ThreadCommentsUiState(
+                isLoading = true,
+                targetType = targetType,
+                targetId = targetId
+            )
+            repository.getCommentsForTarget(targetType, targetId)
+                .onSuccess { list ->
+                    _threadCommentsState.update {
+                        it.copy(comments = list, isLoading = false)
+                    }
+                }
+                .onFailure {
+                    _threadCommentsState.update { it.copy(isLoading = false) }
+                }
+        }
+    }
+
+    fun clearThreadComments() {
+        _threadCommentsState.value = ThreadCommentsUiState()
+    }
+
+    fun addThreadComment(content: String, parentId: String?) {
+        val t = _threadCommentsState.value.targetType ?: return
+        val id = _threadCommentsState.value.targetId ?: return
+        viewModelScope.launch {
+            _threadCommentsState.update { it.copy(isSending = true) }
+            repository.addCommentGeneric(t, id, content, parentId)
+            repository.getCommentsForTarget(t, id)
+                .onSuccess { list ->
+                    _threadCommentsState.update { it.copy(comments = list, isSending = false) }
+                }
+                .onFailure {
+                    _threadCommentsState.update { it.copy(isSending = false) }
+                }
+        }
+    }
+
+    fun likeThreadComment(commentId: String) {
+        val t = _threadCommentsState.value.targetType ?: return
+        val id = _threadCommentsState.value.targetId ?: return
+        viewModelScope.launch {
+            repository.likeComment(commentId)
+            repository.getCommentsForTarget(t, id)
+                .onSuccess { list -> _threadCommentsState.update { it.copy(comments = list) } }
         }
     }
 

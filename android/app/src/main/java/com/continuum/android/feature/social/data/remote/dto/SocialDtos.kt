@@ -9,7 +9,8 @@ data class SocialUserSummaryDto(
     val firstName: String = "",
     val lastName: String = "",
     val username: String? = null,
-    @Json(name = "avatarUrl") val avatarUrl: String? = null
+    @Json(name = "avatarUrl") val avatarUrl: String? = null,
+    val roles: List<String> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
@@ -75,7 +76,8 @@ data class UserSnapshotDto(
     val username: String? = null,
     val firstName: String? = null,
     val lastName: String? = null,
-    val avatarUrl: String? = null
+    val avatarUrl: String? = null,
+    val roles: List<String> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)

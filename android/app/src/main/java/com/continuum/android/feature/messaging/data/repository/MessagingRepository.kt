@@ -49,6 +49,7 @@ class MessagingRepository @Inject constructor(
                 participantName = "Unknown",
                 participantAvatar = null,
                 participantId = "",
+                participantRoles = emptyList(),
                 lastMessage = lastMessage?.content ?: "",
                 lastMessageAt = lastMessage?.sentAt ?: "",
                 unreadCount = 0
@@ -64,6 +65,7 @@ class MessagingRepository @Inject constructor(
             participantName = name,
             participantAvatar = other.avatarUrl,
             participantId = other.id,
+            participantRoles = other.roles,
             lastMessage = lastMessage?.content ?: "",
             lastMessageAt = lastMessage?.sentAt ?: "",
             unreadCount = unread
@@ -84,6 +86,7 @@ class MessagingRepository @Inject constructor(
             conversationId = conversationId,
             senderId = sid,
             senderName = senderName,
+            senderRoles = s?.roles ?: emptyList(),
             content = content,
             createdAt = createdAt
         )

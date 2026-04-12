@@ -5,6 +5,7 @@ data class Conversation(
     val participantName: String,
     val participantAvatar: String?,
     val participantId: String,
+    val participantRoles: List<String> = emptyList(),
     val lastMessage: String,
     val lastMessageAt: String,
     val unreadCount: Int
@@ -21,6 +22,7 @@ data class Message(
     val conversationId: String,
     val senderId: String,
     val senderName: String,
+    val senderRoles: List<String> = emptyList(),
     val content: String,
     val createdAt: String,
     val isOptimistic: Boolean = false  // true for locally-added messages before server confirmation

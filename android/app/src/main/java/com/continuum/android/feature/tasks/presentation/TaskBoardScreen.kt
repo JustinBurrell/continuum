@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.network.NetworkMonitor
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.tasks.domain.Task
@@ -32,6 +33,7 @@ fun TaskBoardScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
+    val isDemo = LocalIsDemo.current
 
     var showCreateSheet by remember { mutableStateOf(false) }
 
@@ -147,15 +149,17 @@ fun TaskBoardScreen(
                                     "in_progress" -> "Complete"
                                     else -> "Reopen"
                                 },
-                                onMove = {
-                                    val target = when (state.selectedStatus) {
-                                        "todo" -> "in_progress"
-                                        "in_progress" -> "completed"
-                                        else -> "todo"
+                                onMove = if (isDemo) null else {
+                                    {
+                                        val target = when (state.selectedStatus) {
+                                            "todo" -> "in_progress"
+                                            "in_progress" -> "completed"
+                                            else -> "todo"
+                                        }
+                                        viewModel.moveTask(task.id, target)
                                     }
-                                    viewModel.moveTask(task.id, target)
                                 },
-                                onDelete = if (task.isShared) null else { { viewModel.deleteTask(task.id) } },
+                                onDelete = if (isDemo || task.isShared) null else { { viewModel.deleteTask(task.id) } },
                                 onClick = { onTaskClick(task.id) }
                             )
                         }
@@ -164,17 +168,19 @@ fun TaskBoardScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = { showCreateSheet = true },
-            containerColor = BrandPurple,
-            contentColor = White,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
-        ) {
-            Icon(Icons.Default.Add, "Create task")
+        if (!isDemo) {
+            FloatingActionButton(
+                onClick = { showCreateSheet = true },
+                containerColor = BrandPurple,
+                contentColor = White,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+            ) {
+                Icon(Icons.Default.Add, "Create task")
+            }
         }
     }
 
-    if (showCreateSheet) {
+    if (showCreateSheet && !isDemo) {
         TaskCreationBottomSheet(
             onDismiss = { showCreateSheet = false },
             onCreate = { title, priority, dueDate, type ->
@@ -190,7 +196,7 @@ fun TaskBoardScreen(
 private fun TaskCard(
     task: Task,
     moveLabel: String,
-    onMove: () -> Unit,
+    onMove: (() -> Unit)?,
     onDelete: (() -> Unit)?,
     onClick: () -> Unit = {}
 ) {
@@ -229,8 +235,10 @@ private fun TaskCard(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onMove, contentPadding = PaddingValues(0.dp)) {
-                    Text(moveLabel, color = BrandPurple, style = MaterialTheme.typography.labelMedium)
+                onMove?.let { move ->
+                    TextButton(onClick = move, contentPadding = PaddingValues(0.dp)) {
+                        Text(moveLabel, color = BrandPurple, style = MaterialTheme.typography.labelMedium)
+                    }
                 }
                 onDelete?.let {
                     TextButton(onClick = it, contentPadding = PaddingValues(0.dp)) {

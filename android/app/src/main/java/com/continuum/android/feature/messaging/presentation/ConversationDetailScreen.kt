@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.messaging.domain.Message
@@ -28,6 +29,7 @@ fun ConversationDetailScreen(
     viewModel: MessagingViewModel = hiltViewModel()
 ) {
     val state by viewModel.detailState.collectAsStateWithLifecycle()
+    val isDemo = LocalIsDemo.current
     val listState = rememberLazyListState()
     var messageInput by remember { mutableStateOf("") }
     var showSearch by remember { mutableStateOf(false) }
@@ -78,42 +80,44 @@ fun ConversationDetailScreen(
             }
         },
         bottomBar = {
-            Surface(shadowElevation = 8.dp) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .imePadding(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value = messageInput,
-                        onValueChange = { messageInput = it },
-                        placeholder = { Text("Type a message...") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = BrandPurple,
-                            unfocusedBorderColor = Border
-                        )
-                    )
-                    IconButton(
-                        onClick = {
-                            val content = messageInput.trim()
-                            if (content.isNotBlank()) {
-                                viewModel.sendMessage(conversationId, content)
-                                messageInput = ""
-                            }
-                        },
-                        enabled = messageInput.isNotBlank()
+            if (!isDemo) {
+                Surface(shadowElevation = 8.dp) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .imePadding(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Send,
-                            "Send",
-                            tint = if (messageInput.isNotBlank()) BrandPurple else TextMuted
+                        OutlinedTextField(
+                            value = messageInput,
+                            onValueChange = { messageInput = it },
+                            placeholder = { Text("Type a message...") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = BrandPurple,
+                                unfocusedBorderColor = Border
+                            )
                         )
+                        IconButton(
+                            onClick = {
+                                val content = messageInput.trim()
+                                if (content.isNotBlank()) {
+                                    viewModel.sendMessage(conversationId, content)
+                                    messageInput = ""
+                                }
+                            },
+                            enabled = messageInput.isNotBlank()
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.Send,
+                                "Send",
+                                tint = if (messageInput.isNotBlank()) BrandPurple else TextMuted
+                            )
+                        }
                     }
                 }
             }
@@ -179,6 +183,19 @@ private fun MessageBubble(message: Message, isMine: Boolean) {
             modifier = Modifier.widthIn(max = 280.dp)
         ) {
             Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                if (!isMine) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = message.senderName,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = TextPrimary
+                        )
+                        VerifiedRoleBadges(roles = message.senderRoles, expanded = false)
+                    }
+                }
                 Text(
                     text = message.content,
                     style = MaterialTheme.typography.bodyMedium,

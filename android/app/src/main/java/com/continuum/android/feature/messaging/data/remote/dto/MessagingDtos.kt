@@ -9,7 +9,8 @@ data class MessagingUserDto(
     val firstName: String = "",
     val lastName: String = "",
     val username: String? = null,
-    @Json(name = "avatarUrl") val avatarUrl: String? = null
+    @Json(name = "avatarUrl") val avatarUrl: String? = null,
+    val roles: List<String> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
