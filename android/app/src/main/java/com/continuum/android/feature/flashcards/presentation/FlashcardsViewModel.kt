@@ -41,8 +41,13 @@ data class StudyHistoryUiState(
     val sessions: List<FlashcardsRepository.StudySession> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    /** Populated for global history screen; cleared when loading per-set history. */
     val streak: Int = 0
+)
+
+data class SetDetailStudyHistoryUiState(
+    val sessions: List<FlashcardsRepository.StudySession> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
 )
 
 data class SetDetailUiState(
@@ -69,6 +74,9 @@ class FlashcardsViewModel @Inject constructor(
 
     private val _historyState = MutableStateFlow(StudyHistoryUiState())
     val historyState: StateFlow<StudyHistoryUiState> = _historyState.asStateFlow()
+
+    private val _setDetailHistoryState = MutableStateFlow(SetDetailStudyHistoryUiState())
+    val setDetailHistoryState: StateFlow<SetDetailStudyHistoryUiState> = _setDetailHistoryState.asStateFlow()
 
     private var searchJob: Job? = null
 
@@ -257,13 +265,17 @@ class FlashcardsViewModel @Inject constructor(
     }
 
     fun loadSetStudyHistory(setId: String) {
-        _historyState.update { it.copy(isLoading = true, error = null, streak = 0) }
+        _setDetailHistoryState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            repository.getSetStudySessions(setId)
+            repository.getSetStudySessions(setId, page = 1, limit = 50)
                 .onSuccess { sessions ->
-                    _historyState.update { it.copy(sessions = sessions, isLoading = false, streak = 0, error = null) }
+                    _setDetailHistoryState.update {
+                        it.copy(sessions = sessions, isLoading = false, error = null)
+                    }
                 }
-                .onFailure { e -> _historyState.update { it.copy(isLoading = false, error = e.message, streak = 0) } }
+                .onFailure { e ->
+                    _setDetailHistoryState.update { it.copy(isLoading = false, error = e.message) }
+                }
         }
     }
 

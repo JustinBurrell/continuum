@@ -1,7 +1,6 @@
 package com.continuum.android.feature.flashcards.presentation
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -99,8 +98,9 @@ fun FlashcardStudyHistoryScreen(
                                 )
                             }
                             items(state.sessions, key = { it.id }) { session ->
-                                SessionCard(
+                                FlashcardStudySessionRow(
                                     session = session,
+                                    titleLine = "Set ${session.setId.takeLast(8)}",
                                     onClick = { onOpenSet(session.setId) }
                                 )
                             }
@@ -203,46 +203,3 @@ private fun SummaryRow(
     }
 }
 
-@Composable
-private fun SessionCard(
-    session: FlashcardsRepository.StudySession,
-    onClick: () -> Unit
-) {
-    ContinuumCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-    ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "Set ${session.setId.takeLast(8)}",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = BrandPurple
-                )
-                Text(
-                    session.completedAt.take(10),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextMuted
-                )
-            }
-            Text(
-                "${session.score}% score · ${session.totalCards} cards · ${formatDuration(session.durationSeconds)} · ${session.correctCount} correct",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
-            )
-        }
-    }
-}
-
-private fun formatDuration(seconds: Int): String {
-    if (seconds <= 0) return "0s"
-    val m = seconds / 60
-    val s = seconds % 60
-    return if (m > 0) "${m}m ${s}s" else "${s}s"
-}

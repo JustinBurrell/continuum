@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,14 +14,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.flashcards.domain.Flashcard
-import androidx.compose.material3.ExperimentalMaterial3Api
 
-@OptIn(ExperimentalMaterial3Api::class)
+private enum class SetDetailTab { Cards, History }
+
 @Composable
 fun FlashcardSetDetailScreen(
     setId: String,
@@ -31,12 +34,29 @@ fun FlashcardSetDetailScreen(
     viewModel: FlashcardsViewModel = hiltViewModel()
 ) {
     val state by viewModel.detailState.collectAsStateWithLifecycle()
+    val historyState by viewModel.setDetailHistoryState.collectAsStateWithLifecycle()
     val isDemo = LocalIsDemo.current
     var showAddSheet by remember { mutableStateOf(false) }
     var editingCard by remember { mutableStateOf<Flashcard?>(null) }
     var cardToDelete by remember { mutableStateOf<Flashcard?>(null) }
+    var tab by remember(setId) { mutableStateOf(SetDetailTab.Cards) }
 
     LaunchedEffect(setId) { viewModel.loadSetDetail(setId) }
+
+    LaunchedEffect(setId, tab) {
+        if (tab == SetDetailTab.History) viewModel.loadSetStudyHistory(setId)
+    }
+
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(lifecycle, setId, tab) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && tab == SetDetailTab.History) {
+                viewModel.loadSetStudyHistory(setId)
+            }
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -52,45 +72,134 @@ fun FlashcardSetDetailScreen(
                 )
             }
         ) { innerPadding ->
-            when {
-                state.isLoading && state.cards.isEmpty() -> {
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.padding(innerPadding)
-                    ) {
-                        items(5) { SkeletonLoader(modifier = Modifier.fillMaxWidth().height(70.dp)) }
-                    }
-                }
-
-                state.cards.isEmpty() -> {
-                    EmptyState(
-                        icon = Icons.Default.Style,
-                        headline = "No cards yet",
-                        subtext = "Tap + to add your first card",
-                        modifier = Modifier.fillMaxSize().padding(innerPadding)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = tab == SetDetailTab.Cards,
+                        onClick = { tab = SetDetailTab.Cards },
+                        label = { Text("Cards") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = BrandPurple,
+                            selectedLabelColor = White
+                        )
+                    )
+                    FilterChip(
+                        selected = tab == SetDetailTab.History,
+                        onClick = { tab = SetDetailTab.History },
+                        label = { Text("History") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = BrandPurple,
+                            selectedLabelColor = White
+                        )
                     )
                 }
 
-                else -> {
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.padding(innerPadding)
-                    ) {
-                        items(state.cards, key = { it.id }) { card ->
-                            CardItem(
-                                card = card,
-                                onEdit = if (isDemo) null else { { editingCard = card } },
-                                onDelete = if (isDemo) null else { { cardToDelete = card } }
-                            )
+                when (tab) {
+                    SetDetailTab.Cards -> {
+                        when {
+                            state.isLoading && state.cards.isEmpty() -> {
+                                LazyColumn(
+                                    contentPadding = PaddingValues(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    items(5) { SkeletonLoader(modifier = Modifier.fillMaxWidth().height(70.dp)) }
+                                }
+                            }
+
+                            state.cards.isEmpty() -> {
+                                EmptyState(
+                                    icon = Icons.Default.Style,
+                                    headline = "No cards yet",
+                                    subtext = "Tap + to add your first card",
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            else -> {
+                                LazyColumn(
+                                    contentPadding = PaddingValues(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    items(state.cards, key = { it.id }) { card ->
+                                        CardItem(
+                                            card = card,
+                                            onEdit = if (isDemo) null else { { editingCard = card } },
+                                            onDelete = if (isDemo) null else { { cardToDelete = card } }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    SetDetailTab.History -> {
+                        PullToRefreshBox(
+                            isRefreshing = historyState.isLoading && historyState.sessions.isNotEmpty(),
+                            onRefresh = { viewModel.loadSetStudyHistory(setId) },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            when {
+                                historyState.isLoading && historyState.sessions.isEmpty() -> {
+                                    LazyColumn(
+                                        contentPadding = PaddingValues(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        items(4) {
+                                            SkeletonLoader(modifier = Modifier.fillMaxWidth().height(72.dp))
+                                        }
+                                    }
+                                }
+
+                                historyState.error != null && historyState.sessions.isEmpty() -> {
+                                    EmptyState(
+                                        icon = Icons.Default.History,
+                                        headline = "Could not load history",
+                                        subtext = historyState.error ?: "",
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+
+                                historyState.sessions.isEmpty() -> {
+                                    EmptyState(
+                                        icon = Icons.Default.History,
+                                        headline = "No study sessions yet",
+                                        subtext = "Hit Study to start!",
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+
+                                else -> {
+                                    LazyColumn(
+                                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        items(historyState.sessions, key = { it.id }) { session ->
+                                            FlashcardStudySessionRow(
+                                                session = session,
+                                                titleLine = "${session.correctCount}/${session.totalCards} correct"
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        if (!isDemo) {
+        if (!isDemo && tab == SetDetailTab.Cards) {
             FloatingActionButton(
                 onClick = { showAddSheet = true },
                 containerColor = BrandPurple,

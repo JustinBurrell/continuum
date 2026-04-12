@@ -57,7 +57,7 @@ Web uses query / location `state` for some ids (e.g. `/notes/view`, `/users/view
 | `/notes/edit` | `NoteEditor` | `notes/editor/{noteId}` | **Parity** | |
 | — | — | `notes/drive-import` | **Android+** | Drive import is first-class in native. |
 | `/flashcards` | `FlashcardSets` | `flashcards/list` | **Parity** | |
-| `/flashcards/view` | `FlashcardSetDetail` | `flashcards/set/{setId}` | **Parity** | |
+| `/flashcards/view` | `FlashcardSetDetail` | `flashcards/set/{setId}` | **Parity** | Cards + **History** tab loads `GET /study-sessions/set/:id` (same as web). |
 | `/flashcards/study` | `StudyMode` | `flashcards/study/{setId}` | **Parity** | |
 | `/flashcards/history` | `FlashcardHistory` | `flashcards/history` | **Parity** | `FlashcardStudyHistoryScreen` + header entry from flashcards list. |
 | `/tasks` | `Tasks` | `tasks/board`, `tasks/detail/{taskId}` | **Partial** | Same features; Android uses a narrower primary chrome (see below). |
