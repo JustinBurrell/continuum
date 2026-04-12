@@ -202,6 +202,11 @@ private fun CardEditSheet(
     var front by remember { mutableStateOf(initialFront) }
     var back by remember { mutableStateOf(initialBack) }
 
+    LaunchedEffect(initialFront, initialBack) {
+        front = initialFront
+        back = initialBack
+    }
+
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp).imePadding(),
