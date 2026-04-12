@@ -137,12 +137,17 @@ class FlashcardsViewModel @Inject constructor(
         _studyState.update { it.copy(isFlipped = !it.isFlipped) }
     }
 
-    fun answerCard(setId: String, correct: Boolean) {
+    /**
+     * @param syncToServer When false (demo account), only updates local study UI — no card progress or session POST.
+     */
+    fun answerCard(setId: String, correct: Boolean, syncToServer: Boolean = true) {
         val state = _studyState.value
         val card = state.cards.getOrNull(state.currentIndex) ?: return
 
-        viewModelScope.launch {
-            repository.updateProgress(setId, card.id, correct)
+        if (syncToServer) {
+            viewModelScope.launch {
+                repository.updateProgress(setId, card.id, correct)
+            }
         }
 
         val newResults = state.cardResults + CardResultDto(card.id, correct)
@@ -163,7 +168,7 @@ class FlashcardsViewModel @Inject constructor(
             )
         }
 
-        if (isComplete) {
+        if (isComplete && syncToServer) {
             val totalCards = state.cards.size
             val score = if (totalCards > 0) (newCorrect * 100) / totalCards else 0
             val durationSeconds = ((System.currentTimeMillis() - state.startTimeMs) / 1000).toInt()

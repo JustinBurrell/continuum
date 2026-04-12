@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.network.NetworkMonitor
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.social.domain.ActivityItem
@@ -35,11 +36,12 @@ fun ActivityFeedScreen(
 ) {
     val state by viewModel.activityState.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
+    val isDemo = LocalIsDemo.current
     val listState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
         viewModel.loadActivity()
-        viewModel.markActivitySeen()
+        if (!isDemo) viewModel.markActivitySeen()
     }
 
     val shouldLoadMore by remember {

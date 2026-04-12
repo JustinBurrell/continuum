@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.notes.domain.DriveFile
@@ -26,6 +27,7 @@ fun GoogleDriveImportScreen(
     viewModel: NotesViewModel = hiltViewModel()
 ) {
     val driveState by viewModel.driveState.collectAsStateWithLifecycle()
+    val isDemo = LocalIsDemo.current
     var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) { viewModel.loadDriveFiles() }
@@ -130,7 +132,14 @@ fun GoogleDriveImportScreen(
                             DriveFileItem(
                                 file = file,
                                 isImporting = driveState.isImporting,
-                                onClick = { viewModel.importFromDrive(file.id, "https://docs.google.com/document/d/${file.id}/edit", file.name) }
+                                importEnabled = !isDemo,
+                                onClick = {
+                                    viewModel.importFromDrive(
+                                        file.id,
+                                        "https://docs.google.com/document/d/${file.id}/edit",
+                                        file.name
+                                    )
+                                }
                             )
                         }
                     }
@@ -144,12 +153,13 @@ fun GoogleDriveImportScreen(
 private fun DriveFileItem(
     file: DriveFile,
     isImporting: Boolean,
+    importEnabled: Boolean = true,
     onClick: () -> Unit
 ) {
     ContinuumCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = !isImporting, onClick = onClick)
+            .clickable(enabled = importEnabled && !isImporting, onClick = onClick)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

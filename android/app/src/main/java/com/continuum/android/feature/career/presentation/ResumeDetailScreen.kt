@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +38,7 @@ fun ResumeDetailScreen(
     val state by viewModel.resumesState.collectAsStateWithLifecycle()
     val resume = state.resumes.find { it.id == resumeId }
     val context = LocalContext.current
+    val isDemo = LocalIsDemo.current
 
     var pdfBitmaps by remember { mutableStateOf<List<android.graphics.Bitmap>>(emptyList()) }
     var isLoadingPdf by remember { mutableStateOf(true) }
@@ -75,8 +77,10 @@ fun ResumeDetailScreen(
                 title = resume?.fileName ?: "Resume",
                 onNavigateBack = onNavigateBack,
                 actions = {
-                    TextButton(onClick = onGetFeedback) {
-                        Text("AI Feedback", color = BrandPurple)
+                    if (!isDemo) {
+                        TextButton(onClick = onGetFeedback) {
+                            Text("AI Feedback", color = BrandPurple)
+                        }
                     }
                 }
             )

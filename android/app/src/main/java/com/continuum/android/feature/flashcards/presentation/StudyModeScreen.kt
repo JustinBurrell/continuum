@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 
@@ -30,6 +31,8 @@ fun StudyModeScreen(
 ) {
     val state by viewModel.studyState.collectAsStateWithLifecycle()
     val haptic = LocalHapticFeedback.current
+    val isDemo = LocalIsDemo.current
+    val syncStudy = !isDemo
 
     LaunchedEffect(setId) { viewModel.startStudy(setId) }
 
@@ -45,7 +48,8 @@ fun StudyModeScreen(
                 correct = state.correctCount,
                 incorrect = state.incorrectCount,
                 onStudyAgain = { viewModel.restartStudy() },
-                onBack = onNavigateBack
+                onBack = onNavigateBack,
+                demoLocalOnly = isDemo
             )
         }
 
@@ -107,11 +111,11 @@ fun StudyModeScreen(
                     },
                     onSwipeLeft = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.answerCard(setId, correct = false)
+                        viewModel.answerCard(setId, correct = false, syncToServer = syncStudy)
                     },
                     onSwipeRight = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.answerCard(setId, correct = true)
+                        viewModel.answerCard(setId, correct = true, syncToServer = syncStudy)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -144,7 +148,7 @@ fun StudyModeScreen(
                             text = "Still Learning",
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.answerCard(setId, correct = false)
+                                viewModel.answerCard(setId, correct = false, syncToServer = syncStudy)
                             },
                             modifier = Modifier.weight(1f),
                             variant = ContinuumButtonVariant.Secondary
@@ -153,7 +157,7 @@ fun StudyModeScreen(
                             text = "Got it",
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.answerCard(setId, correct = true)
+                                viewModel.answerCard(setId, correct = true, syncToServer = syncStudy)
                             },
                             modifier = Modifier.weight(1f)
                         )
@@ -246,7 +250,8 @@ private fun StudySummaryScreen(
     correct: Int,
     incorrect: Int,
     onStudyAgain: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    demoLocalOnly: Boolean = false
 ) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
@@ -255,6 +260,13 @@ private fun StudySummaryScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text("Session complete!", style = MaterialTheme.typography.headlineLarge, color = TextPrimary)
+            if (demoLocalOnly) {
+                Text(
+                    "Demo: scores are not saved to your account.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextMuted
+                )
+            }
 
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.career.domain.Application
@@ -33,6 +34,7 @@ fun ApplicationsListScreen(
 ) {
     val state by viewModel.applicationsState.collectAsStateWithLifecycle()
     val filtered by viewModel.filteredApplications.collectAsStateWithLifecycle()
+    val isDemo = LocalIsDemo.current
     var showCreateSheet by remember { mutableStateOf(false) }
     var appToDelete by remember { mutableStateOf<Application?>(null) }
     val selectedTabIndex = statusTabs.indexOf(state.statusFilter).coerceAtLeast(0)
@@ -111,8 +113,8 @@ fun ApplicationsListScreen(
                             icon = Icons.Default.Work,
                             headline = "No applications",
                             subtext = if (state.statusFilter == "all") "Track your job applications here" else "No ${state.statusFilter} applications",
-                            actionLabel = if (state.statusFilter == "all") "Add application" else null,
-                            onAction = if (state.statusFilter == "all") ({ showCreateSheet = true }) else null,
+                            actionLabel = if (state.statusFilter == "all" && !isDemo) "Add application" else null,
+                            onAction = if (state.statusFilter == "all" && !isDemo) ({ showCreateSheet = true }) else null,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -126,7 +128,7 @@ fun ApplicationsListScreen(
                                 ApplicationCard(
                                     app = app,
                                     onClick = { onApplicationClick(app.id) },
-                                    onDelete = { appToDelete = app }
+                                    onDelete = if (isDemo) null else { { appToDelete = app } }
                                 )
                             }
                         }
@@ -135,13 +137,15 @@ fun ApplicationsListScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = { showCreateSheet = true },
-            containerColor = BrandPurple,
-            contentColor = White,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
-        ) {
-            Icon(Icons.Default.Add, "Add application")
+        if (!isDemo) {
+            FloatingActionButton(
+                onClick = { showCreateSheet = true },
+                containerColor = BrandPurple,
+                contentColor = White,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+            ) {
+                Icon(Icons.Default.Add, "Add application")
+            }
         }
     }
 
@@ -159,7 +163,7 @@ fun ApplicationsListScreen(
         )
     }
 
-    if (showCreateSheet) {
+    if (showCreateSheet && !isDemo) {
         CreateApplicationSheet(
             onDismiss = { showCreateSheet = false },
             onCreate = { company, position ->
@@ -170,22 +174,8 @@ fun ApplicationsListScreen(
 }
 
 @Composable
-private fun ApplicationCard(app: Application, onClick: () -> Unit, onDelete: () -> Unit) {
-    val swipeToDismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) { onDelete(); false } else false
-        }
-    )
-
-    SwipeToDismissBox(
-        state = swipeToDismissState,
-        backgroundContent = {
-            Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
-                Icon(Icons.Default.Delete, null, tint = ErrorRed)
-            }
-        },
-        enableDismissFromStartToEnd = false
-    ) {
+private fun ApplicationCard(app: Application, onClick: () -> Unit, onDelete: (() -> Unit)?) {
+    val card: @Composable () -> Unit = {
         ContinuumCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -201,6 +191,30 @@ private fun ApplicationCard(app: Application, onClick: () -> Unit, onDelete: () 
                 }
                 StatusBadge(app.status)
             }
+        }
+    }
+
+    if (onDelete == null) {
+        card()
+    } else {
+        val swipeToDismissState = rememberSwipeToDismissBoxState(
+            confirmValueChange = { value ->
+                if (value == SwipeToDismissBoxValue.EndToStart) {
+                    onDelete()
+                    false
+                } else false
+            }
+        )
+        SwipeToDismissBox(
+            state = swipeToDismissState,
+            backgroundContent = {
+                Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
+                    Icon(Icons.Default.Delete, null, tint = ErrorRed)
+                }
+            },
+            enableDismissFromStartToEnd = false
+        ) {
+            card()
         }
     }
 }

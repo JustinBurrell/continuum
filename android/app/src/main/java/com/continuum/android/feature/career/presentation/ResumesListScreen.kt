@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.career.domain.Resume
@@ -31,6 +32,7 @@ fun ResumesListScreen(
 ) {
     val state by viewModel.resumesState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val isDemo = LocalIsDemo.current
     var resumeToDelete by remember { mutableStateOf<Resume?>(null) }
 
     LaunchedEffect(Unit) { viewModel.loadResumes() }
@@ -94,8 +96,8 @@ fun ResumesListScreen(
                             icon = Icons.Default.Description,
                             headline = "No resumes yet",
                             subtext = "Upload your first resume to get AI feedback",
-                            actionLabel = "Upload PDF",
-                            onAction = { filePicker.launch("application/pdf") },
+                            actionLabel = if (isDemo) null else "Upload PDF",
+                            onAction = if (isDemo) null else { { filePicker.launch("application/pdf") } },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -109,7 +111,7 @@ fun ResumesListScreen(
                                 ResumeCard(
                                     resume = resume,
                                     onClick = { onResumeClick(resume.id) },
-                                    onDelete = { resumeToDelete = resume }
+                                    onDelete = if (isDemo) null else { { resumeToDelete = resume } }
                                 )
                             }
                         }
@@ -118,13 +120,15 @@ fun ResumesListScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = { filePicker.launch("application/pdf") },
-            containerColor = BrandPurple,
-            contentColor = White,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
-        ) {
-            Icon(Icons.Default.Upload, "Upload resume")
+        if (!isDemo) {
+            FloatingActionButton(
+                onClick = { filePicker.launch("application/pdf") },
+                containerColor = BrandPurple,
+                contentColor = White,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+            ) {
+                Icon(Icons.Default.Upload, "Upload resume")
+            }
         }
     }
 
@@ -144,22 +148,8 @@ fun ResumesListScreen(
 }
 
 @Composable
-private fun ResumeCard(resume: Resume, onClick: () -> Unit, onDelete: () -> Unit) {
-    val swipeToDismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) { onDelete(); false } else false
-        }
-    )
-
-    SwipeToDismissBox(
-        state = swipeToDismissState,
-        backgroundContent = {
-            Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
-                Icon(Icons.Default.Delete, null, tint = ErrorRed)
-            }
-        },
-        enableDismissFromStartToEnd = false
-    ) {
+private fun ResumeCard(resume: Resume, onClick: () -> Unit, onDelete: (() -> Unit)?) {
+    val card: @Composable () -> Unit = {
         ContinuumCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -182,6 +172,30 @@ private fun ResumeCard(resume: Resume, onClick: () -> Unit, onDelete: () -> Unit
                     )
                 }
             }
+        }
+    }
+
+    if (onDelete == null) {
+        card()
+    } else {
+        val swipeToDismissState = rememberSwipeToDismissBoxState(
+            confirmValueChange = { value ->
+                if (value == SwipeToDismissBoxValue.EndToStart) {
+                    onDelete()
+                    false
+                } else false
+            }
+        )
+        SwipeToDismissBox(
+            state = swipeToDismissState,
+            backgroundContent = {
+                Box(Modifier.fillMaxSize().padding(end = 16.dp), contentAlignment = Alignment.CenterEnd) {
+                    Icon(Icons.Default.Delete, null, tint = ErrorRed)
+                }
+            },
+            enableDismissFromStartToEnd = false
+        ) {
+            card()
         }
     }
 }

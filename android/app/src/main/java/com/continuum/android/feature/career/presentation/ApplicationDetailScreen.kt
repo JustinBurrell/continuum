@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 
@@ -31,6 +32,7 @@ fun ApplicationDetailScreen(
     val state by viewModel.applicationsState.collectAsStateWithLifecycle()
     val app = state.applications.find { it.id == appId }
     val context = LocalContext.current
+    val isDemo = LocalIsDemo.current
 
     var notes by remember(app?.notes) { mutableStateOf(app?.notes ?: "") }
     var showStatusDropdown by remember { mutableStateOf(false) }
@@ -68,20 +70,22 @@ fun ApplicationDetailScreen(
 
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         StatusBadge(app.status)
-                        Box {
-                            TextButton(onClick = { showStatusDropdown = true }) {
-                                Text("Change status", color = BrandPurple)
-                                Icon(Icons.Default.ArrowDropDown, null, tint = BrandPurple)
-                            }
-                            DropdownMenu(expanded = showStatusDropdown, onDismissRequest = { showStatusDropdown = false }) {
-                                statusOptions.forEach { option ->
-                                    DropdownMenuItem(
-                                        text = { Text(option.replaceFirstChar { it.uppercase() }) },
-                                        onClick = {
-                                            viewModel.updateApplicationStatus(appId, option)
-                                            showStatusDropdown = false
-                                        }
-                                    )
+                        if (!isDemo) {
+                            Box {
+                                TextButton(onClick = { showStatusDropdown = true }) {
+                                    Text("Change status", color = BrandPurple)
+                                    Icon(Icons.Default.ArrowDropDown, null, tint = BrandPurple)
+                                }
+                                DropdownMenu(expanded = showStatusDropdown, onDismissRequest = { showStatusDropdown = false }) {
+                                    statusOptions.forEach { option ->
+                                        DropdownMenuItem(
+                                            text = { Text(option.replaceFirstChar { it.uppercase() }) },
+                                            onClick = {
+                                                viewModel.updateApplicationStatus(appId, option)
+                                                showStatusDropdown = false
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -107,20 +111,23 @@ fun ApplicationDetailScreen(
                     Text("Notes", style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
                     OutlinedTextField(
                         value = notes,
-                        onValueChange = { notes = it },
+                        onValueChange = { if (!isDemo) notes = it },
                         modifier = Modifier.fillMaxWidth().height(120.dp),
                         placeholder = { Text("Add notes about this application...") },
                         shape = MaterialTheme.shapes.small,
+                        readOnly = isDemo,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = BrandPurple,
                             unfocusedBorderColor = Border
                         )
                     )
-                    TextButton(
-                        onClick = { viewModel.updateApplicationNotes(appId, notes) },
-                        modifier = Modifier.align(Alignment.End)
-                    ) {
-                        Text("Save notes", color = BrandPurple)
+                    if (!isDemo) {
+                        TextButton(
+                            onClick = { viewModel.updateApplicationNotes(appId, notes) },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text("Save notes", color = BrandPurple)
+                        }
                     }
                 }
             }

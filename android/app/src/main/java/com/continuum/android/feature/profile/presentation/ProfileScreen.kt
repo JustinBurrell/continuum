@@ -97,7 +97,7 @@ fun ProfileScreen(
                             }
                             TextButton(
                                 onClick = { viewModel.restoreAccount() },
-                                enabled = !state.restoreLoading
+                                enabled = !state.restoreLoading && !profile.isDemo
                             ) {
                                 Text(if (state.restoreLoading) "Restoring…" else "Restore", color = ErrorRed)
                             }
@@ -186,10 +186,12 @@ fun ProfileScreen(
             // Account section
             item {
                 ProfileSection(title = "Account") {
-                    ProfileRow(icon = Icons.Default.Edit, label = "Edit Profile", onClick = onEditProfile)
-                    HorizontalDivider(color = Border)
-                    ProfileRow(icon = Icons.Default.Lock, label = "Change Password", onClick = { showPasswordDialog = true })
-                    HorizontalDivider(color = Border)
+                    if (!profile.isDemo) {
+                        ProfileRow(icon = Icons.Default.Edit, label = "Edit Profile", onClick = onEditProfile)
+                        HorizontalDivider(color = Border)
+                        ProfileRow(icon = Icons.Default.Lock, label = "Change Password", onClick = { showPasswordDialog = true })
+                        HorizontalDivider(color = Border)
+                    }
                     ProfileRow(icon = Icons.Default.Settings, label = "Settings", onClick = onSettings)
                 }
             }

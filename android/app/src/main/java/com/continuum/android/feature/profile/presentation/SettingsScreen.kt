@@ -64,13 +64,19 @@ fun SettingsScreen(
             return@Column
         }
 
+        val isDemo = profile?.isDemo == true
+
         LazyColumn(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
                 Text(
-                    "Changes are not saved until you tap Save changes.",
+                    if (isDemo) {
+                        "Demo account: settings are view-only."
+                    } else {
+                        "Changes are not saved until you tap Save changes."
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -87,7 +93,8 @@ fun SettingsScreen(
                     options.forEach { option ->
                         FilterChip(
                             selected = activityVisibility == option,
-                            onClick = { activityVisibility = option },
+                            onClick = { if (!isDemo) activityVisibility = option },
+                            enabled = !isDemo,
                             label = { Text(option.replaceFirstChar { it.uppercase() }) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = BrandPurple,
@@ -107,7 +114,8 @@ fun SettingsScreen(
                     label = "Email notifications",
                     description = "Receive email notifications for activity",
                     checked = emailNotifications,
-                    onCheckedChange = { emailNotifications = it }
+                    onCheckedChange = { if (!isDemo) emailNotifications = it },
+                    switchesEnabled = !isDemo
                 )
             }
             item {
@@ -116,20 +124,23 @@ fun SettingsScreen(
                     label = "Push notifications",
                     description = "Receive push notifications on this device",
                     checked = pushNotifications,
-                    onCheckedChange = { pushNotifications = it }
+                    onCheckedChange = { if (!isDemo) pushNotifications = it },
+                    switchesEnabled = !isDemo
                 )
             }
 
             item { Spacer(Modifier.height(16.dp)) }
 
-            item {
-                ContinuumButton(
-                    text = if (state.isSaving) "Saving…" else "Save changes",
-                    onClick = { saveSettings() },
-                    enabled = !state.isSaving,
-                    loading = state.isSaving,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            if (!isDemo) {
+                item {
+                    ContinuumButton(
+                        text = if (state.isSaving) "Saving…" else "Save changes",
+                        onClick = { saveSettings() },
+                        enabled = !state.isSaving,
+                        loading = state.isSaving,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
 
             state.successMessage?.let { msg ->
@@ -173,7 +184,8 @@ private fun SettingsToggleRow(
     label: String,
     description: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    switchesEnabled: Boolean = true
 ) {
     Surface(
         color = White,
@@ -195,6 +207,7 @@ private fun SettingsToggleRow(
             Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
+                enabled = switchesEnabled,
                 colors = SwitchDefaults.colors(checkedThumbColor = White, checkedTrackColor = BrandPurple)
             )
         }

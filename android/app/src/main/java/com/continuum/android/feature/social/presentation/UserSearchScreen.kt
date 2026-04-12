@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.social.domain.UserSearchResult
@@ -28,6 +29,7 @@ fun UserSearchScreen(
     viewModel: SocialViewModel = hiltViewModel()
 ) {
     val state by viewModel.searchState.collectAsStateWithLifecycle()
+    val isDemo = LocalIsDemo.current
     var query by remember { mutableStateOf("") }
 
     Scaffold(
@@ -87,7 +89,7 @@ fun UserSearchScreen(
                         items(state.results, key = { it.id }) { user ->
                             UserSearchCard(
                                 user = user,
-                                onAddFriend = { viewModel.sendFriendRequest(user.id) },
+                                onAddFriend = if (isDemo) null else { { viewModel.sendFriendRequest(user.id) } },
                                 onClick = { onUserClick(user.id) }
                             )
                         }
@@ -99,7 +101,7 @@ fun UserSearchScreen(
 }
 
 @Composable
-private fun UserSearchCard(user: UserSearchResult, onAddFriend: () -> Unit, onClick: () -> Unit) {
+private fun UserSearchCard(user: UserSearchResult, onAddFriend: (() -> Unit)?, onClick: () -> Unit) {
     ContinuumCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -133,7 +135,18 @@ private fun UserSearchCard(user: UserSearchResult, onAddFriend: () -> Unit, onCl
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary)
                 ) { Text("Pending") }
 
-                else -> ContinuumButton(text = "Add", onClick = onAddFriend, modifier = Modifier.height(36.dp))
+                else -> {
+                    if (onAddFriend != null) {
+                        ContinuumButton(text = "Add", onClick = onAddFriend, modifier = Modifier.height(36.dp))
+                    } else {
+                        OutlinedButton(
+                            onClick = {},
+                            enabled = false,
+                            shape = MaterialTheme.shapes.small,
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = TextMuted)
+                        ) { Text("Add") }
+                    }
+                }
             }
         }
     }

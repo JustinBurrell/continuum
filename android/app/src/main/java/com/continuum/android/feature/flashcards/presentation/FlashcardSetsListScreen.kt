@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
@@ -31,6 +32,7 @@ fun FlashcardSetsListScreen(
     viewModel: FlashcardsViewModel = hiltViewModel()
 ) {
     val state by viewModel.setsState.collectAsStateWithLifecycle()
+    val isDemo = LocalIsDemo.current
     var showCreateSheet by remember { mutableStateOf(false) }
     var showGenerateSheet by remember { mutableStateOf(false) }
     var setToDelete by remember { mutableStateOf<FlashcardSet?>(null) }
@@ -132,8 +134,8 @@ fun FlashcardSetsListScreen(
                             icon = Icons.Default.Style,
                             headline = if (state.isSharedTab) "No shared sets" else "No flashcard sets yet",
                             subtext = if (state.isSharedTab) "Sets shared with you will appear here" else "Create a set or generate one from your notes",
-                            actionLabel = if (state.isSharedTab) null else "Create set",
-                            onAction = if (state.isSharedTab) null else { { showCreateSheet = true } },
+                            actionLabel = if (state.isSharedTab || isDemo) null else "Create set",
+                            onAction = if (state.isSharedTab || isDemo) null else { { showCreateSheet = true } },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -148,7 +150,7 @@ fun FlashcardSetsListScreen(
                                     set = set,
                                     onClick = { onSetClick(set.id) },
                                     onStudy = { onStudy(set.id) },
-                                    onDelete = if (state.isSharedTab) null else { { setToDelete = set } }
+                                    onDelete = if (state.isSharedTab || isDemo) null else { { setToDelete = set } }
                                 )
                             }
                         }
@@ -157,13 +159,15 @@ fun FlashcardSetsListScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = { showCreateSheet = true },
-            containerColor = BrandPurple,
-            contentColor = White,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
-        ) {
-            Icon(Icons.Default.Add, "Create set")
+        if (!isDemo) {
+            FloatingActionButton(
+                onClick = { showCreateSheet = true },
+                containerColor = BrandPurple,
+                contentColor = White,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+            ) {
+                Icon(Icons.Default.Add, "Create set")
+            }
         }
     }
 
@@ -181,7 +185,7 @@ fun FlashcardSetsListScreen(
         )
     }
 
-    if (showCreateSheet) {
+    if (showCreateSheet && !isDemo) {
         CreateSetSheet(
             onDismiss = { showCreateSheet = false },
             onCreate = { title, desc ->
@@ -191,7 +195,7 @@ fun FlashcardSetsListScreen(
         )
     }
 
-    if (showGenerateSheet) {
+    if (showGenerateSheet && !isDemo) {
         GenerateSetSheet(
             onDismiss = { showGenerateSheet = false },
             onGenerate = { content, title ->

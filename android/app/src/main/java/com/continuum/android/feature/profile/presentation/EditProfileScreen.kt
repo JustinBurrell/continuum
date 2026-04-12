@@ -105,6 +105,21 @@ fun EditProfileScreen(
                 }
             }
 
+            if (profile?.isDemo == true) {
+                Text(
+                    "Profile editing is not available on the demo account. Create a free account to customize your profile.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary
+                )
+                ContinuumButton(
+                    text = "Go back",
+                    onClick = onNavigateBack,
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = ContinuumButtonVariant.Secondary
+                )
+                return@Column
+            }
+
             Text("PERSONAL INFO", style = MaterialTheme.typography.labelSmall, color = TextMuted)
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
