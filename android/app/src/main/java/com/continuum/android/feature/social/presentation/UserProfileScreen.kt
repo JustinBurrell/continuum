@@ -2,6 +2,7 @@ package com.continuum.android.feature.social.presentation
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -9,10 +10,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 
@@ -23,6 +27,7 @@ fun UserProfileScreen(
     viewModel: SocialViewModel = hiltViewModel()
 ) {
     val state by viewModel.userProfileState.collectAsStateWithLifecycle()
+    val uriHandler = LocalUriHandler.current
 
     LaunchedEffect(userId) { viewModel.loadUserProfile(userId) }
 
@@ -39,15 +44,57 @@ fun UserProfileScreen(
             state.user != null -> {
                 val user = state.user!!
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(padding)
-                        .verticalScroll(rememberScrollState()).padding(Spacing.lg),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .verticalScroll(rememberScrollState())
+                        .padding(Spacing.lg),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(Spacing.lg)
                 ) {
-                    AvatarInitials(name = user.fullName, size = 80.dp)
+                    Box(modifier = Modifier.size(88.dp)) {
+                        if (!user.avatarUrl.isNullOrBlank()) {
+                            AsyncImage(
+                                model = user.avatarUrl,
+                                contentDescription = user.fullName,
+                                modifier = Modifier.fillMaxSize().clip(CircleShape)
+                            )
+                        } else {
+                            AvatarInitials(name = user.fullName, modifier = Modifier.fillMaxSize())
+                        }
+                    }
+
+                    VerifiedRoleBadges(roles = user.roles, expanded = true)
+
                     Text(user.fullName, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
                     user.username?.let { Text("@$it", style = MaterialTheme.typography.bodyMedium, color = TextSecondary) }
-                    user.bio?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = TextSecondary) }
+
+                    user.createdAt?.take(10)?.let { joined ->
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Icon(Icons.Default.CalendarMonth, null, tint = TextMuted, modifier = Modifier.size(18.dp))
+                            Text("Joined $joined", style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                        }
+                    }
+
+                    user.bio?.takeIf { it.isNotBlank() }?.let {
+                        Text(it, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                    }
+
+                    if (!user.linkedinUrl.isNullOrBlank() || !user.instagramHandle.isNullOrBlank()) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                            user.linkedinUrl?.takeIf { it.isNotBlank() }?.let { url ->
+                                TextButton(onClick = { runCatching { uriHandler.openUri(url) } }) {
+                                    Text("LinkedIn", color = BrandPurple)
+                                }
+                            }
+                            user.instagramHandle?.takeIf { it.isNotBlank() }?.let { handle ->
+                                val ig = "https://instagram.com/${handle.removePrefix("@")}"
+                                TextButton(onClick = { runCatching { uriHandler.openUri(ig) } }) {
+                                    Text("Instagram", color = BrandPurple)
+                                }
+                            }
+                        }
+                    }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xxl)) {
                         StatColumn("Notes", user.notesCount)
@@ -57,13 +104,62 @@ fun UserProfileScreen(
 
                     when (user.friendStatus) {
                         "friends" -> {
-                            Surface(color = SuccessGreen.copy(alpha = 0.12f), shape = AppShape.chip) {
-                                Text("Friends", color = SuccessGreen, modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm), style = MaterialTheme.typography.labelMedium)
+                            Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
+                                Surface(color = SuccessGreen.copy(alpha = 0.12f), shape = AppShape.chip) {
+                                    Text(
+                                        "Friends",
+                                        color = SuccessGreen,
+                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
+                                OutlinedButton(
+                                    onClick = { viewModel.removeFriendFromProfile(userId) },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Default.PersonRemove, null, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Remove friend", color = ErrorRed)
+                                }
                             }
                         }
-                        "pending" -> {
-                            Surface(color = WarningAmber.copy(alpha = 0.12f), shape = AppShape.chip) {
-                                Text("Request Pending", color = WarningAmber, modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm), style = MaterialTheme.typography.labelMedium)
+                        "pending_incoming" -> {
+                            Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
+                                Surface(color = WarningAmber.copy(alpha = 0.12f), shape = AppShape.chip) {
+                                    Text(
+                                        "Wants to connect",
+                                        color = WarningAmber,
+                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
+                                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
+                                    ContinuumButton(
+                                        text = "Accept",
+                                        onClick = { viewModel.acceptIncomingFromProfile(userId) },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    OutlinedButton(
+                                        onClick = { viewModel.declineIncomingFromProfile(userId) },
+                                        modifier = Modifier.weight(1f)
+                                    ) { Text("Decline") }
+                                }
+                            }
+                        }
+                        "pending_outgoing" -> {
+                            Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
+                                Surface(color = WarningAmber.copy(alpha = 0.12f), shape = AppShape.chip) {
+                                    Text(
+                                        "Request sent",
+                                        color = WarningAmber,
+                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
+                                OutlinedButton(
+                                    onClick = { viewModel.cancelOutgoingFromProfile(userId) },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) { Text("Cancel request") }
                             }
                         }
                         else -> {

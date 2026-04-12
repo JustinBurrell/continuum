@@ -42,6 +42,9 @@ interface SocialApiService {
     @GET("users/{userId}")
     suspend fun getUserProfile(@Path("userId") userId: String): UserProfileResponseDto
 
+    @GET("users/{userId}/streak")
+    suspend fun getUserStreak(@Path("userId") userId: String): UserStreakResponseDto
+
     @GET("comments/{targetType}/{targetId}")
     suspend fun getComments(
         @Path("targetType") targetType: String,

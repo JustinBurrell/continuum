@@ -102,6 +102,7 @@ class DashboardViewModel @Inject constructor(
                     .map { dto ->
                         Task(
                             id = dto.id,
+                            userId = dto.userId,
                             title = dto.title,
                             description = dto.description,
                             status = dto.status,

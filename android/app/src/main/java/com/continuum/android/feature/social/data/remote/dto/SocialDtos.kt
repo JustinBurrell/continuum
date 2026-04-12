@@ -119,9 +119,17 @@ data class UserProfileDto(
     val bio: String? = null,
     val linkedinUrl: String? = null,
     val instagramHandle: String? = null,
+    val createdAt: String? = null,
+    val roles: List<String> = emptyList(),
     val friendStatus: String = "none",
     val notesCount: Int = 0,
     val setsCount: Int = 0,
+    val streak: Int = 0
+)
+
+@JsonClass(generateAdapter = true)
+data class UserStreakResponseDto(
+    val success: Boolean = false,
     val streak: Int = 0
 )
 

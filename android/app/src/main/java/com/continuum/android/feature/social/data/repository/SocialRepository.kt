@@ -109,11 +109,35 @@ class SocialRepository @Inject constructor(
 
     suspend fun getUserProfile(userId: String): Result<UserProfile> = runCatching {
         val dto = api.getUserProfile(userId).user
+        val streak = runCatching { api.getUserStreak(userId).streak }.getOrElse { dto.streak }
+        val friends = getFriends().getOrDefault(emptyList())
+        val friendEntry = friends.find { it.userId == userId }
+        val incoming = getFriendRequests().getOrDefault(emptyList()).find { it.sender.userId == userId }
+        val outgoing = getSentRequests().getOrDefault(emptyList()).find { it.receiver.userId == userId }
+        val status = when {
+            friendEntry != null -> "friends"
+            incoming != null -> "pending_incoming"
+            outgoing != null -> "pending_outgoing"
+            else -> "none"
+        }
         UserProfile(
-            id = dto.id, firstName = dto.firstName, lastName = dto.lastName,
-            username = dto.username, avatarUrl = dto.avatarUrl, bio = dto.bio,
-            friendStatus = dto.friendStatus, notesCount = dto.notesCount,
-            setsCount = dto.setsCount, streak = dto.streak
+            id = dto.id,
+            firstName = dto.firstName,
+            lastName = dto.lastName,
+            username = dto.username,
+            avatarUrl = dto.avatarUrl,
+            bio = dto.bio,
+            linkedinUrl = dto.linkedinUrl,
+            instagramHandle = dto.instagramHandle,
+            createdAt = dto.createdAt,
+            roles = dto.roles,
+            friendStatus = status,
+            friendshipId = friendEntry?.id,
+            incomingRequestId = incoming?.id,
+            outgoingRequestId = outgoing?.id,
+            notesCount = dto.notesCount,
+            setsCount = dto.setsCount,
+            streak = streak
         )
     }
 

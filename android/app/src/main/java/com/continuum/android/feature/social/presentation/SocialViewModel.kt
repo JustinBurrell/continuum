@@ -206,19 +206,49 @@ class SocialViewModel @Inject constructor(
     }
 
     fun loadUserProfile(userId: String) {
-        _userProfileState.update { it.copy(isLoading = true, error = null) }
+        _userProfileState.value = UserProfileUiState(user = null, isLoading = true, error = null)
         viewModelScope.launch {
             repository.getUserProfile(userId)
-                .onSuccess { user -> _userProfileState.update { it.copy(user = user, isLoading = false) } }
-                .onFailure { e -> _userProfileState.update { it.copy(isLoading = false, error = e.message) } }
+                .onSuccess { user ->
+                    _userProfileState.update { it.copy(user = user, isLoading = false, error = null) }
+                }
+                .onFailure { e ->
+                    _userProfileState.update { it.copy(user = null, isLoading = false, error = e.message) }
+                }
         }
     }
 
     fun sendFriendRequestFromProfile(userId: String) {
         viewModelScope.launch {
-            repository.sendFriendRequest(userId).onSuccess {
-                _userProfileState.update { it.copy(user = it.user?.copy(friendStatus = "pending")) }
-            }
+            repository.sendFriendRequest(userId).onSuccess { loadUserProfile(userId) }
+        }
+    }
+
+    fun acceptIncomingFromProfile(userId: String) {
+        val requestId = _userProfileState.value.user?.incomingRequestId ?: return
+        viewModelScope.launch {
+            repository.acceptFriendRequest(requestId).onSuccess { loadUserProfile(userId) }
+        }
+    }
+
+    fun declineIncomingFromProfile(userId: String) {
+        val requestId = _userProfileState.value.user?.incomingRequestId ?: return
+        viewModelScope.launch {
+            repository.declineFriendRequest(requestId).onSuccess { loadUserProfile(userId) }
+        }
+    }
+
+    fun cancelOutgoingFromProfile(userId: String) {
+        val requestId = _userProfileState.value.user?.outgoingRequestId ?: return
+        viewModelScope.launch {
+            repository.cancelFriendRequest(requestId).onSuccess { loadUserProfile(userId) }
+        }
+    }
+
+    fun removeFriendFromProfile(userId: String) {
+        val friendshipId = _userProfileState.value.user?.friendshipId ?: return
+        viewModelScope.launch {
+            repository.removeFriend(friendshipId).onSuccess { loadUserProfile(userId) }
         }
     }
 }
