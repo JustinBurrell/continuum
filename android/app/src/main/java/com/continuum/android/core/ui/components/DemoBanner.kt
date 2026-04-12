@@ -44,7 +44,7 @@ fun DemoBanner(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "You're viewing a demo account. Content is read-only and changes won't be saved.",
+                text = "You're exploring Continuum as a demo account. Content is read-only and changes won't be saved.",
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
                 color = DemoBannerText,
