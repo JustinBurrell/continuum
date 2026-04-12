@@ -30,6 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.continuum.android.core.data.local.LogoutReason
+import com.continuum.android.core.ui.components.DemoBanner
 import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.feature.auth.presentation.*
@@ -189,8 +190,11 @@ fun AppNavHost(
             if (reason == LogoutReason.REMOTE_INVALIDATION) {
                 remoteLogoutMessage = "Your session was ended from another device"
             }
-            navController.navigate(NavRoutes.Auth.ROOT) {
-                popUpTo(0) { inclusive = true }
+            val onAuth = navController.currentDestination?.route?.startsWith(NavRoutes.Auth.ROOT) == true
+            if (!onAuth) {
+                navController.navigate(NavRoutes.Auth.ROOT) {
+                    popUpTo(0) { inclusive = true }
+                }
             }
         }
     }
@@ -211,6 +215,7 @@ fun AppNavHost(
 
     LaunchedEffect(isAuthenticated) {
         if (isAuthenticated) navProfileViewModel.load()
+        else navProfileViewModel.clear()
     }
 
     // Logo tap: navigate to Dashboard from any tab screen
@@ -226,6 +231,14 @@ fun AppNavHost(
     }
 
     val showDemoBanner = navProfile.isDemo && showMainNav
+    val profileImageCacheKey = if (isAuthenticated) tokenManager.getJwtUserId() else null
+
+    val onDemoRegister: () -> Unit = {
+        navController.navigate(NavRoutes.Auth.REGISTER) {
+            popUpTo(0) { inclusive = true }
+        }
+        tokenManager.clearTokens()
+    }
 
     if (isExpandedScreen && showMainNav) {
         Row(modifier = Modifier.fillMaxSize()) {
@@ -233,10 +246,13 @@ fun AppNavHost(
                 currentRoute = currentRoute,
                 navController = navController,
                 profileAvatarUrl = navProfile.avatarUrl,
-                profileDisplayName = navProfile.displayName
+                profileDisplayName = navProfile.displayName,
+                profileImageCacheKey = profileImageCacheKey,
             )
             androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
-                if (showDemoBanner) com.continuum.android.core.ui.components.DemoBanner()
+                if (showDemoBanner) {
+                    DemoBanner(onWantFullExperience = onDemoRegister)
+                }
                 NavGraph(
                     navController = navController,
                     startDestination = startDestination,
@@ -255,13 +271,16 @@ fun AppNavHost(
                         currentRoute = currentRoute,
                         navController = navController,
                         profileAvatarUrl = navProfile.avatarUrl,
-                        profileDisplayName = navProfile.displayName
+                        profileDisplayName = navProfile.displayName,
+                        profileImageCacheKey = profileImageCacheKey,
                     )
                 }
             }
         ) { innerPadding ->
             androidx.compose.foundation.layout.Column(modifier = Modifier.padding(innerPadding)) {
-                if (showDemoBanner) com.continuum.android.core.ui.components.DemoBanner()
+                if (showDemoBanner) {
+                    DemoBanner(onWantFullExperience = onDemoRegister)
+                }
                 NavGraph(
                     navController = navController,
                     startDestination = startDestination,
@@ -533,7 +552,8 @@ private fun NavGraph(
                 val taskId = backStackEntry.arguments?.getString("taskId") ?: return@composable
                 TaskDetailScreen(
                     taskId = taskId,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onUserProfileClick = { userId -> navController.navigate(NavRoutes.Social.userProfile(userId)) }
                 )
             }
         }

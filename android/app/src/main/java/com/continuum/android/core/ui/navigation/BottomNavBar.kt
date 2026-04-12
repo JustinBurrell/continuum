@@ -18,6 +18,7 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,7 +29,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.continuum.android.R
 import com.continuum.android.core.ui.theme.BrandPurple
 import com.continuum.android.core.ui.theme.PurpleTint
@@ -64,7 +64,8 @@ fun ContinuumBottomBar(
     currentRoute: String?,
     navController: NavController,
     profileAvatarUrl: String? = null,
-    profileDisplayName: String = "Profile"
+    profileDisplayName: String = "Profile",
+    profileImageCacheKey: String? = null,
 ) {
     NavigationBar(
         containerColor = White,
@@ -74,18 +75,7 @@ fun ContinuumBottomBar(
             val selected = isSelectedRoute(currentRoute, item.route)
             NavigationBarItem(
                 selected = selected,
-                onClick = {
-                    if (!selected) {
-                        navController.navigate(item.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                inclusive = false
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                },
+                onClick = { navController.handleBottomNavItemClick(item, currentRoute) },
                 icon = {
                     when (item) {
                         is NavItem.IconItem -> Icon(
@@ -102,6 +92,7 @@ fun ContinuumBottomBar(
                             selected = selected,
                             avatarUrl = profileAvatarUrl,
                             displayName = profileDisplayName,
+                            imageCacheKey = profileImageCacheKey,
                         )
                     }
                 },
@@ -121,25 +112,15 @@ fun ContinuumNavigationRail(
     currentRoute: String?,
     navController: NavController,
     profileAvatarUrl: String? = null,
-    profileDisplayName: String = "Profile"
+    profileDisplayName: String = "Profile",
+    profileImageCacheKey: String? = null,
 ) {
     NavigationRail(containerColor = White) {
         bottomNavItems.forEach { item ->
             val selected = isSelectedRoute(currentRoute, item.route)
             NavigationRailItem(
                 selected = selected,
-                onClick = {
-                    if (!selected) {
-                        navController.navigate(item.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                inclusive = false
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                },
+                onClick = { navController.handleBottomNavItemClick(item, currentRoute) },
                 icon = {
                     when (item) {
                         is NavItem.IconItem -> Icon(
@@ -156,6 +137,7 @@ fun ContinuumNavigationRail(
                             selected = selected,
                             avatarUrl = profileAvatarUrl,
                             displayName = profileDisplayName,
+                            imageCacheKey = profileImageCacheKey,
                         )
                     }
                 },
@@ -170,24 +152,12 @@ fun ContinuumNavigationRail(
     }
 }
 
-private fun isSelectedRoute(currentRoute: String?, itemRoute: String): Boolean {
-    if (currentRoute == null) return false
-    return when (itemRoute) {
-        NavRoutes.Dashboard.ROOT -> currentRoute.startsWith(NavRoutes.Dashboard.ROOT)
-        NavRoutes.Applications.ROOT ->
-            currentRoute.startsWith(NavRoutes.Applications.ROOT) ||
-                currentRoute.startsWith(NavRoutes.Career.ROOT)
-        NavRoutes.Profile.ROOT ->
-            currentRoute.startsWith(NavRoutes.Profile.ROOT)
-        else -> currentRoute.startsWith(itemRoute)
-    }
-}
-
 @Composable
 private fun ProfileNavIcon(
     selected: Boolean,
     avatarUrl: String?,
-    displayName: String
+    displayName: String,
+    imageCacheKey: String? = null,
 ) {
     val iconSize = 26.dp
     Box(
@@ -203,14 +173,16 @@ private fun ProfileNavIcon(
         contentAlignment = Alignment.Center,
     ) {
         if (!avatarUrl.isNullOrBlank()) {
-            AsyncImage(
-                model = avatarUrl,
-                contentDescription = displayName,
-                modifier = Modifier
-                    .size(iconSize - 2.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop,
-            )
+            key(imageCacheKey, avatarUrl) {
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = displayName,
+                    modifier = Modifier
+                        .size(iconSize - 2.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                )
+            }
         } else {
             Icon(
                 imageVector = Icons.Default.Person,
