@@ -79,7 +79,7 @@ class NotesViewModel @Inject constructor(
 
     fun loadNote(id: String) {
         viewModelScope.launch {
-            _detailState.update { it.copy(isLoading = true, error = null) }
+            _detailState.update { NoteDetailUiState(isLoading = true, error = null, note = null) }
             repository.getNoteById(id)
                 .onSuccess { note -> _detailState.update { it.copy(note = note, isLoading = false) } }
                 .onFailure { e -> _detailState.update { it.copy(isLoading = false, error = e.message) } }

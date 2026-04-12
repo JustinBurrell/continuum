@@ -44,19 +44,21 @@ fun NoteEditorScreen(
 
     val richTextState = rememberRichTextState()
 
+    var hydrateDone by remember(noteId) { mutableStateOf(false) }
+
     LaunchedEffect(noteId) {
-        if (!isCreating) {
-            viewModel.loadNote(noteId)
-        }
+        if (!isCreating) viewModel.loadNote(noteId)
     }
 
-    LaunchedEffect(detailState.note) {
-        detailState.note?.let { note ->
-            if (title.isBlank()) title = note.title
-            if (tags.isEmpty()) tags = note.tags
-            visibility = note.visibility
-            if (richTextState.toHtml().isBlank()) richTextState.setHtml(note.content)
-        }
+    LaunchedEffect(noteId, detailState.note, detailState.isLoading, isCreating) {
+        if (isCreating || hydrateDone || detailState.isLoading) return@LaunchedEffect
+        val note = detailState.note ?: return@LaunchedEffect
+        if (note.id != noteId) return@LaunchedEffect
+        title = note.title
+        tags = note.tags
+        visibility = note.visibility
+        richTextState.setHtml(note.content)
+        hydrateDone = true
     }
 
     Scaffold(
