@@ -3,11 +3,15 @@ package com.continuum.android.feature.tasks.data.remote.dto
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-@JsonClass(generateAdapter = true)
+/** Parsed by [TaskParticipantDtoAdapter] (supports string or populated user for userId). */
 data class TaskParticipantDto(
     val userId: String = "",
     val status: String = "todo",
-    val completedAt: String? = null
+    val completedAt: String? = null,
+    val profileFirstName: String? = null,
+    val profileLastName: String? = null,
+    val profileUsername: String? = null,
+    val profileAvatarUrl: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -22,6 +26,7 @@ data class TaskRecurrenceDto(
 @JsonClass(generateAdapter = true)
 data class TaskDto(
     @Json(name = "_id") val id: String = "",
+    val userId: String? = null,
     val title: String = "",
     val description: String = "",
     val status: String = "todo",
@@ -73,5 +78,20 @@ data class UpdateTaskRequestDto(
     val title: String? = null,
     val description: String? = null,
     val priority: String? = null,
-    val dueDate: String? = null
+    val type: String? = null,
+    val dueDate: String? = null,
+    val duration: Int? = null,
+    val reminderMinutes: Int? = null,
+    val noteId: String? = null,
+    val recurrence: TaskRecurrenceDto? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class TaskParticipantUserIdDto(
+    val userId: String
+)
+
+@JsonClass(generateAdapter = true)
+data class UpdateTaskParticipantsRequestDto(
+    val participants: List<TaskParticipantUserIdDto>
 )

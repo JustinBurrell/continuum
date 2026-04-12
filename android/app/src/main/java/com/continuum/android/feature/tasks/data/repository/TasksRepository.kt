@@ -74,8 +74,17 @@ class TasksRepository @Inject constructor(
         api.getTask(id).task.toDomain()
     }
 
-    suspend fun updateTask(id: String, title: String?, description: String?, priority: String?, dueDate: String?): Result<Task> = runCatching {
-        val task = api.updateTask(id, UpdateTaskRequestDto(title = title, description = description, priority = priority, dueDate = dueDate)).task
+    suspend fun updateTask(id: String, request: UpdateTaskRequestDto): Result<Task> = runCatching {
+        val task = api.updateTask(id, request).task
+        taskDao.insert(task.toEntity())
+        task.toDomain()
+    }
+
+    suspend fun updateTaskParticipants(id: String, participantUserIds: List<String>): Result<Task> = runCatching {
+        val task = api.updateTaskParticipants(
+            id,
+            UpdateTaskParticipantsRequestDto(participantUserIds.map { TaskParticipantUserIdDto(it) })
+        ).task
         taskDao.insert(task.toEntity())
         task.toDomain()
     }
@@ -90,15 +99,25 @@ class TasksRepository @Inject constructor(
         priority = priority, dueDate = dueDate, updatedAt = updatedAt
     )
     private fun TaskEntity.toDomain() = Task(
-        id = id, title = title, description = description, status = status,
+        id = id, userId = null, title = title, description = description, status = status,
         priority = priority, type = null, dueDate = dueDate, duration = null,
         isShared = false, updatedAt = updatedAt
     )
     private fun TaskDto.toDomain() = Task(
-        id = id, title = title, description = description, status = status,
+        id = id, userId = userId, title = title, description = description, status = status,
         priority = priority, type = type, dueDate = dueDate, duration = duration,
         reminderMinutes = reminderMinutes, noteId = noteId, isShared = isShared,
-        participants = participants?.map { TaskParticipant(it.userId, it.status, it.completedAt) } ?: emptyList(),
+        participants = participants?.map { p ->
+            TaskParticipant(
+                userId = p.userId,
+                status = p.status,
+                completedAt = p.completedAt,
+                firstName = p.profileFirstName,
+                lastName = p.profileLastName,
+                username = p.profileUsername,
+                avatarUrl = p.profileAvatarUrl
+            )
+        } ?: emptyList(),
         recurrenceFrequency = recurrence?.frequency,
         completedAt = completedAt, createdAt = createdAt, updatedAt = updatedAt
     )

@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.continuum.android.core.data.DataRefreshNotifier
 import com.continuum.android.core.data.RefreshScope
+import com.continuum.android.core.data.local.TokenManager
+import com.continuum.android.feature.tasks.data.remote.dto.UpdateTaskRequestDto
 import com.continuum.android.feature.tasks.data.repository.TasksRepository
 import com.continuum.android.feature.tasks.domain.Task
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,7 +33,8 @@ data class TaskDetailUiState(
 @HiltViewModel
 class TasksViewModel @Inject constructor(
     private val repository: TasksRepository,
-    private val dataRefreshNotifier: DataRefreshNotifier
+    private val dataRefreshNotifier: DataRefreshNotifier,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TasksUiState())
@@ -118,7 +121,7 @@ class TasksViewModel @Inject constructor(
     }
 
     fun loadTaskDetail(taskId: String) {
-        _taskDetailState.update { it.copy(isLoading = true, error = null) }
+        _taskDetailState.value = TaskDetailUiState(task = null, isLoading = true, error = null)
         viewModelScope.launch {
             repository.getTask(taskId)
                 .onSuccess { task -> _taskDetailState.update { it.copy(task = task, isLoading = false) } }
@@ -127,15 +130,67 @@ class TasksViewModel @Inject constructor(
     }
 
     fun updateTaskStatus(taskId: String, status: String) {
+        val task = _taskDetailState.value.task ?: return
+        val myId = tokenManager.getJwtUserId() ?: return
+        val isOwner = task.userId != null && task.userId == myId
+        val isParticipant = task.participants.any { it.userId == myId }
         viewModelScope.launch {
-            repository.updateStatus(taskId, status)
-                .onSuccess { task ->
-                    _taskDetailState.update { it.copy(task = task) }
+            val result = when {
+                isOwner -> repository.updateStatus(taskId, status)
+                isParticipant -> repository.updateParticipantStatus(taskId, status)
+                else -> return@launch
+            }
+            result
+                .onSuccess { updated ->
+                    _taskDetailState.update { it.copy(task = updated) }
                     _state.update { state ->
-                        state.copy(tasks = state.tasks.map { if (it.id == taskId) task else it })
+                        state.copy(tasks = state.tasks.map { if (it.id == taskId) updated else it })
                     }
                     dataRefreshNotifier.notifyDataChanged(RefreshScope.TASKS)
                 }
+        }
+    }
+
+    fun saveTaskEdits(
+        taskId: String,
+        title: String,
+        description: String,
+        priority: String?,
+        type: String?,
+        dueDate: String?,
+        onDone: () -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            repository.updateTask(
+                taskId,
+                UpdateTaskRequestDto(
+                    title = title,
+                    description = description,
+                    priority = priority,
+                    type = type?.takeIf { it.isNotBlank() },
+                    dueDate = dueDate?.takeIf { it.isNotBlank() }
+                )
+            ).onSuccess { task ->
+                _taskDetailState.update { it.copy(task = task) }
+                _state.update { state ->
+                    state.copy(tasks = state.tasks.map { if (it.id == taskId) task else it })
+                }
+                dataRefreshNotifier.notifyDataChanged(RefreshScope.TASKS)
+                onDone()
+            }
+        }
+    }
+
+    fun saveTaskParticipants(taskId: String, participantUserIds: List<String>, onDone: () -> Unit = {}) {
+        viewModelScope.launch {
+            repository.updateTaskParticipants(taskId, participantUserIds).onSuccess { task ->
+                _taskDetailState.update { it.copy(task = task) }
+                _state.update { state ->
+                    state.copy(tasks = state.tasks.map { if (it.id == taskId) task else it })
+                }
+                dataRefreshNotifier.notifyDataChanged(RefreshScope.TASKS)
+                onDone()
+            }
         }
     }
 

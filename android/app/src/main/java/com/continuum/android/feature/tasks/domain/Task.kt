@@ -3,11 +3,24 @@ package com.continuum.android.feature.tasks.domain
 data class TaskParticipant(
     val userId: String,
     val status: String,
-    val completedAt: String? = null
-)
+    val completedAt: String? = null,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val username: String? = null,
+    val avatarUrl: String? = null
+) {
+    val displayName: String
+        get() {
+            val full = listOfNotNull(firstName, lastName).joinToString(" ").trim()
+            if (full.isNotBlank()) return full
+            if (!username.isNullOrBlank()) return username
+            return userId
+        }
+}
 
 data class Task(
     val id: String,
+    val userId: String? = null,
     val title: String,
     val description: String,
     val status: String,         // "todo" | "in_progress" | "completed"
