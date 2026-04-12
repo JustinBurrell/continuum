@@ -170,6 +170,8 @@ The key advantage of Authenticator over an interceptor-based approach: OkHttp au
 
 The app uses Jetpack Navigation Compose with a single `NavHost` in `AppNavHost.kt`.
 
+**Web route parity:** A systematic comparison of `web/src/App.jsx` routes to this `NavHost`, plus prioritized follow-ups, lives in [`web-route-parity.md`](./web-route-parity.md).
+
 ### Route Structure
 
 ```
@@ -194,8 +196,11 @@ Main graph
 │   └── study/{setId}
 ├── Tasks graph (tasks/)
 │   ├── board
-│   ├── detail/{taskId}
-│   └── calendar
+│   └── detail/{taskId}
+├── Calendar graph (calendar/)
+│   └── main
+├── Applications graph (applications/)
+│   └── list
 ├── Career graph (career/)
 │   ├── applications
 │   ├── application/{appId}

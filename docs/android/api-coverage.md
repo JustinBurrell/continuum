@@ -3,6 +3,8 @@
 Last updated: April 10, 2026
 Backend API docs: https://api.usecontinuum.dev/api-docs
 
+For **web routes vs `AppNavHost`** (parity audit and follow-up list), see [`web-route-parity.md`](./web-route-parity.md).
+
 ---
 
 ## Coverage Summary

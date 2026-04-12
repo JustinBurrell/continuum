@@ -29,7 +29,7 @@ This document explains how the Continuum React web app was ported to a native An
 | `useContext` | `CompositionLocal` | Ambient values available to the composable tree |
 | React Query | `ViewModel` + `StateFlow` + Room | ViewModel survives rotation; StateFlow drives UI; Room provides offline cache |
 | Axios interceptors | OkHttp `Interceptor` + `Authenticator` | Authenticator handles 401 recovery with automatic request queuing |
-| React Router | Jetpack Navigation Compose | `NavHost` + `composable()` routes with type-safe arguments |
+| React Router | Jetpack Navigation Compose | `NavHost` + `composable()` routes with type-safe arguments — see [`web-route-parity.md`](./web-route-parity.md) for a route-by-route audit vs `App.jsx` |
 | Tailwind CSS | `MaterialTheme` + `Color.kt` + `Spacing.kt` + `AppShape.kt` | Design tokens translated from CSS variables to Kotlin objects |
 | `localStorage` | `EncryptedSharedPreferences` | Stronger security: hardware-backed encryption vs. plaintext browser storage |
 | Context Provider | Hilt `@Singleton` + `@HiltViewModel` | Dependency injection replaces React context for service access |
