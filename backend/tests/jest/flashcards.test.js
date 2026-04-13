@@ -197,3 +197,38 @@ describe('GET /api/flashcard-sets/shared', () => {
     expect(res.body.sets.some(s => s._id === setId)).toBe(false);
   });
 });
+
+// ─── Study progress on shared sets ───────────────────────────────────────────
+
+describe('PUT /api/flashcard-sets/:setId/cards/:cardId/progress', () => {
+  it('allows a friend to update progress on a friends-visible set', async () => {
+    const { alice, bob } = await makeFriends();
+
+    const create = await request(app)
+      .post('/api/flashcard-sets')
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ title: 'Friend Studiable' });
+
+    const setId = create.body.set._id;
+
+    const cardRes = await request(app)
+      .post(`/api/flashcard-sets/${setId}/cards`)
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ front: 'Q', back: 'A' });
+
+    const cardId = cardRes.body.card._id;
+
+    await request(app)
+      .patch(`/api/flashcard-sets/${setId}/share`)
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ visibility: 'friends' });
+
+    const progress = await request(app)
+      .put(`/api/flashcard-sets/${setId}/cards/${cardId}/progress`)
+      .set('Authorization', `Bearer ${bob.token}`)
+      .send({ correct: true });
+
+    expect(progress.statusCode).toBe(200);
+    expect(progress.body.success).toBe(true);
+  });
+});

@@ -114,6 +114,7 @@ router.get('/', applicationsController.getApplications);
  *       404:
  *         $ref: '#/components/responses/NotFound'
  */
+router.get('/:id', applicationsController.getApplicationById);
 router.put('/:id', applicationsController.updateApplication);
 
 /**
@@ -150,6 +151,7 @@ router.put('/:id', applicationsController.updateApplication);
  *         $ref: '#/components/responses/NotFound'
  */
 router.post('/:id/contacts', applicationsController.addContact);
+router.delete('/:id/contacts/:contactId', applicationsController.deleteContact);
 
 /**
  * @swagger
@@ -183,6 +185,7 @@ router.post('/:id/contacts', applicationsController.addContact);
  *         $ref: '#/components/responses/NotFound'
  */
 router.post('/:id/reminders', applicationsController.addReminder);
+router.delete('/:id/reminders/:reminderId', applicationsController.deleteReminder);
 
 /**
  * @swagger

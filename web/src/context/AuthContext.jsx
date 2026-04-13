@@ -127,7 +127,7 @@ export function AuthProvider({ children }) {
 
   const googleLogin = useCallback(() => {
     window.location.href =
-      (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/auth/google';
+      (import.meta.env.VITE_API_URL || 'http://localhost:5001') + '/api/auth/google';
   }, []);
 
   const updateUser = useCallback((updates) => {

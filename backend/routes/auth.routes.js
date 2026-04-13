@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const passport = require('../config/passport');
 const authController = require('../controllers/auth.controller');
+const mobileAuthController = require('../controllers/auth.mobile.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const uploadImage = require('../middleware/uploadImage.middleware');
 const { authLimiter } = require('../middleware/rateLimiter');
@@ -261,6 +262,7 @@ router.patch('/me/profile', authMiddleware, (req, res, next) => {
  *         $ref: '#/components/responses/Unauthorized'
  */
 router.post('/logout', authMiddleware, authController.logout);
+router.post('/mobile/logout', authMiddleware, authController.mobileLogout);
 
 /**
  * @swagger
@@ -499,5 +501,139 @@ router.post('/me/google/link', authMiddleware, authController.googleLink);
  *         $ref: '#/components/responses/Unauthorized'
  */
 router.delete('/me/google/link', authMiddleware, authController.googleUnlink);
+
+// ============================================================
+// MOBILE AUTH ROUTES
+// Purpose: Auth endpoints for the Android app
+// These mirror the web auth routes but return the refresh token
+// in the JSON body instead of setting an httpOnly cookie,
+// because Android's OkHttp cannot read or send httpOnly cookies.
+// ============================================================
+
+/**
+ * @swagger
+ * /api/auth/mobile/login:
+ *   post:
+ *     summary: Mobile login — email/password, returns refreshToken in body
+ *     description: >
+ *       Identical to POST /api/auth/login except the refresh token is returned
+ *       in the JSON body instead of being set as an httpOnly cookie.
+ *       Android clients store it in EncryptedSharedPreferences.
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:    { type: string, format: email }
+ *               password: { type: string }
+ *     responses:
+ *       200:
+ *         description: Login successful — returns JWT, refreshToken, and user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:      { type: boolean }
+ *                 token:        { type: string, description: "JWT access token (1 day)" }
+ *                 refreshToken: { type: string, description: "Raw refresh token — store in EncryptedSharedPreferences" }
+ *                 user:         { type: object }
+ *       401:
+ *         description: Invalid credentials
+ *       429:
+ *         description: Too many requests (10 per 15 minutes)
+ */
+router.post('/mobile/login', authLimiter, mobileAuthController.mobileLogin);
+
+/**
+ * @swagger
+ * /api/auth/mobile/refresh:
+ *   post:
+ *     summary: Mobile token refresh — reads refreshToken from body, returns new tokens
+ *     description: >
+ *       Identical to POST /api/auth/refresh except the refresh token is read from
+ *       the JSON body instead of an httpOnly cookie, and the new refresh token is
+ *       returned in the JSON body. Implements full token rotation — the incoming
+ *       token is immediately revoked. The old sessionId is written to the Redis
+ *       blocklist so any still-valid JWT bearing it is immediately rejected.
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [refreshToken]
+ *             properties:
+ *               refreshToken: { type: string, description: "Raw refresh token from EncryptedSharedPreferences" }
+ *     responses:
+ *       200:
+ *         description: New JWT and refreshToken issued
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:      { type: boolean }
+ *                 token:        { type: string, description: "New JWT access token (1 day)" }
+ *                 refreshToken: { type: string, description: "New raw refresh token — replace stored value in EncryptedSharedPreferences" }
+ *       400:
+ *         description: refreshToken missing from request body
+ *       401:
+ *         description: Refresh token invalid, expired, or already rotated
+ *       429:
+ *         description: Too many requests (10 per 15 minutes)
+ */
+router.post('/mobile/refresh', authLimiter, mobileAuthController.mobileRefresh);
+
+/**
+ * @swagger
+ * /api/auth/google/mobile:
+ *   post:
+ *     summary: Mobile Google Sign-In — verifies Credential Manager ID token, returns tokens in body
+ *     description: >
+ *       Accepts a Google ID token produced by Android's Credential Manager API.
+ *       Verifies the token server-side using google-auth-library (OAuth2Client.verifyIdToken)
+ *       with the WEB_CLIENT_ID (GOOGLE_CLIENT_ID env var). Finds or creates a user from
+ *       the verified Google payload. Returns JWT and refreshToken in the JSON body.
+ *       The Android OAuth client ID (registered in Google Cloud Console with SHA-1 fingerprint)
+ *       is used only for Credential Manager registration — it is NOT passed as the audience.
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [idToken]
+ *             properties:
+ *               idToken: { type: string, description: "Google ID token from Credential Manager API" }
+ *     responses:
+ *       200:
+ *         description: Google Sign-In successful — returns JWT, refreshToken, and user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:      { type: boolean }
+ *                 token:        { type: string, description: "JWT access token (1 day)" }
+ *                 refreshToken: { type: string, description: "Raw refresh token — store in EncryptedSharedPreferences" }
+ *                 user:         { type: object }
+ *       400:
+ *         description: idToken missing from request body
+ *       401:
+ *         description: Google ID token verification failed
+ *       429:
+ *         description: Too many requests (10 per 15 minutes)
+ */
+router.post('/google/mobile', authLimiter, mobileAuthController.googleMobileLogin);
 
 module.exports = router;

@@ -1,0 +1,11 @@
+# Copy this file to local.properties and fill in the values.
+# local.properties is gitignored — never commit real values.
+
+# Backend base URL (include trailing slash)
+BASE_URL=https://continuum-backend-yrrr.onrender.com/api/
+
+# Google Web OAuth Client ID (from Google Cloud Console — the WEB client, not the Android client)
+WEB_CLIENT_ID=your-web-client-id.apps.googleusercontent.com
+
+# Android SDK location (auto-populated by Android Studio — do not edit manually)
+# sdk.dir=/Users/yourname/Library/Android/sdk

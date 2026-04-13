@@ -141,7 +141,7 @@ exports.getUserSessions = async (req, res) => {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const [sessions, total] = await Promise.all([
+    const [rawSessions, total] = await Promise.all([
         StudySession.find(filter)
             .sort({ completedAt: -1 })
             .skip(skip)
@@ -150,6 +150,20 @@ exports.getUserSessions = async (req, res) => {
             .lean(),
         StudySession.countDocuments(filter),
     ]);
+
+    // Flatten populated setId so clients (e.g. Android/Moshi) always see string id + optional title.
+    // Web previously read session.setId._id / .title; now use setId + setTitle (see FlashcardHistory.jsx).
+    const sessions = rawSessions.map((s) => {
+        const sid = s.setId;
+        if (sid && typeof sid === 'object' && sid._id != null) {
+            return {
+                ...s,
+                setId: sid._id.toString(),
+                setTitle: sid.title ?? undefined,
+            };
+        }
+        return s;
+    });
 
     res.status(200).json({
         success: true,

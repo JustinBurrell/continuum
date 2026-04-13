@@ -1,0 +1,198 @@
+{
+  "info": {
+    "name": "Continuum — Session 16",
+    "description": "Mobile Auth endpoints — tests for POST /api/auth/mobile/login, POST /api/auth/mobile/refresh, and POST /api/auth/google/mobile. These endpoints return the refresh token in the JSON body (not as an httpOnly cookie) for Android clients that store it in EncryptedSharedPreferences.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Mobile Auth",
+      "description": "Run steps in order. Requires CONTINUUM_EMAIL and CONTINUUM_PASSWORD environment variables set to a valid account.",
+      "item": [
+        {
+          "name": "1. POST /auth/mobile/login — valid credentials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 login success', () => pm.expect(pm.response.code).to.equal(200));",
+                  "pm.test('success is true', () => pm.expect(pm.response.json().success).to.be.true);",
+                  "pm.test('token returned in body', () => pm.expect(pm.response.json().token).to.be.a('string'));",
+                  "pm.test('refreshToken returned in body (not cookie)', () => pm.expect(pm.response.json().refreshToken).to.be.a('string'));",
+                  "pm.test('user object returned', () => pm.expect(pm.response.json().user).to.be.an('object'));",
+                  "pm.test('no Set-Cookie header (mobile returns token in body)', () => {",
+                  "    const cookieHeader = pm.response.headers.get('Set-Cookie') || '';",
+                  "    pm.expect(cookieHeader).to.not.include('refreshToken=');",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.set('mobileAccessToken', pm.response.json().token);",
+                  "    pm.environment.set('mobileRefreshToken', pm.response.json().refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Client-Type", "value": "android" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/mobile/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "mobile", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{CONTINUUM_EMAIL}}\",\n  \"password\": \"{{CONTINUUM_PASSWORD}}\"\n}"
+            },
+            "description": "Mobile login — returns JWT and refreshToken in JSON body. Android stores refreshToken in EncryptedSharedPreferences."
+          }
+        },
+        {
+          "name": "2. POST /auth/mobile/login — wrong password (expect 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 invalid credentials', () => pm.expect(pm.response.code).to.equal(401));",
+                  "pm.test('success is false', () => pm.expect(pm.response.json().success).to.be.false);",
+                  "pm.test('error message returned', () => pm.expect(pm.response.json().error).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Client-Type", "value": "android" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/mobile/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "mobile", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{CONTINUUM_EMAIL}}\",\n  \"password\": \"definitely-wrong-password-12345\"\n}"
+            },
+            "description": "Expects 401 — generic 'Invalid credentials' error that does not reveal whether the email or password was wrong."
+          }
+        },
+        {
+          "name": "3. POST /auth/mobile/refresh — rotation (new tokens issued)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 new tokens issued', () => pm.expect(pm.response.code).to.equal(200));",
+                  "pm.test('success is true', () => pm.expect(pm.response.json().success).to.be.true);",
+                  "pm.test('new token in body', () => pm.expect(pm.response.json().token).to.be.a('string'));",
+                  "pm.test('new refreshToken in body', () => pm.expect(pm.response.json().refreshToken).to.be.a('string'));",
+                  "pm.test('new refreshToken differs from old one (rotation occurred)', () => {",
+                  "    pm.expect(pm.response.json().refreshToken).to.not.equal(pm.environment.get('mobileRefreshToken'));",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.set('mobileAccessToken', pm.response.json().token);",
+                  "    pm.environment.set('mobileRefreshTokenOld', pm.environment.get('mobileRefreshToken'));",
+                  "    pm.environment.set('mobileRefreshToken', pm.response.json().refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Client-Type", "value": "android" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/mobile/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "mobile", "refresh"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{mobileRefreshToken}}\"\n}"
+            },
+            "description": "Uses the refreshToken captured in step 1. Implements token rotation — the old token is revoked, a new token pair is returned."
+          }
+        },
+        {
+          "name": "4. POST /auth/mobile/refresh — replay old token (expect 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 old token rejected after rotation', () => pm.expect(pm.response.code).to.equal(401));",
+                  "pm.test('success is false', () => pm.expect(pm.response.json().success).to.be.false);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Client-Type", "value": "android" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/mobile/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "mobile", "refresh"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{mobileRefreshTokenOld}}\"\n}"
+            },
+            "description": "Verifies that the rotated-out refresh token is rejected immediately — replay attack prevention."
+          }
+        },
+        {
+          "name": "5. POST /auth/google/mobile — invalid ID token (expect 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 invalid Google ID token', () => pm.expect(pm.response.code).to.equal(401));",
+                  "pm.test('success is false', () => pm.expect(pm.response.json().success).to.be.false);",
+                  "pm.test('error message returned', () => pm.expect(pm.response.json().error).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Client-Type", "value": "android" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/google/mobile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "google", "mobile"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"this-is-not-a-valid-google-id-token\"\n}"
+            },
+            "description": "Verifies that a malformed or fake Google ID token is rejected. To test a successful flow, obtain a real Google ID token from an Android device running the Continuum app in debug mode (log the token from the Credential Manager callback) and paste it here. Note: Google ID tokens expire after 1 hour."
+          }
+        }
+      ]
+    }
+  ]
+}
