@@ -211,9 +211,11 @@ function HistoryRow({ session }) {
   const mins = Math.floor(session.durationSeconds / 60);
   const secs = session.durationSeconds % 60;
   const duration = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
-  const setId = session.setId?._id || session.setId;
-  const setTitle = session.setId?.title || 'Deleted set';
-  const hasSetLink = !!setId && session.setId?.title;
+  const setId = typeof session.setId === 'object' && session.setId?._id != null
+    ? session.setId._id
+    : session.setId;
+  const setTitle = session.setTitle ?? session.setId?.title ?? 'Deleted set';
+  const hasSetLink = !!setId && (session.setTitle != null || session.setId?.title != null);
 
   return (
     <div style={{

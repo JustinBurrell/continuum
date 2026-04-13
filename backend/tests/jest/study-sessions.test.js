@@ -331,8 +331,8 @@ describe('GET /api/study-sessions', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(res.body.sessions.length).toBe(1);
-    // setId is populated with { _id, title } by getUserSessions
-    expect(res.body.sessions[0].setId._id.toString()).toBe(set1._id.toString());
+    expect(res.body.sessions[0].setId.toString()).toBe(set1._id.toString());
+    expect(res.body.sessions[0].setTitle).toBe('Set 1');
   });
 
   it('paginates with limit and page', async () => {

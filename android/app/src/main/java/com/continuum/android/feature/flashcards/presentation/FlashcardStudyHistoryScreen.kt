@@ -100,7 +100,8 @@ fun FlashcardStudyHistoryScreen(
                             items(state.sessions, key = { it.id }) { session ->
                                 FlashcardStudySessionRow(
                                     session = session,
-                                    titleLine = "Set ${session.setId.takeLast(8)}",
+                                    titleLine = session.setTitle?.takeIf { it.isNotBlank() }
+                                        ?: "Set ${session.setId.takeLast(8)}",
                                     subtitleLine = "${session.correctCount}/${session.totalCards} correct · " +
                                         "${formatStudySessionDuration(session.durationSeconds)} · " +
                                         session.completedAt.take(10),

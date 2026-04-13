@@ -120,6 +120,7 @@ class FlashcardsRepository @Inject constructor(
     data class StudySession(
         val id: String,
         val setId: String,
+        val setTitle: String? = null,
         val completedAt: String,
         val durationSeconds: Int,
         val totalCards: Int,
@@ -168,13 +169,13 @@ class FlashcardsRepository @Inject constructor(
     }
 
     private fun StudySessionListItemDto.toDomainSession() = StudySession(
-        id = id, setId = setId, completedAt = completedAt,
+        id = id, setId = setId, setTitle = setTitle, completedAt = completedAt,
         durationSeconds = durationSeconds, totalCards = totalCards,
         correctCount = correctCount, score = score
     )
 
     private fun StudySessionDto.toDomainSession() = StudySession(
-        id = id, setId = setId, completedAt = completedAt,
+        id = id, setId = setId, setTitle = null, completedAt = completedAt,
         durationSeconds = durationSeconds, totalCards = totalCards,
         correctCount = correctCount, score = score
     )

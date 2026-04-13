@@ -354,15 +354,36 @@ exports.updateProgress = async (req, res) => {
         return res.status(400).json({ success: false, error: 'correct (boolean) is required' });
     }
 
-    // Verify the set belongs to the user
     const set = await FlashcardSet.findOne({
         _id: req.params.setId,
-        userId: req.user._id,
         deletedAt: null,
     });
 
     if (!set) {
         return res.status(404).json({ success: false, error: 'Flashcard set not found' });
+    }
+
+    const userId = req.user._id.toString();
+    const ownerId = set.userId.toString();
+    const isOwner = ownerId === userId;
+    const isSharedWith = set.sharedWith?.some((id) => id.toString() === userId);
+    const isFriendsVisible = set.visibility === 'friends';
+
+    if (!isOwner && !isSharedWith) {
+        if (!isFriendsVisible) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+        const friendship = await Friendship.findOne({
+            $or: [
+                { user1: req.user._id, user2: set.userId },
+                { user1: set.userId, user2: req.user._id },
+            ],
+            status: 'accepted',
+            deletedAt: null,
+        });
+        if (!friendship) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
     }
 
     const card = await Flashcard.findOne({

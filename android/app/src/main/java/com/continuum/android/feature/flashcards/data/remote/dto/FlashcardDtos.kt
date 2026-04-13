@@ -121,6 +121,8 @@ data class StudySessionCardResultDetailDto(
 data class StudySessionListItemDto(
     @Json(name = "_id") val id: String = "",
     val setId: String = "",
+    /** Present on GET /study-sessions when backend flattens populated set (title for UI). */
+    val setTitle: String? = null,
     val completedAt: String = "",
     val durationSeconds: Int = 0,
     val totalCards: Int = 0,
