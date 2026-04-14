@@ -35,7 +35,7 @@ interface NotesApiService {
     suspend fun generateSummary(@Path("id") id: String): NoteResponseDto
 
     @POST("notes/{id}/flashcards/generate")
-    suspend fun generateFlashcards(@Path("id") id: String): retrofit2.Response<Unit>
+    suspend fun generateFlashcards(@Path("id") id: String): GenerateFlashcardsResponseDto
 
     @GET("google/files")
     suspend fun getDriveFiles(): DriveFilesResponseDto

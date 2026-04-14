@@ -78,7 +78,9 @@ data class SharedNote(
     val id: String,
     val title: String,
     val content: String,
-    val comments: List<Comment>
+    val comments: List<Comment>,
+    val ownerName: String? = null,
+    val ownerUserId: String? = null
 )
 
 /** Friend-only summaries on another user's profile (from shared list APIs, filtered by owner). */

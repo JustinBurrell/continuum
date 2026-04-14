@@ -15,7 +15,9 @@ data class Note(
     val updatedAt: String,
     val createdAt: String,
     /** Note owner when returned from shared-notes API (not stored in Room cache). */
-    val ownerUserId: String? = null
+    val ownerUserId: String? = null,
+    /** Display name of the owner (first+last or username). */
+    val ownerName: String? = null
 ) {
     val hasSummary: Boolean get() = !quickSummary.isNullOrBlank() || !detailedSummary.isNullOrBlank()
     val preview: String get() = content.replace(Regex("<[^>]+>"), "").take(120)

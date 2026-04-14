@@ -268,6 +268,16 @@ class SocialViewModel @Inject constructor(
         }
     }
 
+    fun deleteThreadComment(commentId: String) {
+        val t = _threadCommentsState.value.targetType ?: return
+        val id = _threadCommentsState.value.targetId ?: return
+        viewModelScope.launch {
+            repository.deleteComment(commentId)
+            repository.getCommentsForTarget(t, id)
+                .onSuccess { list -> _threadCommentsState.update { it.copy(comments = list) } }
+        }
+    }
+
     fun loadUserProfile(userId: String) {
         _userProfileState.value = UserProfileUiState(
             user = null,
