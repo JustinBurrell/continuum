@@ -1,6 +1,6 @@
 # Android API Coverage
 
-Last updated: April 10, 2026
+Last updated: April 14, 2026
 Backend API docs: https://api.usecontinuum.dev/api-docs
 
 For **web routes vs `AppNavHost`** (parity audit and follow-up list), see [`web-route-parity.md`](./web-route-parity.md).
@@ -62,12 +62,12 @@ For **web routes vs `AppNavHost`** (parity audit and follow-up list), see [`web-
 |--------|------|---------------|-----------------|-------------|
 | GET | /api/notes | NotesListScreen | NotesViewModel.loadNotes() | Yes |
 | GET | /api/notes/shared | NotesListScreen (shared tab), UserProfileScreen (friend) | NotesViewModel.loadNotes(shared=true); SocialRepository.getFriendProfileExtras() | No |
-| GET | /api/notes/:id | NoteDetailScreen | NotesViewModel.loadNote() | Yes |
+| GET | /api/notes/:id | NoteDetailScreen | NotesViewModel.loadNote() | Yes (API-first since feat/android-parity-fixes; Room used as offline fallback only) |
 | POST | /api/notes | NoteDetailScreen | NotesViewModel.createNote() | Yes |
 | PUT | /api/notes/:id | NoteEditorScreen | NotesViewModel.autoSave() | Yes |
 | DELETE | /api/notes/:id | NotesListScreen | NotesViewModel.deleteNote() | Yes |
 | POST | /api/notes/:id/summary | NoteDetailScreen | NotesViewModel.generateSummary() | No |
-| POST | /api/notes/:id/flashcards/generate | NoteDetailScreen | NotesViewModel.generateFlashcards() | No |
+| POST | /api/notes/:id/flashcards/generate | NoteDetailScreen | NotesViewModel.generateFlashcards() — now returns setId; shows spinner + snackbar with "View" action | No |
 | POST | /api/notes/import | GoogleDriveImportScreen | NotesViewModel.importFromDrive() | No |
 | PUT | /api/notes/:id/share | NoteDetailScreen | NotesViewModel.shareNote() | No |
 
@@ -156,8 +156,8 @@ For **web routes vs `AppNavHost`** (parity audit and follow-up list), see [`web-
 
 | Method | Path | Android Screen | ViewModel Method | Room Cached |
 |--------|------|---------------|-----------------|-------------|
-| POST | /api/comments | CommentThread | SocialViewModel/via CommentThread | No |
-| GET | /api/comments/:targetType/:targetId | SharedNoteViewScreen, TaskDetailScreen | SocialRepository.getCommentsForTarget(); comment author → profile from SharedNoteViewScreen | No |
+| POST | /api/comments | CommentThread (NoteDetailScreen, SharedNoteViewScreen, TaskDetailScreen, FlashcardSetDetailScreen) | SocialViewModel.addThreadComment() | No |
+| GET | /api/comments/:targetType/:targetId | NoteDetailScreen, SharedNoteViewScreen, TaskDetailScreen, FlashcardSetDetailScreen | SocialRepository.getCommentsForTarget(); comment author → profile from all screens | No |
 | POST | /api/comments/:id/like | CommentThread | SocialViewModel.likeComment() | No |
 | DELETE | /api/comments/:id | CommentThread | SocialRepository.deleteComment() | No |
 

@@ -4,7 +4,7 @@
 
 **Android:** [`android/app/src/main/java/com/continuum/android/core/ui/navigation/AppNavHost.kt`](../../android/app/src/main/java/com/continuum/android/core/ui/navigation/AppNavHost.kt) and [`NavRoutes`](../../android/app/src/main/java/com/continuum/android/core/ui/navigation/AppNavHost.kt) (same file).
 
-**Last reviewed:** April 10, 2026.
+**Last reviewed:** April 14, 2026.
 
 ---
 
@@ -53,7 +53,7 @@ Web uses query / location `state` for some ids (e.g. `/notes/view`, `/users/view
 | `/dashboard` | `Dashboard` | `dashboard/home` | **Parity** | Logo on bottom bar also jumps here. |
 | `/notes` | `NotesList` | `notes/list` | **Parity** | |
 | `/notes/new` | `NoteEditor` | `notes/editor/new` | **Parity** | |
-| `/notes/view` | `NoteDetail` | `notes/detail/{noteId}` | **Parity** | |
+| `/notes/view` | `NoteDetail` | `notes/detail/{noteId}` | **Parity** | Comments + replies wired in feat/android-parity-fixes (Fix 2). |
 | `/notes/edit` | `NoteEditor` | `notes/editor/{noteId}` | **Parity** | |
 | — | — | `notes/drive-import` | **Android+** | Drive import is first-class in native. |
 | `/flashcards` | `FlashcardSets` | `flashcards/list` | **Parity** | |
@@ -63,12 +63,12 @@ Web uses query / location `state` for some ids (e.g. `/notes/view`, `/users/view
 | `/tasks` | `Tasks` | `tasks/board`, `tasks/detail/{taskId}` | **Partial** | Same features; Android uses a narrower primary chrome (see below). |
 | `/calendar` | `Calendar` | `calendar/main` | **Partial** | Same as Tasks — reachable, not a bottom-tab peer of web sidebar. |
 | `/friends` | `Friends` | `social/friends`, `social/search` | **Parity** | Search is explicit route on Android. |
-| `/messages` | `MessagesLayout` | `social/conversations`, conversation detail | **Parity** | |
+| `/messages` | `MessagesLayout` | `social/conversations`, conversation detail | **Parity** | Conversation avatar now navigates to participant profile (Fix 9d). |
 | `/applications` | `ApplicationsList` | `career/applications` | **Parity** | Single graph: bottom bar “Applications” uses `NavRoutes.Career.ROOT` → applications list. |
 | `/applications/view` | `ApplicationDetail` | `career/applications/{appId}` | **Parity** | |
 | `/resumes` | `Resumes` | `career/resumes`, `career/resumes/{resumeId}`, feedback route | **Parity** | |
 | `/activity` | `Activity` | `social/activity` | **Parity** | |
-| `/profile` | `Profile` | `profile/main`, `profile/edit`, `profile/settings` | **Parity** | |
+| `/profile` | `Profile` | `profile/main`, `profile/edit`, `profile/settings` | **Parity** | Role badges and LinkedIn/Instagram logo links now shown (Fix 7); Tasks nav row added. |
 | `/users/view` | `UserProfile` | `social/user/{userId}` | **Parity** | Web passes `state.id`; Android uses path param. |
 
 ---
