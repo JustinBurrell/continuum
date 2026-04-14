@@ -9,7 +9,8 @@ data class FlashcardSet(
     val lastStudied: String?,
     val updatedAt: String,
     /** Set owner when returned from shared-sets API (not in Room cache rows). */
-    val ownerUserId: String? = null
+    val ownerUserId: String? = null,
+    val ownerName: String? = null
 )
 
 data class Flashcard(

@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import com.continuum.android.core.ui.LocalIsDemo
+import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.core.ui.utils.toDisplayDate
@@ -41,6 +42,7 @@ fun FlashcardSetDetailScreen(
     val historyState by viewModel.setDetailHistoryState.collectAsStateWithLifecycle()
     val commentsState by socialViewModel.threadCommentsState.collectAsStateWithLifecycle()
     val isDemo = LocalIsDemo.current
+    val tokenManager = LocalTokenManager.current
     var showAddSheet by remember { mutableStateOf(false) }
     var editingCard by remember { mutableStateOf<Flashcard?>(null) }
     var cardToDelete by remember { mutableStateOf<Flashcard?>(null) }
@@ -126,6 +128,20 @@ fun FlashcardSetDetailScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
+                // "Created by" attribution — only for sets owned by someone else
+                val myId = tokenManager.getJwtUserId()
+                val setOwnerUserId = state.set?.ownerUserId
+                val setOwnerName = state.set?.ownerName
+                if (setOwnerUserId != null && setOwnerUserId != myId && !setOwnerName.isNullOrBlank() && onUserProfileClick != null) {
+                    TextButton(
+                        onClick = { onUserProfileClick(setOwnerUserId) },
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    ) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Person, contentDescription = null, tint = BrandPurple, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Created by $setOwnerName", color = BrandPurple, style = MaterialTheme.typography.labelMedium)
+                    }
+                }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

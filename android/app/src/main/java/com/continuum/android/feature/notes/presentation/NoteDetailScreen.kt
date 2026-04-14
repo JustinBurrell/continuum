@@ -28,6 +28,7 @@ fun NoteDetailScreen(
     onNavigateBack: () -> Unit,
     onEdit: (String) -> Unit,
     networkMonitor: NetworkMonitor,
+    currentUserId: String? = null,
     onNavigateToSet: ((String) -> Unit)? = null,
     onUserProfileClick: ((String) -> Unit)? = null,
     viewModel: NotesViewModel = hiltViewModel(),
@@ -112,8 +113,9 @@ fun NoteDetailScreen(
                     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                         if (!isOnline) OfflineBanner()
 
-                        // "Created by" attribution (shown for shared/owned-by-others notes)
-                        if (note.ownerUserId != null && onUserProfileClick != null) {
+                        // "Created by" attribution (shown only for notes owned by someone else)
+                        val isOwnNote = note.ownerUserId != null && note.ownerUserId == currentUserId
+                        if (note.ownerUserId != null && onUserProfileClick != null && !isOwnNote) {
                             TextButton(
                                 onClick = { onUserProfileClick(note.ownerUserId) },
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)

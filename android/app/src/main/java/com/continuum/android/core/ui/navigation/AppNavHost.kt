@@ -483,6 +483,7 @@ private fun NavGraph(
                     onNavigateBack = { navController.popBackStack() },
                     onEdit = { id -> navController.navigate(NavRoutes.Notes.editor(id)) },
                     networkMonitor = networkMonitor,
+                    currentUserId = tokenManager.getJwtUserId(),
                     onNavigateToSet = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) },
                     onUserProfileClick = { uid -> navController.navigate(NavRoutes.Social.userProfile(uid)) }
                 )
@@ -692,9 +693,13 @@ private fun NavGraph(
                 val noteId = backStackEntry.arguments?.getString("noteId") ?: return@composable
                 SharedNoteViewScreen(
                     noteId = noteId,
+                    currentUserId = tokenManager.getJwtUserId(),
                     onNavigateBack = { navController.popBackStack() },
                     onCommentAuthorClick = { uid ->
                         navController.navigate(NavRoutes.Social.userProfile(uid))
+                    },
+                    onNavigateToSet = { setId ->
+                        navController.navigate(NavRoutes.Flashcards.setDetail(setId))
                     }
                 )
             }

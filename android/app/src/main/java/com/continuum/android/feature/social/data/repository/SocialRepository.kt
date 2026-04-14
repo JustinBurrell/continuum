@@ -87,7 +87,8 @@ class SocialRepository @Inject constructor(
             content = note.content,
             comments = flat.toNestedComments(),
             ownerName = note.owner?.displayName,
-            ownerUserId = note.owner?.id?.takeIf { it.isNotBlank() }
+            ownerUserId = note.owner?.id?.takeIf { it.isNotBlank() },
+            hasFlashcards = note.hasFlashcards
         )
     }
 
