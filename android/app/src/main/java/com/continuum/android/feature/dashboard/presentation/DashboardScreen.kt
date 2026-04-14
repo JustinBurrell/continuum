@@ -456,7 +456,12 @@ private fun ActivityRow(item: ActivityItem, onClick: () -> Unit, onActorClick: (
                         color = TextPrimary,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { item.actorId?.let(onActorClick) }
                     )
                     VerifiedRoleBadges(roles = item.actorRoles, expanded = false)
                 }

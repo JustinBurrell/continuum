@@ -711,7 +711,8 @@ private fun NavGraph(
                         )
                     },
                     networkMonitor = networkMonitor,
-                    onLogoClick = onLogoClick
+                    onLogoClick = onLogoClick,
+                    onParticipantProfileClick = { uid -> navController.navigate(NavRoutes.Social.userProfile(uid)) }
                 )
             }
             composable(
@@ -761,7 +762,9 @@ private fun NavGraph(
                     onMessages = { navController.navigate(NavRoutes.Social.CONVERSATIONS) },
                     onActivity = { navController.navigate(NavRoutes.Social.ACTIVITY_FEED) },
                     onCalendar = { navController.navigate(NavRoutes.Calendar.ROOT) },
-                    onResumes = { navController.navigate(NavRoutes.Career.RESUMES_LIST) }
+                    onResumes = { navController.navigate(NavRoutes.Career.RESUMES_LIST) },
+                    onTerms = { navController.navigate(NavRoutes.Auth.TERMS) },
+                    onPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) }
                 )
             }
             composable(NavRoutes.Profile.EDIT) {

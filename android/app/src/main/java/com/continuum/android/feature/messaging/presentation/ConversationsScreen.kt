@@ -29,6 +29,7 @@ fun ConversationsScreen(
     onConversationClick: (conversationId: String, participantName: String, participantId: String) -> Unit,
     networkMonitor: NetworkMonitor,
     onLogoClick: (() -> Unit)? = null,
+    onParticipantProfileClick: ((String) -> Unit)? = null,
     viewModel: MessagingViewModel = hiltViewModel()
 ) {
     val state by viewModel.conversationsState.collectAsStateWithLifecycle()
@@ -86,7 +87,8 @@ fun ConversationsScreen(
                                 onClick = {
                                     onConversationClick(convo.id, convo.participantName, convo.participantId)
                                 },
-                                onDelete = if (isDemo) null else { { viewModel.deleteConversation(convo.id) } }
+                                onDelete = if (isDemo) null else { { viewModel.deleteConversation(convo.id) } },
+                                onParticipantClick = onParticipantProfileClick?.let { nav -> { nav(convo.participantId) } }
                             )
                         }
                     }
@@ -101,7 +103,8 @@ fun ConversationsScreen(
 private fun ConversationCard(
     conversation: Conversation,
     onClick: () -> Unit,
-    onDelete: (() -> Unit)?
+    onDelete: (() -> Unit)?,
+    onParticipantClick: (() -> Unit)? = null
 ) {
     val card: @Composable () -> Unit = {
         ContinuumCard(
@@ -114,7 +117,10 @@ private fun ConversationCard(
             ) {
                 AvatarInitials(
                     name = conversation.participantName,
-                    modifier = Modifier.size(48.dp).clip(CircleShape)
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .then(if (onParticipantClick != null) Modifier.clickable(onClick = onParticipantClick) else Modifier)
                 )
 
                 Column(modifier = Modifier.weight(1f)) {
@@ -123,7 +129,11 @@ private fun ConversationCard(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.Top
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
                                 conversation.participantName,
                                 style = MaterialTheme.typography.headlineSmall,

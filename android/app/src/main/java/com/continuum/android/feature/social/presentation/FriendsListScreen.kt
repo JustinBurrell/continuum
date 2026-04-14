@@ -122,7 +122,8 @@ fun FriendsListScreen(
                                     FriendRequestCard(
                                         request = request,
                                         onAccept = if (isDemo) null else { { viewModel.acceptRequest(request.id) } },
-                                        onDecline = if (isDemo) null else { { viewModel.declineRequest(request.id) } }
+                                        onDecline = if (isDemo) null else { { viewModel.declineRequest(request.id) } },
+                                        onUserClick = { onUserClick(request.sender.userId) }
                                     )
                                 }
                             }
@@ -145,7 +146,8 @@ fun FriendsListScreen(
                                 items(state.sentRequests, key = { it.id }) { request ->
                                     SentRequestCard(
                                         request = request,
-                                        onCancel = if (isDemo) null else { { viewModel.cancelSentRequest(request.id) } }
+                                        onCancel = if (isDemo) null else { { viewModel.cancelSentRequest(request.id) } },
+                                        onUserClick = { onUserClick(request.receiver.userId) }
                                     )
                                 }
                             }
@@ -235,7 +237,7 @@ private fun FriendCard(friend: Friend, onRemove: (() -> Unit)?, onClick: () -> U
 }
 
 @Composable
-private fun SentRequestCard(request: FriendRequest, onCancel: (() -> Unit)?) {
+private fun SentRequestCard(request: FriendRequest, onCancel: (() -> Unit)?, onUserClick: (() -> Unit)? = null) {
     ContinuumCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -245,11 +247,11 @@ private fun SentRequestCard(request: FriendRequest, onCancel: (() -> Unit)?) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).then(if (onUserClick != null) Modifier.clickable(onClick = onUserClick) else Modifier)
             ) {
                 AvatarInitials(name = request.receiver.fullName, modifier = Modifier.size(40.dp).clip(CircleShape))
                 Column {
-                    Text(request.receiver.fullName, style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+                    Text(request.receiver.fullName, style = MaterialTheme.typography.headlineSmall, color = if (onUserClick != null) BrandPurple else TextPrimary)
                     request.receiver.username?.let {
                         Text("@$it", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                     }
@@ -266,7 +268,8 @@ private fun SentRequestCard(request: FriendRequest, onCancel: (() -> Unit)?) {
 private fun FriendRequestCard(
     request: FriendRequest,
     onAccept: (() -> Unit)?,
-    onDecline: (() -> Unit)?
+    onDecline: (() -> Unit)?,
+    onUserClick: (() -> Unit)? = null
 ) {
     ContinuumCard(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -277,11 +280,11 @@ private fun FriendRequestCard(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).then(if (onUserClick != null) Modifier.clickable(onClick = onUserClick) else Modifier)
             ) {
                 AvatarInitials(name = request.sender.fullName, modifier = Modifier.size(40.dp).clip(CircleShape))
                 Column {
-                    Text(request.sender.fullName, style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+                    Text(request.sender.fullName, style = MaterialTheme.typography.headlineSmall, color = if (onUserClick != null) BrandPurple else TextPrimary)
                     request.sender.username?.let {
                         Text("@$it", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                     }

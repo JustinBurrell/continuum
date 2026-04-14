@@ -143,7 +143,7 @@ private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: (
                         item.displayText,
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextPrimary,
-                        modifier = Modifier.weight(1f, fill = false)
+                        modifier = Modifier.weight(1f, fill = false).clickable(onClick = onUserClick)
                     )
                     VerifiedRoleBadges(roles = item.actorRoles, expanded = false)
                 }
