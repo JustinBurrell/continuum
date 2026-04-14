@@ -574,7 +574,8 @@ private fun NavGraph(
         navigation(route = NavRoutes.Calendar.ROOT, startDestination = NavRoutes.Calendar.SCREEN) {
             composable(NavRoutes.Calendar.SCREEN) {
                 CalendarViewScreen(
-                    onNavigateBack = null
+                    onNavigateBack = { navController.popBackStack() },
+                    onTaskClick = { taskId -> navController.navigate(NavRoutes.Tasks.detail(taskId)) }
                 )
             }
         }

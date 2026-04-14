@@ -31,6 +31,7 @@ import java.util.*
 @Composable
 fun CalendarViewScreen(
     onNavigateBack: (() -> Unit)?,
+    onTaskClick: ((String) -> Unit)? = null,
     viewModel: TasksViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -198,7 +199,11 @@ fun CalendarViewScreen(
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(selectedDayTasks, key = { it.id }) { task ->
-                            ContinuumCard(modifier = Modifier.fillMaxWidth()) {
+                            ContinuumCard(
+                                modifier = Modifier.fillMaxWidth().then(
+                                    if (onTaskClick != null) Modifier.clickable { onTaskClick(task.id) } else Modifier
+                                )
+                            ) {
                                 Row(
                                     modifier = Modifier.padding(12.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
