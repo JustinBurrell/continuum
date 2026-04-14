@@ -1,16 +1,17 @@
 package com.continuum.android.feature.auth.presentation
 
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.AndroidView
-import com.continuum.android.BuildConfig
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.continuum.android.R
 import com.continuum.android.core.ui.components.MinimalTopBar
+import com.continuum.android.core.ui.theme.TextPrimary
 
 @Composable
 fun LegalDocumentScreen(
@@ -18,12 +19,14 @@ fun LegalDocumentScreen(
     path: String,
     onNavigateBack: () -> Unit
 ) {
-    val legalUrl = remember(path) {
-        val appBase = BuildConfig.BASE_URL
-            .substringBefore("/api/")
-            .substringBefore("/api")
-            .trimEnd('/')
-        "$appBase/$path"
+    val context = LocalContext.current
+    val content = remember(path) {
+        val resId = when {
+            path.contains("privacy") -> R.raw.privacy_policy
+            path.contains("terms") -> R.raw.terms_of_service
+            else -> R.raw.privacy_policy
+        }
+        context.resources.openRawResource(resId).bufferedReader().use { it.readText() }
     }
 
     Scaffold(
@@ -34,18 +37,15 @@ fun LegalDocumentScreen(
             )
         }
     ) { innerPadding ->
-        AndroidView(
+        Text(
+            text = content,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextPrimary,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            factory = { context ->
-                WebView(context).apply {
-                    webViewClient = WebViewClient()
-                    settings.javaScriptEnabled = false
-                    loadUrl(legalUrl)
-                }
-            },
-            update = { webView -> webView.loadUrl(legalUrl) }
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
         )
     }
 }
