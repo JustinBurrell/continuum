@@ -268,6 +268,11 @@ private fun StudySummaryScreen(
                 )
             }
 
+            val total = correct + incorrect
+            val pct = if (total > 0) (correct * 100) / total else 0
+            Text("$pct%", style = MaterialTheme.typography.displayLarge, color = BrandPurple)
+            Text("Score", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("$correct", style = MaterialTheme.typography.displaySmall, color = SuccessGreen)
