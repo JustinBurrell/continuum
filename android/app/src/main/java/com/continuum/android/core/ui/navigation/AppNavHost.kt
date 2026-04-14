@@ -665,13 +665,7 @@ private fun NavGraph(
                     onNavigateBack = { navController.popBackStack() },
                     onViewingSelf = {
                         navController.popBackStack()
-                        navController.navigate(NavRoutes.Profile.SCREEN) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                        navController.navigate(NavRoutes.Profile.SCREEN)
                     },
                     onMessageFriend = { uid, displayName ->
                         messagingViewModel.startConversation(uid) { convId ->
@@ -764,6 +758,7 @@ private fun NavGraph(
                     onMessages = { navController.navigate(NavRoutes.Social.CONVERSATIONS) },
                     onActivity = { navController.navigate(NavRoutes.Social.ACTIVITY_FEED) },
                     onCalendar = { navController.navigate(NavRoutes.Calendar.ROOT) },
+                    onTasks = { navController.navigate(NavRoutes.Tasks.ROOT) },
                     onResumes = { navController.navigate(NavRoutes.Career.RESUMES_LIST) },
                     onTerms = { navController.navigate(NavRoutes.Auth.TERMS) },
                     onPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) }

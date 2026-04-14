@@ -13,6 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -141,9 +144,11 @@ private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: (
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        item.displayText,
+                        buildAnnotatedString {
+                            withStyle(SpanStyle(color = BrandPurple)) { append(item.actorName) }
+                            append(item.displayText.removePrefix(item.actorName))
+                        },
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary,
                         modifier = Modifier.weight(1f, fill = false).clickable(onClick = onUserClick)
                     )
                     VerifiedRoleBadges(roles = item.actorRoles, expanded = false)

@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
@@ -13,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,19 +47,10 @@ fun UserProfileScreen(
     val uriHandler = LocalUriHandler.current
     val isDemo = LocalIsDemo.current
 
-    LaunchedEffect(userId, currentUserId) {
-        if (currentUserId != null && userId == currentUserId) {
-            onViewingSelf()
-        } else {
-            viewModel.loadUserProfile(userId)
-        }
-    }
+    val isSelf = currentUserId != null && userId == currentUserId
 
-    if (currentUserId != null && userId == currentUserId) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = BrandPurple)
-        }
-        return
+    LaunchedEffect(userId) {
+        viewModel.loadUserProfile(userId)
     }
 
     Scaffold(
@@ -110,16 +103,35 @@ fun UserProfileScreen(
                     }
 
                     if (!user.linkedinUrl.isNullOrBlank() || !user.instagramHandle.isNullOrBlank()) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md), verticalAlignment = Alignment.CenterVertically) {
                             user.linkedinUrl?.takeIf { it.isNotBlank() }?.let { url ->
-                                TextButton(onClick = { runCatching { uriHandler.openUri(url) } }) {
-                                    Text("LinkedIn", color = BrandPurple)
+                                Surface(
+                                    onClick = { runCatching { uriHandler.openUri(url) } },
+                                    color = Color(0xFF0A66C2),
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Text(
+                                        "in",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    )
                                 }
                             }
                             user.instagramHandle?.takeIf { it.isNotBlank() }?.let { handle ->
                                 val ig = "https://instagram.com/${handle.removePrefix("@")}"
-                                TextButton(onClick = { runCatching { uriHandler.openUri(ig) } }) {
-                                    Text("Instagram", color = BrandPurple)
+                                Surface(
+                                    onClick = { runCatching { uriHandler.openUri(ig) } },
+                                    color = Color(0xFFE1306C),
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.CameraAlt,
+                                        contentDescription = "Instagram",
+                                        tint = Color.White,
+                                        modifier = Modifier.padding(6.dp).size(18.dp)
+                                    )
                                 }
                             }
                         }
@@ -131,7 +143,15 @@ fun UserProfileScreen(
                         StatColumn("Streak", user.streak)
                     }
 
-                    when (user.friendStatus) {
+                    if (isSelf) {
+                        OutlinedButton(onClick = onViewingSelf, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Default.Settings, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Edit Profile & Settings")
+                        }
+                    }
+
+                    if (!isSelf) when (user.friendStatus) {
                         "friends" -> {
                             Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
                                 Surface(color = SuccessGreen.copy(alpha = 0.12f), shape = AppShape.chip) {
@@ -214,9 +234,9 @@ fun UserProfileScreen(
                                 )
                             }
                         }
-                    }
+                    } // end if (!isSelf) when
 
-                    if (user.friendStatus == "friends") {
+                    if (!isSelf && user.friendStatus == "friends") {
                         if (state.friendExtrasLoading) {
                             Row(
                                 Modifier.fillMaxWidth(),

@@ -43,6 +43,7 @@ fun ProfileScreen(
     onMessages: () -> Unit = {},
     onActivity: () -> Unit = {},
     onCalendar: () -> Unit = {},
+    onTasks: () -> Unit = {},
     onResumes: () -> Unit = {},
     onTerms: () -> Unit = {},
     onPrivacy: () -> Unit = {},
@@ -185,16 +186,35 @@ fun ProfileScreen(
                     // Social links
                     if (!profile.linkedinUrl.isNullOrBlank() || !profile.instagramHandle.isNullOrBlank()) {
                         Spacer(Modifier.height(4.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             profile.linkedinUrl?.takeIf { it.isNotBlank() }?.let { url ->
-                                TextButton(onClick = { runCatching { uriHandler.openUri(url) } }) {
-                                    Text("LinkedIn", color = BrandPurple, style = MaterialTheme.typography.labelMedium)
+                                Surface(
+                                    onClick = { runCatching { uriHandler.openUri(url) } },
+                                    color = Color(0xFF0A66C2),
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Text(
+                                        "in",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    )
                                 }
                             }
                             profile.instagramHandle?.takeIf { it.isNotBlank() }?.let { handle ->
                                 val cleanHandle = handle.removePrefix("@")
-                                TextButton(onClick = { runCatching { uriHandler.openUri("https://instagram.com/$cleanHandle") } }) {
-                                    Text("Instagram", color = BrandPurple, style = MaterialTheme.typography.labelMedium)
+                                Surface(
+                                    onClick = { runCatching { uriHandler.openUri("https://instagram.com/$cleanHandle") } },
+                                    color = Color(0xFFE1306C),
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.CameraAlt,
+                                        contentDescription = "Instagram",
+                                        tint = Color.White,
+                                        modifier = Modifier.padding(6.dp).size(18.dp)
+                                    )
                                 }
                             }
                         }
@@ -231,6 +251,8 @@ fun ProfileScreen(
                     ProfileRow(icon = Icons.Default.NotificationsNone, label = "Activity", onClick = onActivity)
                     HorizontalDivider(color = Border)
                     ProfileRow(icon = Icons.Default.CalendarMonth, label = "Calendar", onClick = onCalendar)
+                    HorizontalDivider(color = Border)
+                    ProfileRow(icon = Icons.Default.CheckBox, label = "Tasks", onClick = onTasks)
                     HorizontalDivider(color = Border)
                     ProfileRow(icon = Icons.Default.Description, label = "Resumes", onClick = onResumes)
                 }
