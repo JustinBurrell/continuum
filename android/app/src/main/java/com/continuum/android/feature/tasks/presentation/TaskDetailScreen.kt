@@ -23,6 +23,7 @@ import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.social.domain.Friend
 import com.continuum.android.feature.social.presentation.SocialViewModel
 import com.continuum.android.feature.tasks.domain.Task
@@ -256,7 +257,7 @@ private fun TaskDetailContent(
             Text("Details", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary)
 
             task.dueDate?.let {
-                DetailRow(icon = Icons.Default.CalendarToday, label = "Due Date", value = it.take(10))
+                DetailRow(icon = Icons.Default.CalendarToday, label = "Due Date", value = it.toDisplayDate())
             }
             task.duration?.let {
                 DetailRow(icon = Icons.Default.Timer, label = "Duration", value = "${it}min")

@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 
 private val statusOptions = listOf("draft", "applied", "interview", "offer", "rejected", "withdrawn")
 
@@ -205,7 +206,7 @@ fun ApplicationDetailScreen(
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(app.position, style = MaterialTheme.typography.headlineLarge, color = TextPrimary)
                     Text(app.company, style = MaterialTheme.typography.bodyLarge, color = TextSecondary)
-                    app.appliedDate?.let { Text("Applied: ${it.take(10)}", style = MaterialTheme.typography.bodySmall, color = TextMuted) }
+                    app.appliedDate?.let { Text("Applied: ${it.toDisplayDate()}", style = MaterialTheme.typography.bodySmall, color = TextMuted) }
 
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         StatusBadge(app.status)
@@ -352,7 +353,7 @@ fun ApplicationDetailScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(reminder.description, style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
                                     reminder.date?.takeIf { it.isNotBlank() }?.let {
-                                        Text(it.take(10), style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                                        Text(it.toDisplayDate(), style = MaterialTheme.typography.bodySmall, color = TextMuted)
                                     }
                                     if (reminder.completed) {
                                         Text("Completed", style = MaterialTheme.typography.bodySmall, color = SuccessGreen)

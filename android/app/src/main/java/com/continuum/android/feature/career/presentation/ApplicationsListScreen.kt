@@ -18,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.career.domain.Application
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -186,7 +187,7 @@ private fun ApplicationCard(app: Application, onClick: () -> Unit, onDelete: (()
                     Text(app.company, style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
                     Text(app.position, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
                     app.appliedDate?.let {
-                        Text("Applied: ${it.take(10)}", style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                        Text("Applied: ${it.toDisplayDate()}", style = MaterialTheme.typography.bodySmall, color = TextMuted)
                     }
                 }
                 StatusBadge(app.status)

@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.tasks.domain.Task
 import java.text.SimpleDateFormat
 import java.util.*
@@ -224,11 +225,3 @@ fun CalendarViewScreen(
     }
 }
 
-private fun String.toDisplayDate(): String {
-    return try {
-        val input = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(this) ?: return this
-        SimpleDateFormat("MM-dd-yyyy", Locale.US).format(input)
-    } catch (_: Exception) {
-        this
-    }
-}

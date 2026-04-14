@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.career.domain.Resume
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -161,7 +162,7 @@ private fun ResumeCard(resume: Resume, onClick: () -> Unit, onDelete: (() -> Uni
                     Column {
                         Text(resume.fileName, style = MaterialTheme.typography.headlineSmall, color = TextPrimary, maxLines = 1)
                         Text("${resume.targetRole} · v${resume.version}", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-                        Text(resume.uploadDate.take(10), style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                        Text(resume.uploadDate.toDisplayDate(), style = MaterialTheme.typography.bodySmall, color = TextMuted)
                     }
                 }
                 resume.aiScore?.let { score ->

@@ -22,6 +22,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.flashcards.domain.Flashcard
 
 private enum class SetDetailTab { Cards, History }
@@ -190,7 +191,7 @@ fun FlashcardSetDetailScreen(
                                                 titleLine = "${session.correctCount}/${session.totalCards} correct",
                                                 subtitleLine = "${session.score}% score · ${session.totalCards} cards · " +
                                                     "${formatStudySessionDuration(session.durationSeconds)} · " +
-                                                    session.completedAt.take(10)
+                                                    session.completedAt.toDisplayDate()
                                             )
                                         }
                                     }

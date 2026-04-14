@@ -20,6 +20,7 @@ import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.social.domain.ActivityItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -147,7 +148,7 @@ private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: (
                     )
                     VerifiedRoleBadges(roles = item.actorRoles, expanded = false)
                 }
-                Text(item.createdAt.take(10), style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                Text(item.createdAt.toDisplayDate(), style = MaterialTheme.typography.bodySmall, color = TextMuted)
             }
             Icon(
                 imageVector = when (item.type) {

@@ -23,6 +23,7 @@ import coil3.compose.AsyncImage
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.social.domain.ActivityItem
 import com.continuum.android.feature.social.domain.FriendSharedNoteSummary
 import com.continuum.android.feature.social.domain.FriendSharedSetSummary
@@ -97,7 +98,7 @@ fun UserProfileScreen(
                     Text(user.fullName, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
                     user.username?.let { Text("@$it", style = MaterialTheme.typography.bodyMedium, color = TextSecondary) }
 
-                    user.createdAt?.take(10)?.let { joined ->
+                    user.createdAt?.toDisplayDate()?.let { joined ->
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             Icon(Icons.Default.CalendarMonth, null, tint = TextMuted, modifier = Modifier.size(18.dp))
                             Text("Joined $joined", style = MaterialTheme.typography.bodySmall, color = TextMuted)
@@ -315,7 +316,7 @@ private fun FriendProfileSections(
                 ContinuumCard(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(Spacing.md)) {
                         Text(item.displayText, style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
-                        Text(item.createdAt.take(10), style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                        Text(item.createdAt.toDisplayDate(), style = MaterialTheme.typography.labelSmall, color = TextMuted)
                     }
                 }
             }

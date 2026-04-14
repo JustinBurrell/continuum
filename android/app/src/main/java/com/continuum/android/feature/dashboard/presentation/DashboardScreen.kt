@@ -28,6 +28,7 @@ import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.career.domain.Application
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
 import com.continuum.android.feature.notes.domain.Note
@@ -466,7 +467,7 @@ private fun ActivityRow(item: ActivityItem, onClick: () -> Unit, onActorClick: (
                     VerifiedRoleBadges(roles = item.actorRoles, expanded = false)
                 }
                 Text(
-                    text = item.createdAt.take(10),
+                    text = item.createdAt.toDisplayDate(),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextMuted
                 )

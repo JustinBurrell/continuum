@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.social.domain.Comment
 
 @Composable
@@ -145,7 +146,7 @@ private fun CommentItem(
                 )
                 VerifiedRoleBadges(roles = comment.authorRoles, expanded = false)
                 Spacer(Modifier.width(Spacing.sm))
-                Text(comment.createdAt.take(10), style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                Text(comment.createdAt.toDisplayDate(), style = MaterialTheme.typography.labelSmall, color = TextMuted)
             }
             Text(comment.content, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
             Row(verticalAlignment = Alignment.CenterVertically) {

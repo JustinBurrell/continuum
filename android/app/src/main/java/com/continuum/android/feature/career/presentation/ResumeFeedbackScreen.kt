@@ -15,6 +15,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.career.domain.ResumeFeedback
 
 @Composable
@@ -181,7 +182,7 @@ private fun FeedbackContent(
 
         // Footer
         Text(
-            "Generated ${feedback.generatedAt.take(10)} · ${feedback.model}",
+            "Generated ${feedback.generatedAt.toDisplayDate()} · ${feedback.model}",
             style = MaterialTheme.typography.bodySmall,
             color = TextMuted
         )
