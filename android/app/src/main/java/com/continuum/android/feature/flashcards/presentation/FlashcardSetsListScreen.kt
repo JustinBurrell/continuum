@@ -105,23 +105,45 @@ fun FlashcardSetsListScreen(
 
             if (!state.isSharedTab) {
                 Surface(
-                    color = PurpleTint,
-                    shape = RoundedCornerShape(12.dp),
+                    color = WarningAmberBg,
+                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 6.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(Icons.Default.LocalFireDepartment, null, tint = BrandPurple)
-                        Text(
-                            text = "Current streak: ${state.streak} day${if (state.streak == 1) "" else "s"}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = BrandPurple
-                        )
+                    if (state.streak > 0) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(Icons.Default.LocalFireDepartment, null, tint = WarningAmber, modifier = Modifier.size(32.dp))
+                            Column {
+                                Text(
+                                    text = "${state.streak}",
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    color = WarningAmber
+                                )
+                                Text(
+                                    text = "day streak",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = WarningAmber
+                                )
+                            }
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(Icons.Default.LocalFireDepartment, null, tint = WarningAmber, modifier = Modifier.size(24.dp))
+                            Text(
+                                text = "Start your streak today!",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = WarningAmber
+                            )
+                        }
                     }
                 }
             }
