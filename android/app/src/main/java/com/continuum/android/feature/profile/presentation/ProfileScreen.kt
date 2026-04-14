@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -43,9 +44,12 @@ fun ProfileScreen(
     onActivity: () -> Unit = {},
     onCalendar: () -> Unit = {},
     onResumes: () -> Unit = {},
+    onTerms: () -> Unit = {},
+    onPrivacy: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val uriHandler = LocalUriHandler.current
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showLogoutAllDialog by remember { mutableStateOf(false) }
@@ -166,6 +170,10 @@ fun ProfileScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextSecondary
                     )
+                    if (profile.roles.isNotEmpty()) {
+                        Spacer(Modifier.height(6.dp))
+                        VerifiedRoleBadges(roles = profile.roles, expanded = true)
+                    }
                     profile.bio?.takeIf { it.isNotBlank() }?.let { bio ->
                         Spacer(Modifier.height(8.dp))
                         Text(
@@ -173,6 +181,23 @@ fun ProfileScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextSecondary
                         )
+                    }
+                    // Social links
+                    if (!profile.linkedinUrl.isNullOrBlank() || !profile.instagramHandle.isNullOrBlank()) {
+                        Spacer(Modifier.height(4.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            profile.linkedinUrl?.takeIf { it.isNotBlank() }?.let { url ->
+                                TextButton(onClick = { runCatching { uriHandler.openUri(url) } }) {
+                                    Text("LinkedIn", color = BrandPurple, style = MaterialTheme.typography.labelMedium)
+                                }
+                            }
+                            profile.instagramHandle?.takeIf { it.isNotBlank() }?.let { handle ->
+                                val cleanHandle = handle.removePrefix("@")
+                                TextButton(onClick = { runCatching { uriHandler.openUri("https://instagram.com/$cleanHandle") } }) {
+                                    Text("Instagram", color = BrandPurple, style = MaterialTheme.typography.labelMedium)
+                                }
+                            }
+                        }
                     }
                     Text(
                         text = "Joined ${formatShortDate(profile.createdAt)}",
@@ -214,12 +239,38 @@ fun ProfileScreen(
             // Google Account section
             item {
                 ProfileSection(title = "Google Account") {
-                    ProfileRow(
-                        icon = if (profile.isGoogleLinked) Icons.Default.CheckCircle else Icons.Default.Link,
-                        label = if (profile.isGoogleLinked) "Google linked" else "Link Google Account",
-                        tint = if (profile.isGoogleLinked) SuccessGreen else BrandPurple,
-                        onClick = {}
-                    )
+                    if (profile.isGoogleLinked) {
+                        ProfileRow(
+                            icon = Icons.Default.CheckCircle,
+                            label = "Google linked",
+                            tint = SuccessGreen,
+                            onClick = {}
+                        )
+                        HorizontalDivider(color = Border)
+                        ProfileRow(
+                            icon = Icons.Default.LinkOff,
+                            label = "Unlink Google",
+                            tint = ErrorRed,
+                            labelColor = ErrorRed,
+                            onClick = { viewModel.unlinkGoogle() }
+                        )
+                    } else {
+                        ProfileRow(
+                            icon = Icons.Default.Link,
+                            label = "Link Google Account",
+                            tint = BrandPurple,
+                            onClick = {}
+                        )
+                    }
+                }
+            }
+
+            // Legal
+            item {
+                ProfileSection(title = "Legal") {
+                    ProfileRow(icon = Icons.Default.Article, label = "Terms of Service", onClick = onTerms)
+                    HorizontalDivider(color = Border)
+                    ProfileRow(icon = Icons.Default.Shield, label = "Privacy Policy", onClick = onPrivacy)
                 }
             }
 
