@@ -27,6 +27,22 @@ class CareerRepository @Inject constructor(private val api: CareerApiService) {
 
     suspend fun deleteApplication(id: String): Result<Unit> = runCatching { api.deleteApplication(id); Unit }
 
+    suspend fun addContact(appId: String, name: String, role: String?, linkedIn: String?, email: String?): Result<Application> = runCatching {
+        api.addContact(appId, AddContactRequestDto(name = name, role = role, linkedIn = linkedIn, email = email)).application.toDomain()
+    }
+
+    suspend fun deleteContact(appId: String, contactId: String): Result<Application> = runCatching {
+        api.deleteContact(appId, contactId).application.toDomain()
+    }
+
+    suspend fun addReminder(appId: String, date: String, description: String): Result<Application> = runCatching {
+        api.addReminder(appId, AddReminderRequestDto(date = date, description = description)).application.toDomain()
+    }
+
+    suspend fun deleteReminder(appId: String, reminderId: String): Result<Application> = runCatching {
+        api.deleteReminder(appId, reminderId).application.toDomain()
+    }
+
     suspend fun getResumes(): Result<List<Resume>> = runCatching {
         api.getResumes().resumes.map { it.toDomain() }
     }
@@ -49,7 +65,8 @@ class CareerRepository @Inject constructor(private val api: CareerApiService) {
         appliedDate = appliedAt,
         jobUrl = jobUrl,
         notes = notes,
-        contacts = contacts.map { Contact(it.name, it.role, it.linkedIn ?: it.email) },
+        contacts = contacts.map { Contact(id = it.id, name = it.name, role = it.role, linkedIn = it.linkedIn, email = it.email) },
+        reminders = followUpReminders.map { Reminder(id = it.id, date = it.date, description = it.description, completed = it.completed) },
         updatedAt = updatedAt
     )
     private fun ResumeDto.toDomain() = Resume(

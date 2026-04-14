@@ -178,6 +178,50 @@ class CareerViewModel @Inject constructor(
         }
     }
 
+    fun addContact(appId: String, name: String, role: String, linkedIn: String, email: String) {
+        viewModelScope.launch {
+            repository.addContact(appId, name, role.takeIf { it.isNotBlank() }, linkedIn.takeIf { it.isNotBlank() }, email.takeIf { it.isNotBlank() })
+                .onSuccess { updated ->
+                    _applicationsState.update { state ->
+                        state.copy(applications = state.applications.map { if (it.id == appId) updated else it })
+                    }
+                }
+        }
+    }
+
+    fun deleteContact(appId: String, contactId: String) {
+        viewModelScope.launch {
+            repository.deleteContact(appId, contactId)
+                .onSuccess { updated ->
+                    _applicationsState.update { state ->
+                        state.copy(applications = state.applications.map { if (it.id == appId) updated else it })
+                    }
+                }
+        }
+    }
+
+    fun addReminder(appId: String, date: String, description: String) {
+        viewModelScope.launch {
+            repository.addReminder(appId, date, description)
+                .onSuccess { updated ->
+                    _applicationsState.update { state ->
+                        state.copy(applications = state.applications.map { if (it.id == appId) updated else it })
+                    }
+                }
+        }
+    }
+
+    fun deleteReminder(appId: String, reminderId: String) {
+        viewModelScope.launch {
+            repository.deleteReminder(appId, reminderId)
+                .onSuccess { updated ->
+                    _applicationsState.update { state ->
+                        state.copy(applications = state.applications.map { if (it.id == appId) updated else it })
+                    }
+                }
+        }
+    }
+
     fun loadFeedback(resumeId: String) {
         viewModelScope.launch {
             _feedbackState.update { it.copy(isLoading = true, error = null) }
