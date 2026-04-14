@@ -160,7 +160,8 @@ class DashboardViewModel @Inject constructor(
                     )
                 }
 
-                val applications = careerApi.getApplications().applications.take(5).map { dto ->
+                val allApplicationsDtos = careerApi.getApplications().applications
+                val applications = allApplicationsDtos.take(5).map { dto ->
                     Application(
                         id = dto.id,
                         company = dto.company,
@@ -192,7 +193,7 @@ class DashboardViewModel @Inject constructor(
                         applications = applications,
                         upcomingTasks = openTasks.take(5),
                         openTaskCount = openTasks.size,
-                        openApplicationCount = appsResp.total,
+                        openApplicationCount = if (appsResp.total > 0) appsResp.total else allApplicationsDtos.size,
                         newActivityCount = activityResp.total
                     )
                 }
