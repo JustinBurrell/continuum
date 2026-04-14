@@ -26,7 +26,10 @@ data class NoteDetailUiState(
     val note: Note? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isSaving: Boolean = false
+    val isSaving: Boolean = false,
+    val isGeneratingFlashcards: Boolean = false,
+    val generatedFlashcardSetId: String? = null,
+    val flashcardGenerationError: String? = null
 )
 
 data class DriveFilesUiState(
@@ -155,8 +158,27 @@ class NotesViewModel @Inject constructor(
 
     fun generateFlashcards(id: String) {
         viewModelScope.launch {
+            _detailState.update { it.copy(isGeneratingFlashcards = true, flashcardGenerationError = null) }
             repository.generateFlashcards(id)
+                .onSuccess { setId ->
+                    _detailState.update {
+                        it.copy(
+                            note = it.note?.copy(hasFlashcards = true),
+                            isGeneratingFlashcards = false,
+                            generatedFlashcardSetId = setId.ifBlank { null }
+                        )
+                    }
+                }
+                .onFailure { e ->
+                    _detailState.update {
+                        it.copy(isGeneratingFlashcards = false, flashcardGenerationError = e.message)
+                    }
+                }
         }
+    }
+
+    fun clearFlashcardGeneration() {
+        _detailState.update { it.copy(generatedFlashcardSetId = null, flashcardGenerationError = null) }
     }
 
     fun loadDriveFiles() {

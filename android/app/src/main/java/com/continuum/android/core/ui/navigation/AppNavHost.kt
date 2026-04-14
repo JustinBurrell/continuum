@@ -482,7 +482,9 @@ private fun NavGraph(
                     noteId = noteId,
                     onNavigateBack = { navController.popBackStack() },
                     onEdit = { id -> navController.navigate(NavRoutes.Notes.editor(id)) },
-                    networkMonitor = networkMonitor
+                    networkMonitor = networkMonitor,
+                    onNavigateToSet = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) },
+                    onUserProfileClick = { uid -> navController.navigate(NavRoutes.Social.userProfile(uid)) }
                 )
             }
             composable(
