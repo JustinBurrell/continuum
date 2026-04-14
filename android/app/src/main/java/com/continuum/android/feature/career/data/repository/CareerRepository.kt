@@ -53,6 +53,10 @@ class CareerRepository @Inject constructor(private val api: CareerApiService) {
 
     suspend fun deleteResume(id: String): Result<Unit> = runCatching { api.deleteResume(id); Unit }
 
+    suspend fun getExistingFeedback(id: String): Result<ResumeFeedback> = runCatching {
+        api.getExistingFeedback(id).feedback.toDomain()
+    }
+
     suspend fun generateFeedback(id: String): Result<ResumeFeedback> = runCatching {
         api.generateFeedback(id).feedback.toDomain()
     }

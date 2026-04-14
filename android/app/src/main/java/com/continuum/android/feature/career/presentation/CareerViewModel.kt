@@ -37,6 +37,7 @@ data class ResumesUiState(
 data class FeedbackUiState(
     val feedback: ResumeFeedback? = null,
     val isLoading: Boolean = false,
+    val isRegenerating: Boolean = false,
     val error: String? = null
 )
 
@@ -225,9 +226,21 @@ class CareerViewModel @Inject constructor(
     fun loadFeedback(resumeId: String) {
         viewModelScope.launch {
             _feedbackState.update { it.copy(isLoading = true, error = null) }
-            repository.generateFeedback(resumeId)
+            repository.getExistingFeedback(resumeId)
                 .onSuccess { feedback -> _feedbackState.update { it.copy(feedback = feedback, isLoading = false) } }
-                .onFailure { e -> _feedbackState.update { it.copy(isLoading = false, error = e.message) } }
+                .onFailure {
+                    // No existing feedback — just clear loading; user can generate via button
+                    _feedbackState.update { it.copy(isLoading = false) }
+                }
+        }
+    }
+
+    fun regenerateFeedback(resumeId: String) {
+        viewModelScope.launch {
+            _feedbackState.update { it.copy(isRegenerating = true, error = null) }
+            repository.generateFeedback(resumeId)
+                .onSuccess { feedback -> _feedbackState.update { it.copy(feedback = feedback, isRegenerating = false) } }
+                .onFailure { e -> _feedbackState.update { it.copy(isRegenerating = false, error = e.message) } }
         }
     }
 }

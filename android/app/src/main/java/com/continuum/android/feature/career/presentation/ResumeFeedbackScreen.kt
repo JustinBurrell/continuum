@@ -41,7 +41,7 @@ fun ResumeFeedbackScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator(color = BrandPurple)
                         Spacer(Modifier.height(8.dp))
-                        Text("Analyzing resume...", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                        Text("Loading feedback...", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
                     }
                 }
             }
@@ -49,24 +49,49 @@ fun ResumeFeedbackScreen(
             state.feedback != null -> {
                 FeedbackContent(
                     feedback = state.feedback!!,
+                    isRegenerating = state.isRegenerating,
+                    onRegenerate = { viewModel.regenerateFeedback(resumeId) },
                     modifier = Modifier.fillMaxSize().padding(innerPadding)
                 )
             }
 
             else -> {
-                EmptyState(
-                    icon = Icons.Default.ErrorOutline,
-                    headline = "Feedback unavailable",
-                    subtext = state.error ?: "Could not generate feedback",
-                    modifier = Modifier.fillMaxSize().padding(innerPadding)
-                )
+                Box(Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.padding(32.dp)
+                    ) {
+                        Icon(Icons.Default.AutoAwesome, null, tint = BrandPurple, modifier = Modifier.size(48.dp))
+                        Text("No feedback yet", style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+                        Text(
+                            "Generate AI feedback to get a detailed analysis of your resume.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary
+                        )
+                        if (state.error != null) {
+                            Text(state.error!!, style = MaterialTheme.typography.bodySmall, color = ErrorRed)
+                        }
+                        ContinuumButton(
+                            text = if (state.isRegenerating) "Analyzing..." else "Generate Feedback",
+                            onClick = { viewModel.regenerateFeedback(resumeId) },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !state.isRegenerating
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun FeedbackContent(feedback: ResumeFeedback, modifier: Modifier = Modifier) {
+private fun FeedbackContent(
+    feedback: ResumeFeedback,
+    isRegenerating: Boolean,
+    onRegenerate: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -144,6 +169,15 @@ private fun FeedbackContent(feedback: ResumeFeedback, modifier: Modifier = Modif
                 }
             }
         }
+
+        // Regenerate button
+        ContinuumButton(
+            text = if (isRegenerating) "Analyzing..." else "Regenerate Feedback",
+            onClick = onRegenerate,
+            modifier = Modifier.fillMaxWidth(),
+            variant = ContinuumButtonVariant.Secondary,
+            enabled = !isRegenerating
+        )
 
         // Footer
         Text(
