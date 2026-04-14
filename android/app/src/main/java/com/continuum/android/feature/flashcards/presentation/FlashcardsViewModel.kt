@@ -340,4 +340,18 @@ class FlashcardsViewModel @Inject constructor(
             repository.duplicateSet(setId).onSuccess { loadSets() }
         }
     }
+
+    fun updateSetInfo(setId: String, title: String, description: String) {
+        viewModelScope.launch {
+            repository.updateSet(setId, title.takeIf { it.isNotBlank() }, description.takeIf { it.isNotBlank() }, null)
+                .onSuccess { loadSetDetail(setId) }
+        }
+    }
+
+    fun makeSetPublic(setId: String) {
+        viewModelScope.launch {
+            repository.updateSet(setId, null, null, "public")
+                .onSuccess { loadSetDetail(setId) }
+        }
+    }
 }

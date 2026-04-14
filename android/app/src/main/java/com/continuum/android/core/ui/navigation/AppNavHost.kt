@@ -535,7 +535,8 @@ private fun NavGraph(
                 FlashcardSetDetailScreen(
                     setId = setId,
                     onNavigateBack = { navController.popBackStack() },
-                    onStudy = { navController.navigate(NavRoutes.Flashcards.studyMode(setId)) }
+                    onStudy = { navController.navigate(NavRoutes.Flashcards.studyMode(setId)) },
+                    onUserProfileClick = { uid -> navController.navigate(NavRoutes.Social.userProfile(uid)) }
                 )
             }
             composable(
