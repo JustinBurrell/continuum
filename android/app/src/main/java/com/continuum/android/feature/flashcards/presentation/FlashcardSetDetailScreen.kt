@@ -63,7 +63,7 @@ fun FlashcardSetDetailScreen(
         Scaffold(
             topBar = {
                 MinimalTopBar(
-                    title = state.set?.title ?: "",
+                    title = "Flashcards",
                     onNavigateBack = onNavigateBack,
                     actions = {
                         TextButton(onClick = onStudy) {
