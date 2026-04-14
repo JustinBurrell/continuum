@@ -57,11 +57,16 @@ class NotesRepository @Inject constructor(
     }
 
     suspend fun getNoteById(id: String): Result<Note> = runCatching {
-        val cached = noteDao.getById(id)
-        if (cached != null) return Result.success(cached.toDomain())
-        val remote = api.getNoteById(id).note
-        noteDao.insert(remote.toEntity())
-        remote.toDomain()
+        // API-first: always fetch fresh so summary/flashcard state is current.
+        // Fall back to Room cache only if the network call fails.
+        try {
+            val remote = api.getNoteById(id).note
+            noteDao.insert(remote.toEntity())
+            remote.toDomain()
+        } catch (e: Exception) {
+            val cached = noteDao.getById(id)
+            if (cached != null) cached.toDomain() else throw e
+        }
     }
 
     suspend fun createNote(title: String, content: String, tags: List<String>, visibility: String): Result<Note> =
@@ -89,9 +94,11 @@ class NotesRepository @Inject constructor(
         note.toDomain()
     }
 
-    suspend fun generateFlashcards(id: String): Result<Unit> = runCatching {
-        api.generateFlashcards(id)
-        Unit
+    suspend fun generateFlashcards(id: String): Result<String> = runCatching {
+        val resp = api.generateFlashcards(id)
+        resp.set?.id?.takeIf { it.isNotBlank() }
+            ?: resp.data?.id?.takeIf { it.isNotBlank() }
+            ?: ""
     }
 
     suspend fun getDriveFiles(): Result<List<DriveFile>> = runCatching {
@@ -147,6 +154,7 @@ class NotesRepository @Inject constructor(
         detailedSummary = summary?.detailed,
         updatedAt = updatedAt,
         createdAt = createdAt,
-        ownerUserId = owner?.id?.takeIf { it.isNotBlank() }
+        ownerUserId = owner?.id?.takeIf { it.isNotBlank() },
+        ownerName = owner?.displayName
     )
 }
