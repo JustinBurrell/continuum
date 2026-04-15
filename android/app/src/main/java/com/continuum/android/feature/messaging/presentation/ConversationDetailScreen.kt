@@ -161,7 +161,7 @@ fun ConversationDetailScreen(
                     reverseLayout = true,
                     modifier = Modifier.fillMaxSize().padding(innerPadding)
                 ) {
-                    items(state.messages.reversed(), key = { it.id }) { message ->
+                    items(state.messages, key = { it.id }) { message ->
                         MessageBubble(
                             message = message,
                             isMine = message.senderId == currentUserId,
@@ -227,7 +227,7 @@ private fun MessageBubble(
                 }
                 Surface(
                     onClick = { onSharedContentClick(type, id) },
-                    color = if (isMine) BrandPurple.copy(alpha = 0.8f) else PageBackground,
+                    color = if (isMine) BrandPurple.copy(alpha = 0.8f) else BubbleReceived,
                     shape = MaterialTheme.shapes.medium,
                     modifier = Modifier.widthIn(max = 260.dp)
                 ) {
@@ -272,7 +272,7 @@ private fun MessageBubble(
             }
         } else {
             Surface(
-                color = if (isMine) BrandPurple else PageBackground,
+                color = if (isMine) BrandPurple else BubbleReceived,
                 shape = RoundedCornerShape(
                     topStart = 18.dp,
                     topEnd = 18.dp,
