@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
+import com.continuum.android.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -110,12 +112,11 @@ fun UserProfileScreen(
                                     color = Color(0xFF0A66C2),
                                     shape = RoundedCornerShape(6.dp)
                                 ) {
-                                    Text(
-                                        "in",
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_linkedin),
+                                        contentDescription = "LinkedIn",
+                                        tint = Color.White,
+                                        modifier = Modifier.padding(6.dp).size(18.dp)
                                     )
                                 }
                             }
@@ -127,7 +128,7 @@ fun UserProfileScreen(
                                     shape = RoundedCornerShape(6.dp)
                                 ) {
                                     Icon(
-                                        Icons.Default.CameraAlt,
+                                        painter = painterResource(R.drawable.ic_instagram),
                                         contentDescription = "Instagram",
                                         tint = Color.White,
                                         modifier = Modifier.padding(6.dp).size(18.dp)
