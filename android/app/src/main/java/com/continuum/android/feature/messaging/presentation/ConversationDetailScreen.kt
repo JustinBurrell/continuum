@@ -47,7 +47,7 @@ fun ConversationDetailScreen(
 
     LaunchedEffect(state.messages.size) {
         if (state.messages.isNotEmpty()) {
-            listState.scrollToItem(state.messages.size - 1)
+            listState.animateScrollToItem(0)
         }
     }
 
@@ -158,10 +158,10 @@ fun ConversationDetailScreen(
                     state = listState,
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    reverseLayout = false,
+                    reverseLayout = true,
                     modifier = Modifier.fillMaxSize().padding(innerPadding)
                 ) {
-                    items(state.messages, key = { it.id }) { message ->
+                    items(state.messages.reversed(), key = { it.id }) { message ->
                         MessageBubble(
                             message = message,
                             isMine = message.senderId == currentUserId,
