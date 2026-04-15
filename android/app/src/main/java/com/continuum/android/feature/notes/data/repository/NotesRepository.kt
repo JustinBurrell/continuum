@@ -29,7 +29,8 @@ class NotesRepository @Inject constructor(
         } else {
             api.getNotes(
                 search = search?.takeIf { it.isNotBlank() },
-                type = type?.takeIf { it.isNotBlank() && it != "all" }
+                type = type?.takeIf { it.isNotBlank() && it != "all" },
+                limit = 100
             )
         }
         val notes = response.notes.map { it.toDomain() }
@@ -48,7 +49,7 @@ class NotesRepository @Inject constructor(
         val cached = noteDao.getAll().map { it.toDomain() }
         if (cached.isNotEmpty()) emit(Result.success(cached))
         try {
-            val fresh = api.getNotes().notes
+            val fresh = api.getNotes(limit = 100).notes
             noteDao.deleteAll()
             noteDao.insertAll(fresh.map { it.toEntity() })
             emit(Result.success(noteDao.getAll().map { it.toDomain() }))

@@ -50,6 +50,7 @@ export default function NotesList() {
           params: {
             ...(search && { search }),
             ...(type !== 'all' && { type }),
+            limit: 100,
           },
         })
         .then(r => r.data);
