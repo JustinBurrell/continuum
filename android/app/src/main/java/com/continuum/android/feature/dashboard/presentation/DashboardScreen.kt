@@ -298,28 +298,42 @@ private fun StatTile(
     ContinuumCard(
         style = CardStyle.Elevated,
         modifier = modifier
-            .width(112.dp)
+            .width(110.dp)
             .clickable(onClick = onClick)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = BrandPurple, modifier = Modifier.size(20.dp))
-            Text(
-                text = "$count",
-                fontFamily = FrauncesFamily,
-                fontWeight = FontWeight.Black,
-                fontSize = 28.sp,
-                color = BrandPurple
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary,
-                maxLines = 1
-            )
+            Surface(
+                color = PurpleTint,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.size(32.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = BrandPurple,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = "$count",
+                    fontFamily = PlusJakartaSansFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    color = TextPrimary
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextSecondary,
+                    maxLines = 1
+                )
+            }
         }
     }
 }
@@ -347,24 +361,45 @@ private fun NotePreviewCard(note: Note, onClick: () -> Unit) {
     ContinuumCard(
         style = CardStyle.Elevated,
         modifier = Modifier
-            .width(200.dp)
+            .width(180.dp)
+            .height(148.dp)
             .clickable(onClick = onClick)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            modifier = Modifier
+                .padding(14.dp)
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            if (note.tags.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
                 Surface(
                     color = PurpleTint,
-                    shape = RoundedCornerShape(4.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.size(32.dp)
                 ) {
-                    Text(
-                        text = note.tags.first(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = BrandPurple,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Article,
+                            contentDescription = null,
+                            tint = BrandPurple,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+                note.tags.firstOrNull()?.let { tag ->
+                    Surface(color = PurpleTint, shape = RoundedCornerShape(4.dp)) {
+                        Text(
+                            text = tag,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = BrandPurple,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            maxLines = 1
+                        )
+                    }
                 }
             }
             Text(
@@ -375,10 +410,11 @@ private fun NotePreviewCard(note: Note, onClick: () -> Unit) {
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = note.preview,
+                text = if (note.preview.isNotBlank()) note.preview
+                       else note.type.replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.bodySmall,
                 color = TextSecondary,
-                maxLines = 3,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
         }
@@ -390,21 +426,44 @@ private fun FlashcardSetPreviewCard(set: FlashcardSet, onClick: () -> Unit) {
     ContinuumCard(
         style = CardStyle.Elevated,
         modifier = Modifier
-            .width(220.dp)
+            .width(180.dp)
+            .height(148.dp)
             .clickable(onClick = onClick)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            modifier = Modifier
+                .padding(14.dp)
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            if (set.isAIGenerated) {
-                Surface(color = PurpleTint, shape = RoundedCornerShape(4.dp)) {
-                    Text(
-                        text = "AI generated",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = BrandPurple,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Surface(
+                    color = PurpleTint,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Style,
+                            contentDescription = null,
+                            tint = BrandPurple,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+                if (set.isAIGenerated) {
+                    Surface(color = PurpleTint, shape = RoundedCornerShape(4.dp)) {
+                        Text(
+                            "AI",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = BrandPurple,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
                 }
             }
             Text(
@@ -414,11 +473,17 @@ private fun FlashcardSetPreviewCard(set: FlashcardSet, onClick: () -> Unit) {
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            Text(
-                text = "${set.cardCount} cards",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
-            )
+            Surface(
+                color = PurpleTint,
+                shape = RoundedCornerShape(6.dp)
+            ) {
+                Text(
+                    text = "${set.cardCount} cards",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = BrandPurple,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                )
+            }
         }
     }
 }
