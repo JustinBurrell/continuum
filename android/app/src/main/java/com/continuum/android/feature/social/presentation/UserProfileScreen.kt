@@ -154,44 +154,60 @@ fun UserProfileScreen(
 
                     if (!isSelf) when (user.friendStatus) {
                         "friends" -> {
-                            Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
+                            // Status chip + Message button in one row
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Surface(color = SuccessGreen.copy(alpha = 0.12f), shape = AppShape.chip) {
-                                    Text(
-                                        "Friends",
-                                        color = SuccessGreen,
-                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm)
+                                    ) {
+                                        Icon(Icons.Default.Check, null, tint = SuccessGreen, modifier = Modifier.size(14.dp))
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("Friends", color = SuccessGreen, style = MaterialTheme.typography.labelMedium)
+                                    }
                                 }
                                 if (!isDemo) {
                                     OutlinedButton(
                                         onClick = { onMessageFriend(userId, user.fullName) },
-                                        modifier = Modifier.fillMaxWidth()
+                                        modifier = Modifier.weight(1f)
                                     ) {
-                                        Icon(Icons.AutoMirrored.Filled.Chat, null, modifier = Modifier.size(18.dp))
-                                        Spacer(Modifier.width(8.dp))
+                                        Icon(Icons.AutoMirrored.Filled.Chat, null, modifier = Modifier.size(16.dp))
+                                        Spacer(Modifier.width(6.dp))
                                         Text("Message")
                                     }
-                                    OutlinedButton(
-                                        onClick = { viewModel.removeFriendFromProfile(userId) },
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Icon(Icons.Default.PersonRemove, null, modifier = Modifier.size(18.dp))
-                                        Spacer(Modifier.width(8.dp))
-                                        Text("Remove friend", color = ErrorRed)
-                                    }
+                                }
+                            }
+                            if (!isDemo) {
+                                TextButton(
+                                    onClick = { viewModel.removeFriendFromProfile(userId) },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Default.PersonRemove, null, tint = ErrorRed, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Remove friend", color = ErrorRed, style = MaterialTheme.typography.bodySmall)
                                 }
                             }
                         }
                         "pending_incoming" -> {
+                            // Status chip inline with Accept / Decline actions
                             Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
-                                Surface(color = WarningAmber.copy(alpha = 0.12f), shape = AppShape.chip) {
-                                    Text(
-                                        "Wants to connect",
-                                        color = WarningAmber,
-                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Surface(color = WarningAmber.copy(alpha = 0.12f), shape = AppShape.chip) {
+                                        Text(
+                                            "Wants to connect",
+                                            color = WarningAmber,
+                                            modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
                                 }
                                 if (!isDemo) {
                                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
@@ -209,20 +225,27 @@ fun UserProfileScreen(
                             }
                         }
                         "pending_outgoing" -> {
-                            Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
+                            // Status chip + Cancel in one row
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Surface(color = WarningAmber.copy(alpha = 0.12f), shape = AppShape.chip) {
-                                    Text(
-                                        "Request sent",
-                                        color = WarningAmber,
-                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm)
+                                    ) {
+                                        Icon(Icons.Default.Schedule, null, tint = WarningAmber, modifier = Modifier.size(14.dp))
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("Request sent", color = WarningAmber, style = MaterialTheme.typography.labelMedium)
+                                    }
                                 }
                                 if (!isDemo) {
                                     OutlinedButton(
                                         onClick = { viewModel.cancelOutgoingFromProfile(userId) },
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) { Text("Cancel request") }
+                                        modifier = Modifier.weight(1f)
+                                    ) { Text("Cancel") }
                                 }
                             }
                         }
