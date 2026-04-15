@@ -111,6 +111,11 @@ class NotesRepository @Inject constructor(
         note.toDomain()
     }
 
+    suspend fun shareNote(id: String, friendIds: List<String>): Result<Unit> = runCatching {
+        api.shareNote(id, ShareNoteRequestDto(visibility = "specific", sharedWith = friendIds))
+        Unit
+    }
+
     // --- Mappers ---
 
     private fun NoteDto.toEntity() = NoteEntity(

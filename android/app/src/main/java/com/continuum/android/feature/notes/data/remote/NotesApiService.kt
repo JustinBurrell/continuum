@@ -42,4 +42,10 @@ interface NotesApiService {
 
     @POST("notes/import")
     suspend fun importFromDrive(@Body request: ImportNoteRequestDto): NoteResponseDto
+
+    @PUT("notes/{id}/share")
+    suspend fun shareNote(
+        @Path("id") id: String,
+        @Body request: ShareNoteRequestDto
+    ): NoteResponseDto
 }

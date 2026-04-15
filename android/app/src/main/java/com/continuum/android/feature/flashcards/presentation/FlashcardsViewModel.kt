@@ -354,4 +354,11 @@ class FlashcardsViewModel @Inject constructor(
                 .onSuccess { loadSetDetail(setId) }
         }
     }
+
+    fun shareSetWithFriends(setId: String, friendIds: List<String>) {
+        viewModelScope.launch {
+            repository.shareSet(setId, friendIds)
+                .onSuccess { loadSetDetail(setId) }
+        }
+    }
 }

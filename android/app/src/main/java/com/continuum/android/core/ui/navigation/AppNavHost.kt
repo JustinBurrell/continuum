@@ -742,6 +742,13 @@ private fun NavGraph(
                     onNavigateBack = { navController.popBackStack() },
                     onOpenParticipantProfile = { uid ->
                         navController.navigate(NavRoutes.Social.userProfile(uid))
+                    },
+                    onSharedContentClick = { type, id ->
+                        when (type) {
+                            "note" -> navController.navigate(NavRoutes.Notes.detail(id))
+                            "flashcardSet" -> navController.navigate(NavRoutes.Flashcards.setDetail(id))
+                            "task" -> navController.navigate(NavRoutes.Tasks.detail(id))
+                        }
                     }
                 )
             }

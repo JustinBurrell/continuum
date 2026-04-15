@@ -9,8 +9,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +29,7 @@ fun ConversationDetailScreen(
     participantId: String = "",
     onNavigateBack: () -> Unit,
     onOpenParticipantProfile: (String) -> Unit = {},
+    onSharedContentClick: (type: String, id: String) -> Unit = { _, _ -> },
     viewModel: MessagingViewModel = hiltViewModel()
 ) {
     val state by viewModel.detailState.collectAsStateWithLifecycle()
@@ -170,7 +170,8 @@ fun ConversationDetailScreen(
                                     { onOpenParticipantProfile(message.senderId) }
                                 } else {
                                     null
-                                }
+                                },
+                            onSharedContentClick = onSharedContentClick
                         )
                     }
                 }
@@ -180,37 +181,41 @@ fun ConversationDetailScreen(
 }
 
 @Composable
-private fun MessageBubble(message: Message, isMine: Boolean, onSenderProfileClick: (() -> Unit)?) {
+private fun MessageBubble(
+    message: Message,
+    isMine: Boolean,
+    onSenderProfileClick: (() -> Unit)?,
+    onSharedContentClick: (type: String, id: String) -> Unit = { _, _ -> }
+) {
+    val sharedRef = remember(message.content) {
+        Regex("^\\[shared:(note|flashcardSet|task):([a-zA-Z0-9]+)\\](.*)").find(message.content)
+            ?.let { Triple(it.groupValues[1], it.groupValues[2], it.groupValues[3].trim()) }
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start
     ) {
-        Surface(
-            color = if (isMine) BrandPurple else PageBackground,
-            shape = RoundedCornerShape(
-                topStart = 18.dp,
-                topEnd = 18.dp,
-                bottomStart = if (isMine) 18.dp else 4.dp,
-                bottomEnd = if (isMine) 4.dp else 18.dp
-            ),
-            modifier = Modifier.widthIn(max = 280.dp)
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+        if (sharedRef != null) {
+            val (type, id, label) = sharedRef
+            Column(horizontalAlignment = if (isMine) Alignment.End else Alignment.Start) {
                 if (!isMine) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.then(
-                            if (onSenderProfileClick != null) {
-                                Modifier.clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                    onClick = onSenderProfileClick
-                                )
-                            } else {
-                                Modifier
-                            }
-                        )
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                            .then(
+                                if (onSenderProfileClick != null) {
+                                    Modifier.clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = onSenderProfileClick
+                                    )
+                                } else {
+                                    Modifier
+                                }
+                            )
                     ) {
                         Text(
                             text = message.senderName,
@@ -220,17 +225,99 @@ private fun MessageBubble(message: Message, isMine: Boolean, onSenderProfileClic
                         VerifiedRoleBadges(roles = message.senderRoles, expanded = false)
                     }
                 }
-                Text(
-                    text = message.content,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (isMine) White else TextPrimary
-                )
+                Surface(
+                    onClick = { onSharedContentClick(type, id) },
+                    color = if (isMine) BrandPurple.copy(alpha = 0.8f) else PageBackground,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.widthIn(max = 260.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = when (type) {
+                                "flashcardSet" -> Icons.Default.Style
+                                "task" -> Icons.Default.CheckBox
+                                else -> Icons.Default.Article
+                            },
+                            contentDescription = null,
+                            tint = if (isMine) White else BrandPurple,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Column {
+                            Text(
+                                label.removePrefix(
+                                    "Shared a ${if (type == "flashcardSet") "flashcard set" else type} with you:"
+                                ).trim().trim('"'),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (isMine) White else TextPrimary,
+                                maxLines = 2
+                            )
+                            Text(
+                                "Tap to open",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isMine) White.copy(0.7f) else BrandPurple
+                            )
+                        }
+                    }
+                }
                 Text(
                     text = message.createdAt.take(16).replace("T", " "),
                     style = MaterialTheme.typography.labelSmall,
                     color = if (isMine) White.copy(alpha = 0.7f) else TextMuted,
-                    modifier = Modifier.align(Alignment.End)
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                 )
+            }
+        } else {
+            Surface(
+                color = if (isMine) BrandPurple else PageBackground,
+                shape = RoundedCornerShape(
+                    topStart = 18.dp,
+                    topEnd = 18.dp,
+                    bottomStart = if (isMine) 18.dp else 4.dp,
+                    bottomEnd = if (isMine) 4.dp else 18.dp
+                ),
+                modifier = Modifier.widthIn(max = 280.dp)
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                    if (!isMine) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.then(
+                                if (onSenderProfileClick != null) {
+                                    Modifier.clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = onSenderProfileClick
+                                    )
+                                } else {
+                                    Modifier
+                                }
+                            )
+                        ) {
+                            Text(
+                                text = message.senderName,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (onSenderProfileClick != null) BrandPurple else TextPrimary
+                            )
+                            VerifiedRoleBadges(roles = message.senderRoles, expanded = false)
+                        }
+                    }
+                    Text(
+                        text = message.content,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isMine) White else TextPrimary
+                    )
+                    Text(
+                        text = message.createdAt.take(16).replace("T", " "),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isMine) White.copy(alpha = 0.7f) else TextMuted,
+                        modifier = Modifier.align(Alignment.End)
+                    )
+                }
             }
         }
     }

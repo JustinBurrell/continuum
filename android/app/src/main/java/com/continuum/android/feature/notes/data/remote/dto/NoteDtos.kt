@@ -74,6 +74,12 @@ data class ImportNoteRequestDto(
 )
 
 @JsonClass(generateAdapter = true)
+data class ShareNoteRequestDto(
+    val visibility: String = "specific",
+    val sharedWith: List<String> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
 data class FlashcardSetRefDto(@Json(name = "_id") val id: String = "")
 
 @JsonClass(generateAdapter = true)

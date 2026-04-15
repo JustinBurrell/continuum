@@ -164,7 +164,8 @@ data class UpdateSetRequestDto(
 
 @JsonClass(generateAdapter = true)
 data class ShareSetRequestDto(
-    val userIds: List<String>
+    val visibility: String = "specific",
+    val sharedWith: List<String> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)

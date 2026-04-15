@@ -108,7 +108,7 @@ class FlashcardsRepository @Inject constructor(
     }
 
     suspend fun shareSet(setId: String, userIds: List<String>): Result<FlashcardSet> = runCatching {
-        api.shareSet(setId, ShareSetRequestDto(userIds)).set.toDomain()
+        api.shareSet(setId, ShareSetRequestDto(visibility = "specific", sharedWith = userIds)).set.toDomain()
     }
 
     suspend fun duplicateSet(setId: String): Result<FlashcardSet> = runCatching {

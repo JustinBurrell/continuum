@@ -29,7 +29,10 @@ data class NoteDetailUiState(
     val isSaving: Boolean = false,
     val isGeneratingFlashcards: Boolean = false,
     val generatedFlashcardSetId: String? = null,
-    val flashcardGenerationError: String? = null
+    val flashcardGenerationError: String? = null,
+    val isSharing: Boolean = false,
+    val shareSuccess: Boolean = false,
+    val shareError: String? = null
 )
 
 data class DriveFilesUiState(
@@ -179,6 +182,19 @@ class NotesViewModel @Inject constructor(
 
     fun clearFlashcardGeneration() {
         _detailState.update { it.copy(generatedFlashcardSetId = null, flashcardGenerationError = null) }
+    }
+
+    fun shareNote(noteId: String, friendIds: List<String>) {
+        viewModelScope.launch {
+            _detailState.update { it.copy(isSharing = true, shareError = null) }
+            repository.shareNote(noteId, friendIds)
+                .onSuccess { _detailState.update { it.copy(isSharing = false, shareSuccess = true) } }
+                .onFailure { e -> _detailState.update { it.copy(isSharing = false, shareError = e.message) } }
+        }
+    }
+
+    fun clearShareResult() {
+        _detailState.update { it.copy(shareSuccess = false, shareError = null) }
     }
 
     fun loadDriveFiles() {

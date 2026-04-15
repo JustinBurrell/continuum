@@ -49,9 +49,11 @@ fun FlashcardSetDetailScreen(
     var tab by remember(setId) { mutableStateOf(SetDetailTab.Cards) }
     var showMoreMenu by remember { mutableStateOf(false) }
     var showEditSheet by remember { mutableStateOf(false) }
+    var showShareSheet by remember { mutableStateOf(false) }
     var editTitle by remember { mutableStateOf("") }
     var editDescription by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
+    val friendsStateForSheet by socialViewModel.friendsState.collectAsStateWithLifecycle()
 
     LaunchedEffect(setId) {
         viewModel.loadSetDetail(setId)
@@ -101,10 +103,11 @@ fun FlashcardSetDetailScreen(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Make public") },
+                                        text = { Text("Share with friends") },
                                         leadingIcon = { Icon(Icons.Default.Share, null) },
                                         onClick = {
-                                            viewModel.makeSetPublic(setId)
+                                            socialViewModel.loadFriends()
+                                            showShareSheet = true
                                             showMoreMenu = false
                                         }
                                     )
@@ -370,6 +373,19 @@ fun FlashcardSetDetailScreen(
                 )
             }
         }
+    }
+
+    if (showShareSheet) {
+        ShareToFriendsSheet(
+            friends = friendsStateForSheet.friends,
+            isLoadingFriends = friendsStateForSheet.isLoading,
+            isSharing = false,
+            onDismiss = { showShareSheet = false },
+            onShare = { friendIds ->
+                viewModel.shareSetWithFriends(setId, friendIds)
+                showShareSheet = false
+            }
+        )
     }
 }
 

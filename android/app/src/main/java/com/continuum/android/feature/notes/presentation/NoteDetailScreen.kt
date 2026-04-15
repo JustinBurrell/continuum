@@ -44,6 +44,8 @@ fun NoteDetailScreen(
 
     var showSummary by remember { mutableStateOf(false) }
     var summaryTab by remember { mutableIntStateOf(0) }
+    var showShareSheet by remember { mutableStateOf(false) }
+    val friendsStateForSheet by socialViewModel.friendsState.collectAsStateWithLifecycle()
 
     LaunchedEffect(noteId) {
         viewModel.loadNote(noteId)
@@ -71,6 +73,19 @@ fun NoteDetailScreen(
         viewModel.clearFlashcardGeneration()
     }
 
+    LaunchedEffect(detailState.shareSuccess) {
+        if (detailState.shareSuccess) {
+            snackbarHostState.showSnackbar("Shared successfully!")
+            viewModel.clearShareResult()
+        }
+    }
+
+    LaunchedEffect(detailState.shareError) {
+        val err = detailState.shareError ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar("Failed to share: $err")
+        viewModel.clearShareResult()
+    }
+
     val richTextState = rememberRichTextState()
     LaunchedEffect(note?.content) {
         note?.content?.let { richTextState.setHtml(it) }
@@ -84,6 +99,12 @@ fun NoteDetailScreen(
                 onNavigateBack = onNavigateBack,
                 actions = {
                     if (note != null && !isDemo) {
+                        IconButton(onClick = {
+                            socialViewModel.loadFriends()
+                            showShareSheet = true
+                        }) {
+                            Icon(Icons.Default.Share, "Share", tint = TextPrimary)
+                        }
                         IconButton(onClick = { onEdit(noteId) }) {
                             Icon(Icons.Default.Edit, "Edit", tint = TextPrimary)
                         }
@@ -238,5 +259,18 @@ fun NoteDetailScreen(
                 }
             }
         }
+    }
+
+    if (showShareSheet) {
+        ShareToFriendsSheet(
+            friends = friendsStateForSheet.friends,
+            isLoadingFriends = friendsStateForSheet.isLoading,
+            isSharing = detailState.isSharing,
+            onDismiss = { showShareSheet = false },
+            onShare = { friendIds ->
+                viewModel.shareNote(noteId, friendIds)
+                showShareSheet = false
+            }
+        )
     }
 }
