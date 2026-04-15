@@ -361,45 +361,24 @@ private fun NotePreviewCard(note: Note, onClick: () -> Unit) {
     ContinuumCard(
         style = CardStyle.Elevated,
         modifier = Modifier
-            .width(180.dp)
-            .height(148.dp)
+            .width(200.dp)
             .clickable(onClick = onClick)
     ) {
         Column(
-            modifier = Modifier
-                .padding(14.dp)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
+            if (note.tags.isNotEmpty()) {
                 Surface(
                     color = PurpleTint,
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.size(32.dp)
+                    shape = RoundedCornerShape(4.dp)
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Article,
-                            contentDescription = null,
-                            tint = BrandPurple,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
-                note.tags.firstOrNull()?.let { tag ->
-                    Surface(color = PurpleTint, shape = RoundedCornerShape(4.dp)) {
-                        Text(
-                            text = tag,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = BrandPurple,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            maxLines = 1
-                        )
-                    }
+                    Text(
+                        text = note.tags.first(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = BrandPurple,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
                 }
             }
             Text(
@@ -410,11 +389,10 @@ private fun NotePreviewCard(note: Note, onClick: () -> Unit) {
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = if (note.preview.isNotBlank()) note.preview
-                       else note.type.replaceFirstChar { it.uppercase() },
+                text = note.preview,
                 style = MaterialTheme.typography.bodySmall,
                 color = TextSecondary,
-                maxLines = 2,
+                maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
         }
@@ -426,44 +404,21 @@ private fun FlashcardSetPreviewCard(set: FlashcardSet, onClick: () -> Unit) {
     ContinuumCard(
         style = CardStyle.Elevated,
         modifier = Modifier
-            .width(180.dp)
-            .height(148.dp)
+            .width(220.dp)
             .clickable(onClick = onClick)
     ) {
         Column(
-            modifier = Modifier
-                .padding(14.dp)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Surface(
-                    color = PurpleTint,
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Style,
-                            contentDescription = null,
-                            tint = BrandPurple,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
-                if (set.isAIGenerated) {
-                    Surface(color = PurpleTint, shape = RoundedCornerShape(4.dp)) {
-                        Text(
-                            "AI",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = BrandPurple,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
+            if (set.isAIGenerated) {
+                Surface(color = PurpleTint, shape = RoundedCornerShape(4.dp)) {
+                    Text(
+                        text = "AI generated",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = BrandPurple,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
                 }
             }
             Text(
@@ -473,17 +428,11 @@ private fun FlashcardSetPreviewCard(set: FlashcardSet, onClick: () -> Unit) {
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            Surface(
-                color = PurpleTint,
-                shape = RoundedCornerShape(6.dp)
-            ) {
-                Text(
-                    text = "${set.cardCount} cards",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = BrandPurple,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                )
-            }
+            Text(
+                text = "${set.cardCount} cards",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondary
+            )
         }
     }
 }
