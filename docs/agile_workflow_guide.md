@@ -23,6 +23,7 @@ Format: `type/TICKET-ID-short-description`
 | `fix/` | Bug fix | `fix/POL-9-login-redirect` |
 | `chore/` | Maintenance with no behavior change (deps, audits, config) | `chore/SEC-1-npm-audit` |
 | `test/` | Tests or seed data | `test/DB-5-seed-script` |
+| `perf/` | Performance improvement (caching, query optimization, speed) | `perf/APP-3-room-cache-notes` |
 | `refactor/` | Code restructuring | `refactor/POL-2-error-responses` |
 | `docs/` | Documentation only | `docs/POL-11-demo-script` |
 | `deploy/` | Deployment and hosting | `deploy/POL-20-backend-hosting` |
@@ -39,6 +40,7 @@ fix: resolve duplicate email validation error
 chore: fix npm audit vulnerabilities
 test: add seed script for core models
 refactor: standardize error responses
+perf: add Room cache for notes and tasks list screens
 docs: prepare demo script
 ```
 
@@ -245,4 +247,4 @@ Go to GitHub → repo → **Settings** → **Pull Requests**:
 
 ---
 
-*Last Updated: February 17, 2026*
+*Last Updated: April 15, 2026*
