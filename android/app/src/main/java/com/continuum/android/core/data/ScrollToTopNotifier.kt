@@ -1,21 +1,27 @@
 package com.continuum.android.core.data
 
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Emits a unit event whenever the user taps a bottom-nav tab they're already at the root of.
- * Root list screens collect this flow and animate back to the top of their list.
+ * Counter-based scroll-to-top signal for bottom-nav root screens.
+ *
+ * Using StateFlow<Int> rather than SharedFlow<Unit> so that screens which
+ * are recomposing (e.g. returning from a detail screen after navigation)
+ * don't accidentally receive a stale replay event and scroll to top
+ * unexpectedly. Screens react via LaunchedEffect(count) { if (count > 0)
+ * scrollToItem(0) } — which only fires when the counter actually changes,
+ * not on every recomposition.
  */
 @Singleton
 class ScrollToTopNotifier @Inject constructor() {
-    private val _events = MutableSharedFlow<Unit>(extraBufferCapacity = 8)
-    val events: SharedFlow<Unit> = _events.asSharedFlow()
+    private val _counter = MutableStateFlow(0)
+    val counter: StateFlow<Int> = _counter.asStateFlow()
 
     fun notifyScrollToTop() {
-        _events.tryEmit(Unit)
+        _counter.value += 1
     }
 }

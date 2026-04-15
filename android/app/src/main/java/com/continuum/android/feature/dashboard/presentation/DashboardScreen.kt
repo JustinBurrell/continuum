@@ -30,6 +30,7 @@ import com.continuum.android.R
 import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalScrollToTopNotifier
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.core.ui.utils.toDisplayDate
@@ -66,10 +67,12 @@ fun DashboardScreen(
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
     val isDemo = LocalIsDemo.current
     val listState = rememberLazyListState()
-    val scrollToTopNotifier = LocalScrollToTopNotifier.current
+    val scrollToTopCount by remember(LocalScrollToTopNotifier.current) {
+        LocalScrollToTopNotifier.current?.counter ?: MutableStateFlow(0)
+    }.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.load() }
-    LaunchedEffect(scrollToTopNotifier) {
-        scrollToTopNotifier?.events?.collect { listState.animateScrollToItem(0) }
+    LaunchedEffect(scrollToTopCount) {
+        if (scrollToTopCount > 0) listState.animateScrollToItem(0)
     }
 
     Column(modifier = Modifier.fillMaxSize()) {

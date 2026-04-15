@@ -19,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalScrollToTopNotifier
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
@@ -46,11 +47,13 @@ fun NotesListScreen(
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
     var contextMenuNote by remember { mutableStateOf<Note?>(null) }
     val scrollState = rememberLazyListState()
-    val scrollToTopNotifier = LocalScrollToTopNotifier.current
+    val scrollToTopCount by remember(LocalScrollToTopNotifier.current) {
+        LocalScrollToTopNotifier.current?.counter ?: MutableStateFlow(0)
+    }.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.loadNotes() }
-    LaunchedEffect(scrollToTopNotifier) {
-        scrollToTopNotifier?.events?.collect { scrollState.animateScrollToItem(0) }
+    LaunchedEffect(scrollToTopCount) {
+        if (scrollToTopCount > 0) scrollState.animateScrollToItem(0)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

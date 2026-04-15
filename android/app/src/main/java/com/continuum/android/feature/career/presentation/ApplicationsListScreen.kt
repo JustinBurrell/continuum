@@ -18,6 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalScrollToTopNotifier
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.core.ui.utils.toDisplayDate
@@ -42,11 +43,13 @@ fun ApplicationsListScreen(
     var appToDelete by remember { mutableStateOf<Application?>(null) }
     val selectedTabIndex = statusTabs.indexOf(state.statusFilter).coerceAtLeast(0)
     val listState = rememberLazyListState()
-    val scrollToTopNotifier = LocalScrollToTopNotifier.current
+    val scrollToTopCount by remember(LocalScrollToTopNotifier.current) {
+        LocalScrollToTopNotifier.current?.counter ?: MutableStateFlow(0)
+    }.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.loadApplications() }
-    LaunchedEffect(scrollToTopNotifier) {
-        scrollToTopNotifier?.events?.collect { listState.animateScrollToItem(0) }
+    LaunchedEffect(scrollToTopCount) {
+        if (scrollToTopCount > 0) listState.animateScrollToItem(0)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

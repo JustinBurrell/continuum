@@ -78,9 +78,8 @@ fun ContinuumBottomBar(
             NavigationBarItem(
                 selected = selected,
                 onClick = {
-                    val isAtRoot = isBottomNavTabAtRoot(currentRoute, item)
                     navController.handleBottomNavItemClick(item, currentRoute)
-                    if (isAtRoot) scrollToTopNotifier?.notifyScrollToTop()
+                    scrollToTopNotifier?.notifyScrollToTop()
                 },
                 icon = {
                     when (item) {
@@ -128,9 +127,8 @@ fun ContinuumNavigationRail(
             NavigationRailItem(
                 selected = selected,
                 onClick = {
-                    val isAtRoot = isBottomNavTabAtRoot(currentRoute, item)
                     navController.handleBottomNavItemClick(item, currentRoute)
-                    if (isAtRoot) scrollToTopNotifier?.notifyScrollToTop()
+                    scrollToTopNotifier?.notifyScrollToTop()
                 },
                 icon = {
                     when (item) {
