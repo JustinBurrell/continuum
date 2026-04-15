@@ -1,21 +1,62 @@
 package com.continuum.android.feature.career.data.repository
 
+import com.continuum.android.core.data.local.AppDatabase
+import com.continuum.android.core.data.local.ApplicationEntity
 import com.continuum.android.feature.career.data.remote.CareerApiService
 import com.continuum.android.feature.career.data.remote.dto.*
 import com.continuum.android.feature.career.domain.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import okhttp3.MultipartBody
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class CareerRepository @Inject constructor(private val api: CareerApiService) {
+class CareerRepository @Inject constructor(
+    private val api: CareerApiService,
+    private val db: AppDatabase
+) {
+    private val appDao get() = db.applicationDao()
+
+    /** Cache-first: emit Room immediately, then refresh from API. Only for unfiltered list. */
+    fun getApplicationsFlow(): Flow<Result<List<Application>>> = flow {
+        val cached = appDao.getAll().map { it.toDomain() }
+        if (cached.isNotEmpty()) emit(Result.success(cached))
+        try {
+            val fresh = api.getApplications().applications.map { it.toDomain() }
+            appDao.deleteAll()
+            appDao.insertAll(fresh.map { it.toEntity() })
+            emit(Result.success(fresh))
+        } catch (e: IOException) {
+            if (cached.isEmpty()) emit(Result.failure(e))
+        } catch (e: Exception) {
+            if (cached.isEmpty()) emit(Result.failure(e))
+        }
+    }
 
     suspend fun getApplications(search: String? = null, status: String? = null): Result<List<Application>> = runCatching {
-        api.getApplications(
+        val result = api.getApplications(
             search = search?.takeIf { it.isNotBlank() },
             status = status?.takeIf { it.isNotBlank() && it != "all" }
         ).applications.map { it.toDomain() }
+        if (search.isNullOrBlank() && (status.isNullOrBlank() || status == "all")) {
+            appDao.deleteAll()
+            appDao.insertAll(result.map { it.toEntity() })
+        }
+        result
     }
+
+    private fun Application.toEntity() = ApplicationEntity(
+        id = id, company = company, position = position, status = status,
+        appliedDate = appliedDate, jobUrl = jobUrl, notes = notes, updatedAt = updatedAt
+    )
+
+    private fun ApplicationEntity.toDomain() = Application(
+        id = id, company = company, position = position, status = status,
+        appliedDate = appliedDate, jobUrl = jobUrl, notes = notes ?: "",
+        contacts = emptyList(), reminders = emptyList(), updatedAt = updatedAt
+    )
 
     suspend fun createApplication(company: String, position: String, status: String, jobUrl: String?): Result<Application> = runCatching {
         api.createApplication(CreateApplicationRequestDto(company, position, status, jobUrl)).application.toDomain()

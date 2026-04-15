@@ -55,6 +55,30 @@ data class TaskEntity(
     val updatedAt: String
 )
 
+@Entity(tableName = "conversations")
+data class ConversationEntity(
+    @PrimaryKey val id: String,
+    val participantId: String,
+    val participantName: String,
+    val participantAvatar: String?,
+    val participantRoles: String,   // comma-separated
+    val lastMessage: String,
+    val lastMessageAt: String,
+    val unreadCount: Int
+)
+
+@Entity(tableName = "applications")
+data class ApplicationEntity(
+    @PrimaryKey val id: String,
+    val company: String,
+    val position: String,
+    val status: String,
+    val appliedDate: String?,
+    val jobUrl: String?,
+    val notes: String?,
+    val updatedAt: String
+)
+
 @Entity(tableName = "users")
 data class UserEntity(
     @PrimaryKey val id: String,
@@ -209,6 +233,36 @@ interface SyncQueueDao {
     suspend fun count(): Int
 }
 
+@Dao
+interface ConversationDao {
+    @Query("SELECT * FROM conversations ORDER BY lastMessageAt DESC")
+    suspend fun getAll(): List<ConversationEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(conversations: List<ConversationEntity>)
+
+    @Query("DELETE FROM conversations")
+    suspend fun deleteAll()
+}
+
+@Dao
+interface ApplicationDao {
+    @Query("SELECT * FROM applications ORDER BY updatedAt DESC")
+    suspend fun getAll(): List<ApplicationEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(applications: List<ApplicationEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(application: ApplicationEntity)
+
+    @Query("DELETE FROM applications WHERE id = :id")
+    suspend fun deleteById(id: String)
+
+    @Query("DELETE FROM applications")
+    suspend fun deleteAll()
+}
+
 // ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
@@ -220,9 +274,11 @@ interface SyncQueueDao {
         FlashcardEntity::class,
         TaskEntity::class,
         UserEntity::class,
-        SyncQueueEntity::class
+        SyncQueueEntity::class,
+        ConversationEntity::class,
+        ApplicationEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -232,4 +288,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao
     abstract fun userDao(): UserDao
     abstract fun syncQueueDao(): SyncQueueDao
+    abstract fun conversationDao(): ConversationDao
+    abstract fun applicationDao(): ApplicationDao
 }

@@ -64,14 +64,25 @@ class CareerViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun loadApplications() {
-        viewModelScope.launch {
-            _applicationsState.update { it.copy(isLoading = true, error = null) }
-            repository.getApplications(
-                search = _applicationsState.value.searchQuery,
-                status = _applicationsState.value.statusFilter
-            )
-                .onSuccess { apps -> _applicationsState.update { it.copy(applications = apps, isLoading = false) } }
-                .onFailure { e -> _applicationsState.update { it.copy(isLoading = false, error = e.message) } }
+        val search = _applicationsState.value.searchQuery.trim()
+        val statusFilter = _applicationsState.value.statusFilter
+        // Fast path: no filter → use cache-first Flow
+        if (search.isBlank() && (statusFilter.isBlank() || statusFilter == "all")) {
+            viewModelScope.launch {
+                _applicationsState.update { it.copy(isLoading = true, error = null) }
+                repository.getApplicationsFlow().collect { result ->
+                    result
+                        .onSuccess { apps -> _applicationsState.update { it.copy(applications = apps, isLoading = false) } }
+                        .onFailure { e -> _applicationsState.update { it.copy(isLoading = false, error = e.message) } }
+                }
+            }
+        } else {
+            viewModelScope.launch {
+                _applicationsState.update { it.copy(isLoading = true, error = null) }
+                repository.getApplications(search = search.ifBlank { null }, status = statusFilter)
+                    .onSuccess { apps -> _applicationsState.update { it.copy(applications = apps, isLoading = false) } }
+                    .onFailure { e -> _applicationsState.update { it.copy(isLoading = false, error = e.message) } }
+            }
         }
     }
 
