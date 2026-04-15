@@ -13,9 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -141,17 +140,33 @@ private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: (
                     .clip(CircleShape)
                     .clickable(onClick = onUserClick)
             )
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                // Name + badge + action text all on one line, badges inline with name
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(
-                        buildAnnotatedString {
-                            withStyle(SpanStyle(color = BrandPurple)) { append(item.actorName) }
-                            append(item.displayText.removePrefix(item.actorName))
-                        },
+                        item.actorName,
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f, fill = false).clickable(onClick = onUserClick)
+                        fontWeight = FontWeight.SemiBold,
+                        color = BrandPurple,
+                        maxLines = 1,
+                        modifier = Modifier.clickable(onClick = onUserClick)
                     )
                     VerifiedRoleBadges(roles = item.actorRoles, expanded = false)
+                    val actionText = item.displayText.removePrefix(item.actorName).trim()
+                    if (actionText.isNotBlank()) {
+                        Text(
+                            actionText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
                 Text(item.createdAt.toDisplayDate(), style = MaterialTheme.typography.bodySmall, color = TextMuted)
             }
