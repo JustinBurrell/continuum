@@ -32,6 +32,9 @@ class TasksRepository @Inject constructor(
 
     private val taskDao get() = db.taskDao()
 
+    /** Read-only Room read — no network call, returns immediately. */
+    suspend fun getCachedTasks(): List<Task> = taskDao.getAll().map { it.toDomain() }
+
     fun getTasks(): Flow<Result<List<Task>>> = flow {
         val cached = taskDao.getAll().map { it.toDomain() }
         if (cached.isNotEmpty()) emit(Result.success(cached))

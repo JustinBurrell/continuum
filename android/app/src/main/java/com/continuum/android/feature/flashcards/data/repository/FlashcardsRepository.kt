@@ -36,6 +36,9 @@ class FlashcardsRepository @Inject constructor(
     private val setDao get() = db.flashcardSetDao()
     private val cardDao get() = db.flashcardDao()
 
+    /** Read-only Room read — no network call, returns immediately. */
+    suspend fun getCachedSets(): List<FlashcardSet> = setDao.getAll().map { it.toDomain() }
+
     fun getSets(): Flow<Result<List<FlashcardSet>>> = flow {
         val cached = setDao.getAll().map { it.toDomain() }
         if (cached.isNotEmpty()) emit(Result.success(cached))

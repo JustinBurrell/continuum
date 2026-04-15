@@ -40,6 +40,9 @@ class NotesRepository @Inject constructor(
         notes
     }
 
+    /** Read-only Room read — no network call, returns immediately. */
+    suspend fun getCachedNotes(): List<Note> = noteDao.getAll().map { it.toDomain() }
+
     // NetworkBoundResource: emit cached first, then fetch fresh
     fun getNotes(): Flow<Result<List<Note>>> = flow {
         val cached = noteDao.getAll().map { it.toDomain() }

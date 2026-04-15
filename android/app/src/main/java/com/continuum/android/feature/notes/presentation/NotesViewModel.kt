@@ -69,16 +69,31 @@ class NotesViewModel @Inject constructor(
     private var searchJob: Job? = null
 
     fun loadNotes() {
-        viewModelScope.launch {
-            _listState.update { it.copy(isLoading = true, error = null) }
-            repository.queryNotes(
-                search = _searchQuery.value.trim().ifBlank { null },
-                type = _listState.value.selectedType,
-                shared = _listState.value.isSharedTab
-            ).onSuccess { notes ->
-                _listState.update { it.copy(notes = notes, isLoading = false) }
-            }.onFailure { e ->
-                _listState.update { it.copy(isLoading = false, error = e.message) }
+        val search = _searchQuery.value.trim()
+        val state = _listState.value
+        // Fast path: no filter/search → use cache-first Flow so cached notes
+        // appear immediately while the API refresh happens in the background.
+        if (search.isBlank() && !state.isSharedTab && (state.selectedType.isNullOrBlank() || state.selectedType == "all")) {
+            viewModelScope.launch {
+                _listState.update { it.copy(isLoading = true, error = null) }
+                repository.getNotes().collect { result ->
+                    result
+                        .onSuccess { notes -> _listState.update { it.copy(notes = notes, isLoading = false) } }
+                        .onFailure { e -> _listState.update { it.copy(isLoading = false, error = e.message) } }
+                }
+            }
+        } else {
+            viewModelScope.launch {
+                _listState.update { it.copy(isLoading = true, error = null) }
+                repository.queryNotes(
+                    search = search.ifBlank { null },
+                    type = state.selectedType,
+                    shared = state.isSharedTab
+                ).onSuccess { notes ->
+                    _listState.update { it.copy(notes = notes, isLoading = false) }
+                }.onFailure { e ->
+                    _listState.update { it.copy(isLoading = false, error = e.message) }
+                }
             }
         }
     }
