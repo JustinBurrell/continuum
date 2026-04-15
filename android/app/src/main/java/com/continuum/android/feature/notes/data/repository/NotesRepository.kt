@@ -24,32 +24,28 @@ class NotesRepository @Inject constructor(
         type: String? = null,
         shared: Boolean = false
     ): Result<List<Note>> = runCatching {
-        val response = if (shared) {
-            api.getSharedNotes(search = search?.takeIf { it.isNotBlank() })
+        if (shared) {
+            api.getSharedNotes(search = search?.takeIf { it.isNotBlank() }).notes.map { it.toDomain() }
         } else {
-            api.getNotes(
+            val allDtos = fetchAllNotePages(
                 search = search?.takeIf { it.isNotBlank() },
-                type = type?.takeIf { it.isNotBlank() && it != "all" },
-                limit = 100
+                type = type?.takeIf { it.isNotBlank() && it != "all" }
             )
-        }
-        val notes = response.notes.map { it.toDomain() }
-        if (!shared) {
             noteDao.deleteAll()
-            noteDao.insertAll(response.notes.map { it.toEntity() })
+            noteDao.insertAll(allDtos.map { it.toEntity() })
+            allDtos.map { it.toDomain() }
         }
-        notes
     }
 
     /** Read-only Room read — no network call, returns immediately. */
     suspend fun getCachedNotes(): List<Note> = noteDao.getAll().map { it.toDomain() }
 
-    // NetworkBoundResource: emit cached first, then fetch fresh
+    // NetworkBoundResource: emit cached first, then fetch all pages fresh
     fun getNotes(): Flow<Result<List<Note>>> = flow {
         val cached = noteDao.getAll().map { it.toDomain() }
         if (cached.isNotEmpty()) emit(Result.success(cached))
         try {
-            val fresh = api.getNotes(limit = 100).notes
+            val fresh = fetchAllNotePages()
             noteDao.deleteAll()
             noteDao.insertAll(fresh.map { it.toEntity() })
             emit(Result.success(noteDao.getAll().map { it.toDomain() }))
@@ -58,6 +54,18 @@ class NotesRepository @Inject constructor(
         } catch (e: Exception) {
             if (cached.isEmpty()) emit(Result.failure(e))
         }
+    }
+
+    /** Fetches every page of notes and returns a flat list of all DTOs. */
+    private suspend fun fetchAllNotePages(search: String? = null, type: String? = null): List<NoteDto> {
+        val pageSize = 50
+        val firstPage = api.getNotes(search = search, type = type, page = 1, limit = pageSize)
+        val allDtos = firstPage.notes.toMutableList()
+        val totalPages = firstPage.pagination?.pages ?: 1
+        for (page in 2..totalPages) {
+            allDtos += api.getNotes(search = search, type = type, page = page, limit = pageSize).notes
+        }
+        return allDtos
     }
 
     suspend fun getNoteById(id: String): Result<Note> = runCatching {

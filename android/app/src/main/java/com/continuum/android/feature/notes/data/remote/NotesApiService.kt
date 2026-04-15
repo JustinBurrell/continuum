@@ -9,6 +9,7 @@ interface NotesApiService {
     suspend fun getNotes(
         @Query("search") search: String? = null,
         @Query("type") type: String? = null,
+        @Query("page") page: Int? = null,
         @Query("limit") limit: Int? = null
     ): NotesListResponseDto
 
