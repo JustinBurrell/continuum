@@ -31,6 +31,7 @@ import com.continuum.android.core.data.local.LogoutReason
 import com.continuum.android.core.ui.components.DemoBanner
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalNetworkMonitor
+import com.continuum.android.core.ui.LocalScrollToTopNotifier
 import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.feature.auth.presentation.*
 import com.continuum.android.feature.career.presentation.*
@@ -239,7 +240,11 @@ fun AppNavHost(
         tokenManager.clearTokens()
     }
 
-    CompositionLocalProvider(LocalIsDemo provides navProfile.isDemo) {
+    val scrollToTopNotifier = navProfileViewModel.scrollToTopNotifier
+    CompositionLocalProvider(
+        LocalIsDemo provides navProfile.isDemo,
+        LocalScrollToTopNotifier provides scrollToTopNotifier
+    ) {
         if (isExpandedScreen && showMainNav) {
             Row(modifier = Modifier.fillMaxSize()) {
                 ContinuumNavigationRail(

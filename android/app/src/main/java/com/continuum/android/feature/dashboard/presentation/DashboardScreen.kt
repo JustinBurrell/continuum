@@ -29,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.R
 import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.LocalIsDemo
+import com.continuum.android.core.ui.LocalScrollToTopNotifier
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.core.ui.utils.toDisplayDate
@@ -64,7 +65,12 @@ fun DashboardScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
     val isDemo = LocalIsDemo.current
+    val listState = rememberLazyListState()
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
     LaunchedEffect(Unit) { viewModel.load() }
+    LaunchedEffect(scrollToTopNotifier) {
+        scrollToTopNotifier?.events?.collect { listState.animateScrollToItem(0) }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (!isOnline) OfflineBanner()
@@ -92,6 +98,7 @@ fun DashboardScreen(
                 }
             } else {
                 LazyColumn(
+                    state = listState,
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {

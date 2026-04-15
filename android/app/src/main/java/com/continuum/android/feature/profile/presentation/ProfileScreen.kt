@@ -3,6 +3,7 @@ package com.continuum.android.feature.profile.presentation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.continuum.android.core.ui.LocalScrollToTopNotifier
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.profile.domain.Profile
@@ -56,8 +58,13 @@ fun ProfileScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showLogoutAllDialog by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
 
     LaunchedEffect(Unit) { viewModel.load() }
+    LaunchedEffect(scrollToTopNotifier) {
+        scrollToTopNotifier?.events?.collect { listState.animateScrollToItem(0) }
+    }
 
     LaunchedEffect(state.successMessage, state.error) {
         if (state.successMessage != null || state.error != null) {
@@ -80,6 +87,7 @@ fun ProfileScreen(
         val profile = state.profile ?: return@Column
 
         LazyColumn(
+            state = listState,
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
