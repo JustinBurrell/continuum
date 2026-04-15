@@ -132,6 +132,7 @@ private fun CommentItem(
     ) {
         AvatarInitials(
             name = comment.authorName,
+            imageUrl = comment.authorAvatar,
             size = if (depth == 0) 32.dp else 24.dp,
             modifier = if (onUserClick != null) Modifier.clickable(onClick = onUserClick) else Modifier
         )
@@ -144,7 +145,6 @@ private fun CommentItem(
                     color = if (onUserClick != null) BrandPurple else TextPrimary,
                     modifier = if (onUserClick != null) Modifier.clickable(onClick = onUserClick) else Modifier
                 )
-                VerifiedRoleBadges(roles = comment.authorRoles, expanded = false)
                 Spacer(Modifier.width(Spacing.sm))
                 Text(comment.createdAt.toDisplayDate(), style = MaterialTheme.typography.labelSmall, color = TextMuted)
             }

@@ -453,6 +453,7 @@ private fun ActivityRow(item: ActivityItem, onClick: () -> Unit, onActorClick: (
             if (actorId != null) {
                 AvatarInitials(
                     name = item.actorName,
+                    imageUrl = item.actorAvatar,
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
@@ -494,7 +495,6 @@ private fun ActivityRow(item: ActivityItem, onClick: () -> Unit, onActorClick: (
                                 indication = null
                             ) { item.actorId?.let(onActorClick) }
                     )
-                    VerifiedRoleBadges(roles = item.actorRoles, expanded = false)
                 }
                 Text(
                     text = item.createdAt.toDisplayDate(),

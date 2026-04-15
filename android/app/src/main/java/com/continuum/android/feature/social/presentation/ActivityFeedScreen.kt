@@ -135,13 +135,13 @@ private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: (
         ) {
             AvatarInitials(
                 name = item.actorName,
+                imageUrl = item.actorAvatar,
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
                     .clickable(onClick = onUserClick)
             )
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                // Name + badge + action text all on one line, badges inline with name
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -155,7 +155,6 @@ private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: (
                         maxLines = 1,
                         modifier = Modifier.clickable(onClick = onUserClick)
                     )
-                    VerifiedRoleBadges(roles = item.actorRoles, expanded = false)
                     val actionText = item.displayText.removePrefix(item.actorName).trim()
                     if (actionText.isNotBlank()) {
                         Text(
