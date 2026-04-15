@@ -83,28 +83,29 @@ class DashboardViewModel @Inject constructor(
                 _state.update { it.copy(isLoading = true, error = null) }
             }
 
-            // Phase 2 — refresh everything from the network in parallel.
+            // Phase 2 — refresh from the network. All 5 calls launch in parallel;
+            // activity launches as soon as profile returns (needs lastViewedActivityAt).
             try {
+                var freshNotes: List<Note> = emptyList()
+                var freshTasks: List<Task> = emptyList()
+                var freshSets: List<FlashcardSet> = emptyList()
+
                 val profileDeferred = async { profileRepository.getProfile() }
-                val lastSeenDeferred = async { profileRepository.getLastViewedActivityAt() }
-                val notesDeferred = async { notesRepository.getNotes().collect { } }
-                val tasksDeferred = async { tasksRepository.getTasks().collect { } }
-                val setsDeferred = async { flashcardsRepository.getSets().collect { } }
-                val appsDeferred = async { careerApi.getApplicationsDashboard() }
+                val notesDeferred = async { notesRepository.getNotes().collect { freshNotes = it } }
+                val tasksDeferred = async { tasksRepository.getTasks().collect { freshTasks = it } }
+                val setsDeferred = async { flashcardsRepository.getSets().collect { freshSets = it } }
+                val appsListDeferred = async { careerApi.getApplications() }
 
-                val firstName = profileDeferred.await().getOrNull()?.firstName?.ifBlank { "there" } ?: "there"
-                val lastSeen = lastSeenDeferred.await()
-                val activityDeferred = async { socialApi.getActivity(since = lastSeen) }
+                // Profile is typically the fastest call; launch activity immediately after it
+                // returns so both run in parallel with the heavier notes/tasks/sets flows.
+                val profile = profileDeferred.await().getOrNull()
+                val firstName = profile?.firstName?.ifBlank { "there" } ?: "there"
+                val activityDeferred = async { socialApi.getActivity(since = profile?.lastViewedActivityAt) }
 
-                // Wait for collections to finish updating Room, then read fresh from cache
                 notesDeferred.await()
                 tasksDeferred.await()
                 setsDeferred.await()
-                val freshNotes = notesRepository.getCachedNotes()
-                val freshTasks = tasksRepository.getCachedTasks()
-                val freshSets = flashcardsRepository.getCachedSets()
-
-                val appsResp = appsDeferred.await()
+                val allAppsDtos = appsListDeferred.await().applications
                 val activityResp = activityDeferred.await()
 
                 val openTasks = freshTasks
@@ -140,7 +141,6 @@ class DashboardViewModel @Inject constructor(
                     )
                 }
 
-                val allAppsDtos = careerApi.getApplications().applications
                 val applications = allAppsDtos.take(5).map { dto ->
                     Application(
                         id = dto.id,
@@ -173,7 +173,7 @@ class DashboardViewModel @Inject constructor(
                         applications = applications,
                         upcomingTasks = openTasks.take(5),
                         openTaskCount = openTasks.size,
-                        openApplicationCount = if (appsResp.total > 0) appsResp.total else allAppsDtos.size,
+                        openApplicationCount = allAppsDtos.size,
                         newActivityCount = activityResp.total,
                         error = null
                     )

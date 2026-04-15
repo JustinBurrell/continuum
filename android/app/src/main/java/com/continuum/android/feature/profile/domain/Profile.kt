@@ -19,7 +19,8 @@ data class Profile(
     val emailNotifications: Boolean,
     val pushNotifications: Boolean,
     val createdAt: String,
-    val roles: List<String> = emptyList()
+    val roles: List<String> = emptyList(),
+    val lastViewedActivityAt: String? = null
 ) {
     val fullName: String get() = "$firstName $lastName".trim().ifEmpty { username }
     val initials: String get() = buildString {
