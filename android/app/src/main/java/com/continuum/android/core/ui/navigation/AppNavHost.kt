@@ -478,12 +478,13 @@ private fun NavGraph(
             ) { backStackEntry ->
                 val networkMonitor = LocalNetworkMonitor.current
                 val noteId = backStackEntry.arguments?.getString("noteId") ?: return@composable
+                val noteTokenManager = LocalTokenManager.current
                 NoteDetailScreen(
                     noteId = noteId,
                     onNavigateBack = { navController.popBackStack() },
                     onEdit = { id -> navController.navigate(NavRoutes.Notes.editor(id)) },
                     networkMonitor = networkMonitor,
-                    currentUserId = tokenManager.getJwtUserId(),
+                    currentUserId = noteTokenManager.getJwtUserId(),
                     onNavigateToSet = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) },
                     onUserProfileClick = { uid -> navController.navigate(NavRoutes.Social.userProfile(uid)) }
                 )
@@ -691,9 +692,10 @@ private fun NavGraph(
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val noteId = backStackEntry.arguments?.getString("noteId") ?: return@composable
+                val sharedNoteTokenManager = LocalTokenManager.current
                 SharedNoteViewScreen(
                     noteId = noteId,
-                    currentUserId = tokenManager.getJwtUserId(),
+                    currentUserId = sharedNoteTokenManager.getJwtUserId(),
                     onNavigateBack = { navController.popBackStack() },
                     onCommentAuthorClick = { uid ->
                         navController.navigate(NavRoutes.Social.userProfile(uid))
