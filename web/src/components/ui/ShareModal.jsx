@@ -59,9 +59,9 @@ export default function ShareModal({
     prevOpen.current = open;
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // The friends endpoint returns { friendships: [...] } where each has user1 & user2 populated.
+  // The friends endpoint returns { friends: [...] } where each has user1 & user2 populated.
   // Extract the friend (the user who isn't the current user).
-  const friends = (friendsData?.friendships || friendsData?.data || []).map(f => {
+  const friends = (friendsData?.friends || []).map(f => {
     if (f.user1 && f.user2) {
       return f.user1._id === user?._id ? f.user2 : f.user1;
     }
