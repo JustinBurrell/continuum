@@ -267,8 +267,8 @@ fun NoteDetailScreen(
             isLoadingFriends = friendsStateForSheet.isLoading,
             isSharing = detailState.isSharing,
             onDismiss = { showShareSheet = false },
-            onShare = { friendIds ->
-                viewModel.shareNote(noteId, friendIds)
+            onShare = { visibility, friendIds ->
+                viewModel.shareNote(noteId, visibility, friendIds)
                 showShareSheet = false
             }
         )

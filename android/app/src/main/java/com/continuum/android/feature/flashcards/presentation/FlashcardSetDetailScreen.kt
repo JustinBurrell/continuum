@@ -381,8 +381,8 @@ fun FlashcardSetDetailScreen(
             isLoadingFriends = friendsStateForSheet.isLoading,
             isSharing = false,
             onDismiss = { showShareSheet = false },
-            onShare = { friendIds ->
-                viewModel.shareSetWithFriends(setId, friendIds)
+            onShare = { visibility, friendIds ->
+                viewModel.shareSetWithFriends(setId, visibility, friendIds)
                 showShareSheet = false
             }
         )

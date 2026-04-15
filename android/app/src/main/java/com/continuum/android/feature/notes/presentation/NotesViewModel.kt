@@ -199,10 +199,10 @@ class NotesViewModel @Inject constructor(
         _detailState.update { it.copy(generatedFlashcardSetId = null, flashcardGenerationError = null) }
     }
 
-    fun shareNote(noteId: String, friendIds: List<String>) {
+    fun shareNote(noteId: String, visibility: String, friendIds: List<String>) {
         viewModelScope.launch {
             _detailState.update { it.copy(isSharing = true, shareError = null) }
-            repository.shareNote(noteId, friendIds)
+            repository.shareNote(noteId, visibility, friendIds)
                 .onSuccess { _detailState.update { it.copy(isSharing = false, shareSuccess = true) } }
                 .onFailure { e -> _detailState.update { it.copy(isSharing = false, shareError = e.message) } }
         }
