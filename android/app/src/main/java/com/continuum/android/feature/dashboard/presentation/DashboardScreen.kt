@@ -67,8 +67,9 @@ fun DashboardScreen(
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
     val isDemo = LocalIsDemo.current
     val listState = rememberLazyListState()
-    val scrollToTopCount by remember(LocalScrollToTopNotifier.current) {
-        LocalScrollToTopNotifier.current?.counter ?: MutableStateFlow(0)
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
+    val scrollToTopCount by remember(scrollToTopNotifier) {
+        scrollToTopNotifier?.counter ?: MutableStateFlow(0)
     }.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.load() }
     LaunchedEffect(scrollToTopCount) {

@@ -47,8 +47,9 @@ fun NotesListScreen(
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
     var contextMenuNote by remember { mutableStateOf<Note?>(null) }
     val scrollState = rememberLazyListState()
-    val scrollToTopCount by remember(LocalScrollToTopNotifier.current) {
-        LocalScrollToTopNotifier.current?.counter ?: MutableStateFlow(0)
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
+    val scrollToTopCount by remember(scrollToTopNotifier) {
+        scrollToTopNotifier?.counter ?: MutableStateFlow(0)
     }.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.loadNotes() }

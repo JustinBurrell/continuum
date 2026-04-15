@@ -41,8 +41,9 @@ fun FlashcardSetsListScreen(
     var showGenerateSheet by remember { mutableStateOf(false) }
     var setToDelete by remember { mutableStateOf<FlashcardSet?>(null) }
     val listState = rememberLazyListState()
-    val scrollToTopCount by remember(LocalScrollToTopNotifier.current) {
-        LocalScrollToTopNotifier.current?.counter ?: MutableStateFlow(0)
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
+    val scrollToTopCount by remember(scrollToTopNotifier) {
+        scrollToTopNotifier?.counter ?: MutableStateFlow(0)
     }.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.loadSets() }

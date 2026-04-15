@@ -91,9 +91,9 @@ class DashboardViewModel @Inject constructor(
                 var freshSets: List<FlashcardSet> = emptyList()
 
                 val profileDeferred = async { profileRepository.getProfile() }
-                val notesDeferred = async { notesRepository.getNotes().collect { freshNotes = it } }
-                val tasksDeferred = async { tasksRepository.getTasks().collect { freshTasks = it } }
-                val setsDeferred = async { flashcardsRepository.getSets().collect { freshSets = it } }
+                val notesDeferred = async { notesRepository.getNotes().collect { freshNotes = it.getOrNull() ?: freshNotes } }
+                val tasksDeferred = async { tasksRepository.getTasks().collect { freshTasks = it.getOrNull() ?: freshTasks } }
+                val setsDeferred = async { flashcardsRepository.getSets().collect { freshSets = it.getOrNull() ?: freshSets } }
                 val appsListDeferred = async { careerApi.getApplications() }
 
                 // Profile is typically the fastest call; launch activity immediately after it

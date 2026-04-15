@@ -60,8 +60,9 @@ fun ProfileScreen(
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showLogoutAllDialog by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    val scrollToTopCount by remember(LocalScrollToTopNotifier.current) {
-        LocalScrollToTopNotifier.current?.counter ?: MutableStateFlow(0)
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
+    val scrollToTopCount by remember(scrollToTopNotifier) {
+        scrollToTopNotifier?.counter ?: MutableStateFlow(0)
     }.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.load() }
