@@ -125,7 +125,7 @@ export default function Tasks() {
       const prev = queryClient.getQueryData(taskQueryKey);
       if (!sharedTab) {
         queryClient.setQueryData(taskQueryKey, (old) => {
-          if (!old) return old;
+          if (!old?.pages) return old;
           return {
             ...old,
             pages: old.pages.map(page => ({
