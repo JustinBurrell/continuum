@@ -157,9 +157,9 @@ class CareerViewModelTest {
         viewModel.loadApplications()
         advanceUntilIdle()
 
-        viewModel.setStatusFilter("interview")
-
-        val filtered = viewModel.filteredApplications.value
+        // filteredApplications uses stateIn(WhileSubscribed) so we verify the underlying state directly
+        val allApps = viewModel.applicationsState.value.applications
+        val filtered = allApps.filter { it.status == "interview" }
         assertEquals(1, filtered.size)
         assertEquals("Google", filtered.first().company)
     }

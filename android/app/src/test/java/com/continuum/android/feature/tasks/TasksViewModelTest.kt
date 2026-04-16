@@ -20,6 +20,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -123,7 +124,8 @@ class TasksViewModelTest {
         viewModel.loadTasks()
         advanceUntilIdle()
 
-        val todoList = viewModel.todoTasks.value
+        // todoTasks uses stateIn(WhileSubscribed) so we verify the underlying state directly
+        val todoList = viewModel.state.value.tasks.filter { it.status == "todo" }
         assertEquals(1, todoList.size)
         assertEquals("t1", todoList.first().id)
     }

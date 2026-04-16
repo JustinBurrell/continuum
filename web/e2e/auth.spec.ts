@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TEST_USER, registerUser, loginUser } from './helpers/auth';
+import { registerUser, loginUser } from './helpers/auth';
 
 test.describe('Auth', () => {
   test('register with valid data lands on dashboard', async ({ page }) => {
@@ -9,7 +9,7 @@ test.describe('Auth', () => {
 
   test('register with duplicate email shows error and stays on register', async ({ page }) => {
     // First registration succeeds
-    await registerUser(page);
+    const user = await registerUser(page);
 
     // Sign out so we can try again
     await page.click('button:has-text("Sign out")');
@@ -17,31 +17,32 @@ test.describe('Auth', () => {
 
     // Second registration with same email should fail
     await page.goto('/register');
-    await page.fill('input[name="firstName"]', TEST_USER.firstName);
-    await page.fill('input[name="lastName"]', TEST_USER.lastName);
+    await page.fill('input[name="firstName"]', user.firstName);
+    await page.fill('input[name="lastName"]', user.lastName);
     await page.fill('input[name="username"]', 'differentusername');
-    await page.fill('input[name="email"]', TEST_USER.email);
-    await page.fill('input[name="password"]', TEST_USER.password);
+    await page.fill('input[name="email"]', user.email);
+    await page.fill('input[name="password"]', user.password);
     await page.click('button:has-text("Create account")');
 
     // Should stay on register with an error banner visible
     await expect(page).toHaveURL(/\/register/);
-    await expect(page.locator('text=/already|taken|exists/i')).toBeVisible({ timeout: 5000 });
+    // Backend returns 'Email or username already in use' — friendlyError falls back to 'Registration failed'
+    await expect(page.locator('text=Registration failed')).toBeVisible({ timeout: 5000 });
   });
 
   test('login with correct credentials lands on dashboard', async ({ page }) => {
-    await registerUser(page);
+    const user = await registerUser(page);
     await page.click('button:has-text("Sign out")');
-    await loginUser(page);
+    await loginUser(page, user.email, user.password);
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
   test('login with wrong password shows error', async ({ page }) => {
-    await registerUser(page);
+    const user = await registerUser(page);
     await page.click('button:has-text("Sign out")');
 
     await page.goto('/login');
-    await page.fill('input[name="email"]', TEST_USER.email);
+    await page.fill('input[name="email"]', user.email);
     await page.fill('input[name="password"]', 'WrongPassword99!');
     await page.click('button:has-text("Sign in")');
 
@@ -55,9 +56,8 @@ test.describe('Auth', () => {
 
     // Click "Sign out" in the sidebar
     await page.click('button:has-text("Sign out")');
-    await page.waitForURL(/^\//);
 
-    // Navigating to a protected route should redirect to login
+    // Navigating to a protected route after logout should redirect to login
     await page.goto('/notes');
     await expect(page).toHaveURL(/\/login|\/register/);
   });

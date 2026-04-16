@@ -1,15 +1,19 @@
 import { Page } from '@playwright/test';
 
-export const TEST_USER = {
-  firstName: 'E2E',
-  lastName: 'User',
-  email: 'e2e@continuum.test',
-  username: 'e2euser',
-  password: 'TestPass123!',
-};
+function makeUser(overrides: Partial<{ firstName: string; lastName: string; email: string; username: string; password: string }> = {}) {
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  return {
+    firstName: 'E2E',
+    lastName: 'User',
+    email: `e2e+${id}@continuum.test`,
+    username: `e2e${id}`,
+    password: 'TestPass123!',
+    ...overrides,
+  };
+}
 
-export async function registerUser(page: Page, overrides: Partial<typeof TEST_USER> = {}) {
-  const user = { ...TEST_USER, ...overrides };
+export async function registerUser(page: Page, overrides: Parameters<typeof makeUser>[0] = {}) {
+  const user = makeUser(overrides);
   await page.goto('/register');
   await page.fill('input[name="firstName"]', user.firstName);
   await page.fill('input[name="lastName"]', user.lastName);
@@ -21,11 +25,7 @@ export async function registerUser(page: Page, overrides: Partial<typeof TEST_US
   return user;
 }
 
-export async function loginUser(
-  page: Page,
-  email = TEST_USER.email,
-  password = TEST_USER.password,
-) {
+export async function loginUser(page: Page, email: string, password: string) {
   await page.goto('/login');
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);

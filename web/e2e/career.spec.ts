@@ -12,8 +12,8 @@ test.describe('Career — Applications', () => {
 
     await page.fill('input[placeholder="Google"]', 'Anthropic');
     await page.fill('input[placeholder="Software Engineer"]', 'Frontend Engineer');
-    // Submit
-    await page.click('button:has-text("Add application")');
+    // Submit — use .last() because the header button is also "Add application" and sits behind the backdrop
+    await page.locator('button:has-text("Add application")').last().click();
 
     await expect(page.locator('text=Anthropic')).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('text=Frontend Engineer')).toBeVisible();
@@ -24,21 +24,17 @@ test.describe('Career — Applications', () => {
     await page.click('button:has-text("Add application")');
     await page.fill('input[placeholder="Google"]', 'Status Corp');
     await page.fill('input[placeholder="Software Engineer"]', 'SWE');
-    await page.click('button:has-text("Add application")');
+    await page.locator('button:has-text("Add application")').last().click();
     await expect(page.locator('text=Status Corp')).toBeVisible({ timeout: 10_000 });
 
     // Open the application detail
-    await page.locator('button:has-text("View")').first().click();
+    await page.getByRole('link', { name: 'View' }).first().click();
     await page.waitForURL('**/applications/view');
 
-    // Change status — look for a status select or stage buttons
-    const stageSelect = page.locator('select[class*="input"], select').first();
-    if (await stageSelect.isVisible()) {
-      await stageSelect.selectOption('interview');
-    } else {
-      // Some views use click-based stage chips
-      await page.locator('button:has-text("interview"), text=interview').first().click();
-    }
+    // Enter edit mode, change stage, save
+    await page.click('button:has-text("Edit")');
+    await page.locator('select').selectOption('interview');
+    await page.click('button:has-text("Save")');
 
     // Go back to list and verify badge updated
     await page.goto('/applications');
@@ -49,27 +45,24 @@ test.describe('Career — Applications', () => {
     await page.click('button:has-text("Add application")');
     await page.fill('input[placeholder="Google"]', 'Delete Corp');
     await page.fill('input[placeholder="Software Engineer"]', 'PM');
-    await page.click('button:has-text("Add application")');
+    await page.locator('button:has-text("Add application")').last().click();
     await expect(page.locator('text=Delete Corp')).toBeVisible({ timeout: 10_000 });
 
-    // Open detail and delete
-    await page.locator('button:has-text("View")').first().click();
+    // Open detail and delete — delete button is icon-only with title attr
+    await page.getByRole('link', { name: 'View' }).first().click();
     await page.waitForURL('**/applications/view');
 
-    await page.click('button:has-text("Delete")');
-    // Confirm if modal
-    const confirmBtn = page.locator('button:has-text("Delete")').last();
-    if (await confirmBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
-      await confirmBtn.click();
-    }
+    await page.click('button[title="Delete application"]');
+    // Confirm in the modal
+    await page.locator('button:has-text("Delete")').last().click();
 
-    await page.goto('/applications');
+    await page.waitForURL('**/applications');
     await expect(page.locator('text=Delete Corp')).not.toBeVisible({ timeout: 8_000 });
   });
 
   test('navigate to Resumes tab renders the list', async ({ page }) => {
     await page.goto('/resumes');
     // The resumes page should load (even if empty)
-    await expect(page.locator('h1:has-text("Resumes"), text=Resumes')).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByRole('heading').filter({ hasText: /resumes/i })).toBeVisible({ timeout: 8_000 });
   });
 });

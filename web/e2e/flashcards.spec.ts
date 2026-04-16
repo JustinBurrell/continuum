@@ -79,6 +79,6 @@ test.describe('Flashcards — core value path', () => {
     await page.waitForURL('**/flashcards/view');
 
     // History tab should be present (even if empty)
-    await expect(page.locator('button:has-text("History"), text=History')).toBeVisible();
+    await expect(page.getByRole('button', { name: /history/i })).toBeVisible();
   });
 });

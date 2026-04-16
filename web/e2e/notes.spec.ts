@@ -17,8 +17,9 @@ test.describe('Notes', () => {
     await page.keyboard.type('This is a test note body.');
 
     await page.click('button:has-text("Save")');
+    // Wait for save to complete and navigate to note detail before going back to list
+    await page.waitForURL('**/notes/view');
 
-    // Should navigate back (to note detail or notes list)
     await page.goto('/notes');
     await expect(page.locator('text=E2E Test Note')).toBeVisible({ timeout: 10_000 });
   });
@@ -31,9 +32,11 @@ test.describe('Notes', () => {
     await page.locator('.ProseMirror').click();
     await page.keyboard.type('Some content');
     await page.click('button:has-text("Save")');
+    await page.waitForURL('**/notes/view');
 
     // Now navigate to the notes list and open the note detail
     await page.goto('/notes');
+    await expect(page.locator('text=Original Title')).toBeVisible({ timeout: 10_000 });
     await page.locator('text=Original Title').first().click();
 
     // From detail, click Edit
@@ -52,36 +55,35 @@ test.describe('Notes', () => {
   });
 
   test('delete note removes it from list without TypeError', async ({ page }) => {
-    // Create a note
+    // Create a note — wait for the detail page before navigating away
     await page.click('button:has-text("New note")');
     await page.waitForURL('**/notes/new');
     await page.fill('input[placeholder="Note title..."]', 'Note To Delete');
     await page.locator('.ProseMirror').click();
     await page.keyboard.type('Content');
     await page.click('button:has-text("Save")');
+    await page.waitForURL('**/notes/view');
 
     await page.goto('/notes');
     await expect(page.locator('text=Note To Delete')).toBeVisible({ timeout: 10_000 });
 
-    // Open the note detail
-    await page.locator('text=Note To Delete').first().click();
-
-    // Capture console errors to verify no TypeError
+    // Capture console errors before navigating to note detail
     const errors: string[] = [];
     page.on('console', msg => {
       if (msg.type() === 'error') errors.push(msg.text());
     });
 
-    // Click Delete (may open a confirm dialog)
-    await page.click('button[title="Delete"], button:has-text("Delete")');
-    // Confirm deletion if a modal appears
-    const confirmBtn = page.locator('button:has-text("Delete")').last();
-    if (await confirmBtn.isVisible()) {
-      await confirmBtn.click();
-    }
+    // Open the note detail via the Link (passes state.id)
+    await page.locator('text=Note To Delete').first().click();
+    await page.waitForURL('**/notes/view');
 
-    // Should navigate back to notes list
-    await page.waitForURL('**/notes');
+    // The delete button is an icon-only danger button (red) with class bg-[#dc2626]
+    await page.locator('button[class*="dc2626"]').click();
+    // Confirm deletion in the modal
+    await page.locator('button:has-text("Delete")').last().click();
+
+    // Should navigate back to notes list after delete
+    await page.waitForURL('**/notes', { timeout: 15_000 });
     await expect(page.locator('text=Note To Delete')).not.toBeVisible();
 
     // Regression: no Cannot read properties of undefined (reading 'length') errors
