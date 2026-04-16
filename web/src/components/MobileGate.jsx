@@ -38,7 +38,7 @@ export default function MobileGate() {
   }
 
   return (
-    <div className="font-marketing min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
+    <div className="font-marketing min-h-screen" style={{ backgroundColor: '#F8F9FA', width: '100%', overflowX: 'hidden' }}>
       {/* Background gradient + dot pattern — matches Landing.jsx */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div style={{ position: 'absolute', top: -120, left: '50%', transform: 'translateX(-50%)', width: 1000, height: 700, borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(107,33,168,0.08) 0%, transparent 65%)' }} />

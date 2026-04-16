@@ -83,7 +83,7 @@ export default function NotesList() {
       await queryClient.cancelQueries({ queryKey: ['notes'] });
       const prev = queryClient.getQueryData(['notes', { search, type }]);
       queryClient.setQueryData(['notes', { search, type }], (old) => {
-        if (!old) return old;
+        if (!old?.pages) return old;
         return {
           ...old,
           pages: old.pages.map(page => ({
