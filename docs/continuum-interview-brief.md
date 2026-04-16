@@ -26,11 +26,11 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | Frontend screens (Android) | 30+ |
 | Web UI components | 26 |
 | Android composables | 40+ (reusable + screen-level) |
-| Jest integration tests | 223 |
+| Jest integration tests | 250 across 16 suites |
 | Backend controllers | 15 |
 | Services | 4 (AI, Activity, Share, Account) |
 | Middleware types | 5 (auth, rate limiting, validation, uploads, error handling) |
-| Android API coverage | ~91/108 endpoints (~84%) |
+| Android API coverage | ~93/108 endpoints (~86%) |
 | Android offline tables | Room + SyncQueue (WorkManager-backed) |
 
 ---
@@ -54,13 +54,14 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 ## Features Built
 
-- **Notes** — rich-text editor with AI summaries, Google Docs import with PDF export and text caching, flashcard extraction
-- **Flashcards** — study mode with flip cards, per-card progress tracking, AI extraction from notes or PDFs
-- **Tasks** — kanban board with shared tasks, per-participant status tracking, recurrence support
+- **Notes** — rich-text editor with AI summaries, Google Docs import with PDF export and text caching, flashcard extraction, infinite-scroll pagination with `useInfiniteQuery`
+- **Flashcards** — study mode with flip cards, per-card progress tracking, AI extraction from notes or PDFs, study history screen, infinite-scroll pagination
+- **Tasks** — kanban board with shared tasks, per-participant status tracking, recurrence support, infinite-scroll pagination
 - **Calendar** — event creation and scheduling integrated with the task system
-- **Social** — friend requests, activity feed (cursor-paginated), direct messaging with real-time delivery
-- **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section)
+- **Social** — friend requests, activity feed (cursor-paginated), direct messaging with real-time delivery, profile photos in feed and comments
+- **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section), contacts and reminders per application
 - **Auth** — email/password and Google OAuth with JWT + httpOnly refresh cookie rotation
+- **Dashboard** — accurate total counts pulled from paginated response metadata (not capped list lengths)
 
 ---
 
@@ -457,15 +458,17 @@ A formal security audit lives at `docs/security/backend_security_audit.md`.
 
 ## Testing
 
-**173 Jest + Supertest integration tests across 13 suites:**
+**250 Jest + Supertest integration tests across 16 suites:**
 
 | Suite | What it covers |
 |-------|----------------|
 | Auth | Register, login, refresh via httpOnly cookie, tampered tokens, password not leaked |
-| Notes | CRUD, ownership isolation (Alice can't read Bob's notes) |
-| Tasks | CRUD, status updates, shared tasks (participant visibility, owner exclusion) |
-| Flashcards | Create set, add card, ownership isolation, shared sets |
-| Applications | Create, read, update status, delete (owner-only) |
+| Auth (Mobile) | Mobile-specific token endpoints, `TokenAuthenticator`-equivalent refresh flow, device-bound sessions |
+| Notes | CRUD, ownership isolation (Alice can't read Bob's notes), paginated list responses |
+| Tasks | CRUD, status updates, shared tasks (participant visibility, owner exclusion), paginated list responses |
+| Flashcards | Create set, add card, ownership isolation, shared sets, paginated list responses |
+| Study Sessions | Submit session, load history, streak calculation, per-set history |
+| Applications | Create, read, update status, delete (owner-only), contacts, reminders |
 | Messages | Friend flow → conversation → send → read, non-participant blocked, soft delete |
 | Activity | Feed authentication, cursor pagination, `since` param for unseen count |
 | Calendar | Task date filtering, date range queries, month-boundary edge cases |
@@ -474,6 +477,7 @@ A formal security audit lives at `docs/security/backend_security_audit.md`.
 | Profile | View and update own profile, avatar, bio, username uniqueness |
 | Resumes | Upload, AI feedback generation, delete, ownership isolation |
 | Users | Update settings, password change, account deletion grace period |
+| Waitlist | Sign-up, duplicate prevention, validation |
 
 **No real database needed.** `mongodb-memory-server` spins up a real MongoDB process in RAM. Tests run offline, in CI, with zero Atlas configuration.
 
@@ -507,6 +511,8 @@ Notable schema decisions:
 
 Key implementation decisions:
 - **React Query v5** for all server state — staleTime overrides per query, optimistic mutations on writes
+- **`useInfiniteQuery` for paginated lists** — Notes, Flashcard Sets, and Tasks all use cursor-based infinite scroll with a "Load more" trigger. `initialPageParam` is required in v5 and explicitly set on all three. Dashboard total counts are pulled from `pages[0].pagination.total` (the server's authoritative count), not `pages.flatMap().length`, so counts are accurate even before all pages load.
+- **Optimistic mutation guards** — all `onMutate` cache updaters guard `old?.pages` before calling `.map()`. Without this, a mutation firing before the first page resolves throws `TypeError: Cannot read properties of undefined (reading 'length')`.
 - **Axios interceptor** deduplicates concurrent 401s — all in-flight requests queue behind one shared refresh promise, preventing N parallel refresh calls
 - **Skeleton loaders** on every data-fetching page — shimmer animation, no layout shift
 - **Sidebar prefetch on hover** — data cached before user clicks, making navigation feel instant
@@ -547,7 +553,7 @@ The native Android app (Kotlin 2.1 + Jetpack Compose) was built to achieve full 
 **Why native Kotlin, not React Native:**
 - EncryptedSharedPreferences with Android KeyStore (AES-256-GCM in hardware secure enclave) — no React Native equivalent
 - Google Credential Manager for phishing-resistant Sign-In (native API, no WebView)
-- FLAG_SECURE for screenshot prevention on sensitive screens
+- `FLAG_SECURE` on sensitive screens (`NoteDetail`, `ResumeDetail`, `ApplicationDetail`, `ConversationDetail`, `SharedNoteView`) — prevents screenshots and strips them from the recent apps thumbnail
 - Compose renders directly to the Android canvas — zero JS bridge overhead for gesture-heavy study mode
 
 **Mobile-specific auth pattern:**
@@ -555,6 +561,11 @@ The native Android app (Kotlin 2.1 + Jetpack Compose) was built to achieve full 
 - 4 mobile-specific backend endpoints (`mobile/login`, `mobile/refresh`, `google/mobile`, `mobile/logout`) return tokens in the JSON body instead of cookies
 - Tokens stored in EncryptedSharedPreferences backed by Android KeyStore
 - OkHttp `TokenAuthenticator` handles 401 recovery with automatic request queuing (equivalent to web's Axios interceptor, but OkHttp deduplicates refresh calls natively)
+
+**Pagination on Android:**
+- Notes, Flashcard Sets, and Tasks all use multi-page fetches: the repository fetches page 1 to get `pagination.pages`, then fires all remaining page requests in parallel and merges the results
+- Room is updated with the full merged list and continues to serve as the offline fallback
+- This mirrors the web's `useInfiniteQuery` approach while giving Room a complete local cache rather than a single page
 
 **Offline layer (Android-only):**
 - Room SQLite database as local cache (ViewModels read Room first, then API)
@@ -565,16 +576,29 @@ The native Android app (Kotlin 2.1 + Jetpack Compose) was built to achieve full 
 **Cross-screen reactivity:**
 - `DataRefreshNotifier` (SharedFlow) — ViewModels emit `RefreshScope` events on mutations; DashboardViewModel subscribes and auto-reloads
 - `ProfileUpdateNotifier` — Triggers nav avatar refresh after profile edits
-- `TokenManager.logoutEvent` — Broadcasts remote session invalidation; AppNavHost navigates to login
+- `TokenManager.logoutEvent` — Broadcasts remote session invalidation; AppNavHost navigates to login with a "Your session was ended from another device" message
+
+**Demo mode:**
+- `LocalIsDemo` CompositionLocal is provided by `AppNavHost` from the JWT payload's `isDemo` flag
+- Every screen that would write data gates its affordances behind this flag — create/edit/delete buttons are hidden, FABs are suppressed, and settings toggles are disabled
+- Matches the web app's read-only demo behavior exactly, including the same banner copy and register CTA
+
+**User profile parity:**
+- `UserProfileScreen` mirrors the web `UserProfile` page: viewing your own profile redirects to the Profile tab; viewing a friend's profile loads their shared notes, tasks, flashcard sets, and activity feed slice in parallel via `SocialRepository.getFriendProfileExtras()`
+- `OwnerRefJsonAdapter` handles the backend's flexible `userId` shape — some responses return a string ID, others return a populated `{ "_id": "..." }` object. The adapter is registered on the Moshi instance in `ApiClient` so all DTOs deserialise both shapes transparently
+- Comment author names and conversation participant avatars navigate to `social/user/{userId}`
 
 **UX patterns:**
 - 5-item icon-only bottom nav (Notes, Flashcards, Center Logo → Dashboard, Applications, Profile)
 - Instagram-style scrollable dashboard header with logo + action icons
-- Flashcard study mode: card flip animation, swipe disabled until answer revealed, "Still Learning" / "Got it" tracking with study session recording
+- Flashcard study mode: card flip animation, swipe disabled until answer revealed, "Still Learning" / "Got it" tracking with study session recording to backend; dedicated `FlashcardStudyHistoryScreen` shows per-set and global history
 - Slide-in/fade-out navigation transitions (300ms tween)
 - Flat cards (Notion-style) for lists; elevated cards (Duolingo-style) for interactive elements
+- Profile photos shown in activity feed items, dashboard activity strip, and comment threads
 
-For full details see `docs/android/architecture.md`, `docs/android/react-to-android.md`, and `docs/android/api-coverage.md`.
+**API coverage:** ~93/108 endpoints (~86%). Remaining gaps are PDF download/upload-from-file on Notes, card progress update on Flashcards (tracked client-side during study), resume PDF download, and per-message mark-read/delete (conversation-level flow covers the primary use case).
+
+For full details see `docs/android/architecture.md`, `docs/android/react-to-android.md`, `docs/android/api-coverage.md`, and `docs/android/web-route-parity.md`.
 
 ---
 
@@ -588,7 +612,7 @@ For full details see `docs/android/architecture.md`, `docs/android/react-to-andr
 
 4. **The process matches the code** — Conventional commits, protected main, CI on every PR, Swagger docs, schema diagrams. Hiring managers looking at the repo see someone who would fit into a professional engineering team immediately.
 
-5. **Breadth without sacrificing depth** — 30+ screens on Android, 27 pages on web, 15 collections, 108 endpoints, real-time, AI, OAuth, offline sync — and the auth flow is more secure than most production apps.
+5. **Breadth without sacrificing depth** — 30+ screens on Android, 27 pages on web, 15 collections, 108 endpoints (~86% covered on Android), real-time, AI, OAuth, offline sync — and the auth flow is more secure than most production apps.
 
 6. **Deployed and accessible** — Not a localhost demo. Live at a real URL with a public API explorer.
 
@@ -611,7 +635,7 @@ Walk through the auth flow: httpOnly cookie for refresh token (XSS protection), 
 Express 5 for native async/await error propagation. MongoDB for flexible schema during rapid feature iteration. Redis chosen for dual purpose — caching and Socket.io pub/sub. Groq over OpenAI because free-tier rate limits (14.4K RPD) are viable for a multi-user product at launch. Vercel + Render because both have zero-config deploys for Vite SPA and Node.js respectively. Native Kotlin + Compose over React Native for hardware KeyStore access, Credential Manager, FLAG_SECURE, and 60fps animations without a JS bridge.
 
 ### Mobile Architecture Interview
-Explain the offline-first pattern: Room database as local cache, SyncQueue entity for offline mutations, WorkManager SyncWorker that batches and uploads on reconnection via POST /api/sync. Cover the TokenAuthenticator pattern — OkHttp natively queues concurrent requests behind a single refresh call, unlike web's Axios interceptor which needs an explicit guard. Discuss DataRefreshNotifier (SharedFlow event bus for cross-screen data freshness) and ProfileUpdateNotifier (nav avatar auto-refresh after profile edits).
+Explain the offline-first pattern: Room database as local cache, SyncQueue entity for offline mutations, WorkManager SyncWorker that batches and uploads on reconnection via POST /api/sync. Cover the TokenAuthenticator pattern — OkHttp natively queues concurrent requests behind a single refresh call, unlike web's Axios interceptor which needs an explicit guard. Discuss DataRefreshNotifier (SharedFlow event bus for cross-screen data freshness) and ProfileUpdateNotifier (nav avatar auto-refresh after profile edits). Cover pagination: the Android repositories fetch all pages on load (parallel page requests after reading `pagination.pages` from page 1), then persist the full merged result to Room — so Room has a complete offline copy, not just one page. Mention `OwnerRefJsonAdapter` as a real-world example of defensive DTO design — the same backend endpoint returns `userId` as either a string or a populated object depending on the query; a custom Moshi adapter handles both shapes transparently so no screen-level null checks are needed. Mention `LocalIsDemo` CompositionLocal for demo mode — a single flag provided at the NavHost level gates all write affordances across every screen without prop drilling.
 
 ---
 
@@ -1352,4 +1376,4 @@ Each PR includes:
 
 This creates a paper trail. Six months from now, you can read a PR and understand exactly what problem it solved, what it changed, and how to verify it worked.
 
-*Last updated: March 2026*
+*Last updated: April 15, 2026*
