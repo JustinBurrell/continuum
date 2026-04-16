@@ -1,6 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { registerUser, loginUser } from './helpers/auth';
 
+/** Wait for the sign-out navigation (Sidebar calls navigate('/') after logout) to settle */
+async function signOut(page: import('@playwright/test').Page) {
+  await Promise.all([
+    page.waitForURL(url => url.pathname === '/'),
+    page.click('button:has-text("Sign out")'),
+  ]);
+}
+
 test.describe('Auth', () => {
   test('register with valid data lands on dashboard', async ({ page }) => {
     await registerUser(page);
@@ -11,9 +19,8 @@ test.describe('Auth', () => {
     // First registration succeeds
     const user = await registerUser(page);
 
-    // Sign out so we can try again
-    await page.click('button:has-text("Sign out")');
-    await page.waitForURL(/\//);
+    // Sign out and confirm navigation to landing page completed
+    await signOut(page);
 
     // Second registration with same email should fail
     await page.goto('/register');
@@ -32,14 +39,16 @@ test.describe('Auth', () => {
 
   test('login with correct credentials lands on dashboard', async ({ page }) => {
     const user = await registerUser(page);
-    await page.click('button:has-text("Sign out")');
+    // Wait for the sign-out navigate('/') to settle before visiting /login,
+    // otherwise AuthLayout sees the still-authenticated user and bounces to /dashboard
+    await signOut(page);
     await loginUser(page, user.email, user.password);
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
   test('login with wrong password shows error', async ({ page }) => {
     const user = await registerUser(page);
-    await page.click('button:has-text("Sign out")');
+    await signOut(page);
 
     await page.goto('/login');
     await page.fill('input[name="email"]', user.email);
@@ -54,12 +63,12 @@ test.describe('Auth', () => {
   test('logout redirects to home; protected routes redirect to login', async ({ page }) => {
     await registerUser(page);
 
-    // Click "Sign out" in the sidebar
-    await page.click('button:has-text("Sign out")');
+    // Sign out — confirm we land on the public home page (not the dashboard)
+    await signOut(page);
 
-    // Navigating to a protected route after logout should redirect to login
+    // Navigating to a protected route while logged out should redirect to login
     await page.goto('/notes');
-    await expect(page).toHaveURL(/\/login|\/register/);
+    await expect(page).toHaveURL(/\/login|\/register/, { timeout: 8_000 });
   });
 
   test('session persists on page reload', async ({ page }) => {

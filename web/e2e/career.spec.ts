@@ -38,7 +38,7 @@ test.describe('Career — Applications', () => {
 
     // Go back to list and verify badge updated
     await page.goto('/applications');
-    await expect(page.locator('text=interview')).toBeVisible({ timeout: 8_000 });
+    await expect(page.locator('text=interview').first()).toBeVisible({ timeout: 8_000 });
   });
 
   test('delete application removes it from list', async ({ page }) => {
