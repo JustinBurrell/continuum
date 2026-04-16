@@ -136,7 +136,7 @@ exports.createTask = async (req, res) => {
 // Sorted by dueDate ascending (soonest first)
 // ----------------------------------------
 exports.getTasks = async (req, res) => {
-    const { status, type, priority, startDate, endDate, search } = req.query;
+    const { status, type, priority, startDate, endDate, search, page = 1, limit = 20 } = req.query;
 
     const filter = {
         userId: req.user._id,
@@ -148,16 +148,28 @@ exports.getTasks = async (req, res) => {
     if (priority) filter.priority = priority;
     if (search) filter.title = { $regex: search, $options: 'i' };
 
-    // Date range filter on dueDate
     if (startDate || endDate) {
         filter.dueDate = {};
         if (startDate) filter.dueDate.$gte = new Date(startDate);
         if (endDate) filter.dueDate.$lte = new Date(endDate);
     }
 
-    const tasks = await Task.find(filter).sort({ dueDate: 1 });
+    const skip = (Number(page) - 1) * Number(limit);
+    const [tasks, total] = await Promise.all([
+        Task.find(filter).sort({ dueDate: 1 }).skip(skip).limit(Number(limit)),
+        Task.countDocuments(filter),
+    ]);
 
-    res.status(200).json({ success: true, tasks });
+    res.status(200).json({
+        success: true,
+        tasks,
+        pagination: {
+            total,
+            page: Number(page),
+            limit: Number(limit),
+            pages: Math.ceil(total / Number(limit)),
+        },
+    });
 };
 
 // ----------------------------------------

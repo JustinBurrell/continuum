@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.social.domain.Comment
 
 @Composable
@@ -131,6 +132,7 @@ private fun CommentItem(
     ) {
         AvatarInitials(
             name = comment.authorName,
+            imageUrl = comment.authorAvatar,
             size = if (depth == 0) 32.dp else 24.dp,
             modifier = if (onUserClick != null) Modifier.clickable(onClick = onUserClick) else Modifier
         )
@@ -143,9 +145,8 @@ private fun CommentItem(
                     color = if (onUserClick != null) BrandPurple else TextPrimary,
                     modifier = if (onUserClick != null) Modifier.clickable(onClick = onUserClick) else Modifier
                 )
-                VerifiedRoleBadges(roles = comment.authorRoles, expanded = false)
                 Spacer(Modifier.width(Spacing.sm))
-                Text(comment.createdAt.take(10), style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                Text(comment.createdAt.toDisplayDate(), style = MaterialTheme.typography.labelSmall, color = TextMuted)
             }
             Text(comment.content, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
             Row(verticalAlignment = Alignment.CenterVertically) {

@@ -66,6 +66,9 @@ interface CareerApiService {
     @DELETE("resumes/{id}")
     suspend fun deleteResume(@Path("id") id: String): retrofit2.Response<Unit>
 
+    @GET("resumes/{id}/feedback")
+    suspend fun getExistingFeedback(@Path("id") id: String): ResumeFeedbackResponseDto
+
     @POST("resumes/{id}/feedback")
     suspend fun generateFeedback(@Path("id") id: String): ResumeFeedbackResponseDto
 }

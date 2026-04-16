@@ -20,28 +20,45 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import com.continuum.android.core.ui.LocalIsDemo
+import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.flashcards.domain.Flashcard
+import com.continuum.android.feature.social.presentation.SocialViewModel
 
-private enum class SetDetailTab { Cards, History }
+private enum class SetDetailTab { Cards, History, Comments }
 
 @Composable
 fun FlashcardSetDetailScreen(
     setId: String,
     onNavigateBack: () -> Unit,
     onStudy: () -> Unit,
-    viewModel: FlashcardsViewModel = hiltViewModel()
+    onUserProfileClick: ((String) -> Unit)? = null,
+    viewModel: FlashcardsViewModel = hiltViewModel(),
+    socialViewModel: SocialViewModel = hiltViewModel()
 ) {
     val state by viewModel.detailState.collectAsStateWithLifecycle()
     val historyState by viewModel.setDetailHistoryState.collectAsStateWithLifecycle()
+    val commentsState by socialViewModel.threadCommentsState.collectAsStateWithLifecycle()
     val isDemo = LocalIsDemo.current
+    val tokenManager = LocalTokenManager.current
     var showAddSheet by remember { mutableStateOf(false) }
     var editingCard by remember { mutableStateOf<Flashcard?>(null) }
     var cardToDelete by remember { mutableStateOf<Flashcard?>(null) }
     var tab by remember(setId) { mutableStateOf(SetDetailTab.Cards) }
+    var showMoreMenu by remember { mutableStateOf(false) }
+    var showEditSheet by remember { mutableStateOf(false) }
+    var showShareSheet by remember { mutableStateOf(false) }
+    var editTitle by remember { mutableStateOf("") }
+    var editDescription by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val friendsStateForSheet by socialViewModel.friendsState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(setId) { viewModel.loadSetDetail(setId) }
+    LaunchedEffect(setId) {
+        viewModel.loadSetDetail(setId)
+        socialViewModel.loadThreadComments("flashcard_set", setId)
+    }
 
     LaunchedEffect(setId, tab) {
         if (tab == SetDetailTab.History) viewModel.loadSetStudyHistory(setId)
@@ -60,13 +77,50 @@ fun FlashcardSetDetailScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 MinimalTopBar(
-                    title = state.set?.title ?: "",
+                    title = "Flashcards",
                     onNavigateBack = onNavigateBack,
                     actions = {
                         TextButton(onClick = onStudy) {
                             Text("Study", color = BrandPurple)
+                        }
+                        if (!isDemo) {
+                            Box {
+                                IconButton(onClick = { showMoreMenu = true }) {
+                                    Icon(Icons.Default.MoreVert, contentDescription = "More options", tint = TextPrimary)
+                                }
+                                DropdownMenu(expanded = showMoreMenu, onDismissRequest = { showMoreMenu = false }) {
+                                    DropdownMenuItem(
+                                        text = { Text("Edit") },
+                                        leadingIcon = { Icon(Icons.Default.Edit, null) },
+                                        onClick = {
+                                            editTitle = state.set?.title ?: ""
+                                            editDescription = state.set?.description ?: ""
+                                            showEditSheet = true
+                                            showMoreMenu = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Share with friends") },
+                                        leadingIcon = { Icon(Icons.Default.Share, null) },
+                                        onClick = {
+                                            socialViewModel.loadFriends()
+                                            showShareSheet = true
+                                            showMoreMenu = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Duplicate") },
+                                        leadingIcon = { Icon(Icons.Default.ContentCopy, null) },
+                                        onClick = {
+                                            viewModel.duplicateSet(setId)
+                                            showMoreMenu = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 )
@@ -77,6 +131,20 @@ fun FlashcardSetDetailScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
+                // "Created by" attribution — only for sets owned by someone else
+                val myId = tokenManager.getJwtUserId()
+                val setOwnerUserId = state.set?.ownerUserId
+                val setOwnerName = state.set?.ownerName
+                if (setOwnerUserId != null && setOwnerUserId != myId && !setOwnerName.isNullOrBlank() && onUserProfileClick != null) {
+                    TextButton(
+                        onClick = { onUserProfileClick(setOwnerUserId) },
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    ) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Person, contentDescription = null, tint = BrandPurple, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Created by $setOwnerName", color = BrandPurple, style = MaterialTheme.typography.labelMedium)
+                    }
+                }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -96,6 +164,15 @@ fun FlashcardSetDetailScreen(
                         selected = tab == SetDetailTab.History,
                         onClick = { tab = SetDetailTab.History },
                         label = { Text("History") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = BrandPurple,
+                            selectedLabelColor = White
+                        )
+                    )
+                    FilterChip(
+                        selected = tab == SetDetailTab.Comments,
+                        onClick = { tab = SetDetailTab.Comments },
+                        label = { Text("Comments") },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = BrandPurple,
                             selectedLabelColor = White
@@ -190,13 +267,27 @@ fun FlashcardSetDetailScreen(
                                                 titleLine = "${session.correctCount}/${session.totalCards} correct",
                                                 subtitleLine = "${session.score}% score · ${session.totalCards} cards · " +
                                                     "${formatStudySessionDuration(session.durationSeconds)} · " +
-                                                    session.completedAt.take(10)
+                                                    session.completedAt.toDisplayDate()
                                             )
                                         }
                                     }
                                 }
                             }
                         }
+                    }
+
+                    SetDetailTab.Comments -> {
+                        CommentThread(
+                            comments = commentsState.comments,
+                            onAddComment = { content, parentId -> socialViewModel.addThreadComment(content, parentId) },
+                            onLikeComment = { commentId -> socialViewModel.likeThreadComment(commentId) },
+                            onDeleteComment = { commentId -> socialViewModel.deleteThreadComment(commentId) },
+                            onUserClick = onUserProfileClick,
+                            isSending = commentsState.isSending,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp)
+                        )
                     }
                 }
             }
@@ -245,6 +336,55 @@ fun FlashcardSetDetailScreen(
             initialBack = card.back,
             onDismiss = { editingCard = null },
             onSave = { front, back -> viewModel.updateCard(setId, card.id, front, back); editingCard = null }
+        )
+    }
+
+    if (showEditSheet) {
+        ModalBottomSheet(onDismissRequest = { showEditSheet = false }) {
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp).padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text("Edit Set", style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+                OutlinedTextField(
+                    value = editTitle,
+                    onValueChange = { editTitle = it },
+                    label = { Text("Title") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrandPurple, cursorColor = BrandPurple)
+                )
+                OutlinedTextField(
+                    value = editDescription,
+                    onValueChange = { editDescription = it },
+                    label = { Text("Description") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrandPurple, cursorColor = BrandPurple)
+                )
+                ContinuumButton(
+                    text = "Save",
+                    onClick = {
+                        viewModel.updateSetInfo(setId, editTitle, editDescription)
+                        showEditSheet = false
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = editTitle.isNotBlank()
+                )
+            }
+        }
+    }
+
+    if (showShareSheet) {
+        ShareToFriendsSheet(
+            friends = friendsStateForSheet.friends,
+            isLoadingFriends = friendsStateForSheet.isLoading,
+            isSharing = false,
+            onDismiss = { showShareSheet = false },
+            onShare = { visibility, friendIds ->
+                viewModel.shareSetWithFriends(setId, visibility, friendIds)
+                showShareSheet = false
+            }
         )
     }
 }

@@ -8,7 +8,9 @@ interface NotesApiService {
     @GET("notes")
     suspend fun getNotes(
         @Query("search") search: String? = null,
-        @Query("type") type: String? = null
+        @Query("type") type: String? = null,
+        @Query("page") page: Int? = null,
+        @Query("limit") limit: Int? = null
     ): NotesListResponseDto
 
     @GET("notes/shared")
@@ -35,11 +37,17 @@ interface NotesApiService {
     suspend fun generateSummary(@Path("id") id: String): NoteResponseDto
 
     @POST("notes/{id}/flashcards/generate")
-    suspend fun generateFlashcards(@Path("id") id: String): retrofit2.Response<Unit>
+    suspend fun generateFlashcards(@Path("id") id: String): GenerateFlashcardsResponseDto
 
     @GET("google/files")
     suspend fun getDriveFiles(): DriveFilesResponseDto
 
     @POST("notes/import")
     suspend fun importFromDrive(@Body request: ImportNoteRequestDto): NoteResponseDto
+
+    @PUT("notes/{id}/share")
+    suspend fun shareNote(
+        @Path("id") id: String,
+        @Body request: ShareNoteRequestDto
+    ): NoteResponseDto
 }

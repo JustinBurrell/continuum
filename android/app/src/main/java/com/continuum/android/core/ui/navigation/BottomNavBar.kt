@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import androidx.navigation.NavController
 import com.continuum.android.R
+import com.continuum.android.core.ui.LocalScrollToTopNotifier
 import com.continuum.android.core.ui.theme.BrandPurple
 import com.continuum.android.core.ui.theme.PurpleTint
 import com.continuum.android.core.ui.theme.TextMuted
@@ -67,6 +68,7 @@ fun ContinuumBottomBar(
     profileDisplayName: String = "Profile",
     profileImageCacheKey: String? = null,
 ) {
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
     NavigationBar(
         containerColor = White,
         tonalElevation = 0.dp
@@ -75,7 +77,10 @@ fun ContinuumBottomBar(
             val selected = isSelectedRoute(currentRoute, item.route)
             NavigationBarItem(
                 selected = selected,
-                onClick = { navController.handleBottomNavItemClick(item, currentRoute) },
+                onClick = {
+                    navController.handleBottomNavItemClick(item, currentRoute)
+                    scrollToTopNotifier?.notifyScrollToTop()
+                },
                 icon = {
                     when (item) {
                         is NavItem.IconItem -> Icon(
@@ -115,12 +120,16 @@ fun ContinuumNavigationRail(
     profileDisplayName: String = "Profile",
     profileImageCacheKey: String? = null,
 ) {
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
     NavigationRail(containerColor = White) {
         bottomNavItems.forEach { item ->
             val selected = isSelectedRoute(currentRoute, item.route)
             NavigationRailItem(
                 selected = selected,
-                onClick = { navController.handleBottomNavItemClick(item, currentRoute) },
+                onClick = {
+                    navController.handleBottomNavItemClick(item, currentRoute)
+                    scrollToTopNotifier?.notifyScrollToTop()
+                },
                 icon = {
                     when (item) {
                         is NavItem.IconItem -> Icon(

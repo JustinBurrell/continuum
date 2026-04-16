@@ -24,28 +24,28 @@ class NotesRepository @Inject constructor(
         type: String? = null,
         shared: Boolean = false
     ): Result<List<Note>> = runCatching {
-        val response = if (shared) {
-            api.getSharedNotes(search = search?.takeIf { it.isNotBlank() })
+        if (shared) {
+            api.getSharedNotes(search = search?.takeIf { it.isNotBlank() }).notes.map { it.toDomain() }
         } else {
-            api.getNotes(
+            val allDtos = fetchAllNotePages(
                 search = search?.takeIf { it.isNotBlank() },
                 type = type?.takeIf { it.isNotBlank() && it != "all" }
             )
-        }
-        val notes = response.notes.map { it.toDomain() }
-        if (!shared) {
             noteDao.deleteAll()
-            noteDao.insertAll(response.notes.map { it.toEntity() })
+            noteDao.insertAll(allDtos.map { it.toEntity() })
+            allDtos.map { it.toDomain() }
         }
-        notes
     }
 
-    // NetworkBoundResource: emit cached first, then fetch fresh
+    /** Read-only Room read — no network call, returns immediately. */
+    suspend fun getCachedNotes(): List<Note> = noteDao.getAll().map { it.toDomain() }
+
+    // NetworkBoundResource: emit cached first, then fetch all pages fresh
     fun getNotes(): Flow<Result<List<Note>>> = flow {
         val cached = noteDao.getAll().map { it.toDomain() }
         if (cached.isNotEmpty()) emit(Result.success(cached))
         try {
-            val fresh = api.getNotes().notes
+            val fresh = fetchAllNotePages()
             noteDao.deleteAll()
             noteDao.insertAll(fresh.map { it.toEntity() })
             emit(Result.success(noteDao.getAll().map { it.toDomain() }))
@@ -56,12 +56,29 @@ class NotesRepository @Inject constructor(
         }
     }
 
+    /** Fetches every page of notes and returns a flat list of all DTOs. */
+    private suspend fun fetchAllNotePages(search: String? = null, type: String? = null): List<NoteDto> {
+        val pageSize = 50
+        val firstPage = api.getNotes(search = search, type = type, page = 1, limit = pageSize)
+        val allDtos = firstPage.notes.toMutableList()
+        val totalPages = firstPage.pagination?.pages ?: 1
+        for (page in 2..totalPages) {
+            allDtos += api.getNotes(search = search, type = type, page = page, limit = pageSize).notes
+        }
+        return allDtos
+    }
+
     suspend fun getNoteById(id: String): Result<Note> = runCatching {
-        val cached = noteDao.getById(id)
-        if (cached != null) return Result.success(cached.toDomain())
-        val remote = api.getNoteById(id).note
-        noteDao.insert(remote.toEntity())
-        remote.toDomain()
+        // API-first: always fetch fresh so summary/flashcard state is current.
+        // Fall back to Room cache only if the network call fails.
+        try {
+            val remote = api.getNoteById(id).note
+            noteDao.insert(remote.toEntity())
+            remote.toDomain()
+        } catch (e: Exception) {
+            val cached = noteDao.getById(id)
+            if (cached != null) cached.toDomain() else throw e
+        }
     }
 
     suspend fun createNote(title: String, content: String, tags: List<String>, visibility: String): Result<Note> =
@@ -89,9 +106,11 @@ class NotesRepository @Inject constructor(
         note.toDomain()
     }
 
-    suspend fun generateFlashcards(id: String): Result<Unit> = runCatching {
-        api.generateFlashcards(id)
-        Unit
+    suspend fun generateFlashcards(id: String): Result<String> = runCatching {
+        val resp = api.generateFlashcards(id)
+        resp.set?.id?.takeIf { it.isNotBlank() }
+            ?: resp.data?.id?.takeIf { it.isNotBlank() }
+            ?: ""
     }
 
     suspend fun getDriveFiles(): Result<List<DriveFile>> = runCatching {
@@ -102,6 +121,11 @@ class NotesRepository @Inject constructor(
         val note = api.importFromDrive(ImportNoteRequestDto(googleDocId, googleDocUrl, title)).note
         noteDao.insert(note.toEntity())
         note.toDomain()
+    }
+
+    suspend fun shareNote(id: String, visibility: String, friendIds: List<String>): Result<Unit> = runCatching {
+        api.shareNote(id, ShareNoteRequestDto(visibility = visibility, sharedWith = friendIds))
+        Unit
     }
 
     // --- Mappers ---
@@ -147,6 +171,7 @@ class NotesRepository @Inject constructor(
         detailedSummary = summary?.detailed,
         updatedAt = updatedAt,
         createdAt = createdAt,
-        ownerUserId = owner?.id?.takeIf { it.isNotBlank() }
+        ownerUserId = owner?.id?.takeIf { it.isNotBlank() },
+        ownerName = owner?.displayName
     )
 }

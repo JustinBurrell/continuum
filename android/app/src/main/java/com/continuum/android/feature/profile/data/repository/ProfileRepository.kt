@@ -37,7 +37,9 @@ class ProfileRepository @Inject constructor(
             activityVisibility = dto.settings?.activityVisibility ?: "friends",
             emailNotifications = dto.settings?.emailNotifications ?: true,
             pushNotifications = dto.settings?.pushNotifications ?: true,
-            createdAt = dto.createdAt
+            createdAt = dto.createdAt,
+            roles = dto.roles,
+            lastViewedActivityAt = dto.lastViewedActivityAt
         )
     }
 

@@ -88,15 +88,37 @@ router.post('/', flashcardSetsController.createSet);
  * @swagger
  * /api/flashcard-sets:
  *   get:
- *     summary: Get all flashcard sets owned by the authenticated user
+ *     summary: Get all flashcard sets owned by the authenticated user (paginated)
  *     tags: [Flashcards]
  *     parameters:
  *       - in: query
  *         name: search
  *         schema: { type: string }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *         description: Page number (1-based)
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *         description: Results per page
  *     responses:
  *       200:
- *         description: Returns array of flashcard sets
+ *         description: Returns paginated flashcard sets with pagination metadata
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 sets: { type: array }
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     total: { type: integer, description: Total sets across all pages }
+ *                     page:  { type: integer }
+ *                     limit: { type: integer }
+ *                     pages: { type: integer, description: Total number of pages }
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */

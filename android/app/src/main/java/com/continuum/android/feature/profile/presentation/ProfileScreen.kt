@@ -3,6 +3,7 @@ package com.continuum.android.feature.profile.presentation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -16,6 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
+import com.continuum.android.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -24,6 +28,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.continuum.android.core.ui.LocalScrollToTopNotifier
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.profile.domain.Profile
@@ -42,15 +48,27 @@ fun ProfileScreen(
     onMessages: () -> Unit = {},
     onActivity: () -> Unit = {},
     onCalendar: () -> Unit = {},
+    onTasks: () -> Unit = {},
     onResumes: () -> Unit = {},
+    onTerms: () -> Unit = {},
+    onPrivacy: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val uriHandler = LocalUriHandler.current
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showLogoutAllDialog by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
+    val scrollToTopCount by remember(scrollToTopNotifier) {
+        scrollToTopNotifier?.counter ?: MutableStateFlow(0)
+    }.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.load() }
+    LaunchedEffect(scrollToTopCount) {
+        if (scrollToTopCount > 0) listState.animateScrollToItem(0)
+    }
 
     LaunchedEffect(state.successMessage, state.error) {
         if (state.successMessage != null || state.error != null) {
@@ -73,6 +91,7 @@ fun ProfileScreen(
         val profile = state.profile ?: return@Column
 
         LazyColumn(
+            state = listState,
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -166,6 +185,10 @@ fun ProfileScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextSecondary
                     )
+                    if (profile.roles.isNotEmpty()) {
+                        Spacer(Modifier.height(6.dp))
+                        VerifiedRoleBadges(roles = profile.roles, expanded = true)
+                    }
                     profile.bio?.takeIf { it.isNotBlank() }?.let { bio ->
                         Spacer(Modifier.height(8.dp))
                         Text(
@@ -173,6 +196,41 @@ fun ProfileScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextSecondary
                         )
+                    }
+                    // Social links
+                    if (!profile.linkedinUrl.isNullOrBlank() || !profile.instagramHandle.isNullOrBlank()) {
+                        Spacer(Modifier.height(4.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            profile.linkedinUrl?.takeIf { it.isNotBlank() }?.let { url ->
+                                Surface(
+                                    onClick = { runCatching { uriHandler.openUri(url) } },
+                                    color = Color(0xFF0A66C2),
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_linkedin),
+                                        contentDescription = "LinkedIn",
+                                        tint = Color.White,
+                                        modifier = Modifier.padding(6.dp).size(18.dp)
+                                    )
+                                }
+                            }
+                            profile.instagramHandle?.takeIf { it.isNotBlank() }?.let { handle ->
+                                val cleanHandle = handle.removePrefix("@")
+                                Surface(
+                                    onClick = { runCatching { uriHandler.openUri("https://instagram.com/$cleanHandle") } },
+                                    color = Color(0xFFE1306C),
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_instagram),
+                                        contentDescription = "Instagram",
+                                        tint = Color.White,
+                                        modifier = Modifier.padding(6.dp).size(18.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
                     Text(
                         text = "Joined ${formatShortDate(profile.createdAt)}",
@@ -207,6 +265,8 @@ fun ProfileScreen(
                     HorizontalDivider(color = Border)
                     ProfileRow(icon = Icons.Default.CalendarMonth, label = "Calendar", onClick = onCalendar)
                     HorizontalDivider(color = Border)
+                    ProfileRow(icon = Icons.Default.CheckBox, label = "Tasks", onClick = onTasks)
+                    HorizontalDivider(color = Border)
                     ProfileRow(icon = Icons.Default.Description, label = "Resumes", onClick = onResumes)
                 }
             }
@@ -214,12 +274,38 @@ fun ProfileScreen(
             // Google Account section
             item {
                 ProfileSection(title = "Google Account") {
-                    ProfileRow(
-                        icon = if (profile.isGoogleLinked) Icons.Default.CheckCircle else Icons.Default.Link,
-                        label = if (profile.isGoogleLinked) "Google linked" else "Link Google Account",
-                        tint = if (profile.isGoogleLinked) SuccessGreen else BrandPurple,
-                        onClick = {}
-                    )
+                    if (profile.isGoogleLinked) {
+                        ProfileRow(
+                            icon = Icons.Default.CheckCircle,
+                            label = "Google linked",
+                            tint = SuccessGreen,
+                            onClick = {}
+                        )
+                        HorizontalDivider(color = Border)
+                        ProfileRow(
+                            icon = Icons.Default.LinkOff,
+                            label = "Unlink Google",
+                            tint = ErrorRed,
+                            labelColor = ErrorRed,
+                            onClick = { viewModel.unlinkGoogle() }
+                        )
+                    } else {
+                        ProfileRow(
+                            icon = Icons.Default.Link,
+                            label = "Link Google Account",
+                            tint = BrandPurple,
+                            onClick = {}
+                        )
+                    }
+                }
+            }
+
+            // Legal
+            item {
+                ProfileSection(title = "Legal") {
+                    ProfileRow(icon = Icons.Default.Article, label = "Terms of Service", onClick = onTerms)
+                    HorizontalDivider(color = Border)
+                    ProfileRow(icon = Icons.Default.Shield, label = "Privacy Policy", onClick = onPrivacy)
                 }
             }
 

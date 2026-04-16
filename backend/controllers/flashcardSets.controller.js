@@ -86,14 +86,27 @@ exports.createSet = async (req, res) => {
 // Excludes soft-deleted sets
 // ----------------------------------------
 exports.getSets = async (req, res) => {
-    const { search } = req.query;
+    const { search, page = 1, limit = 20 } = req.query;
 
     const filter = { userId: req.user._id, deletedAt: null };
     if (search) filter.title = { $regex: search, $options: 'i' };
 
-    const sets = await FlashcardSet.find(filter).sort({ createdAt: -1 });
+    const skip = (Number(page) - 1) * Number(limit);
+    const [sets, total] = await Promise.all([
+        FlashcardSet.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+        FlashcardSet.countDocuments(filter),
+    ]);
 
-    res.status(200).json({ success: true, sets });
+    res.status(200).json({
+        success: true,
+        sets,
+        pagination: {
+            total,
+            page: Number(page),
+            limit: Number(limit),
+            pages: Math.ceil(total / Number(limit)),
+        },
+    });
 };
 
 // ----------------------------------------

@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
@@ -13,7 +14,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
+import com.continuum.android.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -23,6 +27,7 @@ import coil3.compose.AsyncImage
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.social.domain.ActivityItem
 import com.continuum.android.feature.social.domain.FriendSharedNoteSummary
 import com.continuum.android.feature.social.domain.FriendSharedSetSummary
@@ -44,19 +49,10 @@ fun UserProfileScreen(
     val uriHandler = LocalUriHandler.current
     val isDemo = LocalIsDemo.current
 
-    LaunchedEffect(userId, currentUserId) {
-        if (currentUserId != null && userId == currentUserId) {
-            onViewingSelf()
-        } else {
-            viewModel.loadUserProfile(userId)
-        }
-    }
+    val isSelf = currentUserId != null && userId == currentUserId
 
-    if (currentUserId != null && userId == currentUserId) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = BrandPurple)
-        }
-        return
+    LaunchedEffect(userId) {
+        viewModel.loadUserProfile(userId)
     }
 
     Scaffold(
@@ -97,7 +93,7 @@ fun UserProfileScreen(
                     Text(user.fullName, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
                     user.username?.let { Text("@$it", style = MaterialTheme.typography.bodyMedium, color = TextSecondary) }
 
-                    user.createdAt?.take(10)?.let { joined ->
+                    user.createdAt?.toDisplayDate()?.let { joined ->
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             Icon(Icons.Default.CalendarMonth, null, tint = TextMuted, modifier = Modifier.size(18.dp))
                             Text("Joined $joined", style = MaterialTheme.typography.bodySmall, color = TextMuted)
@@ -109,16 +105,34 @@ fun UserProfileScreen(
                     }
 
                     if (!user.linkedinUrl.isNullOrBlank() || !user.instagramHandle.isNullOrBlank()) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md), verticalAlignment = Alignment.CenterVertically) {
                             user.linkedinUrl?.takeIf { it.isNotBlank() }?.let { url ->
-                                TextButton(onClick = { runCatching { uriHandler.openUri(url) } }) {
-                                    Text("LinkedIn", color = BrandPurple)
+                                Surface(
+                                    onClick = { runCatching { uriHandler.openUri(url) } },
+                                    color = Color(0xFF0A66C2),
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_linkedin),
+                                        contentDescription = "LinkedIn",
+                                        tint = Color.White,
+                                        modifier = Modifier.padding(6.dp).size(18.dp)
+                                    )
                                 }
                             }
                             user.instagramHandle?.takeIf { it.isNotBlank() }?.let { handle ->
                                 val ig = "https://instagram.com/${handle.removePrefix("@")}"
-                                TextButton(onClick = { runCatching { uriHandler.openUri(ig) } }) {
-                                    Text("Instagram", color = BrandPurple)
+                                Surface(
+                                    onClick = { runCatching { uriHandler.openUri(ig) } },
+                                    color = Color(0xFFE1306C),
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_instagram),
+                                        contentDescription = "Instagram",
+                                        tint = Color.White,
+                                        modifier = Modifier.padding(6.dp).size(18.dp)
+                                    )
                                 }
                             }
                         }
@@ -130,46 +144,70 @@ fun UserProfileScreen(
                         StatColumn("Streak", user.streak)
                     }
 
-                    when (user.friendStatus) {
+                    if (isSelf) {
+                        OutlinedButton(onClick = onViewingSelf, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Default.Settings, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Edit Profile & Settings")
+                        }
+                    }
+
+                    if (!isSelf) when (user.friendStatus) {
                         "friends" -> {
-                            Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
+                            // Status chip + Message button in one row
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Surface(color = SuccessGreen.copy(alpha = 0.12f), shape = AppShape.chip) {
-                                    Text(
-                                        "Friends",
-                                        color = SuccessGreen,
-                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm)
+                                    ) {
+                                        Icon(Icons.Default.Check, null, tint = SuccessGreen, modifier = Modifier.size(14.dp))
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("Friends", color = SuccessGreen, style = MaterialTheme.typography.labelMedium)
+                                    }
                                 }
                                 if (!isDemo) {
                                     OutlinedButton(
                                         onClick = { onMessageFriend(userId, user.fullName) },
-                                        modifier = Modifier.fillMaxWidth()
+                                        modifier = Modifier.weight(1f)
                                     ) {
-                                        Icon(Icons.AutoMirrored.Filled.Chat, null, modifier = Modifier.size(18.dp))
-                                        Spacer(Modifier.width(8.dp))
+                                        Icon(Icons.AutoMirrored.Filled.Chat, null, modifier = Modifier.size(16.dp))
+                                        Spacer(Modifier.width(6.dp))
                                         Text("Message")
                                     }
-                                    OutlinedButton(
-                                        onClick = { viewModel.removeFriendFromProfile(userId) },
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Icon(Icons.Default.PersonRemove, null, modifier = Modifier.size(18.dp))
-                                        Spacer(Modifier.width(8.dp))
-                                        Text("Remove friend", color = ErrorRed)
-                                    }
+                                }
+                            }
+                            if (!isDemo) {
+                                TextButton(
+                                    onClick = { viewModel.removeFriendFromProfile(userId) },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Default.PersonRemove, null, tint = ErrorRed, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Remove friend", color = ErrorRed, style = MaterialTheme.typography.bodySmall)
                                 }
                             }
                         }
                         "pending_incoming" -> {
+                            // Status chip inline with Accept / Decline actions
                             Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
-                                Surface(color = WarningAmber.copy(alpha = 0.12f), shape = AppShape.chip) {
-                                    Text(
-                                        "Wants to connect",
-                                        color = WarningAmber,
-                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Surface(color = WarningAmber.copy(alpha = 0.12f), shape = AppShape.chip) {
+                                        Text(
+                                            "Wants to connect",
+                                            color = WarningAmber,
+                                            modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
                                 }
                                 if (!isDemo) {
                                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
@@ -187,20 +225,27 @@ fun UserProfileScreen(
                             }
                         }
                         "pending_outgoing" -> {
-                            Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
+                            // Status chip + Cancel in one row
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Surface(color = WarningAmber.copy(alpha = 0.12f), shape = AppShape.chip) {
-                                    Text(
-                                        "Request sent",
-                                        color = WarningAmber,
-                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm)
+                                    ) {
+                                        Icon(Icons.Default.Schedule, null, tint = WarningAmber, modifier = Modifier.size(14.dp))
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("Request sent", color = WarningAmber, style = MaterialTheme.typography.labelMedium)
+                                    }
                                 }
                                 if (!isDemo) {
                                     OutlinedButton(
                                         onClick = { viewModel.cancelOutgoingFromProfile(userId) },
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) { Text("Cancel request") }
+                                        modifier = Modifier.weight(1f)
+                                    ) { Text("Cancel") }
                                 }
                             }
                         }
@@ -213,9 +258,9 @@ fun UserProfileScreen(
                                 )
                             }
                         }
-                    }
+                    } // end if (!isSelf) when
 
-                    if (user.friendStatus == "friends") {
+                    if (!isSelf && user.friendStatus == "friends") {
                         if (state.friendExtrasLoading) {
                             Row(
                                 Modifier.fillMaxWidth(),
@@ -315,7 +360,7 @@ private fun FriendProfileSections(
                 ContinuumCard(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(Spacing.md)) {
                         Text(item.displayText, style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
-                        Text(item.createdAt.take(10), style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                        Text(item.createdAt.toDisplayDate(), style = MaterialTheme.typography.labelSmall, color = TextMuted)
                     }
                 }
             }

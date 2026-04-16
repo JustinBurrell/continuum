@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.tasks.domain.Task
 import java.text.SimpleDateFormat
 import java.util.*
@@ -30,6 +31,7 @@ import java.util.*
 @Composable
 fun CalendarViewScreen(
     onNavigateBack: (() -> Unit)?,
+    onTaskClick: ((String) -> Unit)? = null,
     viewModel: TasksViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -197,7 +199,11 @@ fun CalendarViewScreen(
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(selectedDayTasks, key = { it.id }) { task ->
-                            ContinuumCard(modifier = Modifier.fillMaxWidth()) {
+                            ContinuumCard(
+                                modifier = Modifier.fillMaxWidth().then(
+                                    if (onTaskClick != null) Modifier.clickable { onTaskClick(task.id) } else Modifier
+                                )
+                            ) {
                                 Row(
                                     modifier = Modifier.padding(12.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -224,11 +230,3 @@ fun CalendarViewScreen(
     }
 }
 
-private fun String.toDisplayDate(): String {
-    return try {
-        val input = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(this) ?: return this
-        SimpleDateFormat("MM-dd-yyyy", Locale.US).format(input)
-    } catch (_: Exception) {
-        this
-    }
-}

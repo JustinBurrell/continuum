@@ -1,0 +1,37 @@
+CONTINUUM PRIVACY POLICY
+
+Last updated: April 2026
+
+1. INFORMATION WE COLLECT
+We collect information you provide when creating an account, such as your name, email address, and profile details. We also collect content you create within the app, including notes, flashcard sets, tasks, and job application records.
+
+2. HOW WE USE YOUR INFORMATION
+We use your information to:
+- Provide and improve the Continuum service
+- Personalize your experience
+- Generate AI-powered summaries, feedback, and flashcards from your content
+- Send important service-related notifications
+
+3. DATA SHARING
+We do not sell your personal information. We may share data with:
+- AI service providers (solely to process AI-powered features on your behalf)
+- Cloud storage providers for file storage
+- Analytics providers to improve app performance
+
+4. DATA RETENTION
+We retain your data as long as your account is active. You may request deletion of your account and associated data at any time by contacting us.
+
+5. SECURITY
+We implement industry-standard security measures to protect your data, including encrypted connections (HTTPS) and secure authentication.
+
+6. YOUR RIGHTS
+You have the right to access, update, and delete your personal information. Contact us at support@usecontinuum.dev to exercise these rights.
+
+7. CHILDREN'S PRIVACY
+Continuum is not directed to children under 13. We do not knowingly collect personal information from children under 13.
+
+8. CHANGES TO THIS POLICY
+We may update this policy periodically. We will notify you of significant changes via email or in-app notification.
+
+9. CONTACT
+Questions? Email us at support@usecontinuum.dev

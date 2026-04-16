@@ -37,6 +37,7 @@ data class ResumesUiState(
 data class FeedbackUiState(
     val feedback: ResumeFeedback? = null,
     val isLoading: Boolean = false,
+    val isRegenerating: Boolean = false,
     val error: String? = null
 )
 
@@ -63,14 +64,25 @@ class CareerViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun loadApplications() {
-        viewModelScope.launch {
-            _applicationsState.update { it.copy(isLoading = true, error = null) }
-            repository.getApplications(
-                search = _applicationsState.value.searchQuery,
-                status = _applicationsState.value.statusFilter
-            )
-                .onSuccess { apps -> _applicationsState.update { it.copy(applications = apps, isLoading = false) } }
-                .onFailure { e -> _applicationsState.update { it.copy(isLoading = false, error = e.message) } }
+        val search = _applicationsState.value.searchQuery.trim()
+        val statusFilter = _applicationsState.value.statusFilter
+        // Fast path: no filter → use cache-first Flow
+        if (search.isBlank() && (statusFilter.isBlank() || statusFilter == "all")) {
+            viewModelScope.launch {
+                _applicationsState.update { it.copy(isLoading = true, error = null) }
+                repository.getApplicationsFlow().collect { result ->
+                    result
+                        .onSuccess { apps -> _applicationsState.update { it.copy(applications = apps, isLoading = false) } }
+                        .onFailure { e -> _applicationsState.update { it.copy(isLoading = false, error = e.message) } }
+                }
+            }
+        } else {
+            viewModelScope.launch {
+                _applicationsState.update { it.copy(isLoading = true, error = null) }
+                repository.getApplications(search = search.ifBlank { null }, status = statusFilter)
+                    .onSuccess { apps -> _applicationsState.update { it.copy(applications = apps, isLoading = false) } }
+                    .onFailure { e -> _applicationsState.update { it.copy(isLoading = false, error = e.message) } }
+            }
         }
     }
 
@@ -178,12 +190,68 @@ class CareerViewModel @Inject constructor(
         }
     }
 
+    fun addContact(appId: String, name: String, role: String, linkedIn: String, email: String) {
+        viewModelScope.launch {
+            repository.addContact(appId, name, role.takeIf { it.isNotBlank() }, linkedIn.takeIf { it.isNotBlank() }, email.takeIf { it.isNotBlank() })
+                .onSuccess { updated ->
+                    _applicationsState.update { state ->
+                        state.copy(applications = state.applications.map { if (it.id == appId) updated else it })
+                    }
+                }
+        }
+    }
+
+    fun deleteContact(appId: String, contactId: String) {
+        viewModelScope.launch {
+            repository.deleteContact(appId, contactId)
+                .onSuccess { updated ->
+                    _applicationsState.update { state ->
+                        state.copy(applications = state.applications.map { if (it.id == appId) updated else it })
+                    }
+                }
+        }
+    }
+
+    fun addReminder(appId: String, date: String, description: String) {
+        viewModelScope.launch {
+            repository.addReminder(appId, date, description)
+                .onSuccess { updated ->
+                    _applicationsState.update { state ->
+                        state.copy(applications = state.applications.map { if (it.id == appId) updated else it })
+                    }
+                }
+        }
+    }
+
+    fun deleteReminder(appId: String, reminderId: String) {
+        viewModelScope.launch {
+            repository.deleteReminder(appId, reminderId)
+                .onSuccess { updated ->
+                    _applicationsState.update { state ->
+                        state.copy(applications = state.applications.map { if (it.id == appId) updated else it })
+                    }
+                }
+        }
+    }
+
     fun loadFeedback(resumeId: String) {
         viewModelScope.launch {
             _feedbackState.update { it.copy(isLoading = true, error = null) }
-            repository.generateFeedback(resumeId)
+            repository.getExistingFeedback(resumeId)
                 .onSuccess { feedback -> _feedbackState.update { it.copy(feedback = feedback, isLoading = false) } }
-                .onFailure { e -> _feedbackState.update { it.copy(isLoading = false, error = e.message) } }
+                .onFailure {
+                    // No existing feedback — just clear loading; user can generate via button
+                    _feedbackState.update { it.copy(isLoading = false) }
+                }
+        }
+    }
+
+    fun regenerateFeedback(resumeId: String) {
+        viewModelScope.launch {
+            _feedbackState.update { it.copy(isRegenerating = true, error = null) }
+            repository.generateFeedback(resumeId)
+                .onSuccess { feedback -> _feedbackState.update { it.copy(feedback = feedback, isRegenerating = false) } }
+                .onFailure { e -> _feedbackState.update { it.copy(isRegenerating = false, error = e.message) } }
         }
     }
 }

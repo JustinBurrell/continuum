@@ -1,5 +1,6 @@
 package com.continuum.android.feature.tasks.data.remote.dto
 
+import com.continuum.android.feature.notes.data.remote.dto.PaginationDto
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -47,7 +48,8 @@ data class TaskDto(
 @JsonClass(generateAdapter = true)
 data class TasksResponseDto(
     val success: Boolean = false,
-    val tasks: List<TaskDto> = emptyList()
+    val tasks: List<TaskDto> = emptyList(),
+    val pagination: PaginationDto? = null
 )
 
 @JsonClass(generateAdapter = true)

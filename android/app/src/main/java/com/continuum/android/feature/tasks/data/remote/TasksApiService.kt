@@ -6,7 +6,11 @@ import retrofit2.http.*
 interface TasksApiService {
 
     @GET("tasks")
-    suspend fun getTasks(@Query("search") search: String? = null): TasksResponseDto
+    suspend fun getTasks(
+        @Query("search") search: String? = null,
+        @Query("page") page: Int? = null,
+        @Query("limit") limit: Int? = null
+    ): TasksResponseDto
 
     @GET("tasks/{id}")
     suspend fun getTask(@Path("id") id: String): TaskResponseDto

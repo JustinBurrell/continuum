@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -17,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.LocalIsDemo
+import com.continuum.android.core.ui.LocalScrollToTopNotifier
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
@@ -43,8 +46,16 @@ fun NotesListScreen(
 
     var noteToDelete by remember { mutableStateOf<Note?>(null) }
     var contextMenuNote by remember { mutableStateOf<Note?>(null) }
+    val scrollState = rememberLazyListState()
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
+    val scrollToTopCount by remember(scrollToTopNotifier) {
+        scrollToTopNotifier?.counter ?: MutableStateFlow(0)
+    }.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.loadNotes() }
+    LaunchedEffect(scrollToTopCount) {
+        if (scrollToTopCount > 0) scrollState.animateScrollToItem(0)
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -172,6 +183,7 @@ fun NotesListScreen(
 
                     else -> {
                         LazyColumn(
+                            state = scrollState,
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {

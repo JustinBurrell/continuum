@@ -51,12 +51,23 @@ class MessagingViewModel @Inject constructor(
         get() = runCatching { repository.currentUserId() }.getOrDefault("")
 
     fun loadConversations() {
-        viewModelScope.launch {
-            _conversationsState.update { it.copy(isLoading = true, error = null) }
-            val query = _conversationsState.value.searchQuery.takeIf { it.isNotBlank() }
-            repository.getConversations(query)
-                .onSuccess { convos -> _conversationsState.update { it.copy(conversations = convos, isLoading = false) } }
-                .onFailure { e -> _conversationsState.update { it.copy(isLoading = false, error = e.message) } }
+        val query = _conversationsState.value.searchQuery.trim()
+        if (query.isBlank()) {
+            viewModelScope.launch {
+                _conversationsState.update { it.copy(isLoading = true, error = null) }
+                repository.getConversationsFlow().collect { result ->
+                    result
+                        .onSuccess { convos -> _conversationsState.update { it.copy(conversations = convos, isLoading = false) } }
+                        .onFailure { e -> _conversationsState.update { it.copy(isLoading = false, error = e.message) } }
+                }
+            }
+        } else {
+            viewModelScope.launch {
+                _conversationsState.update { it.copy(isLoading = true, error = null) }
+                repository.getConversations(query)
+                    .onSuccess { convos -> _conversationsState.update { it.copy(conversations = convos, isLoading = false) } }
+                    .onFailure { e -> _conversationsState.update { it.copy(isLoading = false, error = e.message) } }
+            }
         }
 
         viewModelScope.launch {

@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -16,8 +17,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.LocalIsDemo
+import com.continuum.android.core.ui.LocalScrollToTopNotifier
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.career.domain.Application
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -38,8 +42,16 @@ fun ApplicationsListScreen(
     var showCreateSheet by remember { mutableStateOf(false) }
     var appToDelete by remember { mutableStateOf<Application?>(null) }
     val selectedTabIndex = statusTabs.indexOf(state.statusFilter).coerceAtLeast(0)
+    val listState = rememberLazyListState()
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
+    val scrollToTopCount by remember(scrollToTopNotifier) {
+        scrollToTopNotifier?.counter ?: MutableStateFlow(0)
+    }.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.loadApplications() }
+    LaunchedEffect(scrollToTopCount) {
+        if (scrollToTopCount > 0) listState.animateScrollToItem(0)
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -121,6 +133,7 @@ fun ApplicationsListScreen(
 
                     else -> {
                         LazyColumn(
+                            state = listState,
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
@@ -186,7 +199,7 @@ private fun ApplicationCard(app: Application, onClick: () -> Unit, onDelete: (()
                     Text(app.company, style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
                     Text(app.position, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
                     app.appliedDate?.let {
-                        Text("Applied: ${it.take(10)}", style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                        Text("Applied: ${it.toDisplayDate()}", style = MaterialTheme.typography.bodySmall, color = TextMuted)
                     }
                 }
                 StatusBadge(app.status)

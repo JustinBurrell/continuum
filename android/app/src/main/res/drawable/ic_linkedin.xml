@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  LinkedIn "in" logo mark — white on transparent background.
+  Designed to be placed inside a blue Surface (0xFF0A66C2).
+  Viewport 24x24, paths trace the official LinkedIn icon shape.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <!-- "in" letterform -->
+  <path
+      android:fillColor="#FFFFFF"
+      android:pathData="M4.98,3.5C4.98,4.88 3.87,6 2.5,6S0,4.88 0,3.5 1.12,1 2.5,1 4.98,2.12 4.98,3.5zM5,8H0v16h5V8zM13,8H8.04v16H13v-8.399c0-4.67 6.029-5.052 6.029,0V24H24V13.869c0-7.88-8.922-7.593-11-3.724V8z"/>
+</vector>

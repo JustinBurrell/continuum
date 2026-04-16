@@ -55,15 +55,30 @@ class TasksViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun loadTasks() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
-            repository.queryTasks(
-                search = _state.value.searchQuery.trim().ifBlank { null },
-                shared = _state.value.isSharedTab
-            ).onSuccess { tasks ->
-                _state.update { it.copy(tasks = tasks, isLoading = false) }
-            }.onFailure { e ->
-                _state.update { it.copy(isLoading = false, error = e.message) }
+        val search = _state.value.searchQuery.trim()
+        val shared = _state.value.isSharedTab
+        // Fast path: no filter/search → use cache-first Flow so cached tasks
+        // appear immediately while the API refresh happens in the background.
+        if (search.isBlank() && !shared) {
+            viewModelScope.launch {
+                _state.update { it.copy(isLoading = true, error = null) }
+                repository.getTasks().collect { result ->
+                    result
+                        .onSuccess { tasks -> _state.update { it.copy(tasks = tasks, isLoading = false) } }
+                        .onFailure { e -> _state.update { it.copy(isLoading = false, error = e.message) } }
+                }
+            }
+        } else {
+            viewModelScope.launch {
+                _state.update { it.copy(isLoading = true, error = null) }
+                repository.queryTasks(
+                    search = search.ifBlank { null },
+                    shared = shared
+                ).onSuccess { tasks ->
+                    _state.update { it.copy(tasks = tasks, isLoading = false) }
+                }.onFailure { e ->
+                    _state.update { it.copy(isLoading = false, error = e.message) }
+                }
             }
         }
     }

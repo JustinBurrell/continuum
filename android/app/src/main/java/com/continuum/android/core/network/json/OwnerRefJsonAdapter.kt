@@ -8,10 +8,27 @@ import com.squareup.moshi.ToJson
 
 /**
  * Backend often returns `userId` as either a Mongo id string or a populated
- * `{ "_id": "...", "username": "..." }` object. Moshi needs a single adapter for both.
+ * `{ "_id": "...", "firstName": "...", "lastName": "...", "username": "..." }` object.
+ * Moshi needs a single adapter for both.
  */
 @JsonClass(generateAdapter = false)
-data class OwnerRef(val id: String)
+data class OwnerRef(
+    val id: String,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val username: String? = null
+) {
+    /** Best available display name: "First Last", fallback to @username. */
+    val displayName: String? get() {
+        val fn = firstName.orEmpty()
+        val ln = lastName.orEmpty()
+        return when {
+            fn.isNotBlank() || ln.isNotBlank() -> "$fn $ln".trim()
+            !username.isNullOrBlank() -> username
+            else -> null
+        }
+    }
+}
 
 class OwnerRefJsonAdapter {
     @FromJson
@@ -24,15 +41,21 @@ class OwnerRefJsonAdapter {
             JsonReader.Token.STRING -> OwnerRef(reader.nextString())
             JsonReader.Token.BEGIN_OBJECT -> {
                 var id = ""
+                var firstName: String? = null
+                var lastName: String? = null
+                var username: String? = null
                 reader.beginObject()
                 while (reader.hasNext()) {
                     when (reader.nextName()) {
                         "_id" -> id = reader.nextString()
+                        "firstName" -> firstName = reader.nextString()
+                        "lastName" -> lastName = reader.nextString()
+                        "username" -> username = reader.nextString()
                         else -> reader.skipValue()
                     }
                 }
                 reader.endObject()
-                OwnerRef(id)
+                OwnerRef(id, firstName, lastName, username)
             }
             else -> {
                 reader.skipValue()

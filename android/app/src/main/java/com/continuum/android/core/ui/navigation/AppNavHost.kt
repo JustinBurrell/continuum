@@ -31,6 +31,7 @@ import com.continuum.android.core.data.local.LogoutReason
 import com.continuum.android.core.ui.components.DemoBanner
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalNetworkMonitor
+import com.continuum.android.core.ui.LocalScrollToTopNotifier
 import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.feature.auth.presentation.*
 import com.continuum.android.feature.career.presentation.*
@@ -239,7 +240,11 @@ fun AppNavHost(
         tokenManager.clearTokens()
     }
 
-    CompositionLocalProvider(LocalIsDemo provides navProfile.isDemo) {
+    val scrollToTopNotifier = navProfileViewModel.scrollToTopNotifier
+    CompositionLocalProvider(
+        LocalIsDemo provides navProfile.isDemo,
+        LocalScrollToTopNotifier provides scrollToTopNotifier
+    ) {
         if (isExpandedScreen && showMainNav) {
             Row(modifier = Modifier.fillMaxSize()) {
                 ContinuumNavigationRail(
@@ -478,11 +483,15 @@ private fun NavGraph(
             ) { backStackEntry ->
                 val networkMonitor = LocalNetworkMonitor.current
                 val noteId = backStackEntry.arguments?.getString("noteId") ?: return@composable
+                val noteTokenManager = LocalTokenManager.current
                 NoteDetailScreen(
                     noteId = noteId,
                     onNavigateBack = { navController.popBackStack() },
                     onEdit = { id -> navController.navigate(NavRoutes.Notes.editor(id)) },
-                    networkMonitor = networkMonitor
+                    networkMonitor = networkMonitor,
+                    currentUserId = noteTokenManager.getJwtUserId(),
+                    onNavigateToSet = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) },
+                    onUserProfileClick = { uid -> navController.navigate(NavRoutes.Social.userProfile(uid)) }
                 )
             }
             composable(
@@ -533,7 +542,8 @@ private fun NavGraph(
                 FlashcardSetDetailScreen(
                     setId = setId,
                     onNavigateBack = { navController.popBackStack() },
-                    onStudy = { navController.navigate(NavRoutes.Flashcards.studyMode(setId)) }
+                    onStudy = { navController.navigate(NavRoutes.Flashcards.studyMode(setId)) },
+                    onUserProfileClick = { uid -> navController.navigate(NavRoutes.Social.userProfile(uid)) }
                 )
             }
             composable(
@@ -572,7 +582,8 @@ private fun NavGraph(
         navigation(route = NavRoutes.Calendar.ROOT, startDestination = NavRoutes.Calendar.SCREEN) {
             composable(NavRoutes.Calendar.SCREEN) {
                 CalendarViewScreen(
-                    onNavigateBack = null
+                    onNavigateBack = { navController.popBackStack() },
+                    onTaskClick = { taskId -> navController.navigate(NavRoutes.Tasks.detail(taskId)) }
                 )
             }
         }
@@ -661,13 +672,7 @@ private fun NavGraph(
                     onNavigateBack = { navController.popBackStack() },
                     onViewingSelf = {
                         navController.popBackStack()
-                        navController.navigate(NavRoutes.Profile.SCREEN) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                        navController.navigate(NavRoutes.Profile.SCREEN)
                     },
                     onMessageFriend = { uid, displayName ->
                         messagingViewModel.startConversation(uid) { convId ->
@@ -692,11 +697,16 @@ private fun NavGraph(
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val noteId = backStackEntry.arguments?.getString("noteId") ?: return@composable
+                val sharedNoteTokenManager = LocalTokenManager.current
                 SharedNoteViewScreen(
                     noteId = noteId,
+                    currentUserId = sharedNoteTokenManager.getJwtUserId(),
                     onNavigateBack = { navController.popBackStack() },
                     onCommentAuthorClick = { uid ->
                         navController.navigate(NavRoutes.Social.userProfile(uid))
+                    },
+                    onNavigateToSet = { setId ->
+                        navController.navigate(NavRoutes.Flashcards.setDetail(setId))
                     }
                 )
             }
@@ -709,7 +719,8 @@ private fun NavGraph(
                         )
                     },
                     networkMonitor = networkMonitor,
-                    onLogoClick = onLogoClick
+                    onLogoClick = onLogoClick,
+                    onParticipantProfileClick = { uid -> navController.navigate(NavRoutes.Social.userProfile(uid)) }
                 )
             }
             composable(
@@ -738,6 +749,13 @@ private fun NavGraph(
                     onNavigateBack = { navController.popBackStack() },
                     onOpenParticipantProfile = { uid ->
                         navController.navigate(NavRoutes.Social.userProfile(uid))
+                    },
+                    onSharedContentClick = { type, id ->
+                        when (type) {
+                            "note" -> navController.navigate(NavRoutes.Notes.detail(id))
+                            "flashcardSet" -> navController.navigate(NavRoutes.Flashcards.setDetail(id))
+                            "task" -> navController.navigate(NavRoutes.Tasks.detail(id))
+                        }
                     }
                 )
             }
@@ -759,7 +777,10 @@ private fun NavGraph(
                     onMessages = { navController.navigate(NavRoutes.Social.CONVERSATIONS) },
                     onActivity = { navController.navigate(NavRoutes.Social.ACTIVITY_FEED) },
                     onCalendar = { navController.navigate(NavRoutes.Calendar.ROOT) },
-                    onResumes = { navController.navigate(NavRoutes.Career.RESUMES_LIST) }
+                    onTasks = { navController.navigate(NavRoutes.Tasks.ROOT) },
+                    onResumes = { navController.navigate(NavRoutes.Career.RESUMES_LIST) },
+                    onTerms = { navController.navigate(NavRoutes.Auth.TERMS) },
+                    onPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) }
                 )
             }
             composable(NavRoutes.Profile.EDIT) {

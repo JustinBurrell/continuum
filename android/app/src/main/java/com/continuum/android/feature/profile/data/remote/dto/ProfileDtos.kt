@@ -29,7 +29,8 @@ data class ProfileDto(
     val scheduledDeletionAt: String? = null,
     val settings: ProfileSettingsDto? = null,
     val lastViewedActivityAt: String? = null,
-    val createdAt: String = ""
+    val createdAt: String = "",
+    val roles: List<String> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)

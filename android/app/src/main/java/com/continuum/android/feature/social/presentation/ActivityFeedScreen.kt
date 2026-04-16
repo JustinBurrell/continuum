@@ -13,6 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -20,6 +22,7 @@ import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.social.domain.ActivityItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -132,22 +135,39 @@ private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: (
         ) {
             AvatarInitials(
                 name = item.actorName,
+                imageUrl = item.actorAvatar,
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
                     .clickable(onClick = onUserClick)
             )
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(
-                        item.displayText,
+                        item.actorName,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary,
-                        modifier = Modifier.weight(1f, fill = false)
+                        fontWeight = FontWeight.SemiBold,
+                        color = BrandPurple,
+                        maxLines = 1,
+                        modifier = Modifier.clickable(onClick = onUserClick)
                     )
-                    VerifiedRoleBadges(roles = item.actorRoles, expanded = false)
+                    val actionText = item.displayText.removePrefix(item.actorName).trim()
+                    if (actionText.isNotBlank()) {
+                        Text(
+                            actionText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
-                Text(item.createdAt.take(10), style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                Text(item.createdAt.toDisplayDate(), style = MaterialTheme.typography.bodySmall, color = TextMuted)
             }
             Icon(
                 imageVector = when (item.type) {

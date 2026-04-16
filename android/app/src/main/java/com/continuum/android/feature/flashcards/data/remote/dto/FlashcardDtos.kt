@@ -1,6 +1,7 @@
 package com.continuum.android.feature.flashcards.data.remote.dto
 
 import com.continuum.android.core.network.json.OwnerRef
+import com.continuum.android.feature.notes.data.remote.dto.PaginationDto
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -42,7 +43,8 @@ data class FlashcardDto(
 @JsonClass(generateAdapter = true)
 data class FlashcardSetsResponseDto(
     val success: Boolean = false,
-    val sets: List<FlashcardSetDto> = emptyList()
+    val sets: List<FlashcardSetDto> = emptyList(),
+    val pagination: PaginationDto? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -164,7 +166,8 @@ data class UpdateSetRequestDto(
 
 @JsonClass(generateAdapter = true)
 data class ShareSetRequestDto(
-    val userIds: List<String>
+    val visibility: String = "specific",
+    val sharedWith: List<String> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)

@@ -23,6 +23,7 @@ import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.social.domain.Friend
 import com.continuum.android.feature.social.presentation.SocialViewModel
 import com.continuum.android.feature.tasks.domain.Task
@@ -238,6 +239,21 @@ private fun TaskDetailContent(
         task.type?.let { TypeChip(it) }
     }
 
+    // "Created by" attribution — only for tasks owned by someone else
+    if (!isOwner && task.userId != null) {
+        val creatorName = task.participants.find { it.userId == task.userId }?.displayName
+        if (creatorName != null) {
+            TextButton(
+                onClick = { onUserProfileClick(task.userId) },
+                contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp)
+            ) {
+                Icon(Icons.Default.Person, contentDescription = null, tint = BrandPurple, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Created by $creatorName", color = BrandPurple, style = MaterialTheme.typography.labelMedium)
+            }
+        }
+    }
+
     if (task.description.isNotBlank()) {
         Spacer(Modifier.height(Spacing.lg))
         ContinuumCard(modifier = Modifier.fillMaxWidth()) {
@@ -256,7 +272,7 @@ private fun TaskDetailContent(
             Text("Details", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary)
 
             task.dueDate?.let {
-                DetailRow(icon = Icons.Default.CalendarToday, label = "Due Date", value = it.take(10))
+                DetailRow(icon = Icons.Default.CalendarToday, label = "Due Date", value = it.toDisplayDate())
             }
             task.duration?.let {
                 DetailRow(icon = Icons.Default.Timer, label = "Duration", value = "${it}min")

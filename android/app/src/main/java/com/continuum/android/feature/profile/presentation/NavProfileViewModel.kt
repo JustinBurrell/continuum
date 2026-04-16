@@ -3,6 +3,7 @@ package com.continuum.android.feature.profile.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.continuum.android.core.data.ProfileUpdateNotifier
+import com.continuum.android.core.data.ScrollToTopNotifier
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,8 @@ data class NavProfileUiState(
 @HiltViewModel
 class NavProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
-    private val profileUpdateNotifier: ProfileUpdateNotifier
+    private val profileUpdateNotifier: ProfileUpdateNotifier,
+    val scrollToTopNotifier: ScrollToTopNotifier
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(NavProfileUiState())

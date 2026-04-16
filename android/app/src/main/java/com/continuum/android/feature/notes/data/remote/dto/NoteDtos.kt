@@ -74,6 +74,22 @@ data class ImportNoteRequestDto(
 )
 
 @JsonClass(generateAdapter = true)
+data class ShareNoteRequestDto(
+    val visibility: String = "specific",
+    val sharedWith: List<String> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class FlashcardSetRefDto(@Json(name = "_id") val id: String = "")
+
+@JsonClass(generateAdapter = true)
+data class GenerateFlashcardsResponseDto(
+    val success: Boolean = false,
+    val set: FlashcardSetRefDto? = null,
+    val data: FlashcardSetRefDto? = null  // backend may use either key
+)
+
+@JsonClass(generateAdapter = true)
 data class DriveFileDto(
     val id: String = "",
     val name: String = "",

@@ -111,7 +111,7 @@ router.post('/', notesController.createNote);
  * @swagger
  * /api/notes:
  *   get:
- *     summary: Get all notes owned by the authenticated user
+ *     summary: Get all notes owned by the authenticated user (paginated)
  *     tags: [Notes]
  *     parameters:
  *       - in: query
@@ -121,9 +121,31 @@ router.post('/', notesController.createNote);
  *       - in: query
  *         name: type
  *         schema: { type: string, enum: [general, lecture, research, todo, journal] }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *         description: Page number (1-based)
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *         description: Results per page
  *     responses:
  *       200:
- *         description: Returns array of notes
+ *         description: Returns paginated notes with pagination metadata
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 notes: { type: array }
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     total: { type: integer, description: Total notes matching the filter }
+ *                     page:  { type: integer }
+ *                     limit: { type: integer }
+ *                     pages: { type: integer, description: Total number of pages }
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */

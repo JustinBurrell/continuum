@@ -1,6 +1,7 @@
 package com.continuum.android.core.ui
 
 import androidx.compose.runtime.compositionLocalOf
+import com.continuum.android.core.data.ScrollToTopNotifier
 import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.core.network.NetworkMonitor
 
@@ -22,3 +23,6 @@ val LocalTokenManager = compositionLocalOf<TokenManager> {
 val LocalIsDemo = compositionLocalOf<Boolean> {
     false
 }
+
+/** Emits Unit when the user taps a bottom-nav tab they are already at the root of. */
+val LocalScrollToTopNotifier = compositionLocalOf<ScrollToTopNotifier?> { null }

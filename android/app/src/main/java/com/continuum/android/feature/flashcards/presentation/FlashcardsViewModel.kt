@@ -92,23 +92,41 @@ class FlashcardsViewModel @Inject constructor(
     private var searchJob: Job? = null
 
     fun loadSets() {
-        viewModelScope.launch {
-            _setsState.update { it.copy(isLoading = true, error = null) }
-            val query = _setsState.value.searchQuery.trim().ifBlank { null }
-            val shared = _setsState.value.isSharedTab
-            val setsResult = repository.querySets(search = query, shared = shared)
-            val streakResult = if (!shared) repository.getStreak() else Result.success(0)
-
-            setsResult.onSuccess { sets ->
-                _setsState.update {
-                    it.copy(
-                        sets = sets,
-                        streak = streakResult.getOrDefault(0),
-                        isLoading = false
-                    )
+        val query = _setsState.value.searchQuery.trim()
+        val shared = _setsState.value.isSharedTab
+        // Fast path: no filter → cache-first Flow shows cached sets instantly while API refreshes
+        if (query.isBlank() && !shared) {
+            viewModelScope.launch {
+                _setsState.update { it.copy(isLoading = true, error = null) }
+                val streakDeferred = async { repository.getStreak() }
+                repository.getSets().collect { result ->
+                    result
+                        .onSuccess { sets ->
+                            _setsState.update {
+                                it.copy(
+                                    sets = sets,
+                                    streak = streakDeferred.await().getOrDefault(0),
+                                    isLoading = false
+                                )
+                            }
+                        }
+                        .onFailure { e ->
+                            _setsState.update { it.copy(isLoading = false, error = e.message) }
+                        }
                 }
-            }.onFailure { e ->
-                _setsState.update { it.copy(isLoading = false, error = e.message) }
+            }
+        } else {
+            viewModelScope.launch {
+                _setsState.update { it.copy(isLoading = true, error = null) }
+                val setsResult = repository.querySets(search = query.ifBlank { null }, shared = shared)
+                val streakResult = if (!shared) repository.getStreak() else Result.success(0)
+                setsResult.onSuccess { sets ->
+                    _setsState.update {
+                        it.copy(sets = sets, streak = streakResult.getOrDefault(0), isLoading = false)
+                    }
+                }.onFailure { e ->
+                    _setsState.update { it.copy(isLoading = false, error = e.message) }
+                }
             }
         }
     }
@@ -338,6 +356,27 @@ class FlashcardsViewModel @Inject constructor(
     fun duplicateSet(setId: String) {
         viewModelScope.launch {
             repository.duplicateSet(setId).onSuccess { loadSets() }
+        }
+    }
+
+    fun updateSetInfo(setId: String, title: String, description: String) {
+        viewModelScope.launch {
+            repository.updateSet(setId, title.takeIf { it.isNotBlank() }, description.takeIf { it.isNotBlank() }, null)
+                .onSuccess { loadSetDetail(setId) }
+        }
+    }
+
+    fun makeSetPublic(setId: String) {
+        viewModelScope.launch {
+            repository.updateSet(setId, null, null, "public")
+                .onSuccess { loadSetDetail(setId) }
+        }
+    }
+
+    fun shareSetWithFriends(setId: String, visibility: String, friendIds: List<String>) {
+        viewModelScope.launch {
+            repository.shareSet(setId, visibility, friendIds)
+                .onSuccess { loadSetDetail(setId) }
         }
     }
 }

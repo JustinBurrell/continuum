@@ -5,14 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.continuum.android.core.data.DataRefreshNotifier
 import com.continuum.android.feature.career.data.remote.CareerApiService
 import com.continuum.android.feature.career.domain.Application
-import com.continuum.android.feature.flashcards.data.remote.FlashcardsApiService
+import com.continuum.android.feature.flashcards.data.repository.FlashcardsRepository
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
-import com.continuum.android.feature.notes.data.remote.NotesApiService
+import com.continuum.android.feature.notes.data.repository.NotesRepository
 import com.continuum.android.feature.notes.domain.Note
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.feature.social.data.remote.SocialApiService
 import com.continuum.android.feature.social.domain.ActivityItem
-import com.continuum.android.feature.tasks.data.remote.TasksApiService
+import com.continuum.android.feature.tasks.data.repository.TasksRepository
 import com.continuum.android.feature.tasks.domain.Task
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -41,10 +41,10 @@ data class DashboardUiState(
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val notesApi: NotesApiService,
-    private val tasksApi: TasksApiService,
+    private val notesRepository: NotesRepository,
+    private val tasksRepository: TasksRepository,
+    private val flashcardsRepository: FlashcardsRepository,
     private val careerApi: CareerApiService,
-    private val flashcardsApi: FlashcardsApiService,
     private val socialApi: SocialApiService,
     private val profileRepository: ProfileRepository,
     private val dataRefreshNotifier: DataRefreshNotifier
@@ -60,61 +60,56 @@ class DashboardViewModel @Inject constructor(
     }
 
     fun load() {
-        _state.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            try {
-                val profileDeferred = async { profileRepository.getProfile() }
-                val lastSeenDeferred = async { profileRepository.getLastViewedActivityAt() }
-                val notesDeferred = async { notesApi.getNotes() }
-                val tasksDeferred = async { tasksApi.getTasks() }
-                val appsDeferred  = async { careerApi.getApplicationsDashboard() }
-                val setsDeferred = async { flashcardsApi.getSets() }
+            // Phase 1 — serve cached Room data immediately so the screen is not blank.
+            val cachedNotes = notesRepository.getCachedNotes()
+            val cachedTasks = tasksRepository.getCachedTasks()
+            val cachedSets = flashcardsRepository.getCachedSets()
 
-                val firstName = profileDeferred.await().getOrNull()?.firstName?.ifBlank { "there" } ?: "there"
-                val lastSeen = lastSeenDeferred.await()
-                val activityDeferred = async { socialApi.getActivity(since = lastSeen) }
-                val notesResp = notesDeferred.await()
-                val tasksResp = tasksDeferred.await()
-                val appsResp  = appsDeferred.await()
-                val setsResp = setsDeferred.await()
-                val activityResp = activityDeferred.await()
-
-                val recentNotes = notesResp.notes.take(5).map { dto ->
-                    Note(
-                        id = dto.id,
-                        title = dto.title,
-                        content = dto.content,
-                        type = dto.type?.ifBlank { "general" } ?: "general",
-                        tags = dto.tags,
-                        isFavorite = dto.isPinned,
-                        visibility = dto.visibility,
-                        googleDocId = dto.googleDocId,
-                        hasFlashcards = dto.hasFlashcards,
-                        quickSummary = dto.summary?.quick,
-                        detailedSummary = dto.summary?.detailed,
-                        updatedAt = dto.updatedAt,
-                        createdAt = dto.createdAt,
-                        ownerUserId = dto.owner?.id?.takeIf { it.isNotBlank() }
+            if (cachedNotes.isNotEmpty() || cachedTasks.isNotEmpty() || cachedSets.isNotEmpty()) {
+                val openCached = cachedTasks.filter { it.status != "completed" }
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        recentNotes = cachedNotes.take(5),
+                        flashcardSets = cachedSets.take(5),
+                        flashcardSetCount = cachedSets.size,
+                        notesTotal = cachedNotes.size,
+                        upcomingTasks = openCached.take(5),
+                        openTaskCount = openCached.size
                     )
                 }
+            } else {
+                _state.update { it.copy(isLoading = true, error = null) }
+            }
 
-                val openTasks = tasksResp.tasks
+            // Phase 2 — refresh from the network. All 5 calls launch in parallel;
+            // activity launches as soon as profile returns (needs lastViewedActivityAt).
+            try {
+                var freshNotes: List<Note> = emptyList()
+                var freshTasks: List<Task> = emptyList()
+                var freshSets: List<FlashcardSet> = emptyList()
+
+                val profileDeferred = async { profileRepository.getProfile() }
+                val notesDeferred = async { notesRepository.getNotes().collect { freshNotes = it.getOrNull() ?: freshNotes } }
+                val tasksDeferred = async { tasksRepository.getTasks().collect { freshTasks = it.getOrNull() ?: freshTasks } }
+                val setsDeferred = async { flashcardsRepository.getSets().collect { freshSets = it.getOrNull() ?: freshSets } }
+                val appsListDeferred = async { careerApi.getApplications() }
+
+                // Profile is typically the fastest call; launch activity immediately after it
+                // returns so both run in parallel with the heavier notes/tasks/sets flows.
+                val profile = profileDeferred.await().getOrNull()
+                val firstName = profile?.firstName?.ifBlank { "there" } ?: "there"
+                val activityDeferred = async { socialApi.getActivity(since = profile?.lastViewedActivityAt) }
+
+                notesDeferred.await()
+                tasksDeferred.await()
+                setsDeferred.await()
+                val allAppsDtos = appsListDeferred.await().applications
+                val activityResp = activityDeferred.await()
+
+                val openTasks = freshTasks
                     .filter { it.status != "completed" }
-                    .map { dto ->
-                        Task(
-                            id = dto.id,
-                            userId = dto.userId,
-                            title = dto.title,
-                            description = dto.description,
-                            status = dto.status,
-                            priority = dto.priority,
-                            type = dto.type,
-                            dueDate = dto.dueDate,
-                            duration = dto.duration,
-                            isShared = dto.isShared,
-                            updatedAt = dto.updatedAt
-                        )
-                    }
                     .sortedWith(
                         compareBy<Task> {
                             when (it.priority?.lowercase()) {
@@ -125,25 +120,11 @@ class DashboardViewModel @Inject constructor(
                         }.thenBy { it.dueDate ?: "9999-12-31" }
                     )
 
-                val flashcardSets = setsResp.sets.take(5).map { dto ->
-                    FlashcardSet(
-                        id = dto.id,
-                        title = dto.title,
-                        description = dto.description,
-                        cardCount = dto.resolvedCardCount(),
-                        isAIGenerated = dto.isAIGenerated,
-                        lastStudied = dto.resolvedLastStudied(),
-                        updatedAt = dto.updatedAt,
-                        ownerUserId = null
-                    )
-                }
-
                 val activityItems = activityResp.feed.take(5).map { dto ->
                     val actorName = listOfNotNull(
                         dto.userId?.firstName?.takeIf { it.isNotBlank() },
                         dto.userId?.lastName?.takeIf { it.isNotBlank() }
                     ).joinToString(" ").ifBlank { dto.userId?.username ?: "Someone" }
-
                     ActivityItem(
                         id = dto.id,
                         type = dto.type,
@@ -160,7 +141,7 @@ class DashboardViewModel @Inject constructor(
                     )
                 }
 
-                val applications = careerApi.getApplications().applications.take(5).map { dto ->
+                val applications = allAppsDtos.take(5).map { dto ->
                     Application(
                         id = dto.id,
                         company = dto.company,
@@ -184,16 +165,17 @@ class DashboardViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         firstName = firstName,
-                        notesTotal = notesResp.pagination?.total ?: notesResp.notes.size,
-                        flashcardSetCount = setsResp.sets.size,
-                        recentNotes = recentNotes,
-                        flashcardSets = flashcardSets,
+                        notesTotal = freshNotes.size,
+                        flashcardSetCount = freshSets.size,
+                        recentNotes = freshNotes.take(5),
+                        flashcardSets = freshSets.take(5),
                         recentActivity = activityItems,
                         applications = applications,
                         upcomingTasks = openTasks.take(5),
                         openTaskCount = openTasks.size,
-                        openApplicationCount = appsResp.total,
-                        newActivityCount = activityResp.total
+                        openApplicationCount = allAppsDtos.size,
+                        newActivityCount = activityResp.total,
+                        error = null
                     )
                 }
             } catch (e: Exception) {

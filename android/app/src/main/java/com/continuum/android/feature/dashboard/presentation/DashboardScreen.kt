@@ -17,8 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,8 +29,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.R
 import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.LocalIsDemo
+import com.continuum.android.core.ui.LocalScrollToTopNotifier
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.career.domain.Application
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
 import com.continuum.android.feature.notes.domain.Note
@@ -60,7 +66,15 @@ fun DashboardScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
     val isDemo = LocalIsDemo.current
+    val listState = rememberLazyListState()
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
+    val scrollToTopCount by remember(scrollToTopNotifier) {
+        scrollToTopNotifier?.counter ?: MutableStateFlow(0)
+    }.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.load() }
+    LaunchedEffect(scrollToTopCount) {
+        if (scrollToTopCount > 0) listState.animateScrollToItem(0)
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (!isOnline) OfflineBanner()
@@ -88,6 +102,7 @@ fun DashboardScreen(
                 }
             } else {
                 LazyColumn(
+                    state = listState,
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
@@ -283,28 +298,42 @@ private fun StatTile(
     ContinuumCard(
         style = CardStyle.Elevated,
         modifier = modifier
-            .width(112.dp)
+            .width(110.dp)
             .clickable(onClick = onClick)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = BrandPurple, modifier = Modifier.size(20.dp))
-            Text(
-                text = "$count",
-                fontFamily = FrauncesFamily,
-                fontWeight = FontWeight.Black,
-                fontSize = 28.sp,
-                color = BrandPurple
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary,
-                maxLines = 1
-            )
+            Surface(
+                color = PurpleTint,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.size(32.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = BrandPurple,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = "$count",
+                    fontFamily = PlusJakartaSansFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    color = TextPrimary
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextSecondary,
+                    maxLines = 1
+                )
+            }
         }
     }
 }
@@ -424,6 +453,7 @@ private fun ActivityRow(item: ActivityItem, onClick: () -> Unit, onActorClick: (
             if (actorId != null) {
                 AvatarInitials(
                     name = item.actorName,
+                    imageUrl = item.actorAvatar,
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
@@ -451,17 +481,23 @@ private fun ActivityRow(item: ActivityItem, onClick: () -> Unit, onActorClick: (
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        text = item.displayText,
+                        text = buildAnnotatedString {
+                            withStyle(SpanStyle(color = BrandPurple)) { append(item.actorName) }
+                            append(item.displayText.removePrefix(item.actorName))
+                        },
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { item.actorId?.let(onActorClick) }
                     )
-                    VerifiedRoleBadges(roles = item.actorRoles, expanded = false)
                 }
                 Text(
-                    text = item.createdAt.take(10),
+                    text = item.createdAt.toDisplayDate(),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextMuted
                 )

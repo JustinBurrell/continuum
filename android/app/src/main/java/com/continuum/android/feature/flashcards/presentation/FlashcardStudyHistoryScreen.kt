@@ -19,6 +19,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.flashcards.data.repository.FlashcardsRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,7 +105,7 @@ fun FlashcardStudyHistoryScreen(
                                         ?: "Set ${session.setId.takeLast(8)}",
                                     subtitleLine = "${session.correctCount}/${session.totalCards} correct · " +
                                         "${formatStudySessionDuration(session.durationSeconds)} · " +
-                                        session.completedAt.take(10),
+                                        session.completedAt.toDisplayDate(),
                                     onOpenSetClick = { onOpenSet(session.setId) }
                                 )
                             }

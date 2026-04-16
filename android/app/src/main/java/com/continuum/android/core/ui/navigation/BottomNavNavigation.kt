@@ -53,27 +53,13 @@ fun isBottomNavTabAtRoot(currentRoute: String?, item: NavItem): Boolean {
 }
 
 fun NavController.handleBottomNavItemClick(item: NavItem, currentRoute: String?) {
-    val selected = isSelectedRoute(currentRoute, item.route)
-    if (!selected) {
-        navigate(item.route) {
-            popUpTo(graph.findStartDestination().id) {
-                inclusive = false
-                saveState = true
-            }
-            launchSingleTop = true
-            restoreState = true
-        }
-        return
-    }
+    // Always navigate to the tab's start route — never restore state.
+    // Tapping a tab that is already at its root is a no-op; tapping any other tab
+    // (or tapping the current tab while deep inside it) always pops back to root.
     if (isBottomNavTabAtRoot(currentRoute, item)) return
-
-    val graphRoute = item.tabGraphRoute() ?: return
-    val startRoute = item.tabStartRoute() ?: return
+    val startRoute = item.tabStartRoute() ?: item.route
     navigate(startRoute) {
-        popUpTo(graphRoute) {
-            inclusive = false
-            saveState = true
-        }
+        popUpTo(graph.findStartDestination().id) { inclusive = false }
         launchSingleTop = true
     }
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -17,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.LocalIsDemo
+import com.continuum.android.core.ui.LocalScrollToTopNotifier
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
@@ -37,8 +40,16 @@ fun FlashcardSetsListScreen(
     var showCreateSheet by remember { mutableStateOf(false) }
     var showGenerateSheet by remember { mutableStateOf(false) }
     var setToDelete by remember { mutableStateOf<FlashcardSet?>(null) }
+    val listState = rememberLazyListState()
+    val scrollToTopNotifier = LocalScrollToTopNotifier.current
+    val scrollToTopCount by remember(scrollToTopNotifier) {
+        scrollToTopNotifier?.counter ?: MutableStateFlow(0)
+    }.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.loadSets() }
+    LaunchedEffect(scrollToTopCount) {
+        if (scrollToTopCount > 0) listState.animateScrollToItem(0)
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -105,23 +116,45 @@ fun FlashcardSetsListScreen(
 
             if (!state.isSharedTab) {
                 Surface(
-                    color = PurpleTint,
-                    shape = RoundedCornerShape(12.dp),
+                    color = WarningAmberBg,
+                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 6.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(Icons.Default.LocalFireDepartment, null, tint = BrandPurple)
-                        Text(
-                            text = "Current streak: ${state.streak} day${if (state.streak == 1) "" else "s"}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = BrandPurple
-                        )
+                    if (state.streak > 0) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(Icons.Default.LocalFireDepartment, null, tint = WarningAmber, modifier = Modifier.size(32.dp))
+                            Column {
+                                Text(
+                                    text = "${state.streak}",
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    color = WarningAmber
+                                )
+                                Text(
+                                    text = "day streak",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = WarningAmber
+                                )
+                            }
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(Icons.Default.LocalFireDepartment, null, tint = WarningAmber, modifier = Modifier.size(24.dp))
+                            Text(
+                                text = "Start your streak today!",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = WarningAmber
+                            )
+                        }
                     }
                 }
             }
@@ -154,6 +187,7 @@ fun FlashcardSetsListScreen(
 
                     else -> {
                         LazyColumn(
+                            state = listState,
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {

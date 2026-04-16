@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Clock, AlertCircle, Pencil, ArrowLeft, Users, Trash2 } from 'lucide-react';
 import CommentThread from '@/components/comments/CommentThread';
+import Avatar from '@/components/ui/Avatar';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Modal from '@/components/ui/Modal';
