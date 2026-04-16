@@ -1,6 +1,6 @@
 # Android API Coverage
 
-Last updated: April 14, 2026
+Last updated: April 15, 2026
 Backend API docs: https://api.usecontinuum.dev/api-docs
 
 For **web routes vs `AppNavHost`** (parity audit and follow-up list), see [`web-route-parity.md`](./web-route-parity.md).
@@ -60,7 +60,7 @@ For **web routes vs `AppNavHost`** (parity audit and follow-up list), see [`web-
 
 | Method | Path | Android Screen | ViewModel Method | Room Cached |
 |--------|------|---------------|-----------------|-------------|
-| GET | /api/notes | NotesListScreen | NotesViewModel.loadNotes() | Yes |
+| GET | /api/notes | NotesListScreen | NotesViewModel.loadNotes() | Yes (multi-page fetch; Room still used as offline fallback) |
 | GET | /api/notes/shared | NotesListScreen (shared tab), UserProfileScreen (friend) | NotesViewModel.loadNotes(shared=true); SocialRepository.getFriendProfileExtras() | No |
 | GET | /api/notes/:id | NoteDetailScreen | NotesViewModel.loadNote() | Yes (API-first since feat/android-parity-fixes; Room used as offline fallback only) |
 | POST | /api/notes | NoteDetailScreen | NotesViewModel.createNote() | Yes |
@@ -75,7 +75,7 @@ For **web routes vs `AppNavHost`** (parity audit and follow-up list), see [`web-
 
 | Method | Path | Android Screen | ViewModel Method | Room Cached |
 |--------|------|---------------|-----------------|-------------|
-| GET | /api/flashcard-sets | FlashcardSetsListScreen | FlashcardsViewModel.loadSets() | Yes |
+| GET | /api/flashcard-sets | FlashcardSetsListScreen | FlashcardsViewModel.loadSets() | Yes (multi-page fetch; all sets fetched using pagination.pages; Room still used as offline fallback) |
 | GET | /api/flashcard-sets/shared | FlashcardSetsListScreen (shared tab), UserProfileScreen (friend) | FlashcardsViewModel.loadSets(shared=true); SocialRepository.getFriendProfileExtras() | No |
 | GET | /api/flashcard-sets/:id | FlashcardSetDetailScreen | FlashcardsViewModel.loadSetDetail() | Yes |
 | POST | /api/flashcard-sets | FlashcardSetsListScreen | FlashcardsViewModel.createSet() | Yes |
@@ -92,7 +92,7 @@ For **web routes vs `AppNavHost`** (parity audit and follow-up list), see [`web-
 
 | Method | Path | Android Screen | ViewModel Method | Room Cached |
 |--------|------|---------------|-----------------|-------------|
-| GET | /api/tasks | TaskBoardScreen | TasksViewModel.loadTasks() | Yes |
+| GET | /api/tasks | TaskBoardScreen | TasksViewModel.loadTasks() | Yes (multi-page fetch; all tasks fetched using pagination.pages; Room still used as offline fallback) |
 | GET | /api/tasks/shared | TaskBoardScreen (shared tab), UserProfileScreen (friend) | TasksViewModel.loadTasks(shared=true); SocialRepository.getFriendProfileExtras() | No |
 | GET | /api/tasks/:id | TaskDetailScreen | TasksViewModel.loadTaskDetail() | No |
 | POST | /api/tasks | TaskBoardScreen | TasksViewModel.createTask() | Yes |

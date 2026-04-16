@@ -82,6 +82,50 @@ describe('GET /api/flashcard-sets', () => {
     expect(titles).toContain('Alice Set');
     expect(titles).not.toContain('Bob Set');
   });
+
+  it('returns pagination metadata', async () => {
+    const { token } = await registerAndLogin();
+
+    await request(app)
+      .post('/api/flashcard-sets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ title: 'Set A' });
+
+    await request(app)
+      .post('/api/flashcard-sets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ title: 'Set B' });
+
+    const res = await request(app)
+      .get('/api/flashcard-sets')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.pagination).toBeDefined();
+    expect(res.body.pagination.total).toBe(2);
+    expect(res.body.pagination.page).toBe(1);
+    expect(res.body.pagination.pages).toBeGreaterThanOrEqual(1);
+  });
+
+  it('respects page and limit query params', async () => {
+    const { token } = await registerAndLogin();
+
+    for (let i = 1; i <= 3; i++) {
+      await request(app)
+        .post('/api/flashcard-sets')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ title: `Set ${i}` });
+    }
+
+    const res = await request(app)
+      .get('/api/flashcard-sets?page=1&limit=2')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.sets.length).toBe(2);
+    expect(res.body.pagination.total).toBe(3);
+    expect(res.body.pagination.pages).toBe(2);
+  });
 });
 
 // ─── Add card to set ─────────────────────────────────────────────────────────

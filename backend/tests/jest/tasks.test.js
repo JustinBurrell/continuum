@@ -98,6 +98,50 @@ describe('GET /api/tasks', () => {
     expect(titles).toContain('Alice Task');
     expect(titles).not.toContain('Bob Task');
   });
+
+  it('returns pagination metadata', async () => {
+    const { token } = await registerAndLogin();
+
+    await request(app)
+      .post('/api/tasks')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ title: 'Task A', status: 'todo', dueDate: tomorrow });
+
+    await request(app)
+      .post('/api/tasks')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ title: 'Task B', status: 'todo', dueDate: tomorrow });
+
+    const res = await request(app)
+      .get('/api/tasks')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.pagination).toBeDefined();
+    expect(res.body.pagination.total).toBe(2);
+    expect(res.body.pagination.page).toBe(1);
+    expect(res.body.pagination.pages).toBeGreaterThanOrEqual(1);
+  });
+
+  it('respects page and limit query params', async () => {
+    const { token } = await registerAndLogin();
+
+    for (let i = 1; i <= 3; i++) {
+      await request(app)
+        .post('/api/tasks')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ title: `Task ${i}`, status: 'todo', dueDate: tomorrow });
+    }
+
+    const res = await request(app)
+      .get('/api/tasks?page=1&limit=2')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.tasks.length).toBe(2);
+    expect(res.body.pagination.total).toBe(3);
+    expect(res.body.pagination.pages).toBe(2);
+  });
 });
 
 // ─── Status update ──────────────────────────────────────────────────────────
