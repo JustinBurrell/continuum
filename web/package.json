@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.2.8",
@@ -43,6 +45,7 @@
     "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
