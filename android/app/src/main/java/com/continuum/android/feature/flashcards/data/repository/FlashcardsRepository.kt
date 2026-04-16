@@ -18,11 +18,22 @@ class FlashcardsRepository @Inject constructor(
     private val api: FlashcardsApiService,
     private val db: AppDatabase
 ) {
+    private suspend fun fetchAllSetPages(search: String? = null): List<FlashcardSetDto> {
+        val pageSize = 50
+        val firstPage = api.getSets(search = search, page = 1, limit = pageSize)
+        val allDtos = firstPage.sets.toMutableList()
+        val totalPages = firstPage.pagination?.pages ?: 1
+        for (page in 2..totalPages) {
+            allDtos += api.getSets(search = search, page = page, limit = pageSize).sets
+        }
+        return allDtos
+    }
+
     suspend fun querySets(search: String? = null, shared: Boolean = false): Result<List<FlashcardSet>> = runCatching {
         val sets = if (shared) {
             api.getSharedSets(search = search?.takeIf { it.isNotBlank() }).sets
         } else {
-            api.getSets(search = search?.takeIf { it.isNotBlank() }).sets
+            fetchAllSetPages(search = search?.takeIf { it.isNotBlank() })
         }
         if (!shared && search.isNullOrBlank()) {
             setDao.deleteAll()
@@ -43,7 +54,7 @@ class FlashcardsRepository @Inject constructor(
         val cached = setDao.getAll().map { it.toDomain() }
         if (cached.isNotEmpty()) emit(Result.success(cached))
         try {
-            val fresh = api.getSets().sets
+            val fresh = fetchAllSetPages()
             setDao.deleteAll()
             setDao.insertAll(fresh.map { it.toEntity() })
             emit(Result.success(setDao.getAll().map { it.toDomain() }))

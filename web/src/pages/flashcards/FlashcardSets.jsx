@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, BookOpen, Trash2, Play, Edit3, Search } from 'lucide-react';
 import api from '@/lib/api';
 import { Card } from '@/components/ui/Card';
@@ -22,14 +22,35 @@ export default function FlashcardSets() {
   const [sharedTab, setSharedTab] = useState(false);
   const [search, setSearch] = useState('');
 
-  const { data, isLoading } = useQuery({
-    queryKey: sharedTab ? ['flashcard-sets-shared', search] : ['flashcard-sets', search],
-    queryFn: () =>
-      sharedTab
-        ? api.get('/flashcard-sets/shared', { params: search ? { search } : {} }).then(r => r.data)
-        : api.get('/flashcard-sets', { params: search ? { search } : {} }).then(r => r.data),
+  const {
+    data: ownData,
+    isLoading: ownLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['flashcard-sets', search],
+    queryFn: ({ pageParam = 1 }) =>
+      api.get('/flashcard-sets', {
+        params: { ...(search && { search }), page: pageParam, limit: 20 },
+      }).then(r => r.data),
+    getNextPageParam: (lastPage) => {
+      const p = lastPage.pagination;
+      return p && p.page < p.pages ? p.page + 1 : undefined;
+    },
     staleTime: 120_000,
+    enabled: !sharedTab,
   });
+
+  const { data: sharedData, isLoading: sharedLoading } = useQuery({
+    queryKey: ['flashcard-sets-shared', search],
+    queryFn: () =>
+      api.get('/flashcard-sets/shared', { params: search ? { search } : {} }).then(r => r.data),
+    staleTime: 120_000,
+    enabled: sharedTab,
+  });
+
+  const isLoading = sharedTab ? sharedLoading : ownLoading;
 
   const createMutation = useMutation({
     mutationFn: (payload) => api.post('/flashcard-sets', payload),
@@ -52,7 +73,12 @@ export default function FlashcardSets() {
   });
 
   const streak = streakData?.streak ?? 0;
-  const sets = data?.sets || data?.data || [];
+  const sets = sharedTab
+    ? (sharedData?.sets || [])
+    : (ownData?.pages.flatMap(p => p.sets) ?? []);
+  const totalSets = sharedTab
+    ? sets.length
+    : (ownData?.pages[0]?.pagination?.total ?? sets.length);
 
   return (
     <div>
@@ -63,7 +89,7 @@ export default function FlashcardSets() {
             Flashcards
           </h1>
           <p style={{ color: '#a087b0', fontSize: '0.8125rem', marginTop: 2 }}>
-            {sets.length} {sets.length === 1 ? 'set' : 'sets'}
+            {totalSets} {totalSets === 1 ? 'set' : 'sets'}
           </p>
         </div>
         {!user?.isDemo && (
@@ -208,15 +234,38 @@ export default function FlashcardSets() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sets.map(set => (
-            <FlashcardSetCard
-              key={set._id}
-              set={set}
-              onDelete={sharedTab || user?.isDemo ? null : () => setDeleteConfirm(set._id)}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sets.map(set => (
+              <FlashcardSetCard
+                key={set._id}
+                set={set}
+                onDelete={sharedTab || user?.isDemo ? null : () => setDeleteConfirm(set._id)}
+              />
+            ))}
+          </div>
+          {!sharedTab && hasNextPage && (
+            <div style={{ textAlign: 'center', marginTop: 28 }}>
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                style={{
+                  background: 'white',
+                  border: '1px solid #ede9fe',
+                  color: '#6b21a8',
+                  padding: '9px 24px',
+                  borderRadius: 12,
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  cursor: isFetchingNextPage ? 'not-allowed' : 'pointer',
+                  opacity: isFetchingNextPage ? 0.6 : 1,
+                }}
+              >
+                {isFetchingNextPage ? 'Loading…' : 'Load more'}
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Create modal */}

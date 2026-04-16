@@ -6,7 +6,11 @@ import retrofit2.http.*
 interface FlashcardsApiService {
 
     @GET("flashcard-sets")
-    suspend fun getSets(@Query("search") search: String? = null): FlashcardSetsResponseDto
+    suspend fun getSets(
+        @Query("search") search: String? = null,
+        @Query("page") page: Int? = null,
+        @Query("limit") limit: Int? = null
+    ): FlashcardSetsResponseDto
 
     @GET("flashcard-sets/shared")
     suspend fun getSharedSets(@Query("search") search: String? = null): FlashcardSetsResponseDto

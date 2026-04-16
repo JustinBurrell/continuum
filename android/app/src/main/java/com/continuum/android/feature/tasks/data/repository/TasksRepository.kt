@@ -17,11 +17,22 @@ class TasksRepository @Inject constructor(
     private val api: TasksApiService,
     private val db: AppDatabase
 ) {
+    private suspend fun fetchAllTaskPages(search: String? = null): List<TaskDto> {
+        val pageSize = 50
+        val firstPage = api.getTasks(search = search, page = 1, limit = pageSize)
+        val allDtos = firstPage.tasks.toMutableList()
+        val totalPages = firstPage.pagination?.pages ?: 1
+        for (page in 2..totalPages) {
+            allDtos += api.getTasks(search = search, page = page, limit = pageSize).tasks
+        }
+        return allDtos
+    }
+
     suspend fun queryTasks(search: String? = null, shared: Boolean = false): Result<List<Task>> = runCatching {
         val remote = if (shared) {
             api.getSharedTasks(search = search?.takeIf { it.isNotBlank() }).tasks
         } else {
-            api.getTasks(search = search?.takeIf { it.isNotBlank() }).tasks
+            fetchAllTaskPages(search = search?.takeIf { it.isNotBlank() })
         }
         if (!shared && search.isNullOrBlank()) {
             taskDao.deleteAll()
@@ -39,7 +50,7 @@ class TasksRepository @Inject constructor(
         val cached = taskDao.getAll().map { it.toDomain() }
         if (cached.isNotEmpty()) emit(Result.success(cached))
         try {
-            val fresh = api.getTasks().tasks
+            val fresh = fetchAllTaskPages()
             taskDao.deleteAll()
             taskDao.insertAll(fresh.map { it.toEntity() })
             emit(Result.success(taskDao.getAll().map { it.toDomain() }))

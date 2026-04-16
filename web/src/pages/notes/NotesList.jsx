@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Search, Tag, Trash2, Edit3, FileText, Upload, ExternalLink, RefreshCw } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
@@ -37,27 +37,44 @@ export default function NotesList() {
 
   const activeSearch = sharedTab ? sharedSearch : search;
 
-  const { data, isLoading } = useQuery({
-    queryKey: sharedTab ? ['notes-shared', { search: sharedSearch }] : ['notes', { search, type }],
-    queryFn: () => {
-      if (sharedTab) {
-        return api.get('/notes/shared', {
-          params: { ...(sharedSearch && { search: sharedSearch }) },
-        }).then(r => r.data);
-      }
-      return api
-        .get('/notes', {
-          params: {
-            ...(search && { search }),
-            ...(type !== 'all' && { type }),
-            limit: 500,
-          },
-        })
-        .then(r => r.data);
+  // Own notes — paginated infinite query
+  const {
+    data: ownData,
+    isLoading: ownLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['notes', { search, type }],
+    queryFn: ({ pageParam = 1 }) =>
+      api.get('/notes', {
+        params: {
+          ...(search && { search }),
+          ...(type !== 'all' && { type }),
+          page: pageParam,
+          limit: 20,
+        },
+      }).then(r => r.data),
+    getNextPageParam: (lastPage) => {
+      const p = lastPage.pagination;
+      return p && p.page < p.pages ? p.page + 1 : undefined;
     },
     staleTime: 60_000,
-    keepPreviousData: true,
+    enabled: !sharedTab,
   });
+
+  // Shared notes — no backend pagination on that endpoint yet
+  const { data: sharedData, isLoading: sharedLoading } = useQuery({
+    queryKey: ['notes-shared', { search: sharedSearch }],
+    queryFn: () =>
+      api.get('/notes/shared', {
+        params: { ...(sharedSearch && { search: sharedSearch }) },
+      }).then(r => r.data),
+    staleTime: 60_000,
+    enabled: sharedTab,
+  });
+
+  const isLoading = sharedTab ? sharedLoading : ownLoading;
 
   const deleteMutation = useMutation({
     mutationFn: (id) => api.delete(`/notes/${id}`),
@@ -66,7 +83,13 @@ export default function NotesList() {
       const prev = queryClient.getQueryData(['notes', { search, type }]);
       queryClient.setQueryData(['notes', { search, type }], (old) => {
         if (!old) return old;
-        return { ...old, notes: (old.notes || []).filter(n => n._id !== id) };
+        return {
+          ...old,
+          pages: old.pages.map(page => ({
+            ...page,
+            notes: page.notes.filter(n => n._id !== id),
+          })),
+        };
       });
       return { prev };
     },
@@ -115,7 +138,12 @@ export default function NotesList() {
     },
   });
 
-  const notes = data?.notes || data?.data || [];
+  const notes = sharedTab
+    ? (sharedData?.notes || [])
+    : (ownData?.pages.flatMap(p => p.notes) ?? []);
+  const totalNotes = sharedTab
+    ? notes.length
+    : (ownData?.pages[0]?.pagination?.total ?? notes.length);
   const driveFiles = (driveData?.files || driveData?.data || []).filter(f =>
     f.name?.toLowerCase().includes(driveSearch.toLowerCase())
   );
@@ -138,7 +166,7 @@ export default function NotesList() {
             Notes
           </h1>
           <p style={{ color: '#a087b0', fontSize: '0.8125rem', marginTop: 2 }}>
-            {data?.pagination?.total ?? notes.length} notes
+            {totalNotes} notes
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -293,15 +321,38 @@ export default function NotesList() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {notes.map(note => (
-            <NoteCard
-              key={note._id}
-              note={note}
-              onDelete={sharedTab || user?.isDemo ? null : () => setDeleteConfirm(note._id)}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {notes.map(note => (
+              <NoteCard
+                key={note._id}
+                note={note}
+                onDelete={sharedTab || user?.isDemo ? null : () => setDeleteConfirm(note._id)}
+              />
+            ))}
+          </div>
+          {!sharedTab && hasNextPage && (
+            <div style={{ textAlign: 'center', marginTop: 28 }}>
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                style={{
+                  background: 'white',
+                  border: '1px solid #ede9fe',
+                  color: '#6b21a8',
+                  padding: '9px 24px',
+                  borderRadius: 12,
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  cursor: isFetchingNextPage ? 'not-allowed' : 'pointer',
+                  opacity: isFetchingNextPage ? 0.6 : 1,
+                }}
+              >
+                {isFetchingNextPage ? 'Loading…' : 'Load more'}
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Import modal */}

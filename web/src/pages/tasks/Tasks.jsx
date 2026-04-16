@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Clock, AlertCircle, Trash2, Users, Search } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
@@ -58,15 +58,42 @@ export default function Tasks() {
   const [showSharePicker, setShowSharePicker] = useState(false);
   const [search, setSearch] = useState('');
 
-  const { data, isLoading } = useQuery({
-    queryKey: sharedTab ? ['tasks', 'shared', search] : ['tasks', 'mine', search],
-    queryFn: () =>
-      sharedTab
-        ? api.get('/tasks/shared', { params: search ? { search } : {} }).then(r => r.data)
-        : api.get('/tasks', { params: search ? { search } : {} }).then(r => r.data),
+  // Own tasks — auto-fetch all pages so the full Kanban board is always complete
+  const {
+    data: ownData,
+    isLoading: ownLoading,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['tasks', 'mine', search],
+    queryFn: ({ pageParam = 1 }) =>
+      api.get('/tasks', {
+        params: { ...(search && { search }), page: pageParam, limit: 50 },
+      }).then(r => r.data),
+    getNextPageParam: (lastPage) => {
+      const p = lastPage.pagination;
+      return p && p.page < p.pages ? p.page + 1 : undefined;
+    },
+    enabled: !sharedTab,
   });
 
-  const allTasks = data?.tasks || data?.data || [];
+  // Shared tasks — no backend pagination on that endpoint
+  const { data: sharedData, isLoading: sharedLoading } = useQuery({
+    queryKey: ['tasks', 'shared', search],
+    queryFn: () =>
+      api.get('/tasks/shared', { params: search ? { search } : {} }).then(r => r.data),
+    enabled: sharedTab,
+  });
+
+  // Silently fetch remaining pages so all Kanban columns are populated
+  useEffect(() => {
+    if (hasNextPage) fetchNextPage();
+  }, [hasNextPage, fetchNextPage]);
+
+  const isLoading = sharedTab ? sharedLoading : ownLoading;
+  const allTasks = sharedTab
+    ? (sharedData?.tasks || [])
+    : (ownData?.pages.flatMap(p => p.tasks) ?? []);
 
   const invalidateTasks = () => {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -95,11 +122,18 @@ export default function Tasks() {
     onMutate: async ({ id, status }) => {
       await queryClient.cancelQueries({ queryKey: taskQueryKey });
       const prev = queryClient.getQueryData(taskQueryKey);
-      queryClient.setQueryData(taskQueryKey, (old) => {
-        if (!old) return old;
-        const tasks = (old.tasks || old.data || []).map(t => t._id === id ? { ...t, status } : t);
-        return old.tasks ? { ...old, tasks } : { ...old, data: tasks };
-      });
+      if (!sharedTab) {
+        queryClient.setQueryData(taskQueryKey, (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map(page => ({
+              ...page,
+              tasks: page.tasks.map(t => t._id === id ? { ...t, status } : t),
+            })),
+          };
+        });
+      }
       return { prev };
     },
     onError: (_err, _vars, ctx) => {
