@@ -60,7 +60,7 @@ Google linking is required for Google Drive/Docs features. `user.hasGoogleLinked
 
 ### **Note Management**
 - `POST /api/notes` - Create manual note directly in app
-- `GET /api/notes` - List user's notes with filtering options (tags, visibility, search query, pagination)
+- `GET /api/notes` - List user's notes. Query params: `search` (title regex), `type`, `page` (default 1), `limit` (default 20). Response: `{ notes[], pagination: { total, page, limit, pages } }`. `pagination.total` is the authoritative count across all pages — clients must paginate to fetch all notes.
 - `GET /api/notes/:noteId` - Retrieve specific note with full content and embedded summary. Accessible by owner, users in `sharedWith`, or friends when `visibility: 'friends'`. Response includes populated `userId` (username, firstName, lastName, avatarUrl) for creator attribution.
 - `PUT /api/notes/:noteId` - Update note title, tags, content, contentType, or visibility
 - `DELETE /api/notes/:noteId` - Soft delete note
@@ -84,7 +84,7 @@ Summary is stored as an embedded field on the Note document for the owner. When 
 ### **Flashcard System**
 - `POST /api/notes/:noteId/flashcards/generate` - Auto-generate flashcards from note content via Groq. Accessible by owner and shared users. The resulting FlashcardSet is always owned by the requesting user. `note.hasFlashcards` is only updated when the owner generates.
 - `POST /api/flashcard-sets` - Create flashcard set manually
-- `GET /api/flashcard-sets` - List user's flashcard sets. Supports `?search=` for title regex match.
+- `GET /api/flashcard-sets` - List user's flashcard sets. Query params: `search` (title regex), `page` (default 1), `limit` (default 20). Response: `{ sets[], pagination: { total, page, limit, pages } }`. `pagination.total` is the authoritative count — clients must paginate to fetch all sets.
 - `GET /api/flashcard-sets/:setId` - Get set with all flashcards. Accessible by owner, users in `sharedWith`, or friends when `visibility: 'friends'`. Response includes populated `userId` (username, firstName, lastName, avatarUrl) for creator attribution.
 - `PATCH /api/flashcard-sets/:setId` - Update set title and/or description. Owner-only. Body: `{ title?, description? }` — at least one required; title cannot be empty.
 - `POST /api/flashcard-sets/:setId/cards` - Add card to set
@@ -108,7 +108,7 @@ Streak is computed from UTC calendar dates — a streak stays alive if the user 
 
 ### **Task Operations**
 - `POST /api/tasks` - Create task with due date, priority, type (`homework|study|project|exam|club|professional|personal|other`), duration, and optional note link
-- `GET /api/tasks` - List tasks with time range, status, and search filters. Supports `?search=` for title regex match.
+- `GET /api/tasks` - List tasks with filters. Query params: `search` (title regex), `status` (`todo`|`in_progress`|`completed`), `priority`, `startDate`, `endDate`, `page` (default 1), `limit` (default 20). Response: `{ tasks[], pagination: { total, page, limit, pages } }`. Use `?status=todo&limit=1` for count-only queries (the dashboard open-tasks stat pattern).
 - `PUT /api/tasks/:taskId` - Update task properties (title, status, priority, type, due date)
 - `PATCH /api/tasks/:taskId/status` - Quick status update
 - `DELETE /api/tasks/:taskId` - Soft delete task (owner only)
@@ -239,10 +239,21 @@ ISO 8601 strings, UTC recommended
 ```
 
 ### **Pagination**
-Query parameters for list endpoints:
+
+Two patterns are used depending on the endpoint:
+
+**Page-based** (notes, flashcard sets, tasks):
 ```
-?limit=20&cursor=<last_id>
+?page=1&limit=20
 ```
+Response includes `pagination: { total, page, limit, pages }`. `total` is always the authoritative count across all pages — never infer count from `array.length`. Fetch `?page=1&limit=1` to get just the total count without loading results.
+
+**Cursor-based** (activity feed, messages):
+```
+?limit=20&cursor=<compound_cursor>   // activity: ISO|objectId
+?limit=20&before=<messageId>         // messages
+```
+Response includes `nextCursor` (or `null` when exhausted) and `total`.
 
 ### **Error Response Format**
 ```json
