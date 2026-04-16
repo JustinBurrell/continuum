@@ -10,9 +10,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil3.compose.SubcomposeAsyncImage
 import com.continuum.android.core.ui.theme.BrandPurple
 import com.continuum.android.core.ui.theme.PurpleTint
 
@@ -21,6 +23,7 @@ fun AvatarInitials(
     name: String,
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
+    imageUrl: String? = null,
 ) {
     val initials = name
         .trim()
@@ -30,6 +33,24 @@ fun AvatarInitials(
         .joinToString("") { it.first().uppercaseChar().toString() }
         .ifEmpty { "?" }
 
+    if (!imageUrl.isNullOrBlank()) {
+        SubcomposeAsyncImage(
+            model = imageUrl,
+            contentDescription = name,
+            contentScale = ContentScale.Crop,
+            modifier = modifier
+                .size(size)
+                .clip(CircleShape),
+            loading = { InitialsBox(initials = initials, size = size) },
+            error = { InitialsBox(initials = initials, size = size) }
+        )
+    } else {
+        InitialsBox(initials = initials, modifier = modifier, size = size)
+    }
+}
+
+@Composable
+private fun InitialsBox(initials: String, modifier: Modifier = Modifier, size: Dp = 40.dp) {
     Box(
         modifier = modifier
             .size(size)
