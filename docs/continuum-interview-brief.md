@@ -26,7 +26,9 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | Frontend screens (Android) | 30+ |
 | Web UI components | 26 |
 | Android composables | 40+ (reusable + screen-level) |
-| Jest integration tests | 250 across 16 suites |
+| Backend tests | 250 Jest + Supertest across 16 suites |
+| Web E2E tests | Playwright — auth, notes, flashcards, tasks, career |
+| Android unit tests | MockK ViewModel tests — auth, notes, tasks, flashcards, career |
 | Backend controllers | 15 |
 | Services | 4 (AI, Activity, Share, Account) |
 | Middleware types | 5 (auth, rate limiting, validation, uploads, error handling) |
@@ -48,7 +50,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | Auth | JWT access tokens, httpOnly refresh cookies, Google OAuth 2.0 |
 | Monitoring | Sentry (backend `@sentry/node` + frontend `@sentry/react`) |
 | Deployment | Vercel (frontend) + Render Starter (backend) + Upstash Redis |
-| CI | GitHub Actions — Jest suite blocks merges on failure |
+| CI | GitHub Actions — Jest, Playwright E2E, and Android unit tests run in parallel on every PR |
 
 ---
 
@@ -458,7 +460,9 @@ A formal security audit lives at `docs/security/backend_security_audit.md`.
 
 ## Testing
 
-**250 Jest + Supertest integration tests across 16 suites:**
+Continuum has three test layers, all running in parallel on every PR via GitHub Actions.
+
+### 1. Backend — 250 Jest + Supertest integration tests across 16 suites
 
 | Suite | What it covers |
 |-------|----------------|
@@ -481,7 +485,33 @@ A formal security audit lives at `docs/security/backend_security_audit.md`.
 
 **No real database needed.** `mongodb-memory-server` spins up a real MongoDB process in RAM. Tests run offline, in CI, with zero Atlas configuration.
 
-**GitHub Actions CI** runs the full suite on every push and every PR. Failing tests block merges to main.
+### 2. Web — Playwright E2E tests (Chromium)
+
+Playwright boots the real Express backend (with `mongodb-memory-server`) and the Vite dev server, then drives a headless Chromium browser through the full UI.
+
+| Spec | What it covers |
+|------|----------------|
+| Auth | Register, duplicate email, login correct/wrong, logout, session persistence |
+| Notes | Create, edit, delete (regression: no `old?.pages` TypeError), type filter, search |
+| Flashcards | Create set, add card, study mode (reveal → Got it! → Set complete!) |
+| Tasks | Create, status change (regression: no `old?.pages` TypeError), dashboard stat count |
+| Career | Create application, edit status, delete, Resumes tab renders |
+
+The `old?.pages` TypeError was a production bug caught by the delete-note and status-change tests. Guard: `if (!old?.pages) return old` in both `NotesList.jsx` and `Tasks.jsx`.
+
+### 3. Android — ViewModel unit tests (JVM, no emulator)
+
+MockK mocks repository interfaces; `UnconfinedTestDispatcher` makes coroutines run eagerly on the test thread. Runs in ~30s with no emulator.
+
+| File | What it covers |
+|------|----------------|
+| `AuthViewModelTest` | Login/register success and failure, hydrate, logout, resetState |
+| `NotesViewModelTest` | Load (fast-path Flow), search query path, createNote, deleteNote, type filter |
+| `TasksViewModelTest` | Load (fast-path Flow), createTask, moveTask (status change), derived `todoTasks` state |
+| `FlashcardsViewModelTest` | Load sets + streak, createSet, startStudy, flipCard, answerCard, session complete |
+| `CareerViewModelTest` | Load applications, createApplication, updateStatus, delete, loadResumes, filtered state |
+
+**GitHub Actions CI** runs all three jobs in parallel on every push and every PR. Failing any test blocks merges to main.
 
 ---
 
@@ -606,7 +636,7 @@ For full details see `docs/android/architecture.md`, `docs/android/react-to-andr
 
 1. **Real architectural decisions** — Cursor pagination, Redis pub/sub, httpOnly cookies, encrypted tokens at rest. Not just "I used React and Node." Every decision has a reason you can defend.
 
-2. **Production-quality security and observability** — Formal audit, 4-tier rate limiting, AES-256 encryption, one-time OAuth codes, Sentry error monitoring on both frontend and backend. Most senior projects have none of this.
+2. **Production-quality security and three-layer test coverage** — Formal security audit, 4-tier rate limiting, AES-256 encryption, one-time OAuth codes, Sentry monitoring, 250 backend integration tests, Playwright E2E catching a real production TypeError (`old?.pages` guard), and Android ViewModel unit tests — all running in parallel CI. Most senior projects have none of this.
 
 3. **Horizontal scaling is already wired** — Redis adapter means you add a second backend instance with zero code changes. That's a real system design answer, not a hypothetical.
 
