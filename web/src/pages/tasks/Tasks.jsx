@@ -66,12 +66,13 @@ export default function Tasks() {
     fetchNextPage,
   } = useInfiniteQuery({
     queryKey: ['tasks', 'mine', search],
-    queryFn: ({ pageParam = 1 }) =>
+    queryFn: ({ pageParam }) =>
       api.get('/tasks', {
         params: { ...(search && { search }), page: pageParam, limit: 50 },
       }).then(r => r.data),
+    initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-      const p = lastPage.pagination;
+      const p = lastPage?.pagination;
       return p && p.page < p.pages ? p.page + 1 : undefined;
     },
     enabled: !sharedTab,

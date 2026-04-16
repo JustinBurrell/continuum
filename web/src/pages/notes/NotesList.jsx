@@ -46,7 +46,7 @@ export default function NotesList() {
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: ['notes', { search, type }],
-    queryFn: ({ pageParam = 1 }) =>
+    queryFn: ({ pageParam }) =>
       api.get('/notes', {
         params: {
           ...(search && { search }),
@@ -55,8 +55,9 @@ export default function NotesList() {
           limit: 20,
         },
       }).then(r => r.data),
+    initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-      const p = lastPage.pagination;
+      const p = lastPage?.pagination;
       return p && p.page < p.pages ? p.page + 1 : undefined;
     },
     staleTime: 60_000,
