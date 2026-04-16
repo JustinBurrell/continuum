@@ -10,14 +10,16 @@ Android is not in scope. Mobile development is in progress but has no codebase. 
 
 ## 1. Overview
 
-Two tools, two distinct responsibilities:
+Four tools, distinct responsibilities:
 
 | Tool | Purpose |
 |---|---|
 | **PostHog** | User behavior, product analytics, activation funnels, retention signals, session replay |
 | **Sentry** | Error tracking, performance monitoring, unhandled exception alerts |
+| **Vercel Speed Insights** | Real User Monitoring (RUM) — Core Web Vitals (LCP, FID, CLS, TTFB) per route in production |
+| **Vercel Analytics** | Page view tracking, visitor counts, referrer data — privacy-friendly, no cookies |
 
-They serve different jobs. Both are required. Where possible, Sentry errors link to the PostHog session replay for that user so you can watch exactly what happened before a crash.
+All four serve different jobs. PostHog and Sentry require instrumentation. Vercel Speed Insights and Analytics are drop-in — one component each, no configuration needed beyond adding the packages. Where possible, Sentry errors link to the PostHog session replay for that user so you can watch exactly what happened before a crash.
 
 ---
 
@@ -98,6 +100,37 @@ process.on('beforeExit', async () => {
 
 module.exports = client
 ```
+
+### 2.3 Vercel Speed Insights + Analytics
+
+Both are drop-in — no API keys, no configuration. They only report in Vercel-hosted deployments (production and preview). They are no-ops in local dev.
+
+```bash
+cd web
+npm install @vercel/speed-insights
+npm install @vercel/analytics
+```
+
+Add both components to `web/src/main.jsx` inside the React tree. The simplest place is the root `App` component or directly in `main.jsx` alongside the existing providers:
+
+```jsx
+// web/src/main.jsx
+import { SpeedInsights } from '@vercel/speed-insights/react'
+import { Analytics } from '@vercel/analytics/react'
+
+// Inside the rendered tree (alongside <RouterProvider> or <App>):
+<>
+  <App />
+  <SpeedInsights />
+  <Analytics />
+</>
+```
+
+**Speed Insights** collects Core Web Vitals (LCP, FID/INP, CLS, TTFB, FCP) per route and surfaces them in the Vercel dashboard under the Speed Insights tab. No sampling config needed — Vercel handles it automatically.
+
+**Analytics** collects page views, unique visitors, referrer sources, and country-level geography. It is privacy-friendly (no cookies, no fingerprinting) and GDPR-compliant out of the box. Data appears in the Vercel dashboard under the Analytics tab.
+
+Neither tool conflicts with PostHog. PostHog captures behavior events; Vercel Analytics captures page-level traffic; Vercel Speed Insights captures performance. They are complementary.
 
 ---
 
