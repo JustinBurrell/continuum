@@ -9,12 +9,12 @@ import { formatRelative, truncate, stripHtml } from '@/lib/utils';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
 
 // Verified backend response shapes:
-// GET /notes → { notes[], pagination: { total } }
-// GET /tasks → { tasks[] } — no total field
+// GET /notes → { notes[], pagination: { total, page, limit, pages } }
+// GET /tasks → { tasks[], pagination: { total, page, limit, pages } }
 // GET /activity → { feed[], nextCursor, total } — total is the full count across all pages
 // GET /applications → { applications[] }
 // GET /applications/dashboard → { total, pipeline: { applied, screening, interview, offer, rejected, withdrawn } }
-// GET /flashcard-sets → { sets[] }
+// GET /flashcard-sets → { sets[], pagination: { total, page, limit, pages } }
 
 function fullName(u) {
   return [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'Unknown';
@@ -585,9 +585,22 @@ export default function Dashboard() {
     staleTime: 0,
   });
 
+  // Fetch the top open tasks for the Priority Tasks display list (todo only, first 10)
   const { data: tasksData, isLoading: tasksLoading } = useQuery({
-    queryKey: ['tasks', 'open'],
-    queryFn: () => api.get('/tasks').then(r => r.data),
+    queryKey: ['tasks-dashboard-display'],
+    queryFn: () => api.get('/tasks', { params: { status: 'todo', page: 1, limit: 10 } }).then(r => r.data),
+  });
+
+  // Count-only queries for accurate Open Tasks stat (backend paginates — need totals, not list size)
+  const { data: todoCountData } = useQuery({
+    queryKey: ['tasks-count', 'todo'],
+    queryFn: () => api.get('/tasks', { params: { status: 'todo', page: 1, limit: 1 } }).then(r => r.data),
+    staleTime: 30000,
+  });
+  const { data: inProgressCountData } = useQuery({
+    queryKey: ['tasks-count', 'in_progress'],
+    queryFn: () => api.get('/tasks', { params: { status: 'in_progress', page: 1, limit: 1 } }).then(r => r.data),
+    staleTime: 30000,
   });
 
   const { data: activityData, isLoading: activityLoading } = useQuery({
@@ -613,7 +626,10 @@ export default function Dashboard() {
   });
 
   const notes      = notesData?.notes || [];
-  const tasks      = (tasksData?.tasks || []).filter(t => t.status !== 'completed');
+  // Tasks for the Priority Tasks display list (already filtered to todo only by the query)
+  const tasks      = tasksData?.tasks || [];
+  // Open Tasks stat = todo total + in_progress total (accurate across all pages)
+  const openTaskCount = (todoCountData?.pagination?.total ?? 0) + (inProgressCountData?.pagination?.total ?? 0);
   const activities = activityData?.feed || [];
   const activityTotal = activityData?.total ?? activities.length;
   const apps       = appsData?.applications || [];
@@ -658,8 +674,8 @@ export default function Dashboard() {
         }}
       >
         <StatCard icon={FileText}    label="Notes"           value={notesData?.pagination?.total} to="/notes" />
-        <StatCard icon={BookOpen}    label="Flashcards"      value={flashcardData?.sets?.length}  to="/flashcards" accent="#7c3aed" />
-        <StatCard icon={CheckSquare} label="Open Tasks"      value={tasks.length}                  to="/tasks" accent="#2563eb" />
+        <StatCard icon={BookOpen}    label="Flashcards"      value={flashcardData?.pagination?.total ?? flashcardData?.sets?.length} to="/flashcards" accent="#7c3aed" />
+        <StatCard icon={CheckSquare} label="Open Tasks"      value={openTaskCount}                  to="/tasks" accent="#2563eb" />
         <StatCard icon={Briefcase}   label="Applications"    value={appsDashboard?.total || apps.length} to="/applications" accent="#0891b2" />
         <StatCard icon={Activity}    label="New Activity"    value={activityTotal}                  to="/activity" accent="#16a34a" />
       </div>

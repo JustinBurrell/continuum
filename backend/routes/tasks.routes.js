@@ -69,7 +69,7 @@ router.post('/', tasksController.createTask);
  * @swagger
  * /api/tasks:
  *   get:
- *     summary: Get all tasks owned by the authenticated user
+ *     summary: Get all tasks owned by the authenticated user (paginated)
  *     tags: [Tasks]
  *     parameters:
  *       - in: query
@@ -78,9 +78,41 @@ router.post('/', tasksController.createTask);
  *       - in: query
  *         name: status
  *         schema: { type: string, enum: [todo, in_progress, completed] }
+ *         description: Filter by status — use with page=1&limit=1 for count-only queries
+ *       - in: query
+ *         name: priority
+ *         schema: { type: string, enum: [low, medium, high] }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *         description: Page number (1-based)
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *         description: Results per page
+ *       - in: query
+ *         name: startDate
+ *         schema: { type: string, format: date-time }
+ *       - in: query
+ *         name: endDate
+ *         schema: { type: string, format: date-time }
  *     responses:
  *       200:
- *         description: Returns array of tasks
+ *         description: Returns paginated tasks with pagination metadata
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 tasks: { type: array }
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     total: { type: integer, description: Total tasks matching the filter }
+ *                     page:  { type: integer }
+ *                     limit: { type: integer }
+ *                     pages: { type: integer, description: Total number of pages }
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
