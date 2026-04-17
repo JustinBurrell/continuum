@@ -51,6 +51,15 @@ api.interceptors.response.use(
     if (err.response?.status === 401 && !err.config._retry && !isAuthEndpoint) {
       err.config._retry = true;
 
+      // If there is no access token we are already logged out — skip the refresh
+      // attempt entirely.  Without this guard, post-logout 401s (e.g. from
+      // in-flight React Query fetches sent without an auth header) would race the
+      // fire-and-forget /auth/logout call: if the refresh cookie is still alive,
+      // the refresh would succeed and write a new token back to localStorage.
+      if (!localStorage.getItem('token')) {
+        return Promise.reject(err);
+      }
+
       // Reuse an in-flight refresh if one is already running
       if (!refreshPromise) {
         refreshPromise = axios
