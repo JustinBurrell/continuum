@@ -12,7 +12,7 @@ import api from '@/lib/api';
 // Prefetch map — each nav item fires this on hover so data is warm before the click.
 // staleTime matches the per-query overrides used on each page.
 const prefetchMap = {
-  '/notes':        () => queryClient.prefetchQuery({ queryKey: ['notes', { search: '', type: 'all' }], queryFn: () => api.get('/notes').then(r => r.data), staleTime: 60_000 }),
+  '/notes':        () => queryClient.prefetchInfiniteQuery({ queryKey: ['notes', { search: '', type: 'all' }], queryFn: ({ pageParam }) => api.get('/notes', { params: { page: pageParam, limit: 20 } }).then(r => r.data), initialPageParam: 1, getNextPageParam: (lastPage) => { const p = lastPage?.pagination; return p && p.page < p.pages ? p.page + 1 : undefined; }, staleTime: 60_000 }),
   '/flashcards':   () => queryClient.prefetchQuery({ queryKey: ['flashcard-sets'], queryFn: () => api.get('/flashcard-sets').then(r => r.data), staleTime: 120_000 }),
   '/tasks':        () => queryClient.prefetchQuery({ queryKey: ['tasks'], queryFn: () => api.get('/tasks').then(r => r.data), staleTime: 30_000 }),
   '/friends':      () => queryClient.prefetchQuery({ queryKey: ['friends', ''], queryFn: () => api.get('/friends').then(r => r.data), staleTime: 120_000 }),
