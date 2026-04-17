@@ -23,6 +23,25 @@ const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const sanitizeHtml = require('sanitize-html');
 
 // ----------------------------------------
+// Helper: handleDriveError
+// Purpose: Map Google Drive API errors to clean client responses
+// Prevents raw Google API errors from leaking to the client
+// ----------------------------------------
+const handleDriveError = (err, res) => {
+    const status = err.code || err.response?.status;
+    if (status === 403) {
+        return res.status(403).json({ success: false, error: 'Access to this Google Doc has been revoked. Please reconnect Google or reselect the file.' });
+    }
+    if (status === 404) {
+        return res.status(404).json({ success: false, error: 'Google Doc not found. It may have been deleted or moved.' });
+    }
+    if (status === 400) {
+        return res.status(400).json({ success: false, error: 'Only Google Docs can be imported.' });
+    }
+    throw err;
+};
+
+// ----------------------------------------
 // Helper: uploadPdfToCloudinary
 // Purpose: Pipe a readable stream from Drive into Cloudinary
 // publicId is derived from googleDocId — ensures refreshNote overwrites the same asset
@@ -350,21 +369,26 @@ exports.importNote = async (req, res) => {
 
     const drive = await getGoogleDriveClient(req.user);
 
-    // Export Google Doc as PDF stream → upload to Cloudinary
-    // responseType: 'stream' gives us a readable stream to pipe directly to Cloudinary
-    const pdfResponse = await drive.files.export(
-        { fileId: googleDocId, mimeType: 'application/pdf' },
-        { responseType: 'stream' }
-    );
-    const cloudinaryResult = await uploadPdfToCloudinary(pdfResponse.data, googleDocId);
+    let cloudinaryResult, content;
+    try {
+        // Export Google Doc as PDF stream → upload to Cloudinary
+        // responseType: 'stream' gives us a readable stream to pipe directly to Cloudinary
+        const pdfResponse = await drive.files.export(
+            { fileId: googleDocId, mimeType: 'application/pdf' },
+            { responseType: 'stream' }
+        );
+        cloudinaryResult = await uploadPdfToCloudinary(pdfResponse.data, googleDocId);
 
-    // Export Google Doc as plain text → used by Groq for summaries/flashcards
-    // responseType: 'arraybuffer' → convert buffer to UTF-8 string
-    const textResponse = await drive.files.export(
-        { fileId: googleDocId, mimeType: 'text/plain' },
-        { responseType: 'arraybuffer' }
-    );
-    const content = Buffer.from(textResponse.data).toString('utf-8');
+        // Export Google Doc as plain text → used by Groq for summaries/flashcards
+        // responseType: 'arraybuffer' → convert buffer to UTF-8 string
+        const textResponse = await drive.files.export(
+            { fileId: googleDocId, mimeType: 'text/plain' },
+            { responseType: 'arraybuffer' }
+        );
+        content = Buffer.from(textResponse.data).toString('utf-8');
+    } catch (err) {
+        return handleDriveError(err, res);
+    }
 
     const note = await Note.create({
         userId: req.user._id,
@@ -405,19 +429,24 @@ exports.refreshNote = async (req, res) => {
 
     const drive = await getGoogleDriveClient(req.user);
 
-    // Re-export PDF → overwrite the existing Cloudinary asset (public_id = googleDocId)
-    const pdfResponse = await drive.files.export(
-        { fileId: note.googleDocId, mimeType: 'application/pdf' },
-        { responseType: 'stream' }
-    );
-    const cloudinaryResult = await uploadPdfToCloudinary(pdfResponse.data, note.googleDocId);
+    let cloudinaryResult, content;
+    try {
+        // Re-export PDF → overwrite the existing Cloudinary asset (public_id = googleDocId)
+        const pdfResponse = await drive.files.export(
+            { fileId: note.googleDocId, mimeType: 'application/pdf' },
+            { responseType: 'stream' }
+        );
+        cloudinaryResult = await uploadPdfToCloudinary(pdfResponse.data, note.googleDocId);
 
-    // Re-export plain text → update content field for Groq AI
-    const textResponse = await drive.files.export(
-        { fileId: note.googleDocId, mimeType: 'text/plain' },
-        { responseType: 'arraybuffer' }
-    );
-    const content = Buffer.from(textResponse.data).toString('utf-8');
+        // Re-export plain text → update content field for Groq AI
+        const textResponse = await drive.files.export(
+            { fileId: note.googleDocId, mimeType: 'text/plain' },
+            { responseType: 'arraybuffer' }
+        );
+        content = Buffer.from(textResponse.data).toString('utf-8');
+    } catch (err) {
+        return handleDriveError(err, res);
+    }
 
     const updatedNote = await Note.findOneAndUpdate(
         { _id: note._id, userId: req.user._id },
