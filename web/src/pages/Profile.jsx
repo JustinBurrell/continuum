@@ -1151,7 +1151,7 @@ export default function Profile() {
             {me?.googleId && (
               <div style={{ marginTop: 12, padding: '10px 12px', background: '#f5f0ff', borderRadius: 10 }}>
                 <p style={{ fontSize: 12, color: '#6b21a8', margin: 0 }}>
-                  Google Drive connected — you can import Google Docs as notes from the Notes page.
+                  Google Drive connected — select Google Docs to import as notes from the Notes page.
                 </p>
               </div>
             )}

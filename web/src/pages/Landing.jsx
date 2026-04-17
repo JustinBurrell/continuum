@@ -93,7 +93,7 @@ const testimonials = [
   { quote: 'Finally stopped switching between 6 apps every night before an exam. Everything I need is just there.', name: 'Priya M.', role: 'Computer Science, Junior' },
   { quote: "The AI flashcard generation alone saves me an hour before every midterm. I don't know how I studied without it.", name: 'Marcus T.', role: 'Biology, Sophomore' },
   { quote: 'Tracking internship applications in a spreadsheet was chaos. The pipeline view is exactly what I needed.', name: 'Jordan K.', role: 'Business, Senior' },
-  { quote: 'Imported my entire Google Drive in one click. The AI summaries actually capture what matters.', name: 'Aisha R.', role: 'Political Science, Junior' },
+  { quote: 'Picked a doc from Google Drive, imported it in seconds. The AI summary actually captured what matters.', name: 'Aisha R.', role: 'Political Science, Junior' },
   { quote: 'Shared a study guide with my whole group in seconds. No more sending files over text.', name: 'Devon C.', role: 'Engineering, Sophomore' },
   { quote: 'Got AI feedback on my resume before every application. My callback rate went up noticeably.', name: 'Simone W.', role: 'Finance, Senior' },
   { quote: 'The calendar finally shows my tasks and deadlines together. I stopped missing things the week before finals.', name: 'Tyler B.', role: 'Psychology, Junior' },
@@ -324,7 +324,7 @@ export default function Landing() {
                     </div>
                     {[
                       { who: 'Sarah', text: ' shared "Calc II Midterm Prep" with you.', time: '10 min ago', active: true },
-                      { who: 'System', text: ' imported 3 docs from Google Drive.', time: '1h ago', active: false },
+                      { who: 'You', text: ' imported a doc from Google Drive.', time: '1h ago', active: false },
                       { who: 'You', text: ' completed "Read Chapter 5".', time: '4h ago', active: false },
                     ].map((a, i) => (
                       <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 0' }}>
