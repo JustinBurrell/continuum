@@ -1,12 +1,15 @@
 import { test, expect } from '@playwright/test';
 import { registerUser, loginUser } from './helpers/auth';
 
-/** Wait for the sign-out navigation (Sidebar calls navigate('/') after logout) to settle */
+/** Wait for the sign-out navigation (Sidebar calls navigate('/') after logout) to settle,
+ *  then clear all cookies so the HttpOnly refresh token cannot re-authenticate the user
+ *  before api.post('/auth/logout') completes on the server. */
 async function signOut(page: import('@playwright/test').Page) {
   await Promise.all([
     page.waitForURL(url => url.pathname === '/'),
     page.click('button:has-text("Sign out")'),
   ]);
+  await page.context().clearCookies();
 }
 
 test.describe('Auth', () => {
