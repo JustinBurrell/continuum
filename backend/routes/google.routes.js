@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const googleController = require('../controllers/google.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 
 // ============================================================
@@ -14,5 +15,22 @@ const authMiddleware = require('../middleware/auth.middleware');
 // ============================================================
 
 router.use(authMiddleware);
+
+/**
+ * @swagger
+ * /api/google/token:
+ *   get:
+ *     summary: Return the user's current Google access token for use by the Google Picker
+ *     description: Token is auto-refreshed if expired before being returned.
+ *     tags: [Google]
+ *     responses:
+ *       200:
+ *         description: Returns { accessToken }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: Google account not linked
+ */
+router.get('/token', googleController.getAccessToken);
 
 module.exports = router;

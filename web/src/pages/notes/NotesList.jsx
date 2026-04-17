@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useInfiniteQuery, useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, Search, Tag, Trash2, Edit3, FileText, Upload, ExternalLink, RefreshCw } from 'lucide-react';
+import { Plus, Search, Tag, Trash2, Edit3, FileText, Upload, ExternalLink } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import Skeleton from '@/components/ui/Skeleton';
 import Modal from '@/components/ui/Modal';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import NotesListSkeleton from '@/components/skeletons/NotesListSkeleton';
@@ -29,8 +28,8 @@ export default function NotesList() {
   const [showImport, setShowImport] = useState(false);
   const [importTab, setImportTab] = useState('drive'); // 'drive' | 'upload'
   const [importError, setImportError] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);  // { id, name, webViewLink }
-  const [driveSearch, setDriveSearch] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);  // { id, name, url }
+  const [pickerLoading, setPickerLoading] = useState(false);
   // Local upload state
   const [uploadFile, setUploadFile] = useState(null);     // File object
   const [uploadTitle, setUploadTitle] = useState('');
@@ -100,19 +99,12 @@ export default function NotesList() {
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['notes'] }),
   });
 
-  const { data: driveData, isLoading: driveLoading } = useQuery({
-    queryKey: ['google-drive-files'],
-    queryFn: () => api.get('/google/files').then(r => r.data),
-    enabled: showImport && !!user?.googleId,
-  });
-
   const importMutation = useMutation({
     mutationFn: (payload) => api.post('/notes/import', payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       setShowImport(false);
       setSelectedFile(null);
-      setDriveSearch('');
       setImportError('');
     },
     onError: (err) => {
@@ -145,15 +137,59 @@ export default function NotesList() {
   const totalNotes = sharedTab
     ? notes.length
     : (ownData?.pages[0]?.pagination?.total ?? notes.length);
-  const driveFiles = (driveData?.files || driveData?.data || []).filter(f =>
-    f.name?.toLowerCase().includes(driveSearch.toLowerCase())
-  );
+
+  const openGooglePicker = async () => {
+    setPickerLoading(true);
+    setImportError('');
+    try {
+      const { data } = await api.get('/google/token');
+      const accessToken = data.accessToken;
+
+      // Load gapi script if not already loaded
+      if (!window.gapi) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://apis.google.com/js/api.js';
+          script.onload = resolve;
+          script.onerror = () => reject(new Error('Failed to load Google API script'));
+          document.head.appendChild(script);
+        });
+      }
+
+      await new Promise(resolve => window.gapi.load('picker', resolve));
+
+      const picker = new window.google.picker.PickerBuilder()
+        .setOAuthToken(accessToken)
+        .setDeveloperKey(import.meta.env.VITE_GOOGLE_API_KEY)
+        .addView(
+          new window.google.picker.DocsView()
+            .setMimeTypes('application/vnd.google-apps.document')
+        )
+        .setCallback((pickerData) => {
+          if (pickerData.action === 'picked') {
+            const doc = pickerData.docs[0];
+            setSelectedFile({
+              id: doc.id,
+              name: doc.name,
+              url: doc.url || `https://docs.google.com/document/d/${doc.id}/edit`,
+            });
+          }
+        })
+        .build();
+
+      picker.setVisible(true);
+    } catch {
+      setImportError('Failed to open Google Picker. Please try again.');
+    } finally {
+      setPickerLoading(false);
+    }
+  };
 
   const handleImport = () => {
     if (!selectedFile) return;
     importMutation.mutate({
       googleDocId: selectedFile.id,
-      googleDocUrl: selectedFile.webViewLink,
+      googleDocUrl: selectedFile.url,
       title: selectedFile.name,
     });
   };
@@ -362,7 +398,6 @@ export default function NotesList() {
         onClose={() => {
           setShowImport(false);
           setSelectedFile(null);
-          setDriveSearch('');
           setUploadFile(null);
           setUploadTitle('');
           setImportError('');
@@ -410,67 +445,61 @@ export default function NotesList() {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="relative">
-                <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0' }} />
-                <input
-                  style={{
-                    width: '100%',
-                    background: 'white',
-                    border: '1px solid #ede9fe',
-                    borderRadius: 12,
-                    padding: '9px 14px 9px 36px',
-                    fontSize: '0.875rem',
-                    color: '#111827',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                  placeholder="Search your Google Docs..."
-                  value={driveSearch}
-                  onChange={e => setDriveSearch(e.target.value)}
-                  autoFocus
-                />
-              </div>
-              <div style={{ maxHeight: 240, overflowY: 'auto' }} className="space-y-1">
-                {driveLoading ? (
-                  Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)
-                ) : driveFiles.length === 0 ? (
-                  <p style={{ fontSize: '0.875rem', textAlign: 'center', padding: '16px 0', color: '#a087b0' }}>
-                    {driveSearch ? 'No docs match your search.' : 'No Google Docs found in your Drive.'}
-                  </p>
-                ) : (
-                  driveFiles.map(file => (
-                    <button
-                      key={file.id}
-                      onClick={() => setSelectedFile(file)}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        padding: '8px 12px',
-                        borderRadius: 10,
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        border: selectedFile?.id === file.id ? '1px solid #6b21a8' : '1px solid transparent',
-                        background: selectedFile?.id === file.id ? '#f5f0ff' : 'transparent',
-                        transition: 'all 0.12s',
-                      }}
-                    >
-                      <FileText size={14} style={{ color: '#a087b0', flexShrink: 0 }} />
-                      <span style={{ fontSize: '0.875rem', color: '#111827', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
-                      <a
-                        href={file.webViewLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()}
-                        style={{ flexShrink: 0 }}
-                      >
-                        <ExternalLink size={12} style={{ color: '#a087b0' }} />
-                      </a>
-                    </button>
-                  ))
-                )}
-              </div>
+              <p style={{ fontSize: '0.8125rem', color: '#a087b0' }}>
+                Continuum only accesses files you select.
+              </p>
+
+              {/* Picker launch button */}
+              <button
+                onClick={openGooglePicker}
+                disabled={pickerLoading}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: '10px 16px',
+                  borderRadius: 12,
+                  border: '1px dashed #a087b0',
+                  background: 'transparent',
+                  color: pickerLoading ? '#a087b0' : '#6b21a8',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  cursor: pickerLoading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.12s',
+                }}
+              >
+                <FileText size={14} />
+                {pickerLoading ? 'Opening Google Drive…' : 'Choose from Google Drive'}
+              </button>
+
+              {/* Selected file display */}
+              {selectedFile && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '8px 12px',
+                  borderRadius: 10,
+                  border: '1px solid #6b21a8',
+                  background: '#f5f0ff',
+                }}>
+                  <FileText size={14} style={{ color: '#6b21a8', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.875rem', color: '#111827', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {selectedFile.name}
+                  </span>
+                  <a
+                    href={selectedFile.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ flexShrink: 0 }}
+                  >
+                    <ExternalLink size={12} style={{ color: '#a087b0' }} />
+                  </a>
+                </div>
+              )}
+
               {importError && <p style={{ fontSize: '0.75rem', color: '#ef4444' }}>{importError}</p>}
               <div className="flex gap-3 pt-1">
                 <Button variant="outline" onClick={() => setShowImport(false)} className="flex-1">Cancel</Button>
