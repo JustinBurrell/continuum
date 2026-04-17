@@ -1,33 +1,11 @@
-const getGoogleDriveClient = require('../config/googleDrive');
-
 // ============================================================
 // GOOGLE CONTROLLER
 // Purpose: Handle business logic for Google Drive API endpoints
 // Used by: routes/google.routes.js
-// Endpoints: listFiles
+//
+// NOTE: listFiles was removed as part of the drive.file scope migration.
+// Drive-wide file listing (drive.files.list) requires drive.readonly scope and is
+// incompatible with drive.file (user-selected-file access only).
+// File selection now happens client-side via Google Picker.
+// Import and refresh continue to work via notes.controller.js using stored googleDocId.
 // ============================================================
-
-// ----------------------------------------
-// GET /api/google/files
-// Purpose: List the authenticated user's Google Docs files from Drive
-// ----------------------------------------
-exports.listFiles = async (req, res) => {
-    // User must have a linked Google account to call Drive
-    if (!req.user.googleId) {
-        return res.status(403).json({ success: false, error: 'Google account not linked' });
-    }
-
-    // Build an authenticated Drive client, refreshing the access token if needed
-    const drive = await getGoogleDriveClient(req.user);
-
-    // Query Drive for Google Docs only — mimeType filter excludes Sheets, Slides, etc.
-    // fields specifies exactly what data to return (keeps response lean)
-    const response = await drive.files.list({
-        q: "mimeType='application/vnd.google-apps.document' and trashed=false",
-        fields: 'files(id, name, modifiedTime, webViewLink)',
-        orderBy: 'modifiedTime desc',
-        pageSize: 1000, // max allowed by Drive API — returns all docs for the file picker
-    });
-
-    res.status(200).json({ success: true, files: response.data.files });
-};

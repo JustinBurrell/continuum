@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const googleController = require('../controllers/google.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 
 // ============================================================
@@ -8,24 +7,12 @@ const authMiddleware = require('../middleware/auth.middleware');
 // Purpose: Map HTTP endpoints to Google Drive controller functions
 // Base path: /api/google (mounted in server.js)
 // All routes are protected — JWT required + Google account must be linked
+//
+// NOTE: GET /api/google/files was removed as part of the drive.file scope migration.
+// Drive-wide file listing is incompatible with drive.file scope (user-selected access only).
+// File selection now happens client-side via Google Picker.
 // ============================================================
 
 router.use(authMiddleware);
-
-/**
- * @swagger
- * /api/google/files:
- *   get:
- *     summary: List the authenticated user's Google Docs from Drive
- *     tags: [Google]
- *     responses:
- *       200:
- *         description: Returns array of Google Doc files (id, name, modifiedTime)
- *       401:
- *         $ref: '#/components/responses/Unauthorized'
- *       403:
- *         description: Google account not linked — connect Google in Integrations settings
- */
-router.get('/files', googleController.listFiles);
 
 module.exports = router;
