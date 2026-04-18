@@ -24,7 +24,7 @@ const getGoogleDriveClient = async (user) => {
     );
 
     // googleAccessToken and googleRefreshToken have select: false — re-fetch with those fields explicitly
-    const userWithTokens = await User.findById(user._id).select('+googleAccessToken +googleRefreshToken');
+    const userWithTokens = await User.findById(user._id).select('+googleAccessToken +googleRefreshToken +googleTokenExpiry');
 
     // Decrypt tokens before use — they are stored AES-256-GCM encrypted at rest
     oauth2Client.setCredentials({
@@ -33,7 +33,8 @@ const getGoogleDriveClient = async (user) => {
     });
 
     // If the access token is expired (or within 5 min of expiry), refresh it
-    const isExpired = !user.googleTokenExpiry || user.googleTokenExpiry <= new Date(Date.now() + 5 * 60 * 1000);
+    const tokenExpiry = userWithTokens.googleTokenExpiry || user.googleTokenExpiry;
+    const isExpired = !tokenExpiry || tokenExpiry <= new Date(Date.now() + 5 * 60 * 1000);
 
     if (isExpired && userWithTokens.googleRefreshToken) {
         // Ask Google for a new access token using the refresh token
