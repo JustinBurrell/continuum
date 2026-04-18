@@ -113,8 +113,8 @@ class NotesRepository @Inject constructor(
             ?: ""
     }
 
-    suspend fun getDriveFiles(): Result<List<DriveFile>> = runCatching {
-        api.getDriveFiles().files.map { DriveFile(it.id, it.name, it.modifiedTime) }
+    suspend fun getPdfDownloadUrl(id: String): Result<String> = runCatching {
+        api.getPdfUrl(id).downloadUrl
     }
 
     suspend fun importFromDrive(googleDocId: String, googleDocUrl: String, title: String): Result<Note> = runCatching {
@@ -149,6 +149,8 @@ class NotesRepository @Inject constructor(
         isFavorite = isFavorite,
         visibility = "private",
         googleDocId = null,
+        googleDocUrl = null,
+        pdfUrl = null,
         hasFlashcards = false,
         quickSummary = null,
         detailedSummary = null,
@@ -166,6 +168,8 @@ class NotesRepository @Inject constructor(
         isFavorite = isPinned,
         visibility = visibility,
         googleDocId = googleDocId,
+        googleDocUrl = googleDocUrl,
+        pdfUrl = pdfUrl,
         hasFlashcards = hasFlashcards,
         quickSummary = summary?.quick,
         detailedSummary = summary?.detailed,

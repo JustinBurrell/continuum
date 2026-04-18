@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,12 +36,22 @@ fun NoteDetailScreen(
     socialViewModel: SocialViewModel = hiltViewModel()
 ) {
     val detailState by viewModel.detailState.collectAsStateWithLifecycle()
+    val driveState by viewModel.driveState.collectAsStateWithLifecycle()
     val commentsState by socialViewModel.threadCommentsState.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
     val isDemo = LocalIsDemo.current
     val note = detailState.note
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val uriHandler = LocalUriHandler.current
+
+    // Open PDF download URL when available, then clear it
+    LaunchedEffect(driveState.pdfDownloadUrl) {
+        driveState.pdfDownloadUrl?.let { url ->
+            uriHandler.openUri(url)
+            viewModel.clearPdfDownloadUrl()
+        }
+    }
 
     var showSummary by remember { mutableStateOf(false) }
     var summaryTab by remember { mutableIntStateOf(0) }
@@ -151,14 +162,41 @@ fun NoteDetailScreen(
                             }
                         }
 
-                        // Google Doc badge (read-only label — refresh not wired)
+                        // Google Doc actions — shown when note was imported from Drive
                         if (note.googleDocId != null) {
-                            Text(
-                                "Synced from Google Docs",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = TextMuted,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                OutlinedButton(
+                                    onClick = {
+                                        val url = note.googleDocUrl
+                                            ?: "https://docs.google.com/document/d/${note.googleDocId}/edit"
+                                        uriHandler.openUri(url)
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    shape = MaterialTheme.shapes.small,
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandPurple)
+                                ) {
+                                    Icon(Icons.Default.OpenInBrowser, null, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("Google Docs", style = MaterialTheme.typography.labelMedium)
+                                }
+                                if (note.pdfUrl != null) {
+                                    OutlinedButton(
+                                        onClick = { viewModel.fetchPdfDownloadUrl(note.id) },
+                                        modifier = Modifier.weight(1f),
+                                        shape = MaterialTheme.shapes.small,
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandPurple)
+                                    ) {
+                                        Icon(Icons.Default.Download, null, modifier = Modifier.size(16.dp))
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("Download PDF", style = MaterialTheme.typography.labelMedium)
+                                    }
+                                }
+                            }
                         }
 
                         // Note title + content

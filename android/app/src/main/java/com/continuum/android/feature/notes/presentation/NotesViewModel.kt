@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.continuum.android.core.data.DataRefreshNotifier
 import com.continuum.android.core.data.RefreshScope
 import com.continuum.android.feature.notes.data.repository.NotesRepository
-import com.continuum.android.feature.notes.domain.DriveFile
 import com.continuum.android.feature.notes.domain.Note
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -36,11 +35,11 @@ data class NoteDetailUiState(
 )
 
 data class DriveFilesUiState(
-    val files: List<DriveFile> = emptyList(),
-    val isLoading: Boolean = false,
     val error: String? = null,
     val isImporting: Boolean = false,
-    val importedNoteId: String? = null
+    val importedNoteId: String? = null,
+    /** Fetched signed PDF download URL, cleared after use. */
+    val pdfDownloadUrl: String? = null
 )
 
 @HiltViewModel
@@ -212,14 +211,15 @@ class NotesViewModel @Inject constructor(
         _detailState.update { it.copy(shareSuccess = false, shareError = null) }
     }
 
-    fun loadDriveFiles() {
+    fun fetchPdfDownloadUrl(noteId: String) {
         viewModelScope.launch {
-            _driveState.update { it.copy(isLoading = true, error = null) }
-            repository.getDriveFiles()
-                .onSuccess { files -> _driveState.update { it.copy(files = files, isLoading = false) } }
-                .onFailure { e -> _driveState.update { it.copy(isLoading = false, error = e.message) } }
+            repository.getPdfDownloadUrl(noteId)
+                .onSuccess { url -> _driveState.update { it.copy(pdfDownloadUrl = url) } }
+                .onFailure { e -> _driveState.update { it.copy(error = e.message) } }
         }
     }
+
+    fun clearPdfDownloadUrl() { _driveState.update { it.copy(pdfDownloadUrl = null) } }
 
     fun importFromDrive(googleDocId: String, googleDocUrl: String, title: String) {
         viewModelScope.launch {
