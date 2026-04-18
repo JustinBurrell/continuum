@@ -54,9 +54,10 @@ Google linking is required for Google Drive/Docs features. `user.hasGoogleLinked
 
 ## Google Integration & Notes
 
-### **Google Drive Integration**
-- `GET /api/google/files` - List available Google Docs for import
-- `GET /api/google/docs/:docId/preview` - Preview document content without saving
+### **Google Integration**
+- `GET /api/google/token` - Return the authenticated user's decrypted Google access token (auto-refreshes if expired). Used by the web frontend to authorize the Google Picker. Requires Google account linked (403 otherwise).
+
+Note: `GET /api/google/files` was removed in the `drive.file` scope migration. Drive-wide file listing is no longer supported — users select specific docs via Google Picker (web) or by pasting a Google Docs URL (Android).
 
 ### **Note Management**
 - `POST /api/notes` - Create manual note directly in app

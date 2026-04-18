@@ -17,7 +17,7 @@ Seed scripts for dev data live in `tests/mongodb/`.
 
 ### What's tested
 
-140+ tests across 12 suites covering every route group:
+150+ tests across 13 suites covering every route group:
 
 | Suite | File | What it covers |
 |-------|------|----------------|
@@ -34,6 +34,7 @@ Seed scripts for dev data live in `tests/mongodb/`.
 | Applications | `applications.test.js` | Create, read, update status, delete (owner-only) |
 | Messages | `messages.test.js` | Friend flow → create conversation → send message → read messages, non-participant blocked, message delete (soft, per-user), conversation delete (Instagram-style) |
 | Activity | `activity.test.js` | Feed accessible when authenticated, blocked when not; `since` param returns `total` ≤ full total; `nextCursor` present in response; `PUT /mark-seen` returns 200 and sets `lastViewedActivityAt` on user; `since` using server-side timestamp returns correct unseen count |
+| Google Drive | `google-drive.test.js` | Import Google Doc (201 success, 400 missing fields, 403 not linked, 409 duplicate, 403 Drive revoked, 404 Drive not found); Refresh note (200 updates lastSyncedAt, 403 Drive revoked with clean message); `GET /api/google/files` returns 404 (endpoint removed) |
 
 ### How it works
 

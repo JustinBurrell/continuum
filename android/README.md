@@ -112,6 +112,20 @@ Google Sign-In uses the Credential Manager API (no WebView). To configure:
 4. Ensure the backend's `GOOGLE_CLIENT_ID` environment variable matches this same Web client ID
 5. The backend endpoint `POST /api/auth/google/mobile` verifies the ID token from Credential Manager
 
+## Google Drive Import (Android)
+
+The Android app uses `drive.file` scope — users select specific Google Docs rather than browsing their entire Drive. To import a note from Google Docs:
+
+1. Open a Google Doc on your device
+2. Tap the share icon → "Copy link"
+3. In the app, go to Notes → Import → paste the link
+4. The app extracts the document ID from the URL and calls `POST /api/notes/import`
+
+No native Drive picker dependency is required. The Google Doc link format is:
+`https://docs.google.com/document/d/<docId>/edit`
+
+The note detail screen shows "View in Google Docs" and "Download PDF" actions for imported notes.
+
 ---
 
 ## Building an APK
@@ -136,7 +150,7 @@ Requires signing configuration in `app/build.gradle.kts`. See [Android signing d
 
 | Feature | Description |
 |---------|-------------|
-| Notes | Rich-text editor, AI-generated summaries, auto-generated flashcard sets, Google Drive import |
+| Notes | Rich-text editor, AI-generated summaries, auto-generated flashcard sets, Google Drive import (URL-based, drive.file scope) |
 | Flashcards | Study mode with card flip + swipe, "Still Learning" / "Got it" tracking, study session recording |
 | Tasks | Status-based board (To Do, In Progress, Completed), task detail with full metadata, calendar view |
 | Calendar | Event calendar with date-based task filtering |

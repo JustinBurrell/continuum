@@ -40,7 +40,7 @@ backend/
 | Route group           | Description                                          |
 | --------------------- | ---------------------------------------------------- |
 | `/api/auth`           | Register, login, logout, token refresh, password reset |
-| `/api/google`         | Google OAuth initiation, callback, account link/unlink |
+| `/api/google`         | Google OAuth initiation, callback, account link/unlink, access token endpoint |
 | `/api/notes`          | CRUD, AI summary generation, flashcard extraction    |
 | `/api/flashcard-sets`  | CRUD, add/remove cards, PDF-to-flashcard import      |
 | `/api/study-sessions`  | Submit sessions, session history, streak (current + cached) |
@@ -226,4 +226,4 @@ Run tests:
 npm test
 ```
 
-63 tests across 8 suites (auth, notes, tasks, flashcards, applications, messages, activity, waitlist). See [`tests/jest/README.md`](tests/jest/README.md) for suite details, how the in-memory database works, and how to add new tests.
+77 tests across 9 suites (auth, notes, tasks, flashcards, applications, messages, activity, waitlist, google-drive). See [`tests/jest/README.md`](tests/jest/README.md) for suite details, how the in-memory database works, and how to add new tests.
