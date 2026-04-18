@@ -70,8 +70,31 @@ export default function NoteEditor() {
         ? api.put(`/notes/${id}`, payload)
         : api.post('/notes', payload),
     onSuccess: (res) => {
+      const updatedNote = res.data?.note || res.data?.data;
+      const noteId = updatedNote?._id || id;
+
+      if (updatedNote) {
+        // Instantly patch all paginated notes list caches so the updated title
+        // appears immediately when navigating back — no network round trip needed
+        queryClient.setQueriesData({ queryKey: ['notes'] }, (old) => {
+          if (!old?.pages) return old;
+          return {
+            ...old,
+            pages: old.pages.map(page => ({
+              ...page,
+              notes: (page.notes || page.data || []).map(n =>
+                n._id === noteId ? { ...n, ...updatedNote } : n
+              ),
+            })),
+          };
+        });
+        // Update the detail cache too
+        queryClient.setQueryData(['note', noteId], (old) =>
+          old ? { ...old, note: { ...(old.note || {}), ...updatedNote } } : old
+        );
+      }
+      // Background invalidation for eventual consistency
       queryClient.invalidateQueries({ queryKey: ['notes'] });
-      const noteId = res.data?.note?._id || res.data?.data?._id || id;
       navigate(noteId ? '/notes/view' : '/notes', noteId ? { state: { id: noteId } } : undefined);
     },
   });

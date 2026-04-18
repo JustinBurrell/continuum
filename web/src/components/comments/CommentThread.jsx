@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, Heart, Trash, Send } from 'lucide-react';
 import api from '@/lib/api';
 import Avatar from '@/components/ui/Avatar';
@@ -17,8 +17,9 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
   const [replyTo, setReplyTo] = useState(null); // { commentId, username } | null
   const [expandedReplies, setExpandedReplies] = useState({}); // { [commentId]: bool }
   const inputRef = useRef(null);
+  const queryClient = useQueryClient();
 
-  const { data, refetch } = useQuery({
+  const { data } = useQuery({
     queryKey: ['comments', targetType, targetId],
     queryFn: () => api.get(`/comments/${targetType}/${targetId}`).then(r => r.data),
     enabled: !!targetId,
@@ -42,6 +43,9 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
   }, {});
   const orphanedParentIds = Object.keys(orphanedByParent);
 
+  const invalidateComments = () =>
+    queryClient.invalidateQueries({ queryKey: ['comments', targetType, targetId] });
+
   const addMutation = useMutation({
     mutationFn: ({ content, parentId }) =>
       api.post('/comments', {
@@ -53,18 +57,18 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
     onSuccess: () => {
       setCommentText('');
       setReplyTo(null);
-      refetch();
+      invalidateComments();
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (commentId) => api.delete(`/comments/${commentId}`),
-    onSuccess: () => refetch(),
+    onSuccess: () => invalidateComments(),
   });
 
   const likeMutation = useMutation({
     mutationFn: (commentId) => api.post(`/comments/${commentId}/like`),
-    onSuccess: () => refetch(),
+    onSuccess: () => invalidateComments(),
   });
 
   const handleSubmit = () => {
