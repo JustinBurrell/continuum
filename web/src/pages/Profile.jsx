@@ -1266,7 +1266,13 @@ export default function Profile() {
         onConfirm={() => {
           setShowUnlinkConfirm(false);
           api.delete('/auth/me/google/link', { data: { keepNotes: true } })
-            .then(r => { const u = r.data.user || r.data.data; if (u) updateUser(u); })
+            .then(r => {
+              const u = r.data.user || r.data.data;
+              if (u) {
+                updateUser(u);
+                queryClient.setQueryData(['me'], (old) => old ? { ...old, user: u } : old);
+              }
+            })
             .catch(e => toast({ type: 'error', message: e?.response?.data?.error || 'Failed to unlink' }));
         }}
         onClose={() => setShowUnlinkConfirm(false)}
