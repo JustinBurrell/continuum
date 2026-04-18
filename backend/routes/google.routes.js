@@ -33,4 +33,21 @@ router.use(authMiddleware);
  */
 router.get('/token', googleController.getAccessToken);
 
+/**
+ * @swagger
+ * /api/google/picker-page:
+ *   get:
+ *     summary: Serve an HTML page that loads Google Picker (for Android WebView)
+ *     description: Returns HTML pre-configured with the user's OAuth access token.
+ *                  The Android app loads this in a WebView with a JavascriptInterface
+ *                  ("AndroidPicker") to receive the selected file.
+ *     tags: [Google]
+ *     responses:
+ *       200:
+ *         description: HTML page
+ *       403:
+ *         description: Google account not linked
+ */
+router.get('/picker-page', googleController.getPickerPage);
+
 module.exports = router;

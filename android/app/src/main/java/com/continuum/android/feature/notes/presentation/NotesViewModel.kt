@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.continuum.android.core.data.DataRefreshNotifier
 import com.continuum.android.core.data.RefreshScope
+import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.notes.data.repository.NotesRepository
 import com.continuum.android.feature.notes.domain.Note
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,7 +46,8 @@ data class DriveFilesUiState(
 @HiltViewModel
 class NotesViewModel @Inject constructor(
     private val repository: NotesRepository,
-    private val dataRefreshNotifier: DataRefreshNotifier
+    private val dataRefreshNotifier: DataRefreshNotifier,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _listState = MutableStateFlow(NotesUiState())
@@ -234,4 +236,7 @@ class NotesViewModel @Inject constructor(
     }
 
     fun clearImportedNoteId() { _driveState.update { it.copy(importedNoteId = null) } }
+
+    /** Returns the JWT access token for use as a Bearer token in the WebView picker-page request. */
+    fun getJwtToken(): String? = tokenManager.getAccessToken()
 }
