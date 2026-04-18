@@ -7,7 +7,9 @@ import { friendlyError } from '@/lib/errors';
 
 const inputStyle = {
   width: '100%',
-  border: '1px solid #E5E7EB',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: '#E5E7EB',
   borderRadius: 8,
   padding: '10px 14px',
   fontSize: 14,
