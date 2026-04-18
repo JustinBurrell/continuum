@@ -161,6 +161,7 @@ export default function NotesList() {
       const picker = new window.google.picker.PickerBuilder()
         .setOAuthToken(accessToken)
         .setDeveloperKey(import.meta.env.VITE_GOOGLE_API_KEY)
+        .setAppId(import.meta.env.VITE_GOOGLE_APP_ID)
         .addView(
           new window.google.picker.DocsView()
             .setMimeTypes('application/vnd.google-apps.document')
