@@ -66,8 +66,8 @@ async function registerAndLinkGoogle() {
 // ─── Test lifecycle ───────────────────────────────────────────────────────────
 
 beforeAll(connectTestDb);
-afterEach(() => {
-    clearTestDb();
+afterEach(async () => {
+    await clearTestDb();
     jest.clearAllMocks();
 });
 afterAll(closeTestDb);

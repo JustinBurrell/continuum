@@ -1,6 +1,7 @@
 package com.continuum.android.feature.notes
 
 import com.continuum.android.core.data.DataRefreshNotifier
+import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.notes.data.repository.NotesRepository
 import com.continuum.android.feature.notes.domain.Note
 import com.continuum.android.feature.notes.presentation.NotesViewModel
@@ -29,6 +30,7 @@ class NotesViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private val repository: NotesRepository = mockk()
     private val notifier = DataRefreshNotifier()
+    private val tokenManager: TokenManager = mockk(relaxed = true)
     private lateinit var viewModel: NotesViewModel
 
     private fun fakeNote(id: String = "n1", title: String = "Test Note") = Note(
@@ -70,7 +72,7 @@ class NotesViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = NotesViewModel(repository, notifier)
+        viewModel = NotesViewModel(repository, notifier, tokenManager)
     }
 
     @After
