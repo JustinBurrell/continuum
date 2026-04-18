@@ -14,6 +14,10 @@ const authMiddleware = require('../middleware/auth.middleware');
 // File selection now happens client-side via Google Picker.
 // ============================================================
 
+// CCT route registered BEFORE authMiddleware — JWT verified inline from ?token= query param
+// because Chrome Custom Tabs cannot set custom request headers.
+router.get('/picker-page-cct', googleController.getPickerPageCCT);
+
 router.use(authMiddleware);
 
 /**

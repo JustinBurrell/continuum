@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken');
 const getGoogleDriveClient = require('../config/googleDrive');
 const User = require('../models/User');
 const { decrypt } = require('../lib/tokenCrypto');
@@ -69,7 +70,13 @@ exports.getPickerPage = async (req, res) => {
   <p class="status" id="status">Loading…</p>
   <script>
     function loadPicker() {
-      gapi.load('picker', function () {
+      // Load both 'auth' and 'picker' — the auth module lets us call
+      // gapi.auth.setToken() to establish a gapi session from the server-side
+      // token without needing Google cookies or a sign-in popup.
+      // Without this, the Picker shows "Can't access your Google account"
+      // in a WebView because there is no Google session in the WebView context.
+      gapi.load('auth:picker', function () {
+        gapi.auth.setToken({ access_token: '${accessToken}' });
         document.getElementById('status').style.display = 'none';
         new google.picker.PickerBuilder()
           .setOAuthToken('${accessToken}')
@@ -98,6 +105,94 @@ exports.getPickerPage = async (req, res) => {
 </html>`;
 
     // No caching — token is short-lived
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store');
+    res.send(html);
+};
+
+// ----------------------------------------
+// GET /api/google/picker-page-cct
+// Purpose: Serve Google Picker HTML for Android Chrome Custom Tabs (CCT).
+//          CCT cannot set custom request headers, so auth uses ?token= query param.
+//          On file selection the page redirects to continuum://drive-pick?id=...&name=...&url=...
+//          which the app receives as a deep link and uses to trigger the import flow.
+//
+// Unlike the WebView version, this page does NOT use the AndroidPicker JS bridge and
+// does NOT need gapi.auth.setToken() — Chrome's existing Google session handles auth
+// for the Picker UI. The access token is still required for Drive API calls.
+// ----------------------------------------
+exports.getPickerPageCCT = async (req, res) => {
+    const rawToken = req.query.token;
+    if (!rawToken) {
+        return res.status(401).send('<p>Authentication required</p>');
+    }
+
+    let decoded;
+    try {
+        decoded = jwt.verify(rawToken, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+    } catch {
+        return res.status(401).send('<p>Invalid or expired token</p>');
+    }
+
+    const user = await User.findById(decoded.userId).select('+googleId +googleTokenExpiry');
+    if (!user || !user.googleId) {
+        return res.status(403).send('<p>Google account not linked</p>');
+    }
+
+    await getGoogleDriveClient(user);
+    const userWithToken = await User.findById(user._id).select('+googleAccessToken');
+    const accessToken = decrypt(userWithToken.googleAccessToken);
+
+    const apiKey = process.env.GOOGLE_PICKER_API_KEY;
+    const appId  = process.env.GOOGLE_APP_ID;
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .status { color: #fff; font-family: sans-serif; font-size: 15px; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <p class="status" id="status">Loading…</p>
+  <script>
+    function loadPicker() {
+      // Chrome Custom Tabs already has the user's Google session via Chrome cookies,
+      // so we only need to load the 'picker' module (no 'auth:' prefix needed).
+      gapi.load('picker', function () {
+        document.getElementById('status').style.display = 'none';
+        new google.picker.PickerBuilder()
+          .setOAuthToken('${accessToken}')
+          .setDeveloperKey('${apiKey}')
+          .setAppId('${appId}')
+          .addView(
+            new google.picker.DocsView()
+              .setMimeTypes('application/vnd.google-apps.document')
+          )
+          .setCallback(function (data) {
+            if (data.action === google.picker.Action.PICKED) {
+              var doc = data.docs[0];
+              var url = doc.url || ('https://docs.google.com/document/d/' + doc.id + '/edit');
+              // Redirect back to the app via deep link — Android handles this URI scheme
+              window.location.href = 'continuum://drive-pick'
+                + '?id=' + encodeURIComponent(doc.id)
+                + '&name=' + encodeURIComponent(doc.name)
+                + '&url=' + encodeURIComponent(url);
+            }
+          })
+          .build()
+          .setVisible(true);
+      });
+    }
+  </script>
+  <script src="https://apis.google.com/js/api.js?onload=loadPicker"></script>
+</body>
+</html>`;
+
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
     res.send(html);

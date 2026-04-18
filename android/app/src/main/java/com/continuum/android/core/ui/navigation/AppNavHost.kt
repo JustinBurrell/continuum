@@ -70,6 +70,8 @@ object NavRoutes {
         const val DETAIL = "notes/detail/{noteId}"
         const val EDITOR = "notes/editor/{noteId}"
         const val DRIVE_IMPORT = "notes/drive-import"
+        // Receives the result of the Google Picker (via continuum://drive-pick deep link)
+        const val DRIVE_PICK = "notes/drive-pick?id={id}&name={name}&url={url}"
 
         fun detail(noteId: String) = "notes/detail/$noteId"
         fun editor(noteId: String = "new") = "notes/editor/$noteId"
@@ -514,6 +516,34 @@ private fun NavGraph(
                             popUpTo(NavRoutes.Notes.DRIVE_IMPORT) { inclusive = true }
                         }
                     }
+                )
+            }
+            // Destination for the continuum://drive-pick deep link sent by the CCT Picker page.
+            // Receives the picked file's id/name/url, runs the import, then navigates to the note.
+            composable(
+                route = NavRoutes.Notes.DRIVE_PICK,
+                arguments = listOf(
+                    navArgument("id")   { type = NavType.StringType; defaultValue = "" },
+                    navArgument("name") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("url")  { type = NavType.StringType; defaultValue = "" }
+                ),
+                deepLinks = listOf(
+                    navDeepLink { uriPattern = "continuum://drive-pick?id={id}&name={name}&url={url}" }
+                )
+            ) { backStackEntry ->
+                val pickedId   = backStackEntry.arguments?.getString("id")   ?: ""
+                val pickedName = backStackEntry.arguments?.getString("name") ?: ""
+                val pickedUrl  = backStackEntry.arguments?.getString("url")  ?: ""
+                DrivePickResultScreen(
+                    pickedId   = pickedId,
+                    pickedName = pickedName,
+                    pickedUrl  = pickedUrl,
+                    onImportSuccess = { noteId ->
+                        navController.navigate(NavRoutes.Notes.detail(noteId)) {
+                            popUpTo(NavRoutes.Notes.DRIVE_PICK) { inclusive = true }
+                        }
+                    },
+                    onImportFailed = { navController.popBackStack() }
                 )
             }
         }
