@@ -116,12 +116,16 @@ exports.getPickerPage = async (req, res) => {
 //          CCT cannot set custom request headers, so the app JWT is verified
 //          inline from ?token= query param.
 //
-// Auth strategy: Google Identity Services (GIS) initTokenClient running inside
-// Chrome. GIS uses Chrome's existing Google account session to obtain a fresh
-// OAuth token — this is what satisfies the Picker's browser-session check.
-// The backend access token is NOT embedded in the HTML; GIS acquires one
-// directly in the browser, eliminating token exposure in the URL and bypassing
-// the "Can't access your Google account" error caused by a missing browser session.
+// Auth strategy: gapi.load('auth:picker') + gapi.auth.setToken() using the
+// server-side access token. This works in Chrome Custom Tabs because Chrome
+// allows Google's auth iframes to load and communicate properly — unlike a
+// plain Android WebView which blocks third-party iframe content, causing
+// gapi.auth.setToken() to fail silently and the Picker to show
+// "Can't access your Google account".
+//
+// GIS initTokenClient was tried but requires HTTPS origins registered in
+// Google Cloud Console; it fails silently on HTTP (e.g. local emulator at
+// http://10.0.2.2) leaving a permanent black screen.
 //
 // On file selection the page redirects to continuum://drive-pick?id=...&name=...&url=...
 // which the app receives as a deep link and uses to trigger the import flow.
@@ -139,22 +143,19 @@ exports.getPickerPageCCT = async (req, res) => {
         return res.status(401).send('<p>Invalid or expired token</p>');
     }
 
-    const user = await User.findById(decoded.userId).select('+googleId');
+    const user = await User.findById(decoded.userId).select('+googleId +googleTokenExpiry');
     if (!user || !user.googleId) {
         return res.status(403).send('<p>Google account not linked</p>');
     }
 
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const apiKey   = process.env.GOOGLE_PICKER_API_KEY;
-    const appId    = process.env.GOOGLE_APP_ID;
+    // Auto-refresh token if expired, then read the fresh decrypted value
+    await getGoogleDriveClient(user);
+    const userWithToken = await User.findById(user._id).select('+googleAccessToken');
+    const accessToken = decrypt(userWithToken.googleAccessToken);
 
-    // GIS + Picker integration pattern (standard Google recommendation):
-    //   1. Load GIS script  → onGisLoad()  sets up the token client
-    //   2. Load gapi script → gapiLoaded() calls gapi.load('picker', ...)
-    //   3. Once BOTH are ready → maybeStart() requests a token via GIS
-    //   4. GIS silently uses Chrome's Google session (or shows sign-in if absent)
-    //   5. Token callback → buildPicker(token) → Picker opens
-    //   6. User picks a file → redirect to continuum://drive-pick deep link
+    const apiKey = process.env.GOOGLE_PICKER_API_KEY;
+    const appId  = process.env.GOOGLE_APP_ID;
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -162,80 +163,50 @@ exports.getPickerPageCCT = async (req, res) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #000; height: 100vh; display: flex; align-items: center; justify-content: center; }
+    body { background: #1a1a1a; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
     .status { color: #fff; font-family: sans-serif; font-size: 15px; opacity: 0.7; }
+    .spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <p class="status" id="status">Loading…</p>
+  <div class="spinner" id="spinner"></div>
+  <p class="status" id="status">Opening Google Picker…</p>
   <script>
-    var CLIENT_ID = '${clientId}';
-    var API_KEY   = '${apiKey}';
-    var APP_ID    = '${appId}';
-
-    var tokenClient;
-    var pickerInited = false;
-    var gisInited    = false;
-
-    // Called when gapi.js finishes loading
-    function gapiLoaded() {
-      gapi.load('picker', function () {
-        pickerInited = true;
-        maybeStart();
+    function loadPicker() {
+      // Load both 'auth' and 'picker' modules.
+      // gapi.auth.setToken() establishes a gapi session from the server-side token
+      // so the Picker can verify the user's identity without needing browser cookies.
+      // This works in Chrome Custom Tabs (where Google's auth iframes load normally)
+      // but not in a plain WebView (which blocks third-party iframe content).
+      gapi.load('auth:picker', function () {
+        gapi.auth.setToken({ access_token: '${accessToken}' });
+        document.getElementById('spinner').style.display = 'none';
+        document.getElementById('status').style.display = 'none';
+        new google.picker.PickerBuilder()
+          .setOAuthToken('${accessToken}')
+          .setDeveloperKey('${apiKey}')
+          .setAppId('${appId}')
+          .addView(
+            new google.picker.DocsView()
+              .setMimeTypes('application/vnd.google-apps.document')
+          )
+          .setCallback(function (data) {
+            if (data.action === google.picker.Action.PICKED) {
+              var doc = data.docs[0];
+              var url = doc.url || ('https://docs.google.com/document/d/' + doc.id + '/edit');
+              window.location.href = 'continuum://drive-pick'
+                + '?id='   + encodeURIComponent(doc.id)
+                + '&name=' + encodeURIComponent(doc.name)
+                + '&url='  + encodeURIComponent(url);
+            }
+          })
+          .build()
+          .setVisible(true);
       });
-    }
-
-    // Called when the GIS script finishes loading
-    function onGisLoad() {
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/drive.file',
-        callback: function (response) {
-          if (response.access_token) {
-            buildPicker(response.access_token);
-          }
-        }
-      });
-      gisInited = true;
-      maybeStart();
-    }
-
-    // Start only after both libraries are ready
-    function maybeStart() {
-      if (!pickerInited || !gisInited) return;
-      document.getElementById('status').style.display = 'none';
-      // prompt: '' → silent if Chrome already has this Google account signed in;
-      // GIS will show a sign-in/consent UI automatically when needed.
-      tokenClient.requestAccessToken({ prompt: '' });
-    }
-
-    function buildPicker(token) {
-      new google.picker.PickerBuilder()
-        .setOAuthToken(token)
-        .setDeveloperKey(API_KEY)
-        .setAppId(APP_ID)
-        .addView(
-          new google.picker.DocsView()
-            .setMimeTypes('application/vnd.google-apps.document')
-        )
-        .setCallback(function (data) {
-          if (data.action === google.picker.Action.PICKED) {
-            var doc = data.docs[0];
-            var url = doc.url || ('https://docs.google.com/document/d/' + doc.id + '/edit');
-            window.location.href = 'continuum://drive-pick'
-              + '?id='   + encodeURIComponent(doc.id)
-              + '&name=' + encodeURIComponent(doc.name)
-              + '&url='  + encodeURIComponent(url);
-          }
-        })
-        .build()
-        .setVisible(true);
     }
   </script>
-  <!-- GIS must load before gapi so onGisLoad fires first in most cases;
-       both scripts are async so maybeStart() guards against race conditions. -->
-  <script src="https://accounts.google.com/gsi/client" onload="onGisLoad()" async defer></script>
-  <script src="https://apis.google.com/js/api.js?onload=gapiLoaded" async defer></script>
+  <script src="https://apis.google.com/js/api.js?onload=loadPicker"></script>
 </body>
 </html>`;
 
