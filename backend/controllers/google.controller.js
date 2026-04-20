@@ -104,7 +104,13 @@ exports.getPickerPage = async (req, res) => {
 </body>
 </html>`;
 
-    // No caching — token is short-lived
+    // No caching — token is short-lived.
+    // Override Helmet's cross-origin isolation headers: the Google Picker uses
+    // cross-origin auth iframes that COOP same-origin blocks, causing
+    // "Can't access your Google account".
+    res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
     res.send(html);
@@ -116,16 +122,19 @@ exports.getPickerPage = async (req, res) => {
 //          CCT cannot set custom request headers, so the app JWT is verified
 //          inline from ?token= query param.
 //
-// Auth strategy: gapi.load('auth:picker') + gapi.auth.setToken() using the
-// server-side access token. This works in Chrome Custom Tabs because Chrome
-// allows Google's auth iframes to load and communicate properly — unlike a
-// plain Android WebView which blocks third-party iframe content, causing
-// gapi.auth.setToken() to fail silently and the Picker to show
-// "Can't access your Google account".
+// Auth strategy: GIS initTokenClient with hint=userEmail.
+//   GIS requests a fresh drive.file token for the specific Google account
+//   linked in the app (identified by user.email / hint). This decouples the
+//   Picker from Chrome's default signed-in account — if Chrome has that
+//   account it proceeds silently; if not, GIS shows a sign-in dialog for
+//   exactly that email.
 //
-// GIS initTokenClient was tried but requires HTTPS origins registered in
-// Google Cloud Console; it fails silently on HTTP (e.g. local emulator at
-// http://10.0.2.2) leaving a permanent black screen.
+//   Requirement: the backend HTTPS origin must be registered as an
+//   "Authorized JavaScript origin" in Google Cloud Console
+//   (APIs & Services → Credentials → OAuth 2.0 Client ID).
+//   GIS does not work from unregistered or HTTP origins — on the local
+//   emulator (http://10.0.2.2) it will fail silently; use the URL paste
+//   fallback in the app for local development.
 //
 // On file selection the page redirects to continuum://drive-pick?id=...&name=...&url=...
 // which the app receives as a deep link and uses to trigger the import flow.
@@ -148,13 +157,10 @@ exports.getPickerPageCCT = async (req, res) => {
         return res.status(403).send('<p>Google account not linked</p>');
     }
 
-    // Auto-refresh token if expired, then read the fresh decrypted value
-    await getGoogleDriveClient(user);
-    const userWithToken = await User.findById(user._id).select('+googleAccessToken');
-    const accessToken = decrypt(userWithToken.googleAccessToken);
-
-    const apiKey = process.env.GOOGLE_PICKER_API_KEY;
-    const appId  = process.env.GOOGLE_APP_ID;
+    const apiKey    = process.env.GOOGLE_PICKER_API_KEY;
+    const appId     = process.env.GOOGLE_APP_ID;
+    const clientId  = process.env.GOOGLE_CLIENT_ID;
+    const userEmail = user.email; // linked Google account — passed as GIS hint
 
     const html = `<!DOCTYPE html>
 <html>
@@ -164,7 +170,7 @@ exports.getPickerPageCCT = async (req, res) => {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #1a1a1a; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
-    .status { color: #fff; font-family: sans-serif; font-size: 15px; opacity: 0.7; }
+    .status { color: #fff; font-family: sans-serif; font-size: 15px; opacity: 0.7; text-align: center; padding: 0 24px; }
     .spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
@@ -173,43 +179,82 @@ exports.getPickerPageCCT = async (req, res) => {
   <div class="spinner" id="spinner"></div>
   <p class="status" id="status">Opening Google Picker…</p>
   <script>
-    function loadPicker() {
-      // Load both 'auth' and 'picker' modules.
-      // gapi.auth.setToken() establishes a gapi session from the server-side token
-      // so the Picker can verify the user's identity without needing browser cookies.
-      // This works in Chrome Custom Tabs (where Google's auth iframes load normally)
-      // but not in a plain WebView (which blocks third-party iframe content).
-      gapi.load('auth:picker', function () {
-        gapi.auth.setToken({ access_token: '${accessToken}' });
-        document.getElementById('spinner').style.display = 'none';
-        document.getElementById('status').style.display = 'none';
-        new google.picker.PickerBuilder()
-          .setOAuthToken('${accessToken}')
-          .setDeveloperKey('${apiKey}')
-          .setAppId('${appId}')
-          .addView(
-            new google.picker.DocsView()
-              .setMimeTypes('application/vnd.google-apps.document')
-          )
-          .setCallback(function (data) {
-            if (data.action === google.picker.Action.PICKED) {
-              var doc = data.docs[0];
-              var url = doc.url || ('https://docs.google.com/document/d/' + doc.id + '/edit');
-              window.location.href = 'continuum://drive-pick'
-                + '?id='   + encodeURIComponent(doc.id)
-                + '&name=' + encodeURIComponent(doc.name)
-                + '&url='  + encodeURIComponent(url);
-            }
-          })
-          .build()
-          .setVisible(true);
+    // GIS (Google Identity Services) initTokenClient approach:
+    // - hint forces auth for the specific Google account linked in the app
+    // - requestAccessToken({ prompt: '' }) tries silent first; shows sign-in UI only if needed
+    // - Requires the backend HTTPS origin to be registered in Google Cloud Console
+    var tokenClient;
+    var pickerReady = false;
+    var tokenClientReady = false;
+
+    function onGapiLoaded() {
+      gapi.load('picker', function () {
+        pickerReady = true;
+        openPickerIfReady();
       });
     }
+
+    function onGisLoaded() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: '${clientId}',
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        hint: '${userEmail}',
+        callback: function (tokenResponse) {
+          if (tokenResponse.error) {
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('status').textContent =
+              'Sign-in failed. Return to the app and paste a Google Doc link instead.';
+            return;
+          }
+          openPicker(tokenResponse.access_token);
+        }
+      });
+      tokenClientReady = true;
+      openPickerIfReady();
+    }
+
+    function openPickerIfReady() {
+      if (pickerReady && tokenClientReady) {
+        // Empty prompt — silent if Chrome already has the account, login dialog if not
+        tokenClient.requestAccessToken({ prompt: '' });
+      }
+    }
+
+    function openPicker(accessToken) {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('status').style.display = 'none';
+      new google.picker.PickerBuilder()
+        .setOAuthToken(accessToken)
+        .setDeveloperKey('${apiKey}')
+        .setAppId('${appId}')
+        .addView(
+          new google.picker.DocsView()
+            .setMimeTypes('application/vnd.google-apps.document')
+        )
+        .setCallback(function (data) {
+          if (data.action === google.picker.Action.PICKED) {
+            var doc = data.docs[0];
+            var url = doc.url || ('https://docs.google.com/document/d/' + doc.id + '/edit');
+            window.location.href = 'continuum://drive-pick'
+              + '?id='   + encodeURIComponent(doc.id)
+              + '&name=' + encodeURIComponent(doc.name)
+              + '&url='  + encodeURIComponent(url);
+          }
+        })
+        .build()
+        .setVisible(true);
+    }
   </script>
-  <script src="https://apis.google.com/js/api.js?onload=loadPicker"></script>
+  <script src="https://apis.google.com/js/api.js?onload=onGapiLoaded"></script>
+  <script src="https://accounts.google.com/gsi/client" onload="onGisLoaded()" async defer></script>
 </body>
 </html>`;
 
+    // Override Helmet's cross-origin isolation headers: the Google Picker uses
+    // cross-origin auth iframes that COOP same-origin blocks.
+    res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
     res.send(html);
