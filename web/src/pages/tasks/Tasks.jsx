@@ -191,10 +191,10 @@ export default function Tasks() {
       {/* Page header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
             Tasks
           </h1>
-          <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>{allTasks.length} tasks</p>
+          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{allTasks.length} tasks</p>
         </div>
         {!user?.isDemo && (
           <Button onClick={() => setShowCreate(true)}>
@@ -206,7 +206,7 @@ export default function Tasks() {
       {/* Search */}
       {(
         <div style={{ position: 'relative', marginBottom: 16 }}>
-          <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+          <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
           <input
             style={{
               width: '100%',
@@ -453,7 +453,7 @@ function KanbanColumn({ status, tasks, onStatusChange, onDelete, onView, isShare
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <p style={{ fontSize: 12, color: '#a087b0' }}>No tasks</p>
+            <p style={{ fontSize: 12, color: '#6B7280' }}>No tasks</p>
           </div>
         ) : (
           tasks.map(task => (
@@ -509,7 +509,8 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
       <p style={{
         fontSize: 13,
         fontWeight: 600,
-        color: task.status === 'completed' ? '#a087b0' : '#111827',
+        color: task.status === 'completed' ? '#9CA3AF' : '#111827',
+
         textDecoration: task.status === 'completed' ? 'line-through' : 'none',
         marginBottom: 4,
         lineHeight: 1.4,
@@ -524,7 +525,7 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
       {task.description && (
         <p style={{
           fontSize: 11,
-          color: '#a087b0',
+          color: '#6B7280',
           marginBottom: 8,
           display: '-webkit-box',
           WebkitLineClamp: 2,
@@ -557,7 +558,7 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
               alignItems: 'center',
               gap: 4,
               fontSize: 11,
-              color: isOverdue ? '#ef4444' : '#a087b0',
+              color: isOverdue ? '#ef4444' : '#9CA3AF',
             }}>
               {isOverdue ? <AlertCircle size={11} /> : <Clock size={11} />}
               {isOverdue ? 'Overdue · ' : ''}{formatDate(task.dueDate)}
@@ -610,7 +611,7 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
                 border: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
-                color: '#c4b5d4',
+                color: '#D1D5DB',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -619,7 +620,7 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
               }}
               className="group-hover:opacity-100"
               onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#c4b5d4'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#D1D5DB'; }}
             >
               <Trash2 size={13} />
             </button>
