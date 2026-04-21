@@ -119,7 +119,7 @@ export default function StudyMode() {
   if (!set || cards.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '64px 0' }}>
-        <p style={{ color: '#a087b0', marginBottom: 12 }}>No cards in this set.</p>
+        <p style={{ color: '#6B7280', marginBottom: 12 }}>No cards in this set.</p>
         <Link to="/flashcards/view" state={{ id }}>
           <button style={{
             border: '1px solid #E5E7EB',
@@ -155,27 +155,27 @@ export default function StudyMode() {
           width: 96,
           height: 96,
           borderRadius: '50%',
-          background: pct >= 70 ? '#f0fdf4' : 'rgba(107,33,168,0.08)',
-          border: `4px solid ${pct >= 70 ? '#16a34a' : '#6b21a8'}`,
+          background: pct >= 70 ? 'rgba(5,150,105,0.08)' : 'rgba(107,33,168,0.08)',
+          border: `4px solid ${pct >= 70 ? '#059669' : '#6b21a8'}`,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: 24,
         }}>
-          <span style={{ fontSize: '1.375rem', fontWeight: 700, color: pct >= 70 ? '#16a34a' : '#6b21a8', lineHeight: 1 }}>
+          <span style={{ fontSize: '1.375rem', fontWeight: 700, color: pct >= 70 ? '#059669' : '#6b21a8', lineHeight: 1 }}>
             {pct}%
           </span>
-          <span style={{ fontSize: '0.6875rem', color: '#a087b0', marginTop: 2 }}>score</span>
+          <span style={{ fontSize: '0.6875rem', color: '#9CA3AF', marginTop: 2 }}>score</span>
         </div>
 
-        <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.75rem', fontWeight: 700, color: '#111827', marginBottom: 8 }}>
+        <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.75rem', fontWeight: 700, color: '#111827', marginBottom: 8 }}>
           Set complete!
         </h2>
         <p style={{ color: '#374151', fontSize: '0.9375rem', marginBottom: 4 }}>
           You knew {known.size} of {cards.length} cards
         </p>
-        <p style={{ color: '#a087b0', fontSize: '0.875rem', marginBottom: sessionStreak >= 2 ? 16 : 32 }}>
+        <p style={{ color: '#6B7280', fontSize: '0.875rem', marginBottom: sessionStreak >= 2 ? 16 : 32 }}>
           {pct >= 70 ? 'Great work! Keep it up.' : 'Keep studying to improve your score.'}
         </p>
 
@@ -255,7 +255,7 @@ export default function StudyMode() {
               borderRadius: 10,
               border: 'none',
               background: 'transparent',
-              color: '#a087b0',
+              color: '#9CA3AF',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -263,7 +263,7 @@ export default function StudyMode() {
               transition: 'background 0.12s',
             }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#111827'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; }}
           >
             <ArrowLeft size={18} />
           </button>
@@ -271,7 +271,7 @@ export default function StudyMode() {
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <h1 style={{ fontWeight: 600, fontSize: '1rem', color: '#111827' }}>{set.title}</h1>
-            <span style={{ fontSize: '0.8125rem', color: '#a087b0', fontWeight: 500 }}>
+            <span style={{ fontSize: '0.8125rem', color: '#9CA3AF', fontWeight: 500 }}>
               {currentIndex + 1} / {cards.length}
             </span>
           </div>
@@ -320,7 +320,7 @@ export default function StudyMode() {
             <span style={{
               fontSize: '0.6875rem',
               fontWeight: 700,
-              color: '#a087b0',
+              color: '#9CA3AF',
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
               marginBottom: 20,
@@ -333,7 +333,7 @@ export default function StudyMode() {
             <p style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827', lineHeight: 1.5 }}>
               {card.front}
             </p>
-            <p style={{ fontSize: '0.75rem', color: '#a087b0', marginTop: 24 }}>
+            <p style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: 24 }}>
               Press Space or click to reveal
             </p>
           </div>
@@ -390,7 +390,7 @@ export default function StudyMode() {
             borderRadius: 12,
             border: '1px solid #E5E7EB',
             background: 'white',
-            color: currentIndex === 0 ? '#c4b5d4' : '#374151',
+            color: currentIndex === 0 ? '#D1D5DB' : '#374151',
             fontSize: '0.875rem',
             fontWeight: 500,
             cursor: currentIndex === 0 ? 'not-allowed' : 'pointer',
@@ -433,7 +433,7 @@ export default function StudyMode() {
                   padding: '9px 18px',
                   borderRadius: 12,
                   border: 'none',
-                  background: '#16a34a',
+                  background: '#059669',
                   color: 'white',
                   fontSize: '0.875rem',
                   fontWeight: 600,
@@ -489,8 +489,8 @@ export default function StudyMode() {
       </div>
 
       {/* Status line */}
-      <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#a087b0', marginTop: 20 }}>
-        <span style={{ color: '#16a34a', fontWeight: 500 }}>{known.size} known</span>
+      <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#9CA3AF', marginTop: 20 }}>
+        <span style={{ color: '#059669', fontWeight: 500 }}>{known.size} known</span>
         {' · '}
         {cards.length - currentIndex - 1} remaining
       </p>
