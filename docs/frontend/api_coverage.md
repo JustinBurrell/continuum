@@ -183,8 +183,9 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/google/files` | Not yet exposed in UI | List linked Google Drive files (requires Google account linked) |
-| GET | `/api/google/docs/:docId/preview` | Not yet exposed in UI | Preview document content without saving |
+| GET | `/api/google/token` | `pages/notes/NotesList.jsx` → `openGooglePicker()` | Returns decrypted Google access token for the Picker; auto-refreshes if expired |
+
+Note: `GET /api/google/files` was removed in the `drive.file` scope migration. `GET /api/google/docs/:docId/preview` was never implemented and is no longer planned.
 
 ---
 
@@ -223,5 +224,4 @@ These backend endpoints exist but have no frontend UI yet:
 | `POST /api/applications/:id/contacts` | Contacts section on ApplicationDetail |
 | `POST /api/applications/:id/reminders` | Reminder section on ApplicationDetail |
 | `DELETE /api/resumes/:id` | Delete button on Resumes page |
-| `GET /api/google/files` | Google Drive file browser in NotesList import modal |
-| `GET /api/google/docs/:docId/preview` | Preview step before importing a Google Doc |
+| `PUT /api/notes/:id/refresh` | Refresh button on NoteDetail (Google Doc notes only — resyncs from Drive) |

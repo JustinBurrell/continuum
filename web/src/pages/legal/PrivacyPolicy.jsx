@@ -38,15 +38,16 @@ const sections = [
     title: '3. Google Drive Data',
     content: (
       <>
-        <p>Continuum requests read-only access to your Google Drive (<code>drive.readonly</code> scope) to enable the Google Drive import feature. This allows you to import documents from your Google Drive directly into Continuum as notes.</p>
+        <p>Continuum requests access to Google Drive files you explicitly select (<code>drive.file</code> scope) to enable the Google Drive import feature. You choose which documents to import using the Google Picker — Continuum never browses or lists your entire Drive.</p>
         <p><strong>How we use your Drive data:</strong></p>
         <ul>
-          <li>Drive data is accessed only when you explicitly initiate an import action</li>
+          <li>Drive data is accessed only when you explicitly select a file and initiate an import action</li>
+          <li>Continuum only accesses files you select — we cannot see or list the rest of your Drive</li>
           <li>Imported content is displayed only to you, the authenticated user</li>
           <li>We do not store your raw Google Drive files on our servers beyond what you choose to import as a note</li>
           <li>We do not share your Drive data with third parties</li>
           <li>We do not use your Drive data for advertising or profiling</li>
-          <li>Read-only is the narrowest scope that enables this feature. We do not write to or modify your Google Drive</li>
+          <li>We do not write to or modify your Google Drive</li>
         </ul>
         <p>You can revoke Continuum's access to your Google Drive at any time through your Google Account settings at <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">myaccount.google.com/permissions</a>.</p>
       </>
@@ -154,7 +155,7 @@ export default function PrivacyPolicy() {
           Privacy Policy
         </h1>
         <p style={{ fontSize: 13, fontWeight: 600, color: '#6B21A8', marginBottom: 32 }}>
-          Last updated: March 2026
+          Last updated: April 2026
         </p>
 
         <p style={{ fontSize: 15, lineHeight: 1.75, color: '#374151', marginBottom: 48 }}>

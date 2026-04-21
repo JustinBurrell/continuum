@@ -32,7 +32,7 @@ const authMiddleware = async (req, res, next) => {
     // Confirm the user still exists in the database (cached 5 min)
     let user;
     try {
-        user = await getOrSet(`user:${decoded.userId}`, 300, () => User.findById(decoded.userId));
+        user = await getOrSet(`user:${decoded.userId}`, 300, () => User.findById(decoded.userId).select('+googleId +googleTokenExpiry'));
     } catch (err) {
         return next(err);
     }

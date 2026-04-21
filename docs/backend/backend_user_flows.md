@@ -26,7 +26,7 @@ User fills out registration form
 User clicks "Sign in with Google"
   → Frontend redirects to GET /api/auth/google
   → Server redirects to Google consent screen
-     Scopes: profile, email, drive.readonly, documents.readonly
+     Scopes: profile, email, drive.file
   → User grants permission
   → Google redirects to GET /api/auth/google/callback with auth code
   → Server exchanges code for access + refresh tokens
@@ -119,17 +119,30 @@ User goes to Settings → clicks "Disconnect Google"
 ```
 Prerequisite: user.hasGoogleLinked = true
 
-User clicks "Import from Google Drive"
-  → GET /api/google/files (uses stored Google access token)
-     → If token expired → auto-refresh using googleRefreshToken
-     → Returns list of Google Docs from Drive
-  → User selects a document
-  → POST /api/notes/import { googleDocId }
-  → Server fetches document content via Google Docs API
-  → Converts Google Docs format to HTML/Markdown
-  → Note.create({ userId, title, content, googleDocId, googleDocUrl, contentType, lastSyncedAt })
+Web:
+  User clicks "Import from Google Drive"
+  → GET /api/google/token (returns decrypted Google access token, auto-refreshes if expired)
+  → Google Picker opens (browser-side, drive.file scope — Google Docs only)
+  → User selects a document in the Picker
+  → POST /api/notes/import { googleDocId, googleDocUrl, title }
+  → Server exports document via Drive API (PDF + plain text)
+     → PDF uploaded to Cloudinary (authenticated resource) → pdfUrl stored
+     → Plain text stored as note content
+  → Note.create({ userId, title, content, googleDocId, googleDocUrl, pdfUrl, lastSyncedAt })
   → Returns new Note
   → User sees note in their notes list
+
+Android:
+  User taps "Import from Drive"
+  → Pastes Google Docs share URL into text field
+  → App extracts document ID from URL via regex
+  → POST /api/notes/import { googleDocId, googleDocUrl, title }
+  → Same server-side flow as web
+
+Error handling:
+  → Drive 403 (revoked access) → 403 with clean message (no raw Google error)
+  → Drive 404 (deleted/moved doc) → 404 with clean message
+  → Duplicate googleDocId → 409
 ```
 
 ### Refresh a Google Doc Note

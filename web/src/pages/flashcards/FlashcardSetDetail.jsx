@@ -38,7 +38,7 @@ export default function FlashcardSetDetail() {
 
   const navigate = useNavigate();
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['flashcard-set', id],
     queryFn: () => api.get(`/flashcard-sets/${id}`).then(r => r.data),
     enabled: !!id,
@@ -54,7 +54,7 @@ export default function FlashcardSetDetail() {
   const addCardMutation = useMutation({
     mutationFn: (card) => api.post(`/flashcard-sets/${id}/cards`, card),
     onSuccess: () => {
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['flashcard-set', id] });
       setShowAddCard(false);
       setNewCard({ front: '', back: '' });
     },
@@ -62,14 +62,14 @@ export default function FlashcardSetDetail() {
 
   const deleteCardMutation = useMutation({
     mutationFn: (cardId) => api.delete(`/flashcard-sets/${id}/cards/${cardId}`),
-    onSuccess: () => refetch(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['flashcard-set', id] }),
   });
 
   const editCardMutation = useMutation({
     mutationFn: ({ cardId, front, back }) =>
       api.put(`/flashcard-sets/${id}/cards/${cardId}`, { front, back }),
     onSuccess: () => {
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['flashcard-set', id] });
       setEditingCard(null);
     },
   });
@@ -80,7 +80,6 @@ export default function FlashcardSetDetail() {
       queryClient.invalidateQueries({ queryKey: ['flashcard-set', id] });
       queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
       queryClient.invalidateQueries({ queryKey: ['activity'] });
-      refetch();
       setShowShareModal(false);
     },
   });
@@ -95,8 +94,28 @@ export default function FlashcardSetDetail() {
 
   const updateSetMutation = useMutation({
     mutationFn: (updates) => api.patch(`/flashcard-sets/${id}`, updates),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      const updatedSet = res.data?.set || res.data?.data;
+      if (updatedSet) {
+        // Instantly update the detail cache
+        queryClient.setQueryData(['flashcard-set', id], (old) =>
+          old ? { ...old, set: { ...(old.set || {}), ...updatedSet } } : old
+        );
+        // Instantly patch all paginated flashcard-sets list caches
+        queryClient.setQueriesData({ queryKey: ['flashcard-sets'] }, (old) => {
+          if (!old?.pages) return old;
+          return {
+            ...old,
+            pages: old.pages.map(page => ({
+              ...page,
+              sets: (page.sets || []).map(s => s._id === id ? { ...s, ...updatedSet } : s),
+            })),
+          };
+        });
+      }
+      // Background invalidation for eventual consistency
       queryClient.invalidateQueries({ queryKey: ['flashcard-set', id] });
+      queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
       setEditingTitle(false);
     },
   });

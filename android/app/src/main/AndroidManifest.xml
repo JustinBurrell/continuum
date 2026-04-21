@@ -49,6 +49,14 @@
                 <data android:scheme="continuum" android:host="auth" android:pathPrefix="/reset-password" />
             </intent-filter>
 
+            <!-- Deep link: Google Drive Picker result (Chrome Custom Tab callback) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="continuum" android:host="drive-pick" />
+            </intent-filter>
+
         </activity>
 
     </application>

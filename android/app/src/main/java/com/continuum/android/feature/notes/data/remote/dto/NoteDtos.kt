@@ -14,6 +14,8 @@ data class NoteDto(
     @Json(name = "isPinned") val isPinned: Boolean = false,
     val visibility: String = "private",
     val googleDocId: String? = null,
+    val googleDocUrl: String? = null,
+    val pdfUrl: String? = null,
     val hasFlashcards: Boolean = false,
     val summary: NoteSummaryDto? = null,
     val updatedAt: String = "",
@@ -100,4 +102,10 @@ data class DriveFileDto(
 data class DriveFilesResponseDto(
     val success: Boolean = false,
     val files: List<DriveFileDto> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class NotePdfResponseDto(
+    val success: Boolean = false,
+    val downloadUrl: String = ""
 )

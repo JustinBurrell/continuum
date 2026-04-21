@@ -1,6 +1,7 @@
 package com.continuum.android.feature.notes
 
 import com.continuum.android.core.data.DataRefreshNotifier
+import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.notes.data.repository.NotesRepository
 import com.continuum.android.feature.notes.domain.Note
 import com.continuum.android.feature.notes.presentation.NotesViewModel
@@ -29,6 +30,7 @@ class NotesViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private val repository: NotesRepository = mockk()
     private val notifier = DataRefreshNotifier()
+    private val tokenManager: TokenManager = mockk(relaxed = true)
     private lateinit var viewModel: NotesViewModel
 
     private fun fakeNote(id: String = "n1", title: String = "Test Note") = Note(
@@ -40,6 +42,26 @@ class NotesViewModelTest {
         isFavorite = false,
         visibility = "private",
         googleDocId = null,
+        googleDocUrl = null,
+        pdfUrl = null,
+        hasFlashcards = false,
+        quickSummary = null,
+        detailedSummary = null,
+        updatedAt = "2025-01-01T00:00:00.000Z",
+        createdAt = "2025-01-01T00:00:00.000Z"
+    )
+
+    private fun fakeDriveNote(id: String = "n1", title: String = "Imported Note") = Note(
+        id = id,
+        title = title,
+        content = "<p>Imported content</p>",
+        type = "general",
+        tags = emptyList(),
+        isFavorite = false,
+        visibility = "private",
+        googleDocId = "doc-id-123",
+        googleDocUrl = "https://docs.google.com/document/d/doc-id-123/edit",
+        pdfUrl = "https://res.cloudinary.com/test/raw/upload/test.pdf",
         hasFlashcards = false,
         quickSummary = null,
         detailedSummary = null,
@@ -50,7 +72,7 @@ class NotesViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = NotesViewModel(repository, notifier)
+        viewModel = NotesViewModel(repository, notifier, tokenManager)
     }
 
     @After
@@ -134,5 +156,91 @@ class NotesViewModelTest {
         advanceUntilIdle()
 
         assertEquals("lecture", viewModel.listState.value.selectedType)
+    }
+
+    // ─── Drive import ──────────────────────────────────────────────────────────
+
+    @Test
+    fun `importFromDrive success — sets importedNoteId and clears isImporting`() = runTest {
+        val imported = fakeDriveNote("n-drive", "My Doc")
+        coEvery {
+            repository.importFromDrive("doc-id-123", "https://docs.google.com/document/d/doc-id-123/edit", "")
+        } returns Result.success(imported)
+        every { repository.getNotes() } returns flowOf(Result.success(listOf(imported)))
+
+        viewModel.importFromDrive("doc-id-123", "https://docs.google.com/document/d/doc-id-123/edit", "")
+        advanceUntilIdle()
+
+        assertEquals("n-drive", viewModel.driveState.value.importedNoteId)
+        assertEquals(false, viewModel.driveState.value.isImporting)
+        assertNull(viewModel.driveState.value.error)
+    }
+
+    @Test
+    fun `importFromDrive 403 — sets error with clean message`() = runTest {
+        coEvery {
+            repository.importFromDrive(any(), any(), any())
+        } returns Result.failure(Exception("Access to this Google Doc has been revoked. Please reconnect Google or reselect the file."))
+
+        viewModel.importFromDrive("revoked-doc-id", "https://docs.google.com/document/d/revoked-doc-id/edit", "")
+        advanceUntilIdle()
+
+        val error = viewModel.driveState.value.error
+        assertTrue("Expected revoke message but got: $error", error?.contains("revoked", ignoreCase = true) == true)
+        assertEquals(false, viewModel.driveState.value.isImporting)
+        assertNull(viewModel.driveState.value.importedNoteId)
+    }
+
+    @Test
+    fun `importFromDrive 404 — sets error with not found message`() = runTest {
+        coEvery {
+            repository.importFromDrive(any(), any(), any())
+        } returns Result.failure(Exception("Google Doc not found. It may have been deleted or moved."))
+
+        viewModel.importFromDrive("deleted-doc-id", "https://docs.google.com/document/d/deleted-doc-id/edit", "")
+        advanceUntilIdle()
+
+        val error = viewModel.driveState.value.error
+        assertTrue("Expected not found message but got: $error", error?.contains("not found", ignoreCase = true) == true)
+        assertEquals(false, viewModel.driveState.value.isImporting)
+    }
+
+    @Test
+    fun `clearImportedNoteId — resets importedNoteId to null`() = runTest {
+        val imported = fakeDriveNote("n-drive", "My Doc")
+        coEvery { repository.importFromDrive(any(), any(), any()) } returns Result.success(imported)
+        every { repository.getNotes() } returns flowOf(Result.success(listOf(imported)))
+
+        viewModel.importFromDrive("doc-id-123", "https://docs.google.com/document/d/doc-id-123/edit", "")
+        advanceUntilIdle()
+        assertEquals("n-drive", viewModel.driveState.value.importedNoteId)
+
+        viewModel.clearImportedNoteId()
+        assertNull(viewModel.driveState.value.importedNoteId)
+    }
+
+    @Test
+    fun `fetchPdfDownloadUrl success — sets pdfDownloadUrl`() = runTest {
+        val signedUrl = "https://res.cloudinary.com/test/raw/upload/signed/test.pdf"
+        coEvery { repository.getPdfDownloadUrl("n1") } returns Result.success(signedUrl)
+
+        viewModel.fetchPdfDownloadUrl("n1")
+        advanceUntilIdle()
+
+        assertEquals(signedUrl, viewModel.driveState.value.pdfDownloadUrl)
+        assertNull(viewModel.driveState.value.error)
+    }
+
+    @Test
+    fun `clearPdfDownloadUrl — resets pdfDownloadUrl to null`() = runTest {
+        val signedUrl = "https://res.cloudinary.com/test/raw/upload/signed/test.pdf"
+        coEvery { repository.getPdfDownloadUrl("n1") } returns Result.success(signedUrl)
+
+        viewModel.fetchPdfDownloadUrl("n1")
+        advanceUntilIdle()
+        assertEquals(signedUrl, viewModel.driveState.value.pdfDownloadUrl)
+
+        viewModel.clearPdfDownloadUrl()
+        assertNull(viewModel.driveState.value.pdfDownloadUrl)
     }
 }

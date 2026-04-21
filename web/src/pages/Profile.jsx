@@ -1151,7 +1151,7 @@ export default function Profile() {
             {me?.googleId && (
               <div style={{ marginTop: 12, padding: '10px 12px', background: '#f5f0ff', borderRadius: 10 }}>
                 <p style={{ fontSize: 12, color: '#6b21a8', margin: 0 }}>
-                  Google Drive connected — you can import Google Docs as notes from the Notes page.
+                  Google Drive connected — select Google Docs to import as notes from the Notes page.
                 </p>
               </div>
             )}
@@ -1266,7 +1266,13 @@ export default function Profile() {
         onConfirm={() => {
           setShowUnlinkConfirm(false);
           api.delete('/auth/me/google/link', { data: { keepNotes: true } })
-            .then(r => { const u = r.data.user || r.data.data; if (u) updateUser(u); })
+            .then(r => {
+              const u = r.data.user || r.data.data;
+              if (u) {
+                updateUser(u);
+                queryClient.setQueryData(['me'], (old) => old ? { ...old, user: u } : old);
+              }
+            })
             .catch(e => toast({ type: 'error', message: e?.response?.data?.error || 'Failed to unlink' }));
         }}
         onClose={() => setShowUnlinkConfirm(false)}

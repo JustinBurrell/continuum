@@ -156,7 +156,7 @@ router.post('/refresh', authLimiter, authController.refresh);
  *       302:
  *         description: Redirect to Google
  */
-router.get('/google', passport.authenticate('google', { session: false, scope: ['profile', 'email', 'https://www.googleapis.com/auth/drive.readonly'], accessType: 'offline', prompt: 'consent' }));
+router.get('/google', passport.authenticate('google', { session: false, scope: ['profile', 'email', 'https://www.googleapis.com/auth/drive.file'], accessType: 'offline', prompt: 'consent' }));
 
 /**
  * @swagger

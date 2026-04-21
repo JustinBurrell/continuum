@@ -397,6 +397,10 @@ exports.googleExchange = async (req, res) => {
     // Mark as used immediately — prevents replay within the 60s window
     await OAuthCode.findByIdAndUpdate(record._id, { used: true });
 
+    // Invalidate the Redis user cache so /auth/me returns the freshly updated user
+    // (Passport may have just written googleId/tokens to MongoDB — stale cache would hide that)
+    await invalidate(`user:${record.userId}`).catch(() => {});
+
     const user = await User.findById(record.userId);
     if (!user) {
         return res.status(401).json({ success: false, error: 'User not found' });
@@ -488,6 +492,9 @@ exports.googleUnlink = async (req, res) => {
         { $unset: { googleId: '', googleAccessToken: '', googleRefreshToken: '', googleTokenExpiry: '' } },
         { new: true }
     );
+
+    // Invalidate Redis cache so subsequent /auth/me calls reflect the unlinked state
+    await invalidate(`user:${req.user._id}`).catch(() => {});
 
     res.status(200).json({ success: true, user: updated });
 };

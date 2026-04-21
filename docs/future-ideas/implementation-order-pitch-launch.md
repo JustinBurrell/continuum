@@ -7,18 +7,16 @@
 
 ## Pre-Pitch (now → April 29)
 
-### 1. Google Drive Scope Migration
-**Spec:** `google-drive-file-scope-migration-spec.md`
+### 1. Google Drive Scope Migration ✅ Done
 
-This is the only blocker. Google flagged `drive.readonly` scope and is waiting on a response. If this isn't fixed before launch, Google can pull the OAuth app. The spec is fully written — swap to `drive.file`, integrate Google Picker in the import modal, update legal copy, then reply to Google confirming narrower scopes.
-
-- [ ] Swap OAuth scope to `drive.file` in `passport.js` and `auth.routes.js`
-- [ ] Remove/deprecate `GET /api/google/files` from production flow
-- [ ] Integrate Google Picker in the notes import modal
-- [ ] Ensure `googleDocUrl` persistence and "View in Google Docs" action in note view
-- [ ] Update privacy policy, landing page, and product page copy
-- [ ] Run full web + backend QA (import, refresh, download, open-in-docs)
-- [ ] Reply to Google with "Confirming narrower scopes"
+- [x] Swap OAuth scope to `drive.file` in `passport.js` and `auth.routes.js`
+- [x] Remove/deprecate `GET /api/google/files` from production flow
+- [x] Integrate Google Picker in the notes import modal (web) + CCT Picker with URL paste fallback (Android)
+- [x] Ensure `googleDocUrl` persistence and "View in Google Docs" action in note view (web + Android)
+- [x] Android: "View in Google Docs" opens Chrome via `CustomTabsIntent`; PDF download uses `DownloadManager` to device Downloads folder
+- [x] Update privacy policy, landing page, and product page copy
+- [x] Run full web + backend QA (import, refresh, download, open-in-docs)
+- [ ] Reply to Google with "Confirming narrower scopes" — draft ready; send after Cloud Console scopes updated
 
 ### 2. Observability
 **Spec:** `observability.md`
@@ -125,4 +123,4 @@ Check if `usecontinuum.dev` is past 30 days old. If yes, add the ImprovMX MX rec
 
 ---
 
-*Last Updated: April 15, 2026*
+*Last Updated: April 21, 2026*

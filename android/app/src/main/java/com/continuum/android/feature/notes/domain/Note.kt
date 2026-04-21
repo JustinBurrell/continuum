@@ -9,6 +9,10 @@ data class Note(
     val isFavorite: Boolean,
     val visibility: String,
     val googleDocId: String?,
+    /** URL for opening the source Google Doc in a browser. */
+    val googleDocUrl: String?,
+    /** Cloudinary URL — present signals a PDF exists; use /notes/:id/pdf for the signed download URL. */
+    val pdfUrl: String?,
     val hasFlashcards: Boolean,
     val quickSummary: String?,
     val detailedSummary: String?,

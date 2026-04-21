@@ -39,8 +39,8 @@ interface NotesApiService {
     @POST("notes/{id}/flashcards/generate")
     suspend fun generateFlashcards(@Path("id") id: String): GenerateFlashcardsResponseDto
 
-    @GET("google/files")
-    suspend fun getDriveFiles(): DriveFilesResponseDto
+    @GET("notes/{id}/pdf")
+    suspend fun getPdfUrl(@Path("id") id: String): NotePdfResponseDto
 
     @POST("notes/import")
     suspend fun importFromDrive(@Body request: ImportNoteRequestDto): NoteResponseDto

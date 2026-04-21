@@ -90,11 +90,11 @@ Each feature follows the same layered pattern:
 
 3. Create `android/local.properties` if it does not exist and add:
    ```properties
-   BASE_URL=https://api.usecontinuum.dev/api/
+   BASE_URL=https://compacter-groovy-conclude.ngrok-free.dev/api/
    WEB_CLIENT_ID=<your Google Web OAuth client ID>
    ```
 
-   For local backend development, omit `BASE_URL` — the build script auto-detects `PORT` from `backend/.env` and uses `http://10.0.2.2:<PORT>/api/` (the emulator's localhost alias).
+   For local backend development, omit `BASE_URL` — the build script auto-detects `PORT` from `backend/.env` and uses `http://10.0.2.2:<PORT>/api/`. For production or to test the Google Drive CCT Picker (which requires HTTPS), set `BASE_URL=https://api.usecontinuum.dev/api/`.
 
 4. Sync Gradle: File > Sync Project with Gradle Files
 
@@ -111,6 +111,24 @@ Google Sign-In uses the Credential Manager API (no WebView). To configure:
 3. Copy the Client ID and add it to `local.properties` as `WEB_CLIENT_ID`
 4. Ensure the backend's `GOOGLE_CLIENT_ID` environment variable matches this same Web client ID
 5. The backend endpoint `POST /api/auth/google/mobile` verifies the ID token from Credential Manager
+
+## Google Drive Import (Android)
+
+The Android app uses `drive.file` scope — users select specific Google Docs rather than browsing their entire Drive.
+
+### Primary flow — Google Picker via Chrome Custom Tab (CCT)
+
+1. In the app, go to Notes → Import from Drive → "Choose from Google Drive"
+2. A Chrome Custom Tab opens the backend picker page
+3. Google Identity Services (GIS) authenticates for the specific Google account linked in Continuum (not Chrome's default account)
+4. User selects a Google Doc → the page redirects to `continuum://drive-pick?id=...&name=...&url=...`
+5. The deep link returns to the app and the import begins automatically
+
+### Fallback flow — paste a Google Doc link
+
+Works on any device or environment where the CCT Picker can't run. Go to Notes → Import from Drive, paste the full Google Doc URL, and tap Import.
+
+The note detail screen shows "View in Google Docs" and "Download PDF" actions for imported notes.
 
 ---
 
@@ -136,7 +154,7 @@ Requires signing configuration in `app/build.gradle.kts`. See [Android signing d
 
 | Feature | Description |
 |---------|-------------|
-| Notes | Rich-text editor, AI-generated summaries, auto-generated flashcard sets, Google Drive import |
+| Notes | Rich-text editor, AI-generated summaries, auto-generated flashcard sets, Google Drive import (URL-based, drive.file scope) |
 | Flashcards | Study mode with card flip + swipe, "Still Learning" / "Got it" tracking, study session recording |
 | Tasks | Status-based board (To Do, In Progress, Completed), task detail with full metadata, calendar view |
 | Calendar | Event calendar with date-based task filtering |

@@ -133,11 +133,16 @@ Run top to bottom within each folder. Each creation request auto-sets the ID for
 ### 7. Google Drive
 *(Requires a linked Google account. Visit `http://localhost:5001/api/auth/google`, complete sign-in, then copy the token from the callback URL into the `googleToken` environment variable. Do not run Login after — that will only overwrite `token`, not `googleToken`.)*
 
+**Note:** `GET /api/google/files` was removed in the `drive.file` scope migration. `googleDocId` now comes from the **Google Picker** (web) or by pasting a Google Docs URL (Android). Use a real doc ID from a Google Doc in your test Google account that you previously imported or have granted access to.
+
 | Request | Body Input | Expected | Tested |
 |---------|------------|----------|--------|
-| List Drive Files | none | `200` — returns up to 1000 Google Docs for the file picker | ✅ |
-| Import Google Doc | `{ "googleDocId", "googleDocUrl", "title" }` | `201` — values from List Drive Files response | ✅ |
+| Import Google Doc | `{ "googleDocId", "googleDocUrl", "title" }` — get doc ID from Google Picker or share URL | `201` — note created with content, pdfUrl, googleDocId | ✅ |
 | Refresh Note from Google Doc | none | `200` — check `lastSyncedAt` is updated | ✅ |
+| Import Google Doc — Revoked Access (expect 403) | `{ "googleDocId": "REVOKED_ID", "googleDocUrl", "title" }` | `403` — clean error message (no raw Google error) | |
+| Import Google Doc — Not Found (expect 404) | `{ "googleDocId": "DELETED_ID", "googleDocUrl", "title" }` | `404` — clean error message | |
+| Refresh Note — Revoked Access (expect 403) | none (revoke Drive access in Google settings first) | `403` — clean error message | |
+| List Drive Files — Removed (expect 404) | none | `404` — endpoint was removed | ✅ |
 
 ---
 

@@ -185,7 +185,7 @@ Each device gets its own `RefreshToken` document. Single-device logout only revo
 1. Client clicks "Sign in with Google"
 2. Client redirects to GET /api/auth/google
 3. Server redirects to Google consent screen (passport-google-oauth20)
-   → Scopes: profile, email, drive.readonly, documents.readonly
+   → Scopes: profile, email, drive.file
 4. User grants permission
 5. Google redirects to GET /api/auth/google/callback with auth code
 6. Server exchanges code for Google tokens (access + refresh)

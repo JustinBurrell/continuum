@@ -24,7 +24,7 @@ const sections = [
     title: 'Smart Notes',
     tag: 'WORKSPACE',
     description:
-      'Write rich-text notes organized by type and tag. Import directly from Google Drive, then let AI generate an instant summary. Your knowledge, structured and searchable.',
+      'Write rich-text notes organized by type and tag. Select and import Google Docs you choose, then let AI generate an instant summary. Your knowledge, structured and searchable.',
     bullets: [
       'Rich text editor with full formatting',
       'Tag and type-based organization',

@@ -5,7 +5,7 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   Edit3, Trash2, ArrowLeft, Sparkles,
-  Tag, Clock, Share2, BookOpen, Download,
+  Tag, Clock, Share2, BookOpen, Download, ExternalLink,
 } from 'lucide-react';
 import CommentThread from '@/components/comments/CommentThread';
 import api from '@/lib/api';
@@ -190,6 +190,18 @@ export default function NoteDetail() {
           <Button variant="outline" size="sm" onClick={handlePdfDownload} loading={pdfDownloading}>
             <Download size={14} /> PDF
           </Button>
+        )}
+        {note.googleDocId && (
+          <a
+            href={note.googleDocUrl || `https://docs.google.com/document/d/${note.googleDocId}/edit`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: 'none' }}
+          >
+            <Button variant="outline" size="sm">
+              <ExternalLink size={14} /> Google Docs
+            </Button>
+          </a>
         )}
         {isOwner && !user?.isDemo && (
           <Button

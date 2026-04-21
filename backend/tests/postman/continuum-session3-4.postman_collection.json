@@ -626,25 +626,6 @@
       },
       "item": [
         {
-          "name": "List Drive Files",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/google/files",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "google",
-                "files"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "Import Google Doc",
           "event": [
             {
@@ -687,7 +668,8 @@
                 "notes",
                 "import"
               ]
-            }
+            },
+            "description": "Import a Google Doc as a note.\n\nNOTE: googleDocId now comes from the Google Picker (web) or by pasting the Google Docs URL (Android). Use a real doc ID from a Google Doc shared with your test Google account \u2014 the app must have drive.file access to that specific doc.\n\nExpected: 201 with the created note. Returns 409 if already imported, 403 if Drive access revoked, 404 if doc not found."
           },
           "response": []
         },
@@ -707,11 +689,136 @@
                 "{{noteId}}",
                 "refresh"
               ]
-            }
+            },
+            "description": "Re-sync a note from its source Google Doc.\n\nRequires the note to have been previously imported (has googleDocId). The user must still have drive.file access to the original doc.\n\nExpected: 200 with updated note and new lastSyncedAt timestamp. Returns 403 with a clean message if Drive access has been revoked."
+          },
+          "response": []
+        },
+        {
+          "name": "Import Google Doc - Revoked Access (expect 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"googleDocId\": \"REVOKED_OR_NOT_GRANTED_DOC_ID\",\n  \"googleDocUrl\": \"https://docs.google.com/document/d/REVOKED_OR_NOT_GRANTED_DOC_ID/edit\",\n  \"title\": \"Revoked Access Test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/notes/import",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notes",
+                "import"
+              ]
+            },
+            "description": "Tests clean error handling when Drive access is revoked or the doc was not selected via Picker (drive.file scope only grants access to explicitly selected files).\n\nReplace REVOKED_OR_NOT_GRANTED_DOC_ID with a real doc ID that the test Google account has NOT granted access to.\n\nExpected: 403 with { success: false, error: 'Access to this Google Doc has been revoked...' }"
+          },
+          "response": []
+        },
+        {
+          "name": "Import Google Doc - Not Found (expect 404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"googleDocId\": \"DELETED_OR_NONEXISTENT_DOC_ID\",\n  \"googleDocUrl\": \"https://docs.google.com/document/d/DELETED_OR_NONEXISTENT_DOC_ID/edit\",\n  \"title\": \"Not Found Test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/notes/import",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notes",
+                "import"
+              ]
+            },
+            "description": "Tests clean error handling when a Google Doc has been deleted or moved.\n\nReplace DELETED_OR_NONEXISTENT_DOC_ID with a doc ID that no longer exists.\n\nExpected: 404 with { success: false, error: 'Google Doc not found...' }"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Note - Revoked Access (expect 403)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notes/{{noteId}}/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notes",
+                "{{noteId}}",
+                "refresh"
+              ]
+            },
+            "description": "Tests clean error handling when Drive access is revoked after a note was imported.\n\nSet {{noteId}} to a note that was previously imported from Drive, then revoke Google Docs access for that specific file in your Google account settings.\n\nExpected: 403 with { success: false, error: 'Access to this Google Doc has been revoked...' }"
+          },
+          "response": []
+        },
+        {
+          "name": "List Drive Files - Removed (expect 404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/google/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "google",
+                "files"
+              ]
+            },
+            "description": "Confirms the GET /api/google/files endpoint was removed in the drive.file scope migration.\n\nDrive-wide file listing is no longer supported \u2014 users select specific docs via Google Picker (web) or by pasting a URL (Android).\n\nExpected: 404 Not Found"
           },
           "response": []
         }
-      ]
+      ],
+      "description": "Google Drive import flow (drive.file scope).\n\nSince the migration to drive.file scope, the app no longer lists all of a user's Google Docs server-side. Instead, users select specific docs via Google Picker (web) or by pasting a Google Docs share URL (Android).\n\nGET /api/google/files has been removed \u2014 the 'List Drive Files - Removed' request confirms it returns 404."
     },
     {
       "name": "AI Summary",
