@@ -14,12 +14,12 @@ import { formatDate } from '@/lib/utils';
 const STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
 
 const STAGE_STYLES = {
-  draft:     { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
-  applied:   { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
-  interview: { bg: 'rgba(107,33,168,0.08)', color: '#6b21a8', border: 'rgba(107,33,168,0.2)' },
-  offer:     { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
-  rejected:  { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
-  withdrawn: { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
+  draft:     { bg: '#F3F4F6',              color: '#6B7280',  border: '#E5E7EB' },
+  applied:   { bg: 'rgba(107,33,168,0.08)', color: '#6b21a8',  border: 'rgba(107,33,168,0.2)' },
+  interview: { bg: 'rgba(217,119,6,0.08)', color: '#D97706',  border: 'rgba(217,119,6,0.2)' },
+  offer:     { bg: 'rgba(5,150,105,0.08)', color: '#059669',  border: 'rgba(5,150,105,0.2)' },
+  rejected:  { bg: '#FEE2E2',              color: '#DC2626',  border: '#FECACA' },
+  withdrawn: { bg: '#F3F4F6',              color: '#9CA3AF',  border: '#E5E7EB' },
 };
 
 const emptyForm = {
@@ -99,10 +99,10 @@ export default function ApplicationsList() {
       {/* Page header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
             Applications
           </h1>
-          <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>{data?.total ?? apps.length} total</p>
+          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{data?.total ?? apps.length} total</p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {['pipeline', 'list'].map(v => (
@@ -136,7 +136,7 @@ export default function ApplicationsList() {
       {/* Filters */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
         <div style={{ position: 'relative' }}>
-          <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0' }} />
+          <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
           <input
             className="input-field"
             style={{ paddingLeft: 36 }}
@@ -163,7 +163,7 @@ export default function ApplicationsList() {
                   textTransform: 'capitalize',
                   transition: 'all 0.15s',
                   background: active ? (s === 'all' ? '#6b21a8' : style?.bg) : '#fff',
-                  color: active ? (s === 'all' ? '#fff' : style?.color) : '#a087b0',
+                  color: active ? (s === 'all' ? '#fff' : style?.color) : '#6B7280',
                 }}
               >
                 {s}
@@ -224,7 +224,7 @@ export default function ApplicationsList() {
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}>
-                      <p style={{ fontSize: 11, color: '#a087b0' }}>Empty</p>
+                      <p style={{ fontSize: 11, color: '#9CA3AF' }}>Empty</p>
                     </div>
                   ) : (
                     byStage[stage].map(app => (
@@ -246,16 +246,16 @@ export default function ApplicationsList() {
         /* List view */
         apps.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '64px 0' }}>
-            <Briefcase size={40} style={{ margin: '0 auto 12px', color: '#d4c5e8' }} />
+            <Briefcase size={40} style={{ margin: '0 auto 12px', color: '#D1D5DB' }} />
             {stageFilter !== 'all' || search ? (
               <>
                 <h3 style={{ fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>No applications found</h3>
-                <p style={{ color: '#a087b0', fontSize: 14 }}>No applications match this filter.</p>
+                <p style={{ color: '#6B7280', fontSize: 14 }}>No applications match this filter.</p>
               </>
             ) : (
               <>
                 <h3 style={{ fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>No applications yet</h3>
-                <p style={{ color: '#a087b0', fontSize: 14, marginBottom: 16 }}>Start tracking your job applications.</p>
+                <p style={{ color: '#6B7280', fontSize: 14, marginBottom: 16 }}>Start tracking your job applications.</p>
                 <Button size="sm" onClick={() => setShowCreate(true)}>Add your first application</Button>
               </>
             )}
@@ -299,11 +299,11 @@ export default function ApplicationsList() {
                   >
                     <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>{app.company}</p>
                   </Link>
-                  <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>{app.position}</p>
-                  {app.location && <p style={{ fontSize: 11, color: '#c4b5d4', margin: '2px 0 0' }}>{app.location}</p>}
+                  <p style={{ fontSize: 12, color: '#9CA3AF', margin: '2px 0 0' }}>{app.position}</p>
+                  {app.location && <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>{app.location}</p>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  {app.appliedAt && <p style={{ fontSize: 12, color: '#a087b0' }}>{formatDate(app.appliedAt)}</p>}
+                  {app.appliedAt && <p style={{ fontSize: 12, color: '#9CA3AF' }}>{formatDate(app.appliedAt)}</p>}
                   <StageBadge stage={app.status} />
                   <Link to="/applications/view" state={{ id: app._id, application: app }}>
                     <Button variant="ghost" size="sm">View</Button>
@@ -431,8 +431,8 @@ function PipelineCard({ app, stages, onStageChange, stateApp }) {
       onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 6px rgba(107,33,168,0.06)'}
     >
       <p style={{ fontWeight: 700, fontSize: 13, color: '#111827', margin: 0 }}>{app.company}</p>
-      <p style={{ fontSize: 11, color: '#a087b0', margin: '3px 0 8px' }}>{app.position}</p>
-      {app.location && <p style={{ fontSize: 11, color: '#c4b5d4', marginBottom: 8 }}>{app.location}</p>}
+      <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 8px' }}>{app.position}</p>
+      {app.location && <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 8 }}>{app.location}</p>}
       <select
         value={app.status}
         onChange={e => onStageChange(e.target.value)}
