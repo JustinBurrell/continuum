@@ -62,10 +62,10 @@ export default function Messages() {
       {/* Page header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
             Messages
           </h1>
-          <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>{conversations.length} conversations</p>
+          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{conversations.length} conversations</p>
         </div>
         <Button onClick={() => setShowNew(true)}>
           <Plus size={16} /> New message
@@ -74,7 +74,7 @@ export default function Messages() {
 
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: 16 }}>
-        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
         <input
           style={{
             width: '100%',
@@ -112,10 +112,10 @@ export default function Messages() {
             justifyContent: 'center',
             margin: '0 auto 16px',
           }}>
-            <MessageCircle size={28} style={{ color: '#a087b0' }} />
+            <MessageCircle size={28} style={{ color: '#6b21a8' }} />
           </div>
           <h3 style={{ fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>No conversations yet</h3>
-          <p style={{ color: '#a087b0', fontSize: 14, marginBottom: 16 }}>Start a conversation with a friend.</p>
+          <p style={{ color: '#6B7280', fontSize: 14, marginBottom: 16 }}>Start a conversation with a friend.</p>
           <Button size="sm" onClick={() => setShowNew(true)}>
             <Plus size={14} /> New message
           </Button>
@@ -186,7 +186,7 @@ export default function Messages() {
                         <VerifiedBadge roles={other?.roles} />
                       </span>
                       {lastMsg && (
-                        <span style={{ fontSize: 11, color: '#a087b0', flexShrink: 0, marginLeft: 8 }}>
+                        <span style={{ fontSize: 11, color: '#9CA3AF', flexShrink: 0, marginLeft: 8 }}>
                           {formatRelative(lastMsg.sentAt || lastMsg.createdAt)}
                         </span>
                       )}
@@ -194,7 +194,7 @@ export default function Messages() {
                     {lastMsg ? (
                       <p style={{
                         fontSize: 12,
-                        color: hasUnread ? '#6b21a8' : '#a087b0',
+                        color: hasUnread ? '#6b21a8' : '#9CA3AF',
                         fontWeight: hasUnread ? 600 : 400,
                         overflow: 'hidden',
                         whiteSpace: 'nowrap',
@@ -205,7 +205,7 @@ export default function Messages() {
                         {truncate(lastMsg.content, 60)}
                       </p>
                     ) : (
-                      <p style={{ fontSize: 12, color: '#a087b0', fontStyle: 'italic', margin: 0 }}>No messages yet</p>
+                      <p style={{ fontSize: 12, color: '#9CA3AF', fontStyle: 'italic', margin: 0 }}>No messages yet</p>
                     )}
                   </div>
 
@@ -232,12 +232,12 @@ export default function Messages() {
                     position: 'absolute', top: '50%', right: 12, transform: 'translateY(-50%)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     width: 28, height: 28, borderRadius: 8, border: 'none',
-                    background: '#fff', color: '#c4b5d4', cursor: 'pointer',
+                    background: '#fff', color: '#D1D5DB', cursor: 'pointer',
                     boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
                     transition: 'color 0.12s',
                   }}
                   onMouseEnter={e => e.currentTarget.style.color = '#dc2626'}
-                  onMouseLeave={e => e.currentTarget.style.color = '#c4b5d4'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#D1D5DB'}
                   title="Delete conversation"
                 >
                   <Trash2 size={13} />
@@ -288,13 +288,13 @@ export default function Messages() {
                     <AppAvatar name={friend?.name || friend?.username} src={friend?.avatar} size="sm" />
                     <div>
                       <p style={{ fontWeight: 600, fontSize: 13, color: '#111827', margin: 0 }}>{friend?.name}</p>
-                      <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>@{friend?.username}</p>
+                      <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>@{friend?.username}</p>
                     </div>
                   </div>
                 );
               })}
             {friends.length === 0 && (
-              <p style={{ fontSize: 13, color: '#a087b0', textAlign: 'center', padding: '16px 0' }}>
+              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '16px 0' }}>
                 No friends yet.{' '}
                 <Link to="/friends" style={{ color: '#6b21a8' }} onClick={() => setShowNew(false)}>
                   Add friends first

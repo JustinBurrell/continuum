@@ -157,7 +157,7 @@ export default function Conversation({ conversationId }) {
       {/* Header */}
       <div style={{ borderBottom: '1px solid #E5E7EB', background: '#fff', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px' }}>
-          <Link to="/messages" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, color: '#a087b0', textDecoration: 'none', flexShrink: 0, transition: 'background 0.15s' }}
+          <Link to="/messages" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, color: '#9CA3AF', textDecoration: 'none', flexShrink: 0, transition: 'background 0.15s' }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
@@ -176,7 +176,7 @@ export default function Conversation({ conversationId }) {
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 700, fontSize: 14, color: '#111827', lineHeight: 1.2 }}>
                   {fullName(other)}<VerifiedBadge roles={other?.roles} />
                 </span>
-                <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>@{other.username}</p>
+                <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>@{other.username}</p>
               </div>
             </Link>
           ) : (
@@ -193,7 +193,7 @@ export default function Conversation({ conversationId }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 32, height: 32, borderRadius: 8, border: 'none',
               background: showSearch ? 'rgba(107,33,168,0.08)' : 'transparent',
-              color: showSearch ? '#6b21a8' : '#a087b0',
+              color: showSearch ? '#6b21a8' : '#9CA3AF',
               cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s',
             }}
             title="Search messages"
@@ -207,11 +207,11 @@ export default function Conversation({ conversationId }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 32, height: 32, borderRadius: 8, border: 'none',
               background: showDeleteConvConfirm ? '#fef2f2' : 'transparent',
-              color: showDeleteConvConfirm ? '#dc2626' : '#a087b0',
+              color: showDeleteConvConfirm ? '#dc2626' : '#9CA3AF',
               cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s, color 0.15s',
             }}
             onMouseEnter={e => { if (!showDeleteConvConfirm) { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#dc2626'; } }}
-            onMouseLeave={e => { if (!showDeleteConvConfirm) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; } }}
+            onMouseLeave={e => { if (!showDeleteConvConfirm) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; } }}
             title="Delete conversation"
           >
             <Trash2 size={15} />
@@ -238,7 +238,7 @@ export default function Conversation({ conversationId }) {
               onClick={() => setShowDeleteConvConfirm(false)}
               style={{
                 padding: '5px 10px', borderRadius: 8, border: '1px solid #E5E7EB',
-                background: 'transparent', color: '#a087b0', fontSize: 12, fontWeight: 600,
+                background: 'transparent', color: '#9CA3AF', fontSize: 12, fontWeight: 600,
                 cursor: 'pointer', flexShrink: 0,
               }}
             >
@@ -250,7 +250,7 @@ export default function Conversation({ conversationId }) {
         {showSearch && (
           <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8, alignItems: 'center' }}>
             <div style={{ position: 'relative', flex: 1 }}>
-              <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+              <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
               <input
                 ref={searchInputRef}
                 value={msgSearch}
@@ -266,13 +266,13 @@ export default function Conversation({ conversationId }) {
               />
             </div>
             {msgSearch && (
-              <span style={{ fontSize: 11, color: '#a087b0', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 11, color: '#9CA3AF', whiteSpace: 'nowrap' }}>
                 {messages.length} result{messages.length !== 1 ? 's' : ''}
               </span>
             )}
             <button
               onClick={() => { setShowSearch(false); setMsgSearch(''); }}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 6, border: 'none', background: 'transparent', color: '#a087b0', cursor: 'pointer', flexShrink: 0 }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 6, border: 'none', background: 'transparent', color: '#9CA3AF', cursor: 'pointer', flexShrink: 0 }}
             >
               <X size={14} />
             </button>
@@ -295,9 +295,9 @@ export default function Conversation({ conversationId }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(107,33,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                <Send size={20} style={{ color: '#a087b0' }} />
+                <Send size={20} style={{ color: '#9CA3AF' }} />
               </div>
-              <p style={{ fontSize: 13, color: '#a087b0' }}>No messages yet. Say hello!</p>
+              <p style={{ fontSize: 13, color: '#6B7280' }}>No messages yet. Say hello!</p>
             </div>
           </div>
         ) : (
@@ -339,9 +339,9 @@ export default function Conversation({ conversationId }) {
                       <Link
                         to="/users/view"
                         state={{ id: msg.senderId?._id ?? msg.senderId }}
-                        style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', textDecoration: 'none' }}
+                        style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textDecoration: 'none' }}
                         onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
-                        onMouseLeave={e => e.currentTarget.style.color = '#a087b0'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}
                       >
                         {senderName}
                       </Link>
@@ -411,7 +411,7 @@ export default function Conversation({ conversationId }) {
                   })()}
 
                   {isLastInGroup && (
-                    <p style={{ fontSize: 10, color: '#c4b5d4', marginTop: 4, marginLeft: isOwn ? 0 : 4, marginRight: isOwn ? 4 : 0 }}>
+                    <p style={{ fontSize: 10, color: '#D1D5DB', marginTop: 4, marginLeft: isOwn ? 0 : 4, marginRight: isOwn ? 4 : 0 }}>
                       {formatRelative(msg.createdAt)}
                     </p>
                   )}
@@ -423,11 +423,11 @@ export default function Conversation({ conversationId }) {
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         width: 22, height: 22, borderRadius: 6, border: 'none',
-                        background: 'transparent', color: '#c4b5d4', cursor: 'pointer',
+                        background: 'transparent', color: '#D1D5DB', cursor: 'pointer',
                         marginTop: 2, transition: 'color 0.12s',
                       }}
                       onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
-                      onMouseLeave={e => e.currentTarget.style.color = '#c4b5d4'}
+                      onMouseLeave={e => e.currentTarget.style.color = '#D1D5DB'}
                       title="Delete for me"
                     >
                       <Trash2 size={11} />
@@ -444,7 +444,7 @@ export default function Conversation({ conversationId }) {
       {/* Input bar */}
       {user?.isDemo ? (
         <div style={{ flexShrink: 0, padding: '12px 16px', borderTop: '1px solid #E5E7EB', background: '#F8F9FA', textAlign: 'center' }}>
-          <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>Messaging is view-only in the demo account.</p>
+          <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>Messaging is view-only in the demo account.</p>
         </div>
       ) : (
         <div style={{ flexShrink: 0, display: 'flex', gap: 10, padding: '12px 16px', borderTop: '1px solid #E5E7EB', background: '#fff', alignItems: 'center' }}>
@@ -487,7 +487,7 @@ export default function Conversation({ conversationId }) {
               transition: 'background 0.15s',
             }}
           >
-            <Send size={16} style={{ color: message.trim() ? '#fff' : '#a087b0' }} />
+            <Send size={16} style={{ color: message.trim() ? '#fff' : '#9CA3AF' }} />
           </button>
         </div>
       )}

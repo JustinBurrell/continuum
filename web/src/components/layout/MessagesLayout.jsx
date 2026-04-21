@@ -70,7 +70,7 @@ export default function MessagesLayout() {
       <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#fff', borderRight: '1px solid #E5E7EB' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 12px', borderBottom: '1px solid #E5E7EB' }}>
-          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Messages</h2>
+          <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Messages</h2>
           <button
             onClick={() => setShowNew(true)}
             style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}
@@ -84,7 +84,7 @@ export default function MessagesLayout() {
         {/* Search input */}
         <div style={{ padding: '10px 12px', borderBottom: '1px solid #E5E7EB' }}>
           <div style={{ position: 'relative' }}>
-            <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+            <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
             <input
               type="text"
               placeholder="Search conversations..."
@@ -117,7 +117,7 @@ export default function MessagesLayout() {
                 <MessageCircle size={22} style={{ color: '#6b21a8' }} />
               </div>
               <p style={{ fontSize: 13, color: '#111827', fontWeight: 600, margin: '0 0 4px' }}>No conversations yet</p>
-              <p style={{ fontSize: 12, color: '#a087b0', margin: '0 0 12px' }}>Start a conversation with a friend</p>
+              <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 12px' }}>Start a conversation with a friend</p>
               <button
                 onClick={() => setShowNew(true)}
                 style={{ fontSize: 13, fontWeight: 600, color: '#6b21a8', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
@@ -160,7 +160,7 @@ export default function MessagesLayout() {
                       </p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: 8 }}>
                         {lastMsg?.sentAt && (
-                          <span style={{ fontSize: 11, color: '#a087b0' }}>{formatRelative(lastMsg.sentAt)}</span>
+                          <span style={{ fontSize: 11, color: '#9CA3AF' }}>{formatRelative(lastMsg.sentAt)}</span>
                         )}
                         {conv.unreadCount > 0 && (
                           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6b21a8', flexShrink: 0 }} />
@@ -168,11 +168,11 @@ export default function MessagesLayout() {
                       </div>
                     </div>
                     {lastMsg ? (
-                      <p style={{ fontSize: 12, color: '#a087b0', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {isLastMine ? 'You: ' : ''}{truncate(lastMsg.content, 50)}
                       </p>
                     ) : (
-                      <p style={{ fontSize: 12, color: '#a087b0', margin: 0, fontStyle: 'italic' }}>No messages yet</p>
+                      <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0, fontStyle: 'italic' }}>No messages yet</p>
                     )}
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export default function MessagesLayout() {
       <Modal open={showNew} onClose={() => { setShowNew(false); setFriendSearch(''); }} title="New message">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ position: 'relative' }}>
-            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
             <input
               placeholder="Search friends..."
               value={friendSearch}
@@ -208,7 +208,7 @@ export default function MessagesLayout() {
           </div>
           <div style={{ maxHeight: 256, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {filteredFriends.length === 0 ? (
-              <p style={{ fontSize: 13, color: '#a087b0', textAlign: 'center', padding: '16px 0' }}>
+              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '16px 0' }}>
                 {friendships.length === 0 ? 'Add friends first to message them.' : 'No friends found.'}
               </p>
             ) : (
@@ -225,7 +225,7 @@ export default function MessagesLayout() {
                     <AppAvatar name={getName(friend)} src={friend?.avatarUrl} size="sm" />
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, lineHeight: 1.3 }}>{getName(friend)}</p>
-                      <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>@{friend?.username}</p>
+                      <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>@{friend?.username}</p>
                     </div>
                   </button>
                 );
@@ -244,8 +244,8 @@ export function MessagesEmpty() {
       <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(107,33,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
         <MessageCircle size={28} style={{ color: '#6b21a8' }} />
       </div>
-      <p style={{ fontFamily: 'Georgia, serif', fontSize: 18, fontWeight: 700, color: '#6b21a8', margin: '0 0 6px' }}>Select a conversation</p>
-      <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>or start a new one</p>
+      <p style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 18, fontWeight: 700, color: '#6b21a8', margin: '0 0 6px' }}>Select a conversation</p>
+      <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>or start a new one</p>
     </div>
   );
 }
