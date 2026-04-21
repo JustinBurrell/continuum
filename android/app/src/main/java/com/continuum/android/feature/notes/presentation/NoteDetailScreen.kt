@@ -1,5 +1,7 @@
 package com.continuum.android.feature.notes.presentation
 
+import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -9,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -44,6 +47,7 @@ fun NoteDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
 
     // Open PDF download URL when available, then clear it
     LaunchedEffect(driveState.pdfDownloadUrl) {
@@ -174,7 +178,7 @@ fun NoteDetailScreen(
                                     onClick = {
                                         val url = note.googleDocUrl
                                             ?: "https://docs.google.com/document/d/${note.googleDocId}/edit"
-                                        uriHandler.openUri(url)
+                                        CustomTabsIntent.Builder().build().launchUrl(context, Uri.parse(url))
                                     },
                                     modifier = Modifier.weight(1f),
                                     shape = MaterialTheme.shapes.small,
