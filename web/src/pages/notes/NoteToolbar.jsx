@@ -37,7 +37,7 @@ export default function NoteToolbar({ editor, editorTick: _ }) {
       gap: 2,
       padding: '8px 12px',
       borderBottom: '1px solid #E5E7EB',
-      background: 'white',
+      background: '#F8F9FA',
     }}>
       {/* Headings */}
       <ToolBtn

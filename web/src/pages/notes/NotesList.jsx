@@ -200,10 +200,10 @@ export default function NotesList() {
       {/* Page header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', color: '#111827', fontWeight: 700, lineHeight: 1.2 }}>
+          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '2rem', color: '#111827', fontWeight: 700, lineHeight: 1.2 }}>
             Notes
           </h1>
-          <p style={{ color: '#a087b0', fontSize: '0.8125rem', marginTop: 2 }}>
+          <p style={{ color: '#6B7280', fontSize: '0.875rem', marginTop: 2 }}>
             {totalNotes} notes
           </p>
         </div>
@@ -253,7 +253,7 @@ export default function NotesList() {
       {/* Search + filter bar */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
-          <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#a087b0' }} />
+          <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
           <input
             type="text"
             placeholder={sharedTab ? "Search shared notes..." : "Search notes..."}
@@ -332,7 +332,7 @@ export default function NotesList() {
           <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '1rem', marginBottom: 6 }}>
             No notes found
           </h3>
-          <p style={{ color: '#a087b0', fontSize: '0.875rem', marginBottom: 20 }}>
+          <p style={{ color: '#6B7280', fontSize: '0.875rem', marginBottom: 20 }}>
             {sharedTab
               ? (sharedSearch ? 'No shared notes match your search.' : 'No notes have been shared with you yet.')
               : search || type !== 'all'
@@ -420,7 +420,7 @@ export default function NotesList() {
                 border: 'none',
                 cursor: 'pointer',
                 background: importTab === tab ? 'white' : 'transparent',
-                color: importTab === tab ? '#111827' : '#a087b0',
+                color: importTab === tab ? '#111827' : '#6B7280',
                 boxShadow: importTab === tab ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 transition: 'all 0.15s',
               }}
@@ -434,7 +434,7 @@ export default function NotesList() {
         {importTab === 'drive' && (
           !user?.googleId ? (
             <div style={{ textAlign: 'center', padding: '24px 0' }}>
-              <p style={{ fontSize: '0.875rem', color: '#a087b0', marginBottom: 12 }}>
+              <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: 12 }}>
                 Connect your Google account to import documents from Drive.
               </p>
               <a
@@ -446,7 +446,7 @@ export default function NotesList() {
             </div>
           ) : (
             <div className="space-y-3">
-              <p style={{ fontSize: '0.8125rem', color: '#a087b0' }}>
+              <p style={{ fontSize: '0.8125rem', color: '#6B7280' }}>
                 Continuum only accesses files you select.
               </p>
 
@@ -462,9 +462,9 @@ export default function NotesList() {
                   gap: 8,
                   padding: '10px 16px',
                   borderRadius: 12,
-                  border: '1px dashed #a087b0',
+                  border: '1px dashed #E5E7EB',
                   background: 'transparent',
-                  color: pickerLoading ? '#a087b0' : '#6b21a8',
+                  color: pickerLoading ? '#9CA3AF' : '#6b21a8',
                   fontSize: '0.875rem',
                   fontWeight: 500,
                   cursor: pickerLoading ? 'not-allowed' : 'pointer',
@@ -496,7 +496,7 @@ export default function NotesList() {
                     rel="noopener noreferrer"
                     style={{ flexShrink: 0 }}
                   >
-                    <ExternalLink size={12} style={{ color: '#a087b0' }} />
+                    <ExternalLink size={12} style={{ color: '#9CA3AF' }} />
                   </a>
                 </div>
               )}
@@ -521,7 +521,7 @@ export default function NotesList() {
         {importTab === 'upload' && (
           <div className="space-y-4">
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#a087b0', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#6B7280', marginBottom: 6 }}>
                 Title (optional — defaults to filename)
               </label>
               <input
@@ -542,7 +542,7 @@ export default function NotesList() {
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#a087b0', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#6B7280', marginBottom: 6 }}>
                 PDF file
               </label>
               <label
@@ -561,12 +561,12 @@ export default function NotesList() {
                   transition: 'all 0.15s',
                 }}
               >
-                <Upload size={22} style={{ color: uploadFile ? '#6b21a8' : '#a087b0' }} />
-                <span style={{ fontSize: '0.875rem', color: uploadFile ? '#6b21a8' : '#a087b0' }}>
+                <Upload size={22} style={{ color: uploadFile ? '#6b21a8' : '#9CA3AF' }} />
+                <span style={{ fontSize: '0.875rem', color: uploadFile ? '#6b21a8' : '#9CA3AF' }}>
                   {uploadFile ? uploadFile.name : 'Click to select a PDF'}
                 </span>
                 {uploadFile && (
-                  <span style={{ fontSize: '0.75rem', color: '#a087b0' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>
                     {(uploadFile.size / 1024 / 1024).toFixed(2)} MB
                   </span>
                 )}
@@ -657,13 +657,13 @@ function NoteCard({ note, onDelete }) {
                 borderRadius: 8,
                 border: 'none',
                 background: 'transparent',
-                color: '#a087b0',
+                color: '#9CA3AF',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#6b21a8'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; }}
               >
                 <Edit3 size={13} />
               </button>
@@ -675,13 +675,13 @@ function NoteCard({ note, onDelete }) {
                 borderRadius: 8,
                 border: 'none',
                 background: 'transparent',
-                color: '#a087b0',
+                color: '#9CA3AF',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; }}
             >
               <Trash2 size={13} />
             </button>
@@ -710,7 +710,7 @@ function NoteCard({ note, onDelete }) {
         </h3>
         <p style={{
           fontSize: '0.8125rem',
-          color: '#a087b0',
+          color: '#6B7280',
           lineHeight: 1.55,
           display: '-webkit-box',
           WebkitLineClamp: 3,
@@ -726,13 +726,13 @@ function NoteCard({ note, onDelete }) {
         {note.tags?.length > 0 ? (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {note.tags.slice(0, 3).map(tag => (
-              <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.75rem', color: '#a087b0' }}>
-                <Tag size={9} />{tag}
+              <span key={tag} style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>
+                {tag}
               </span>
             ))}
           </div>
         ) : <span />}
-        <span style={{ fontSize: '0.75rem', color: '#a087b0' }}>{formatRelative(note.updatedAt)}</span>
+        <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{formatRelative(note.updatedAt)}</span>
       </div>
     </div>
   );

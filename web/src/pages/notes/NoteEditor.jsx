@@ -126,14 +126,14 @@ export default function NoteEditor() {
               borderRadius: 10,
               border: 'none',
               background: 'transparent',
-              color: '#a087b0',
+              color: '#9CA3AF',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               transition: 'background 0.12s',
             }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#111827'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; }}
           >
             <ArrowLeft size={18} />
           </button>
@@ -200,7 +200,7 @@ export default function NoteEditor() {
             style={{
               width: '100%',
               fontSize: '1.5rem',
-              fontFamily: 'Georgia, serif',
+              fontFamily: 'Fraunces, Georgia, serif',
               fontWeight: 700,
               background: 'transparent',
               border: 'none',
@@ -215,7 +215,7 @@ export default function NoteEditor() {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
           {/* Type select */}
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#a087b0', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#9CA3AF', marginBottom: 6 }}>
               Type
             </label>
             <select
@@ -241,7 +241,7 @@ export default function NoteEditor() {
 
           {/* Tags */}
           <div style={{ flex: 1, minWidth: 200 }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#a087b0', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#9CA3AF', marginBottom: 6 }}>
               Tags (comma separated)
             </label>
             <input
@@ -279,7 +279,7 @@ export default function NoteEditor() {
 
         {/* Rich text editor */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#a087b0', marginBottom: 8 }}>
+          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#9CA3AF', marginBottom: 8 }}>
             Content
           </label>
           <div
