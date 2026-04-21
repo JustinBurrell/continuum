@@ -90,11 +90,14 @@ Each feature follows the same layered pattern:
 
 3. Create `android/local.properties` if it does not exist and add:
    ```properties
-   BASE_URL=https://api.usecontinuum.dev/api/
+   BASE_URL=https://compacter-groovy-conclude.ngrok-free.dev/api/
    WEB_CLIENT_ID=<your Google Web OAuth client ID>
    ```
 
-   For local backend development, omit `BASE_URL` — the build script auto-detects `PORT` from `backend/.env` and uses `http://10.0.2.2:<PORT>/api/` (the emulator's localhost alias).
+   **`BASE_URL` options:**
+   - **Local dev (recommended):** use the ngrok static domain above — hits your local backend and supports the Google Drive CCT Picker (see Google Drive Import section below)
+   - **Production:** `https://api.usecontinuum.dev/api/` — omit local changes, always points to prod
+   - **No `BASE_URL` set:** the build script auto-detects `PORT` from `backend/.env` and uses `http://10.0.2.2:<PORT>/api/` (emulator localhost alias) — CCT Picker will not work in this mode
 
 4. Sync Gradle: File > Sync Project with Gradle Files
 
