@@ -1,6 +1,9 @@
 package com.continuum.android.feature.notes.presentation
 
+import android.app.DownloadManager
+import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -49,10 +52,19 @@ fun NoteDetailScreen(
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
 
-    // Open PDF download URL when available, then clear it
+    // Download PDF to device Downloads folder when URL is ready
     LaunchedEffect(driveState.pdfDownloadUrl) {
         driveState.pdfDownloadUrl?.let { url ->
-            uriHandler.openUri(url)
+            val safeTitle = (note?.title ?: "note").replace("[^a-zA-Z0-9._\\- ]".toRegex(), "_")
+            val filename = "$safeTitle.pdf"
+            val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            dm.enqueue(
+                DownloadManager.Request(Uri.parse(url))
+                    .setTitle(filename)
+                    .setDescription("Downloading PDF")
+                    .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                    .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename)
+            )
             viewModel.clearPdfDownloadUrl()
         }
     }
