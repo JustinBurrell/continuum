@@ -114,15 +114,40 @@ Google Sign-In uses the Credential Manager API (no WebView). To configure:
 
 ## Google Drive Import (Android)
 
-The Android app uses `drive.file` scope — users select specific Google Docs rather than browsing their entire Drive. To import a note from Google Docs:
+The Android app uses `drive.file` scope — users select specific Google Docs rather than browsing their entire Drive.
 
-1. Open a Google Doc on your device
-2. Tap the share icon → "Copy link"
-3. In the app, go to Notes → Import → paste the link
-4. The app extracts the document ID from the URL and calls `POST /api/notes/import`
+### Primary flow — Google Picker via Chrome Custom Tab (CCT)
 
-No native Drive picker dependency is required. The Google Doc link format is:
-`https://docs.google.com/document/d/<docId>/edit`
+1. In the app, go to Notes → Import from Drive → "Choose from Google Drive"
+2. A Chrome Custom Tab opens the backend picker page
+3. Google Identity Services (GIS) authenticates for the specific Google account linked in Continuum (not Chrome's default account)
+4. User selects a Google Doc → the page redirects to `continuum://drive-pick?id=...&name=...&url=...`
+5. The deep link returns to the app and the import begins automatically
+
+### Fallback flow — paste a Google Doc link
+
+Works on any device or environment where the CCT Picker can't run. Go to Notes → Import from Drive, paste the full Google Doc URL, and tap Import.
+
+### Local development — ngrok required for CCT Picker
+
+GIS requires an HTTPS origin registered in Google Cloud Console. The default emulator URL (`http://10.0.2.2:5001`) is HTTP and unregistered, so the CCT Picker shows "400: redirect_uri_mismatch". Fix:
+
+1. Sign up at [ngrok.com](https://ngrok.com) (free) and claim your **free static domain** in the dashboard (Cloud Edge → Domains)
+2. Configure your auth token once:
+   ```bash
+   ngrok config add-authtoken <your-token>
+   ```
+3. Add the ngrok HTTPS domain to Google Cloud Console → APIs & Services → Credentials → `continuum-web` → Authorized JavaScript Origins (one time — the static domain never changes)
+4. Set `BASE_URL` in `android/local.properties`:
+   ```properties
+   BASE_URL=https://your-static-domain.ngrok-free.app/api/
+   ```
+5. Each dev session, start the tunnel before running the app:
+   ```bash
+   ngrok http --domain=your-static-domain.ngrok-free.app 5001
+   ```
+
+The URL paste fallback always works without ngrok — use it for quick local testing.
 
 The note detail screen shows "View in Google Docs" and "Download PDF" actions for imported notes.
 
