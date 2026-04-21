@@ -56,13 +56,13 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 ## Features Built
 
-- **Notes** — rich-text editor with AI summaries, Google Docs import with PDF export and text caching, flashcard extraction, infinite-scroll pagination with `useInfiniteQuery`
+- **Notes** — rich-text editor with AI summaries, Google Docs import via Google Picker (`drive.file` scope — user selects specific docs) with PDF export and text caching, "View in Google Docs" button on note detail, flashcard extraction, infinite-scroll pagination with `useInfiniteQuery`
 - **Flashcards** — study mode with flip cards, per-card progress tracking, AI extraction from notes or PDFs, study history screen, infinite-scroll pagination
 - **Tasks** — kanban board with shared tasks, per-participant status tracking, recurrence support, infinite-scroll pagination
 - **Calendar** — event creation and scheduling integrated with the task system
 - **Social** — friend requests, activity feed (cursor-paginated), direct messaging with real-time delivery, profile photos in feed and comments
 - **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section), contacts and reminders per application
-- **Auth** — email/password and Google OAuth with JWT + httpOnly refresh cookie rotation
+- **Auth** — email/password and Google OAuth (`drive.file` scope — non-sensitive, no CASA assessment required) with JWT + httpOnly refresh cookie rotation
 - **Dashboard** — accurate total counts pulled from paginated response metadata (not capped list lengths)
 
 ---
@@ -626,7 +626,9 @@ The native Android app (Kotlin 2.1 + Jetpack Compose) was built to achieve full 
 - Flat cards (Notion-style) for lists; elevated cards (Duolingo-style) for interactive elements
 - Profile photos shown in activity feed items, dashboard activity strip, and comment threads
 
-**API coverage:** ~93/108 endpoints (~86%). Remaining gaps are PDF download/upload-from-file on Notes, card progress update on Flashcards (tracked client-side during study), resume PDF download, and per-message mark-read/delete (conversation-level flow covers the primary use case).
+**Google Drive import on Android:** Uses a Chrome Custom Tab (CCT) that opens a backend-served picker page. GIS `initTokenClient` authenticates for the exact Google account linked in the app (via `hint=userEmail`), then the Google Picker dialog opens. On file selection the page redirects to `continuum://drive-pick?id=...&name=...&url=...` — the app receives this as a deep link and triggers the import automatically. URL paste fallback available for environments where CCT can't run. "View in Google Docs" opens via `CustomTabsIntent` (forces Chrome, not the Google Docs app). PDF download uses `DownloadManager` to save to the device Downloads folder with a system notification.
+
+**API coverage:** ~93/108 endpoints (~86%). Remaining gaps are card progress update on Flashcards (tracked client-side during study), resume PDF download, and per-message mark-read/delete (conversation-level flow covers the primary use case).
 
 For full details see `docs/android/architecture.md`, `docs/android/react-to-android.md`, `docs/android/api-coverage.md`, and `docs/android/web-route-parity.md`.
 
@@ -1406,4 +1408,4 @@ Each PR includes:
 
 This creates a paper trail. Six months from now, you can read a PR and understand exactly what problem it solved, what it changed, and how to verify it worked.
 
-*Last updated: April 15, 2026*
+*Last updated: April 21, 2026*
