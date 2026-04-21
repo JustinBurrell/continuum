@@ -125,7 +125,7 @@ export default function Calendar() {
     <div>
       {/* Page header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
           Calendar
         </h1>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -154,7 +154,7 @@ export default function Calendar() {
 
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: 24 }}>
-        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
         <input
           style={{
             width: '100%',
@@ -179,7 +179,7 @@ export default function Calendar() {
       {/* Search results list (shown instead of calendar when searching) */}
       {calSearch && (
         <div style={{ marginBottom: 24 }}>
-          <p style={{ fontSize: 12, color: '#a087b0', marginBottom: 12, fontWeight: 500 }}>
+          <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 12, fontWeight: 500 }}>
             {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{calSearch}"
           </p>
           {searchResults.length === 0 ? (
@@ -190,7 +190,7 @@ export default function Calendar() {
               padding: '32px 0',
               textAlign: 'center',
             }}>
-              <p style={{ fontSize: 13, color: '#a087b0' }}>No tasks found matching "{calSearch}"</p>
+              <p style={{ fontSize: 13, color: '#6B7280' }}>No tasks found matching "{calSearch}"</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -224,7 +224,7 @@ export default function Calendar() {
                         {task.title}
                       </p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: isOverdue ? '#ef4444' : '#a087b0' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: isOverdue ? '#ef4444' : '#9CA3AF' }}>
                           {isOverdue ? <AlertCircle size={11} /> : <Clock size={11} />}
                           {dateLabel}
                         </span>
@@ -264,16 +264,16 @@ export default function Calendar() {
               }}>
                 <button
                   onClick={prevMonth}
-                  style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center' }}
+                  style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}
                 >
                   <ChevronLeft size={16} />
                 </button>
-                <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+                <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1rem', fontWeight: 700, color: '#111827', margin: 0 }}>
                   {MONTHS[month]} {year}
                 </h2>
                 <button
                   onClick={nextMonth}
-                  style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center' }}
+                  style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -282,7 +282,7 @@ export default function Calendar() {
               {/* Day of week header */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
                 {DOW.map(d => (
-                  <div key={d} style={{ padding: '10px 0', textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <div key={d} style={{ padding: '10px 0', textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {d}
                   </div>
                 ))}
@@ -347,8 +347,8 @@ export default function Calendar() {
                               onClick={e => { e.stopPropagation(); setViewingTaskId(task._id); }}
                               style={{
                                 fontSize: 10,
-                                background: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : 'rgba(107,33,168,0.08)',
-                                color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#b45309' : '#6b21a8',
+                                background: task.priority === 'high' ? '#FEE2E2' : task.priority === 'medium' ? 'rgba(217,119,6,0.08)' : 'rgba(107,33,168,0.08)',
+                                color: task.priority === 'high' ? '#DC2626' : task.priority === 'medium' ? '#D97706' : '#6b21a8',
                                 borderRadius: 4,
                                 padding: '1px 5px',
                                 overflow: 'hidden',
@@ -366,7 +366,7 @@ export default function Calendar() {
                             </div>
                           ))}
                           {tasksForDay.length > 2 && (
-                            <div style={{ fontSize: 9, color: '#a087b0', paddingLeft: 2, fontWeight: 500, flexShrink: 0 }}>+{tasksForDay.length - 2} more</div>
+                            <div style={{ fontSize: 9, color: '#9CA3AF', paddingLeft: 2, fontWeight: 500, flexShrink: 0 }}>+{tasksForDay.length - 2} more</div>
                           )}
                         </div>
                       </div>
@@ -388,7 +388,7 @@ export default function Calendar() {
                   {new Date(selected + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 </h3>
                 {selectedTasks.length === 0 ? (
-                  <p style={{ fontSize: 12, color: '#a087b0' }}>No tasks on this day.</p>
+                  <p style={{ fontSize: 12, color: '#6B7280' }}>No tasks on this day.</p>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {selectedTasks.map(task => (
@@ -437,7 +437,7 @@ export default function Calendar() {
                 <AlertCircle size={14} style={{ color: '#ef4444' }} /> Overdue
               </h3>
               {overdue.length === 0 ? (
-                <p style={{ fontSize: 12, color: '#a087b0' }}>No overdue tasks. Nice work.</p>
+                <p style={{ fontSize: 12, color: '#6B7280' }}>No overdue tasks. Nice work.</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {overdue.map(task => (
@@ -515,11 +515,11 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
         borderBottom: '1px solid #E5E7EB',
         flexShrink: 0,
       }}>
-        <button onClick={onPrev} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center' }}>
+        <button onClick={onPrev} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
           <ChevronLeft size={16} />
         </button>
         <h2 style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>{weekLabel}</h2>
-        <button onClick={onNext} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center' }}>
+        <button onClick={onNext} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
           <ChevronRight size={16} />
         </button>
       </div>
@@ -547,7 +547,7 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
               }}
             >
               <div style={{ textAlign: 'center', marginBottom: 12, flexShrink: 0 }}>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
                   {DOW[date.getDay()]}
                 </p>
                 <div style={{
@@ -573,8 +573,8 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
                     onClick={e => { e.stopPropagation(); onViewTask(task._id); }}
                     style={{
                       fontSize: 11,
-                      background: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : 'rgba(107,33,168,0.08)',
-                      color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#b45309' : '#6b21a8',
+                      background: task.priority === 'high' ? '#FEE2E2' : task.priority === 'medium' ? 'rgba(217,119,6,0.08)' : 'rgba(107,33,168,0.08)',
+                      color: task.priority === 'high' ? '#DC2626' : task.priority === 'medium' ? '#D97706' : '#6b21a8',
                       borderRadius: 5,
                       padding: '2px 6px',
                       overflow: 'hidden',
@@ -592,7 +592,7 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
                   </div>
                 ))}
                 {tasksForDay.length > 4 && (
-                  <div style={{ fontSize: 10, color: '#a087b0', paddingLeft: 2, fontWeight: 500, flexShrink: 0 }}>+{tasksForDay.length - 4} more</div>
+                  <div style={{ fontSize: 10, color: '#9CA3AF', paddingLeft: 2, fontWeight: 500, flexShrink: 0 }}>+{tasksForDay.length - 4} more</div>
                 )}
               </div>
             </div>
@@ -607,7 +607,7 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
             {new Date(selected + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
           {selectedTasks.length === 0 ? (
-            <p style={{ fontSize: 12, color: '#a087b0' }}>No tasks</p>
+            <p style={{ fontSize: 12, color: '#6B7280' }}>No tasks</p>
           ) : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {selectedTasks.map(task => (
