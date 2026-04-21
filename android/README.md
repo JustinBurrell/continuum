@@ -94,10 +94,7 @@ Each feature follows the same layered pattern:
    WEB_CLIENT_ID=<your Google Web OAuth client ID>
    ```
 
-   **`BASE_URL` options:**
-   - **Local dev (recommended):** use the ngrok static domain above — hits your local backend and supports the Google Drive CCT Picker (see Google Drive Import section below)
-   - **Production:** `https://api.usecontinuum.dev/api/` — omit local changes, always points to prod
-   - **No `BASE_URL` set:** the build script auto-detects `PORT` from `backend/.env` and uses `http://10.0.2.2:<PORT>/api/` (emulator localhost alias) — CCT Picker will not work in this mode
+   For local backend development, omit `BASE_URL` — the build script auto-detects `PORT` from `backend/.env` and uses `http://10.0.2.2:<PORT>/api/`. For production or to test the Google Drive CCT Picker (which requires HTTPS), set `BASE_URL=https://api.usecontinuum.dev/api/`.
 
 4. Sync Gradle: File > Sync Project with Gradle Files
 
@@ -130,27 +127,6 @@ The Android app uses `drive.file` scope — users select specific Google Docs ra
 ### Fallback flow — paste a Google Doc link
 
 Works on any device or environment where the CCT Picker can't run. Go to Notes → Import from Drive, paste the full Google Doc URL, and tap Import.
-
-### Local development — ngrok required for CCT Picker
-
-GIS requires an HTTPS origin registered in Google Cloud Console. The default emulator URL (`http://10.0.2.2:5001`) is HTTP and unregistered, so the CCT Picker shows "400: redirect_uri_mismatch". Fix:
-
-1. Sign up at [ngrok.com](https://ngrok.com) (free) and claim your **free static domain** in the dashboard (Cloud Edge → Domains)
-2. Configure your auth token once:
-   ```bash
-   ngrok config add-authtoken <your-token>
-   ```
-3. Add the ngrok HTTPS domain to Google Cloud Console → APIs & Services → Credentials → `continuum-web` → Authorized JavaScript Origins (one time — the static domain never changes)
-4. Set `BASE_URL` in `android/local.properties`:
-   ```properties
-   BASE_URL=https://your-static-domain.ngrok-free.app/api/
-   ```
-5. Each dev session, start the tunnel before running the app:
-   ```bash
-   ngrok http --domain=your-static-domain.ngrok-free.app 5001
-   ```
-
-The URL paste fallback always works without ngrok — use it for quick local testing.
 
 The note detail screen shows "View in Google Docs" and "Download PDF" actions for imported notes.
 
