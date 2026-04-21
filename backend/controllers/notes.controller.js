@@ -400,6 +400,7 @@ exports.importNote = async (req, res) => {
         googleDocId,
         googleDocUrl,
         lastSyncedAt: new Date(),
+        lastViewedAt: new Date(), // ensures new import sorts to top (list sorts by lastViewedAt desc)
     });
 
     res.status(201).json({ success: true, note });
