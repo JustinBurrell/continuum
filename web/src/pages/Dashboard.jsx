@@ -67,10 +67,10 @@ function StatCard({ icon: Icon, label, value, to, accent }) {
       <div>
         <p
           style={{
-            fontFamily: 'Georgia, "Times New Roman", serif',
-            fontSize: 26,
+            fontFamily: 'Fraunces, Georgia, serif',
+            fontSize: '1.75rem',
             fontWeight: 700,
-            color: accentColor,
+            color: '#111827',
             lineHeight: 1,
             letterSpacing: '-0.5px',
           }}
@@ -231,7 +231,7 @@ function FlashcardSetCard({ set }) {
           {set.title}
         </p>
         {set.subject && (
-          <p style={{ fontSize: 12, color: '#a087b0', lineHeight: 1.4 }}>
+          <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.4 }}>
             {set.subject}
           </p>
         )}
@@ -268,7 +268,7 @@ function TaskItem({ task, onView }) {
         cursor: 'pointer',
         transition: 'background 0.12s',
       }}
-      onMouseEnter={e => (e.currentTarget.style.background = '#faf8ff')}
+      onMouseEnter={e => (e.currentTarget.style.background = '#F8F9FA')}
       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
     >
       <div
@@ -333,12 +333,12 @@ function TaskItem({ task, onView }) {
    ──────────────────────────────────────── */
 function AppItem({ app }) {
   const sc = {
-    draft:     { background: '#f3f4f6', color: '#6B7280' },
-    applied:   { background: '#eff6ff', color: '#2563eb' },
-    interview: { background: '#fffbeb', color: '#d97706' },
-    offer:     { background: '#f0fdf4', color: '#16a34a' },
-    rejected:  { background: '#fef2f2', color: '#dc2626' },
-    withdrawn: { background: '#f3f4f6', color: '#6B7280' },
+    draft:     { background: '#F3F4F6', color: '#6B7280' },
+    applied:   { background: 'rgba(107,33,168,0.08)', color: '#6b21a8' },
+    interview: { background: 'rgba(217,119,6,0.08)', color: '#D97706' },
+    offer:     { background: 'rgba(5,150,105,0.08)', color: '#059669' },
+    rejected:  { background: '#FEE2E2', color: '#DC2626' },
+    withdrawn: { background: '#F3F4F6', color: '#9CA3AF' },
   };
   const badgeStyle = sc[app.status] || sc.applied;
 
@@ -356,7 +356,7 @@ function AppItem({ app }) {
         cursor: 'pointer',
         transition: 'background 0.12s',
       }}
-      onMouseEnter={e => (e.currentTarget.style.background = '#faf8ff')}
+      onMouseEnter={e => (e.currentTarget.style.background = '#F8F9FA')}
       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -561,12 +561,12 @@ function Section({ label, to, children }) {
 const PIPELINE_STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
 
 const PIPELINE_BADGE = {
-  draft:     { background: '#f3f4f6', color: '#6B7280' },
-  applied:   { background: '#eff6ff', color: '#2563eb' },
-  interview: { background: '#fffbeb', color: '#d97706' },
-  offer:     { background: '#f0fdf4', color: '#16a34a' },
-  rejected:  { background: '#fef2f2', color: '#dc2626' },
-  withdrawn: { background: '#f3f4f6', color: '#6B7280' },
+  draft:     { background: '#F3F4F6', color: '#6B7280' },
+  applied:   { background: 'rgba(107,33,168,0.08)', color: '#6b21a8' },
+  interview: { background: 'rgba(217,119,6,0.08)', color: '#D97706' },
+  offer:     { background: 'rgba(5,150,105,0.08)', color: '#059669' },
+  rejected:  { background: '#FEE2E2', color: '#DC2626' },
+  withdrawn: { background: '#F3F4F6', color: '#9CA3AF' },
 };
 
 /* ════════════════════════════════════════
@@ -644,8 +644,8 @@ export default function Dashboard() {
       <div style={{ marginBottom: 36 }}>
         <h1
           style={{
-            fontFamily: 'Georgia, "Times New Roman", serif',
-            fontSize: '1.6rem',
+            fontFamily: 'Fraunces, Georgia, serif',
+            fontSize: '2rem',
             fontWeight: 700,
             color: '#111827',
             letterSpacing: '-0.3px',
@@ -654,7 +654,7 @@ export default function Dashboard() {
         >
           Good {getGreeting()}, {greeting}
         </h1>
-        <p style={{ fontSize: 14, color: '#9CA3AF', marginTop: 6, fontWeight: 400 }}>
+        <p style={{ fontSize: '0.9375rem', color: '#6B7280', marginTop: 4, fontWeight: 400 }}>
           Here's what's happening today.
         </p>
       </div>
@@ -698,7 +698,7 @@ export default function Dashboard() {
                   textAlign: 'center',
                   fontSize: 14,
                   color: '#9CA3AF',
-                  background: '#faf8ff',
+                  background: '#F8F9FA',
                 }}
               >
                 No notes yet.{' '}
@@ -727,7 +727,7 @@ export default function Dashboard() {
                   textAlign: 'center',
                   fontSize: 14,
                   color: '#9CA3AF',
-                  background: '#faf8ff',
+                  background: '#F8F9FA',
                 }}
               >
                 No flashcard sets yet. Create one from a note or manually.

@@ -72,13 +72,13 @@ export default function Sidebar() {
         {navGroups.map((group) => (
           <div key={group.label}>
             <p style={{
-              fontSize: 10,
-              fontWeight: 500,
-              letterSpacing: '0.1em',
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: '#a087b0',
-              marginBottom: 6,
-              padding: '0 10px',
+              color: '#9CA3AF',
+              marginBottom: 4,
+              padding: '8px 10px 4px',
             }}>
               {group.label}
             </p>
@@ -93,13 +93,11 @@ export default function Sidebar() {
                       alignItems: 'center',
                       gap: 10,
                       padding: '8px 10px',
-                      borderRadius: isActive ? '0 8px 8px 0' : 10,
-                      fontSize: 13,
-                      fontWeight: isActive ? 600 : 400,
-                      color: isActive ? '#6b21a8' : '#4b5563',
+                      borderRadius: 6,
+                      fontSize: '0.875rem',
+                      fontWeight: isActive ? 600 : 500,
+                      color: isActive ? '#6b21a8' : '#6B7280',
                       background: isActive ? 'rgba(107,33,168,0.08)' : 'transparent',
-                      borderLeft: isActive ? '3px solid #6b21a8' : '3px solid transparent',
-                      paddingLeft: isActive ? 7 : 10,
                       textDecoration: 'none',
                       transition: 'background 0.15s, color 0.15s',
                     })}
@@ -117,7 +115,7 @@ export default function Sidebar() {
                   >
                     {({ isActive }) => (
                       <>
-                        <Icon size={16} strokeWidth={1.75} style={{ flexShrink: 0, color: isActive ? '#6b21a8' : '#4b5563' }} />
+                        <Icon size={16} strokeWidth={1.75} style={{ flexShrink: 0, color: isActive ? '#6b21a8' : '#9CA3AF' }} />
                         <span>{label}</span>
                       </>
                     )}
@@ -184,7 +182,7 @@ export default function Sidebar() {
             fontSize: 13,
             padding: '8px 10px',
             borderRadius: 8,
-            color: '#a087b0',
+            color: '#6B7280',
             background: 'transparent',
             border: 'none',
             cursor: 'pointer',
@@ -198,7 +196,7 @@ export default function Sidebar() {
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = '#a087b0';
+            e.currentTarget.style.color = '#6B7280';
           }}
         >
           <LogOut size={14} strokeWidth={1.75} />
