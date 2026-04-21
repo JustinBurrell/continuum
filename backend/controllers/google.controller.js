@@ -215,8 +215,7 @@ exports.getPickerPageCCT = async (req, res) => {
 
     function openPickerIfReady() {
       if (pickerReady && tokenClientReady) {
-        // Empty prompt — silent if Chrome already has the account, login dialog if not
-        tokenClient.requestAccessToken({ prompt: '' });
+        tokenClient.requestAccessToken({ prompt: 'select_account' });
       }
     }
 
