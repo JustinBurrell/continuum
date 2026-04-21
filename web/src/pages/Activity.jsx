@@ -59,18 +59,18 @@ function getActivitySentence(item, actor) {
 
   switch (item.type) {
     case 'note_shared':
-      return <>{bold} shared their note {m.noteTitle && <span style={{ color: '#a087b0' }}>"{m.noteTitle}"</span>}{suffix}</>;
+      return <>{bold} shared their note {m.noteTitle && <span style={{ color: '#9CA3AF' }}>"{m.noteTitle}"</span>}{suffix}</>;
     case 'flashcard_shared':
-      return <>{bold} shared a flashcard set {m.setTitle && <span style={{ color: '#a087b0' }}>"{m.setTitle}"</span>}{suffix}</>;
+      return <>{bold} shared a flashcard set {m.setTitle && <span style={{ color: '#9CA3AF' }}>"{m.setTitle}"</span>}{suffix}</>;
     case 'task_created':
-      return <>{bold} shared a task {m.taskTitle && <span style={{ color: '#a087b0' }}>"{m.taskTitle}"</span>}{suffix}</>;
+      return <>{bold} shared a task {m.taskTitle && <span style={{ color: '#9CA3AF' }}>"{m.taskTitle}"</span>}{suffix}</>;
     case 'comment_added':
       return m.commentPreview
-        ? <>{bold} commented: <span style={{ color: '#a087b0' }}>"{m.commentPreview}"</span></>
+        ? <>{bold} commented: <span style={{ color: '#9CA3AF' }}>"{m.commentPreview}"</span></>
         : <>{bold} left a comment</>;
     case 'like_added':
       return m.commentPreview
-        ? <>{bold} liked a comment: <span style={{ color: '#a087b0' }}>"{m.commentPreview}"</span></>
+        ? <>{bold} liked a comment: <span style={{ color: '#9CA3AF' }}>"{m.commentPreview}"</span></>
         : <>{bold} liked a comment</>;
     default:
       return <>{bold} did something</>;
@@ -89,7 +89,7 @@ function ActivityItem({ item }) {
   const actor = item.userId;
   const name = fullName(actor);
   const actorId = actor?._id;
-  const dotColor = TYPE_COLORS[item.type] || '#a087b0';
+  const dotColor = TYPE_COLORS[item.type] || '#9CA3AF';
 
   return (
     <div style={{
@@ -121,7 +121,7 @@ function ActivityItem({ item }) {
         <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.5 }}>
           {getActivitySentence(item, actor)}
         </p>
-        <p style={{ fontSize: 11, color: '#c4b5d4', marginTop: 4 }}>{formatRelative(item.createdAt)}</p>
+        <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>{formatRelative(item.createdAt)}</p>
       </div>
     </div>
   );
@@ -170,17 +170,17 @@ export default function Activity() {
     <div>
       {/* Page header */}
       <div style={{ marginBottom: 16 }}>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
           Activity
         </h1>
-        <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>
+        <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>
           {activities.length > 0 ? `${activities.length} item${activities.length === 1 ? '' : 's'} loaded` : 'Track what\'s happening'}
         </p>
       </div>
 
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: 24 }}>
-        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
         <input
           style={{
             width: '100%',
@@ -224,9 +224,9 @@ export default function Activity() {
                 justifyContent: 'center',
                 margin: '0 auto 12px',
               }}>
-                <ActivityIcon size={24} style={{ color: '#a087b0' }} />
+                <ActivityIcon size={24} style={{ color: '#6b21a8' }} />
               </div>
-              <p style={{ fontSize: 14, color: '#a087b0', margin: 0 }}>
+              <p style={{ fontSize: 14, color: '#6B7280', margin: 0 }}>
                 No activity yet. Start creating notes, tasks, and more.
               </p>
             </div>
