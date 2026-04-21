@@ -5,7 +5,7 @@ import { MessageCircle, Plus, Search, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
 import { formatRelative, truncate } from '@/lib/utils';
@@ -83,7 +83,7 @@ export default function Messages() {
             paddingTop: 9,
             paddingBottom: 9,
             background: 'white',
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 12,
             fontSize: '0.875rem',
             color: '#111827',
@@ -106,7 +106,7 @@ export default function Messages() {
             width: 64,
             height: 64,
             borderRadius: '50%',
-            background: '#f5f0ff',
+            background: 'rgba(107,33,168,0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -135,8 +135,8 @@ export default function Messages() {
                 <Link to={`/messages/${conv._id}`} style={{ textDecoration: 'none' }}>
                 <div
                   style={{
-                    background: hasUnread ? '#fef7ff' : '#fff',
-                    border: `1px solid ${hasUnread ? '#e9d5ff' : '#ede9fe'}`,
+                    background: hasUnread ? '#F8F9FA' : '#fff',
+                    border: `1px solid ${hasUnread ? '#E5E7EB' : '#E5E7EB'}`,
                     borderRadius: 16,
                     boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                     padding: '14px 18px',
@@ -161,7 +161,7 @@ export default function Messages() {
                     onClick={e => e.stopPropagation()}
                     style={{ flexShrink: 0 }}
                   >
-                    <Avatar name={otherName} src={other?.avatarUrl} size="md" className="hover:opacity-80 transition-opacity" />
+                    <AppAvatar name={otherName} src={other?.avatarUrl} size="md" className="hover:opacity-80 transition-opacity" />
                   </Link>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -281,11 +281,11 @@ export default function Messages() {
                       cursor: 'pointer',
                       transition: 'background 0.12s',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     onClick={() => newConvMutation.mutate(friend?._id)}
                   >
-                    <Avatar name={friend?.name || friend?.username} src={friend?.avatar} size="sm" />
+                    <AppAvatar name={friend?.name || friend?.username} src={friend?.avatar} size="sm" />
                     <div>
                       <p style={{ fontWeight: 600, fontSize: 13, color: '#111827', margin: 0 }}>{friend?.name}</p>
                       <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>@{friend?.username}</p>

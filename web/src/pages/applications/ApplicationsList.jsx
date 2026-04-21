@@ -16,7 +16,7 @@ const STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn
 const STAGE_STYLES = {
   draft:     { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
   applied:   { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
-  interview: { bg: '#fdf4ff', color: '#7c3aed', border: '#e9d5ff' },
+  interview: { bg: 'rgba(107,33,168,0.08)', color: '#6b21a8', border: 'rgba(107,33,168,0.2)' },
   offer:     { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
   rejected:  { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
   withdrawn: { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
@@ -118,8 +118,8 @@ export default function ApplicationsList() {
                 cursor: 'pointer',
                 textTransform: 'capitalize',
                 transition: 'all 0.15s',
-                background: view === v ? '#6b21a8' : '#f5f0ff',
-                color: view === v ? '#fff' : '#6b21a8',
+                background: view === v ? '#6b21a8' : '#FFFFFF',
+                color: view === v ? '#fff' : '#374151',
               }}
             >
               {v}
@@ -158,7 +158,7 @@ export default function ApplicationsList() {
                   borderRadius: 20,
                   fontSize: 12,
                   fontWeight: 600,
-                  border: active && s !== 'all' ? `1px solid ${style?.border}` : active ? '1px solid #6b21a8' : '1px solid #ede9fe',
+                  border: active && s !== 'all' ? `1px solid ${style?.border}` : active ? '1px solid #6b21a8' : '1px solid #E5E7EB',
                   cursor: 'pointer',
                   textTransform: 'capitalize',
                   transition: 'all 0.15s',
@@ -219,7 +219,7 @@ export default function ApplicationsList() {
                     <div style={{
                       height: 72,
                       borderRadius: 12,
-                      border: '2px dashed #ede9fe',
+                      border: '2px dashed #E5E7EB',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -267,7 +267,7 @@ export default function ApplicationsList() {
                 key={app._id}
                 style={{
                   background: '#fff',
-                  border: '1px solid #ede9fe',
+                  border: '1px solid #E5E7EB',
                   borderRadius: 16,
                   boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                   padding: '14px 18px',
@@ -421,7 +421,7 @@ function PipelineCard({ app, stages, onStageChange, stateApp }) {
   return (
     <div style={{
       background: '#fff',
-      border: '1px solid #ede9fe',
+      border: '1px solid #E5E7EB',
       borderRadius: 12,
       boxShadow: '0 1px 6px rgba(107,33,168,0.06)',
       padding: '12px 14px',
@@ -439,10 +439,10 @@ function PipelineCard({ app, stages, onStageChange, stateApp }) {
         onClick={e => e.stopPropagation()}
         style={{
           fontSize: 11,
-          border: '1px solid #ede9fe',
+          border: '1px solid #E5E7EB',
           borderRadius: 8,
           padding: '4px 8px',
-          background: '#fef7ff',
+          background: '#FFFFFF',
           color: '#6b21a8',
           fontWeight: 600,
           width: '100%',

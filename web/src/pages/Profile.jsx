@@ -13,7 +13,7 @@ import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import Badge from '@/components/ui/Badge';
 import Skeleton from '@/components/ui/Skeleton';
 import { useForm } from 'react-hook-form';
@@ -26,7 +26,7 @@ import SocialLinks from '@/components/ui/SocialLinks';
 
 const card = {
   background: '#fff',
-  border: '1px solid #ede9fe',
+  border: '1px solid #E5E7EB',
   borderRadius: 16,
   boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
   padding: '20px 24px',
@@ -54,8 +54,8 @@ const FieldInput = forwardRef(function FieldInput({ label, error, required, ...p
         style={{
           padding: '9px 12px',
           borderRadius: 10,
-          border: `1px solid ${error ? '#fca5a5' : '#ede9fe'}`,
-          background: '#fef7ff',
+          border: `1px solid ${error ? '#fca5a5' : '#E5E7EB'}`,
+          background: '#FFFFFF',
           fontSize: 13,
           color: '#111827',
           outline: 'none',
@@ -64,7 +64,7 @@ const FieldInput = forwardRef(function FieldInput({ label, error, required, ...p
           boxSizing: 'border-box',
         }}
         onFocus={e => e.target.style.borderColor = error ? '#dc2626' : '#6b21a8'}
-        onBlur={e => e.target.style.borderColor = error ? '#fca5a5' : '#ede9fe'}
+        onBlur={e => e.target.style.borderColor = error ? '#fca5a5' : '#E5E7EB'}
         {...props}
       />
       {error && <p style={{ fontSize: 11, color: '#dc2626', margin: 0 }}>{error}</p>}
@@ -86,8 +86,8 @@ const PasswordInput = forwardRef(function PasswordInput({ label, error, required
           style={{
             padding: '9px 40px 9px 12px',
             borderRadius: 10,
-            border: `1px solid ${error ? '#fca5a5' : '#ede9fe'}`,
-            background: '#fef7ff',
+            border: `1px solid ${error ? '#fca5a5' : '#E5E7EB'}`,
+            background: '#FFFFFF',
             fontSize: 13,
             color: '#111827',
             outline: 'none',
@@ -96,7 +96,7 @@ const PasswordInput = forwardRef(function PasswordInput({ label, error, required
             boxSizing: 'border-box',
           }}
           onFocus={e => e.target.style.borderColor = error ? '#dc2626' : '#6b21a8'}
-          onBlur={e => e.target.style.borderColor = error ? '#fca5a5' : '#ede9fe'}
+          onBlur={e => e.target.style.borderColor = error ? '#fca5a5' : '#E5E7EB'}
           {...props}
         />
         <button
@@ -202,7 +202,7 @@ function AvatarCropModal({ file, onSave, onClose }) {
             width: CROP_SIZE, height: CROP_SIZE, borderRadius: '50%',
             overflow: 'hidden', position: 'relative',
             cursor: dragging ? 'grabbing' : 'grab',
-            background: '#f5f0ff', margin: '0 auto 16px',
+            background: 'rgba(107,33,168,0.08)', margin: '0 auto 16px',
             border: '3px solid #6b21a8', flexShrink: 0,
           }}
           onMouseDown={handleMouseDown}
@@ -276,8 +276,8 @@ function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading 
               placeholder={username}
               style={{
                 width: '100%', padding: '9px 12px', borderRadius: 10,
-                border: `1px solid ${usernameInput && !usernameMatch ? '#fca5a5' : '#ede9fe'}`,
-                background: '#fef7ff', fontSize: 13, color: '#111827',
+                border: `1px solid ${usernameInput && !usernameMatch ? '#fca5a5' : '#E5E7EB'}`,
+                background: '#FFFFFF', fontSize: 13, color: '#111827',
                 outline: 'none', boxSizing: 'border-box',
               }}
             />
@@ -298,7 +298,7 @@ function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading 
                 placeholder="Your password"
                 style={{
                   width: '100%', padding: '9px 40px 9px 12px', borderRadius: 10,
-                  border: '1px solid #ede9fe', background: '#fef7ff',
+                  border: '1px solid #E5E7EB', background: '#FFFFFF',
                   fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box',
                 }}
               />
@@ -321,7 +321,7 @@ function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading 
             disabled={!usernameMatch || loading}
             style={{
               flex: 1, padding: '10px 16px', borderRadius: 10, border: 'none',
-              background: usernameMatch ? '#dc2626' : '#f5f0ff',
+              background: usernameMatch ? '#dc2626' : '#f3f4f6',
               color: usernameMatch ? '#fff' : '#a087b0',
               fontSize: 13, fontWeight: 600, cursor: usernameMatch ? 'pointer' : 'not-allowed',
               transition: 'all 0.15s', opacity: loading ? 0.7 : 1,
@@ -635,7 +635,7 @@ export default function Profile() {
 
       {/* Tab bar */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-      <div style={{ display: 'inline-flex', gap: 4, flexWrap: 'wrap', background: '#f5f0ff', borderRadius: 14, padding: 4 }}>
+      <div style={{ display: 'inline-flex', gap: 4, flexWrap: 'wrap', background: '#F8F9FA', borderRadius: 14, padding: 4 }}>
         {tabs.map(t => {
           const Icon = t.icon;
           const active = activeTab === t.key;
@@ -694,7 +694,7 @@ export default function Profile() {
           {/* Profile header card */}
           <div style={card}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-              <Avatar name={fullName} src={me?.avatarUrl} size="xl" />
+              <AppAvatar name={fullName} src={me?.avatarUrl} size="xl" />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <span style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>{fullName}</span>
@@ -723,7 +723,7 @@ export default function Profile() {
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: streak >= 7 ? '#fef9c3' : '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(107,33,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontSize: '0.875rem' }}>{streak >= 7 ? '🔥' : '⚡'}</span>
                   </div>
                   <div>
@@ -749,11 +749,11 @@ export default function Profile() {
             <div key={label} style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: items.length > 0 ? 12 : 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(107,33,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={14} style={{ color: '#6b21a8' }} />
                   </div>
                   <span style={{ fontWeight: 600, fontSize: 14, color: '#111827' }}>{label}</span>
-                  <span style={{ fontSize: 11, color: '#a087b0', background: '#f5f0ff', padding: '1px 7px', borderRadius: 20 }}>{items.length}</span>
+                  <span style={{ fontSize: 11, color: '#a087b0', background: 'rgba(107,33,168,0.08)', padding: '1px 7px', borderRadius: 20 }}>{items.length}</span>
                 </div>
                 <Link to={path} style={{ fontSize: 12, color: '#6b21a8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 2 }}>
                   View all <ChevronRight size={12} />
@@ -766,7 +766,7 @@ export default function Profile() {
                 const stageColors = {
                   draft:     { bg: '#f3f4f6', color: '#6b7280' },
                   applied:   { bg: '#eff6ff', color: '#2563eb' },
-                  interview: { bg: '#fdf4ff', color: '#7c3aed' },
+                  interview: { bg: 'rgba(107,33,168,0.08)', color: '#6b21a8' },
                   offer:     { bg: '#f0fdf4', color: '#16a34a' },
                   rejected:  { bg: '#fef2f2', color: '#dc2626' },
                   withdrawn: { bg: '#f3f4f6', color: '#6b7280' },
@@ -779,7 +779,7 @@ export default function Profile() {
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       gap: 8, padding: '6px 0',
-                      borderTop: '1px solid #ede9fe', cursor: 'pointer',
+                      borderTop: '1px solid #E5E7EB', cursor: 'pointer',
                     }}
                     onMouseEnter={e => { e.currentTarget.querySelector('.item-text').style.color = '#6b21a8'; }}
                     onMouseLeave={e => { e.currentTarget.querySelector('.item-text').style.color = '#374151'; }}
@@ -811,7 +811,7 @@ export default function Profile() {
             <p style={sectionLabel}>Photo</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ position: 'relative', flexShrink: 0 }}>
-                <Avatar name={fullName} src={me?.avatarUrl} size="xl" />
+                <AppAvatar name={fullName} src={me?.avatarUrl} size="xl" />
                 {!user?.isDemo && (
                   <>
                     <button
@@ -863,12 +863,12 @@ export default function Profile() {
                   disabled={!!user?.isDemo}
                   style={{
                     width: '100%', padding: '9px 12px', borderRadius: 10,
-                    border: '1px solid #ede9fe', background: '#fef7ff',
+                    border: '1px solid #E5E7EB', background: '#FFFFFF',
                     fontSize: 13, color: '#111827', outline: 'none', resize: 'vertical',
                     boxSizing: 'border-box', transition: 'border-color 0.15s', fontFamily: 'inherit',
                   }}
                   onFocus={e => e.target.style.borderColor = '#6b21a8'}
-                  onBlur={e => e.target.style.borderColor = '#ede9fe'}
+                  onBlur={e => e.target.style.borderColor = '#E5E7EB'}
                   {...regProfile('bio')}
                 />
               </div>
@@ -910,7 +910,7 @@ export default function Profile() {
                   disabled={!!user?.isDemo}
                   style={{
                     width: '100%', padding: '9px 12px', borderRadius: 10,
-                    border: '1px solid #ede9fe', background: '#fef7ff',
+                    border: '1px solid #E5E7EB', background: '#FFFFFF',
                     fontSize: 13, color: '#111827', outline: 'none', cursor: 'pointer',
                     boxSizing: 'border-box',
                   }}
@@ -984,7 +984,7 @@ export default function Profile() {
 
           {!user?.isDemo && <div style={card}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(107,33,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <KeyRound size={17} style={{ color: '#6b21a8' }} />
               </div>
               <div>
@@ -1047,7 +1047,7 @@ export default function Profile() {
                   key={key}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '14px 0', borderBottom: '1px solid #ede9fe', cursor: 'pointer', gap: 12,
+                    padding: '14px 0', borderBottom: '1px solid #E5E7EB', cursor: 'pointer', gap: 12,
                   }}
                 >
                   <div>
@@ -1090,7 +1090,7 @@ export default function Profile() {
             <p style={sectionLabel}>Email</p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(107,33,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Mail size={17} style={{ color: '#6b21a8' }} />
                 </div>
                 <div>
@@ -1119,7 +1119,7 @@ export default function Profile() {
             <p style={sectionLabel}>Google</p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(107,33,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <AtSign size={17} style={{ color: '#6b21a8' }} />
                 </div>
                 <div>
@@ -1149,7 +1149,7 @@ export default function Profile() {
               ))}
             </div>
             {me?.googleId && (
-              <div style={{ marginTop: 12, padding: '10px 12px', background: '#f5f0ff', borderRadius: 10 }}>
+              <div style={{ marginTop: 12, padding: '10px 12px', background: 'rgba(107,33,168,0.08)', borderRadius: 10 }}>
                 <p style={{ fontSize: 12, color: '#6b21a8', margin: 0 }}>
                   Google Drive connected — select Google Docs to import as notes from the Notes page.
                 </p>
@@ -1168,12 +1168,12 @@ export default function Profile() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {sessionsData.map((s) => (
-                    <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', background: s.isCurrent ? '#f5f0ff' : '#faf7ff', borderRadius: 8, border: s.isCurrent ? '1px solid #e9d5ff' : '1px solid transparent' }}>
+                    <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', background: s.isCurrent ? 'rgba(107,33,168,0.04)' : '#FFFFFF', borderRadius: 8, border: s.isCurrent ? '1px solid rgba(107,33,168,0.12)' : '1px solid transparent' }}>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                           <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{s.deviceId || 'Unknown device'}</p>
                           {s.isCurrent && (
-                            <span style={{ fontSize: 10, fontWeight: 600, color: '#6b21a8', background: '#ede9fe', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: '#6b21a8', background: '#E5E7EB', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
                               This device
                             </span>
                           )}

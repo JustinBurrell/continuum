@@ -155,7 +155,7 @@ export default function NoteDetail() {
             alignItems: 'center',
             transition: 'background 0.12s',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#111827'; }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#111827'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
           >
             <ArrowLeft size={18} />
@@ -166,7 +166,7 @@ export default function NoteDetail() {
         {isOwner && !user?.isDemo && (
           <button
             onClick={() => setShowShareModal(true)}
-            style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+            style={{ border: '1px solid #E5E7EB', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
           >
             <Share2 size={14} />
             {note.visibility && note.visibility !== 'private' ? (
@@ -181,7 +181,7 @@ export default function NoteDetail() {
         )}
         {isOwner && !user?.isDemo && (
           <Link to="/notes/edit" state={{ id }}>
-            <button style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+            <button style={{ border: '1px solid #E5E7EB', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
               <Edit3 size={14} /> Edit
             </button>
           </Link>
@@ -218,7 +218,7 @@ export default function NoteDetail() {
       {/* Note content card */}
       <div style={{
         background: 'white',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '28px 32px',
@@ -232,7 +232,7 @@ export default function NoteDetail() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{
               display: 'inline-block',
-              background: '#f5f0ff',
+              background: 'rgba(107,33,168,0.08)',
               color: '#6b21a8',
               fontSize: '0.6875rem',
               fontWeight: 600,
@@ -274,7 +274,7 @@ export default function NoteDetail() {
                 gap: 4,
                 fontSize: '0.75rem',
                 color: '#6b21a8',
-                background: '#f5f0ff',
+                background: 'rgba(107,33,168,0.08)',
                 padding: '3px 10px',
                 borderRadius: 20,
               }}>
@@ -295,7 +295,7 @@ export default function NoteDetail() {
       {/* AI Summary card */}
       <div style={{
         background: 'white',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '24px 28px',
@@ -322,7 +322,7 @@ export default function NoteDetail() {
                   padding: '6px 14px',
                   borderRadius: 10,
                   border: 'none',
-                  background: '#f5f0ff',
+                  background: 'rgba(107,33,168,0.08)',
                   color: '#6b21a8',
                   fontSize: '0.8125rem',
                   fontWeight: 500,
@@ -364,7 +364,7 @@ export default function NoteDetail() {
       {/* Comments card */}
       <div style={{
         background: 'white',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '24px 28px',

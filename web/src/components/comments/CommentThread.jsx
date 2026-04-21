@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, Heart, Trash, Send } from 'lucide-react';
 import api from '@/lib/api';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import Button from '@/components/ui/Button';
 import { formatRelative } from '@/lib/utils';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
@@ -97,14 +97,14 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
           state={{ id: c.userId?._id ?? c.userId }}
           style={{ flexShrink: 0 }}
         >
-          <Avatar name={fullName(author)} src={author.avatarUrl} size="sm" />
+          <AppAvatar name={fullName(author)} src={author.avatarUrl} size="sm" />
         </Link>
         <div style={{
           flex: 1,
-          background: '#fef7ff',
+          background: '#F8F9FA',
           borderRadius: 12,
           padding: '10px 14px',
-          border: '1px solid #ede9fe',
+          border: '1px solid #E5E7EB',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
@@ -214,7 +214,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
           </button>
         )}
         {!collapsed && replies.map(reply => (
-          <div key={reply._id} style={{ borderLeft: '2px solid #ede9fe', paddingLeft: 12 }}>
+          <div key={reply._id} style={{ borderLeft: '2px solid #E5E7EB', paddingLeft: 12 }}>
             {renderCommentRow(reply, true)}
           </div>
         ))}
@@ -277,7 +277,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
                     background: '#fafafa',
                     borderRadius: 12,
                     padding: '10px 14px',
-                    border: '1px solid #ede9fe',
+                    border: '1px solid #E5E7EB',
                   }}>
                     <p style={{ fontSize: '0.8125rem', color: '#a087b0', fontStyle: 'italic' }}>
                       [Comment deleted]
@@ -286,7 +286,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
                 </div>
                 <div style={{ marginLeft: 44, marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {orphanedByParent[parentId].map(reply => (
-                    <div key={reply._id} style={{ borderLeft: '2px solid #ede9fe', paddingLeft: 12 }}>
+                    <div key={reply._id} style={{ borderLeft: '2px solid #E5E7EB', paddingLeft: 12 }}>
                       {renderCommentRow(reply, true)}
                     </div>
                   ))}
@@ -306,7 +306,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
               gap: 8,
               fontSize: '0.8125rem',
               color: '#6b21a8',
-              background: '#f5f0ff',
+              background: 'rgba(107,33,168,0.08)',
               borderRadius: 8,
               padding: '6px 12px',
               marginBottom: 8,
@@ -330,7 +330,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
             </div>
           )}
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <Avatar name={fullName(user)} src={user?.avatarUrl} size="sm" />
+            <AppAvatar name={fullName(user)} src={user?.avatarUrl} size="sm" />
             <div style={{ flex: 1, display: 'flex', gap: 8 }}>
               <input
                 ref={inputRef}
@@ -347,7 +347,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
                 style={{
                   flex: 1,
                   background: 'white',
-                  border: '1px solid #ede9fe',
+                  border: '1px solid #E5E7EB',
                   borderRadius: 12,
                   padding: '9px 14px',
                   fontSize: '0.875rem',

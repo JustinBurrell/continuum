@@ -132,7 +132,7 @@ export default function NoteEditor() {
               alignItems: 'center',
               transition: 'background 0.12s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#111827'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#111827'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
           >
             <ArrowLeft size={18} />
@@ -144,7 +144,7 @@ export default function NoteEditor() {
         <button
           onClick={() => navigate(-1)}
           style={{
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             background: 'white',
             color: '#374151',
             padding: '7px 14px',
@@ -185,13 +185,13 @@ export default function NoteEditor() {
       {/* Editor card */}
       <div style={{
         background: 'white',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '28px 32px',
       }}>
         {/* Title input */}
-        <div style={{ marginBottom: 24, borderBottom: '1px solid #ede9fe', paddingBottom: 20 }}>
+        <div style={{ marginBottom: 24, borderBottom: '1px solid #E5E7EB', paddingBottom: 20 }}>
           <input
             type="text"
             placeholder="Note title..."
@@ -223,7 +223,7 @@ export default function NoteEditor() {
               onChange={(e) => setForm(f => ({ ...f, type: e.target.value }))}
               style={{
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 10,
                 padding: '7px 28px 7px 12px',
                 fontSize: '0.8125rem',
@@ -252,7 +252,7 @@ export default function NoteEditor() {
               style={{
                 width: '100%',
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 10,
                 padding: '7px 12px',
                 fontSize: '0.8125rem',
@@ -284,14 +284,15 @@ export default function NoteEditor() {
           </label>
           <div
             style={{
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               borderRadius: 12,
-              background: '#fef7ff',
+              background: '#FFFFFF',
               overflow: 'hidden',
               transition: 'border-color 0.15s',
             }}
             onFocusCapture={e => e.currentTarget.style.borderColor = '#6b21a8'}
-            onBlurCapture={e => e.currentTarget.style.borderColor = '#ede9fe'}
+            onBlurCapture={e => e.currentTarget.style.borderColor = '#E5E7EB'}
+
           >
             <NoteToolbar editor={editor} editorTick={editorTick} />
             <EditorContent editor={editor} />

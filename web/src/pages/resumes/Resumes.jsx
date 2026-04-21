@@ -108,11 +108,11 @@ export default function Resumes() {
           textAlign: 'center',
           marginBottom: 24,
           cursor: 'pointer',
-          background: '#fef7ff',
+          background: '#FFFFFF',
           transition: 'border-color 0.15s, background 0.15s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b21a8'; e.currentTarget.style.background = '#f5f0ff'; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(107,33,168,0.25)'; e.currentTarget.style.background = '#fef7ff'; }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b21a8'; e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(107,33,168,0.25)'; e.currentTarget.style.background = '#FFFFFF'; }}
       >
         <div style={{
           width: 52,
@@ -141,7 +141,7 @@ export default function Resumes() {
             paddingTop: 9,
             paddingBottom: 9,
             background: 'white',
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 12,
             fontSize: '0.875rem',
             color: '#111827',
@@ -152,7 +152,7 @@ export default function Resumes() {
           value={resumeSearch}
           onChange={e => setResumeSearch(e.target.value)}
           onFocus={e => e.target.style.borderColor = '#6b21a8'}
-          onBlur={e => e.target.style.borderColor = '#ede9fe'}
+          onBlur={e => e.target.style.borderColor = '#E5E7EB'}
         />
       </div>
 
@@ -221,7 +221,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
   return (
     <div style={{
       background: '#fff',
-      border: '1px solid #ede9fe',
+      border: '1px solid #E5E7EB',
       borderRadius: 16,
       boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
       padding: '18px 22px',
@@ -289,7 +289,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
 
       {/* AI Feedback section */}
       {hasFeedback && (
-        <div style={{ borderTop: '1px solid #ede9fe', paddingTop: 14 }}>
+        <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 14 }}>
           {/* Feedback toggle */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
@@ -337,7 +337,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
                   fontSize: 11,
                   color: '#a087b0',
                   background: 'none',
-                  border: '1px solid #ede9fe',
+                  border: '1px solid #E5E7EB',
                   borderRadius: 8,
                   padding: '4px 10px',
                   cursor: 'pointer',
@@ -392,7 +392,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
                     {latestFeedback.sections.map((sec, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <span style={{ fontSize: 12, color: '#6b7280', flex: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{sec.name}</span>
-                        <div style={{ flex: 2, height: 6, borderRadius: 10, background: '#ede9fe' }}>
+                        <div style={{ flex: 2, height: 6, borderRadius: 10, background: '#E5E7EB' }}>
                           <div style={{
                             height: '100%',
                             borderRadius: 10,
@@ -409,7 +409,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
               )}
 
               {latestFeedback.keywordOptimization && (
-                <div style={{ borderRadius: 12, padding: '12px 14px', background: '#f5f0ff', border: '1px solid #ede9fe' }}>
+                <div style={{ borderRadius: 12, padding: '12px 14px', background: 'rgba(107,33,168,0.08)', border: '1px solid #E5E7EB' }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#6b21a8', marginBottom: 8 }}>Keyword Optimization</p>
                   {latestFeedback.keywordOptimization.presentKeywords?.length > 0 && (
                     <div style={{ marginBottom: 8 }}>
@@ -438,7 +438,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
 
           {/* Feedback history */}
           {showHistory && olderFeedback.length > 0 && (
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #ede9fe' }}>
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #E5E7EB' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', margin: 0 }}>
                   Feedback history ({olderFeedback.length})
@@ -465,7 +465,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
                 const hf = olderFeedback[historyIndex];
                 if (!hf) return null;
                 return (
-                  <div style={{ borderRadius: 12, padding: '12px 14px', background: '#fef7ff', border: '1px solid #ede9fe' }}>
+                  <div style={{ borderRadius: 12, padding: '12px 14px', background: '#F8F9FA', border: '1px solid #E5E7EB' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                       <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>
                         {formatDate(hf.generatedAt)} · {hf.model || 'AI'}

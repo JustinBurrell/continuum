@@ -23,7 +23,7 @@ export default function PasswordRequirements({ password }) {
               aria-hidden="true"
               style={{
                 width: 15, height: 15, borderRadius: '50%', flexShrink: 0,
-                background: pending ? '#f5f0ff' : ok ? '#dcfce7' : '#fee2e2',
+                background: pending ? 'rgba(107,33,168,0.08)' : ok ? '#dcfce7' : '#fee2e2',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >

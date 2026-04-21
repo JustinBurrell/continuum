@@ -122,7 +122,7 @@ export default function StudyMode() {
         <p style={{ color: '#a087b0', marginBottom: 12 }}>No cards in this set.</p>
         <Link to="/flashcards/view" state={{ id }}>
           <button style={{
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             background: 'white',
             color: '#374151',
             padding: '8px 16px',
@@ -155,7 +155,7 @@ export default function StudyMode() {
           width: 96,
           height: 96,
           borderRadius: '50%',
-          background: pct >= 70 ? '#f0fdf4' : '#fef7ff',
+          background: pct >= 70 ? '#f0fdf4' : 'rgba(107,33,168,0.08)',
           border: `4px solid ${pct >= 70 ? '#16a34a' : '#6b21a8'}`,
           display: 'flex',
           flexDirection: 'column',
@@ -185,8 +185,8 @@ export default function StudyMode() {
             display: 'inline-flex',
             alignItems: 'center',
             gap: 8,
-            background: sessionStreak >= 7 ? '#fef9c3' : '#f5f0ff',
-            border: `1px solid ${sessionStreak >= 7 ? '#fde047' : '#ede9fe'}`,
+            background: '#FFFFFF',
+            border: '1px solid #E5E7EB',
             borderRadius: 24,
             padding: '8px 18px',
             marginBottom: 32,
@@ -207,7 +207,7 @@ export default function StudyMode() {
               gap: 6,
               padding: '10px 20px',
               borderRadius: 12,
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               background: 'white',
               color: '#374151',
               fontSize: '0.9rem',
@@ -262,7 +262,7 @@ export default function StudyMode() {
               flexShrink: 0,
               transition: 'background 0.12s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#111827'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#111827'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
           >
             <ArrowLeft size={18} />
@@ -276,7 +276,7 @@ export default function StudyMode() {
             </span>
           </div>
           {/* Progress bar */}
-          <div style={{ height: 6, background: '#ede9fe', borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ height: 6, background: '#E5E7EB', borderRadius: 99, overflow: 'hidden' }}>
             <div
               style={{
                 height: '100%',
@@ -306,7 +306,7 @@ export default function StudyMode() {
               position: 'absolute',
               inset: 0,
               background: 'white',
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               borderRadius: 20,
               boxShadow: '0 4px 24px rgba(107,33,168,0.10)',
               display: 'flex',
@@ -324,7 +324,7 @@ export default function StudyMode() {
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
               marginBottom: 20,
-              background: '#f5f0ff',
+              background: 'rgba(107,33,168,0.08)',
               padding: '4px 12px',
               borderRadius: 20,
             }}>
@@ -344,7 +344,7 @@ export default function StudyMode() {
             style={{
               position: 'absolute',
               inset: 0,
-              background: '#f5f0ff',
+              background: '#FFFFFF',
               border: '2px solid #6b21a8',
               borderRadius: 20,
               boxShadow: '0 4px 24px rgba(107,33,168,0.16)',
@@ -366,7 +366,7 @@ export default function StudyMode() {
               background: 'white',
               padding: '4px 12px',
               borderRadius: 20,
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
             }}>
               Answer
             </span>
@@ -388,7 +388,7 @@ export default function StudyMode() {
             gap: 6,
             padding: '9px 16px',
             borderRadius: 12,
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             background: 'white',
             color: currentIndex === 0 ? '#c4b5d4' : '#374151',
             fontSize: '0.875rem',
@@ -411,7 +411,7 @@ export default function StudyMode() {
                   gap: 6,
                   padding: '9px 18px',
                   borderRadius: 12,
-                  border: '1px solid #ede9fe',
+                  border: '1px solid #E5E7EB',
                   background: 'white',
                   color: '#374151',
                   fontSize: '0.875rem',
@@ -420,7 +420,7 @@ export default function StudyMode() {
                   transition: 'all 0.12s',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = '#f97316'; e.currentTarget.style.color = '#ea580c'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#ede9fe'; e.currentTarget.style.color = '#374151'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#E5E7EB'; e.currentTarget.style.color = '#374151'; }}
               >
                 <X size={14} /> Still learning
               </button>
@@ -449,16 +449,16 @@ export default function StudyMode() {
               style={{
                 padding: '9px 20px',
                 borderRadius: 12,
-                border: '1px solid #6b21a8',
-                background: '#f5f0ff',
-                color: '#6b21a8',
+                border: 'none',
+                background: '#6b21a8',
+                color: '#FFFFFF',
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.12s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#6b21a8'; e.currentTarget.style.color = 'white'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#3b0764'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#6b21a8'; }}
             >
               Reveal answer
             </button>
@@ -473,7 +473,7 @@ export default function StudyMode() {
             gap: 6,
             padding: '9px 16px',
             borderRadius: 12,
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             background: 'white',
             color: '#374151',
             fontSize: '0.875rem',
@@ -482,7 +482,7 @@ export default function StudyMode() {
             transition: 'all 0.12s',
           }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b21a8'; e.currentTarget.style.color = '#6b21a8'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = '#ede9fe'; e.currentTarget.style.color = '#374151'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = '#E5E7EB'; e.currentTarget.style.color = '#374151'; }}
         >
           Next <ChevronRight size={16} />
         </button>

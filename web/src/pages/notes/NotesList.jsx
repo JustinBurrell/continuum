@@ -212,7 +212,7 @@ export default function NotesList() {
             <button
               onClick={() => { setShowImport(true); setImportError(''); }}
               style={{
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 background: 'white',
                 color: '#374151',
                 padding: '8px 16px',
@@ -262,7 +262,7 @@ export default function NotesList() {
             style={{
               width: '100%',
               background: 'white',
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               borderRadius: 12,
               padding: '10px 16px 10px 40px',
               fontSize: '0.875rem',
@@ -282,8 +282,8 @@ export default function NotesList() {
               fontWeight: 500,
               border: 'none',
               cursor: 'pointer',
-              background: sharedTab ? '#6b21a8' : '#f5f0ff',
-              color: sharedTab ? 'white' : '#6b21a8',
+              background: sharedTab ? '#6b21a8' : 'transparent',
+              color: sharedTab ? 'white' : '#6b7280',
               transition: 'all 0.15s',
             }}
           >
@@ -300,8 +300,8 @@ export default function NotesList() {
                 fontWeight: 500,
                 border: 'none',
                 cursor: 'pointer',
-                background: type === t ? '#6b21a8' : '#f5f0ff',
-                color: type === t ? 'white' : '#6b21a8',
+                background: type === t ? '#6b21a8' : 'transparent',
+                color: type === t ? 'white' : '#6b7280',
                 textTransform: 'capitalize',
                 transition: 'all 0.15s',
               }}
@@ -321,7 +321,7 @@ export default function NotesList() {
             width: 64,
             height: 64,
             borderRadius: '50%',
-            background: '#f5f0ff',
+            background: 'rgba(107,33,168,0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -376,7 +376,7 @@ export default function NotesList() {
                 disabled={isFetchingNextPage}
                 style={{
                   background: 'white',
-                  border: '1px solid #ede9fe',
+                  border: '1px solid #E5E7EB',
                   color: '#6b21a8',
                   padding: '9px 24px',
                   borderRadius: 12,
@@ -406,7 +406,7 @@ export default function NotesList() {
         title="Import note"
       >
         {/* Tab switcher */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 16, padding: 4, borderRadius: 10, background: '#f5f0ff' }}>
+        <div style={{ display: 'flex', gap: 4, marginBottom: 16, padding: 4, borderRadius: 10, background: '#F8F9FA' }}>
           {['drive', 'upload'].map(tab => (
             <button
               key={tab}
@@ -484,7 +484,7 @@ export default function NotesList() {
                   padding: '8px 12px',
                   borderRadius: 10,
                   border: '1px solid #6b21a8',
-                  background: '#f5f0ff',
+                  background: 'rgba(107,33,168,0.08)',
                 }}>
                   <FileText size={14} style={{ color: '#6b21a8', flexShrink: 0 }} />
                   <span style={{ fontSize: '0.875rem', color: '#111827', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -528,7 +528,7 @@ export default function NotesList() {
                 style={{
                   width: '100%',
                   background: 'white',
-                  border: '1px solid #ede9fe',
+                  border: '1px solid #E5E7EB',
                   borderRadius: 12,
                   padding: '9px 14px',
                   fontSize: '0.875rem',
@@ -554,8 +554,8 @@ export default function NotesList() {
                   gap: 8,
                   width: '100%',
                   borderRadius: 12,
-                  border: `2px dashed ${uploadFile ? '#6b21a8' : '#ede9fe'}`,
-                  background: uploadFile ? '#f5f0ff' : 'transparent',
+                  border: `2px dashed ${uploadFile ? '#6b21a8' : '#E5E7EB'}`,
+                  background: uploadFile ? 'rgba(107,33,168,0.08)' : 'transparent',
                   cursor: 'pointer',
                   padding: '32px 0',
                   transition: 'all 0.15s',
@@ -616,7 +616,7 @@ function NoteCard({ note, onDelete }) {
       className="group"
       style={{
         background: 'white',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '20px',
@@ -630,7 +630,7 @@ function NoteCard({ note, onDelete }) {
         e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.12)';
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.borderColor = '#ede9fe';
+        e.currentTarget.style.borderColor = '#E5E7EB';
         e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
       }}
     >
@@ -638,7 +638,7 @@ function NoteCard({ note, onDelete }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <span style={{
           display: 'inline-block',
-          background: '#f5f0ff',
+          background: 'rgba(107,33,168,0.08)',
           color: '#6b21a8',
           fontSize: '0.6875rem',
           fontWeight: 600,
@@ -662,7 +662,7 @@ function NoteCard({ note, onDelete }) {
                 display: 'flex',
                 alignItems: 'center',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#6b21a8'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
               >
                 <Edit3 size={13} />

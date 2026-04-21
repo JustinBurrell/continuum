@@ -53,7 +53,7 @@ const STATUS_LABELS = { todo: 'To Do', in_progress: 'In Progress', completed: 'C
 
 const cardStyle = {
   background: '#fff',
-  border: '1px solid #ede9fe',
+  border: '1px solid #E5E7EB',
   borderRadius: 16,
   boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
   overflow: 'hidden',
@@ -142,8 +142,8 @@ export default function Calendar() {
                 cursor: 'pointer',
                 textTransform: 'capitalize',
                 transition: 'all 0.15s',
-                background: view === v ? '#6b21a8' : '#f5f0ff',
-                color: view === v ? '#fff' : '#6b21a8',
+                background: view === v ? '#6b21a8' : '#FFFFFF',
+                color: view === v ? '#fff' : '#374151',
               }}
             >
               {v}
@@ -163,7 +163,7 @@ export default function Calendar() {
             paddingTop: 9,
             paddingBottom: 9,
             background: 'white',
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 12,
             fontSize: '0.875rem',
             color: '#111827',
@@ -185,7 +185,7 @@ export default function Calendar() {
           {searchResults.length === 0 ? (
             <div style={{
               background: '#fff',
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               borderRadius: 16,
               padding: '32px 0',
               textAlign: 'center',
@@ -205,7 +205,7 @@ export default function Calendar() {
                     onClick={() => setViewingTaskId(task._id)}
                     style={{
                       background: '#fff',
-                      border: '1px solid #ede9fe',
+                      border: '1px solid #E5E7EB',
                       borderLeft: `3px solid ${task.priority === 'high' ? '#ef4444' : task.priority === 'medium' ? '#f59e0b' : '#d1d5db'}`,
                       borderRadius: 12,
                       padding: '12px 16px',
@@ -229,7 +229,7 @@ export default function Calendar() {
                           {dateLabel}
                         </span>
                         {task.type && (
-                          <span style={{ fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 20, background: '#f5f0ff', color: '#6b21a8', textTransform: 'capitalize' }}>
+                          <span style={{ fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 20, background: 'rgba(107,33,168,0.08)', color: '#6b21a8', textTransform: 'capitalize' }}>
                             {task.type}
                           </span>
                         )}
@@ -259,7 +259,7 @@ export default function Calendar() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '14px 20px',
-                borderBottom: '1px solid #ede9fe',
+                borderBottom: '1px solid #E5E7EB',
                 flexShrink: 0,
               }}>
                 <button
@@ -280,7 +280,7 @@ export default function Calendar() {
               </div>
 
               {/* Day of week header */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #ede9fe', flexShrink: 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
                 {DOW.map(d => (
                   <div key={d} style={{ padding: '10px 0', textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {d}
@@ -309,12 +309,12 @@ export default function Calendar() {
                         onClick={() => setSelected(isSelected ? null : key)}
                         style={{
                           padding: '6px 6px',
-                          borderBottom: '1px solid #ede9fe',
-                          borderRight: '1px solid #ede9fe',
+                          borderBottom: '1px solid #E5E7EB',
+                          borderRight: '1px solid #E5E7EB',
                           cursor: 'pointer',
                           transition: 'background 0.12s',
                           background: isSelected
-                            ? '#f5f0ff'
+                            ? 'rgba(107,33,168,0.04)'
                             : isToday
                             ? 'rgba(107,33,168,0.04)'
                             : '#fff',
@@ -405,7 +405,7 @@ export default function Calendar() {
                           transition: 'background 0.12s',
                           margin: '0 -8px',
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
                         <div style={{
@@ -454,7 +454,7 @@ export default function Calendar() {
                         transition: 'background 0.12s',
                         margin: '0 -8px',
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
                       <div style={{ width: 6, height: 6, borderRadius: '50%', marginTop: 5, background: '#ef4444', flexShrink: 0 }} />
@@ -497,7 +497,7 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
   return (
     <div style={{
       background: '#fff',
-      border: '1px solid #ede9fe',
+      border: '1px solid #E5E7EB',
       borderRadius: 16,
       boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
       overflow: 'hidden',
@@ -512,7 +512,7 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '14px 20px',
-        borderBottom: '1px solid #ede9fe',
+        borderBottom: '1px solid #E5E7EB',
         flexShrink: 0,
       }}>
         <button onClick={onPrev} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center' }}>
@@ -537,10 +537,10 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
               onClick={() => setSelected(isSelected ? null : key)}
               style={{
                 padding: '10px 8px',
-                borderRight: '1px solid #ede9fe',
+                borderRight: '1px solid #E5E7EB',
                 cursor: 'pointer',
                 transition: 'background 0.12s',
-                background: isSelected ? '#f5f0ff' : isToday ? 'rgba(107,33,168,0.04)' : '#fff',
+                background: isSelected ? 'rgba(107,33,168,0.04)' : isToday ? 'rgba(107,33,168,0.04)' : '#fff',
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
@@ -602,7 +602,7 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
 
       {/* Selected day detail */}
       {selected && (
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #ede9fe', background: '#fef7ff' }}>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E7EB', background: '#F8F9FA' }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: '#6b21a8', marginBottom: 8 }}>
             {new Date(selected + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
@@ -619,14 +619,14 @@ function WeekView({ days, weekDates, now, onPrev, onNext, onViewTask }) {
                     alignItems: 'center',
                     gap: 6,
                     background: '#fff',
-                    border: '1px solid #ede9fe',
+                    border: '1px solid #E5E7EB',
                     borderRadius: 8,
                     padding: '5px 10px',
                     cursor: 'pointer',
                     transition: 'border-color 0.12s',
                   }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = '#6b21a8'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = '#ede9fe'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#E5E7EB'}
                 >
                   <div style={{
                     width: 6,

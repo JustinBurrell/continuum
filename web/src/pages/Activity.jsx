@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Activity as ActivityIcon, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/lib/api';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import ActivitySkeleton from '@/components/skeletons/ActivitySkeleton';
@@ -79,10 +79,10 @@ function getActivitySentence(item, actor) {
 
 const TYPE_COLORS = {
   note_shared: '#6b21a8',
-  flashcard_shared: '#7c3aed',
-  task_created: '#2563eb',
-  comment_added: '#16a34a',
-  like_added: '#dc2626',
+  flashcard_shared: '#6b21a8',
+  task_created: '#6b21a8',
+  comment_added: '#6b21a8',
+  like_added: '#6b21a8',
 };
 
 function ActivityItem({ item }) {
@@ -97,13 +97,13 @@ function ActivityItem({ item }) {
       alignItems: 'flex-start',
       gap: 14,
       padding: '14px 0',
-      borderBottom: '1px solid #ede9fe',
+      borderBottom: '1px solid #E5E7EB',
       position: 'relative',
     }}>
       {/* Activity type dot */}
       <div style={{ position: 'relative', flexShrink: 0 }}>
         <Link to="/users/view" state={{ id: actorId }} style={{ display: 'block' }}>
-          <Avatar name={name} src={actor?.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
+          <AppAvatar name={name} src={actor?.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
         </Link>
         <div style={{
           position: 'absolute',
@@ -189,7 +189,7 @@ export default function Activity() {
             paddingTop: 9,
             paddingBottom: 9,
             background: 'white',
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 12,
             fontSize: '0.875rem',
             color: '#111827',
@@ -204,7 +204,7 @@ export default function Activity() {
 
       <div style={{
         background: '#fff',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         overflow: 'hidden',
@@ -218,7 +218,7 @@ export default function Activity() {
                 width: 56,
                 height: 56,
                 borderRadius: '50%',
-                background: '#f5f0ff',
+                background: 'rgba(107,33,168,0.08)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -237,7 +237,7 @@ export default function Activity() {
 
         {/* Load more */}
         {hasNextPage && (
-          <div style={{ padding: '16px 20px', borderTop: '1px solid #ede9fe', textAlign: 'center' }}>
+          <div style={{ padding: '16px 20px', borderTop: '1px solid #E5E7EB', textAlign: 'center' }}>
             <Button
               variant="outline"
               size="sm"

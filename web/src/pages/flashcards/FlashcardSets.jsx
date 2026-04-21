@@ -120,8 +120,8 @@ export default function FlashcardSets() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: streak >= 7 ? '#fef9c3' : streak >= 1 ? '#f5f0ff' : 'white',
-        border: `1px solid ${streak >= 7 ? '#fde047' : '#ede9fe'}`,
+        background: '#FFFFFF',
+        border: '1px solid #E5E7EB',
         borderRadius: 14,
         padding: '12px 18px',
         marginBottom: 20,
@@ -153,7 +153,7 @@ export default function FlashcardSets() {
             paddingTop: 9,
             paddingBottom: 9,
             background: 'white',
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 12,
             fontSize: '0.875rem',
             color: '#111827',
@@ -182,8 +182,8 @@ export default function FlashcardSets() {
               fontWeight: 500,
               border: 'none',
               cursor: 'pointer',
-              background: sharedTab === value ? '#6b21a8' : '#f5f0ff',
-              color: sharedTab === value ? 'white' : '#6b21a8',
+              background: sharedTab === value ? '#6b21a8' : 'transparent',
+              color: sharedTab === value ? 'white' : '#6B7280',
               transition: 'all 0.15s',
             }}
           >
@@ -200,7 +200,7 @@ export default function FlashcardSets() {
             width: 64,
             height: 64,
             borderRadius: '50%',
-            background: '#f5f0ff',
+            background: 'rgba(107,33,168,0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -252,7 +252,7 @@ export default function FlashcardSets() {
                 disabled={isFetchingNextPage}
                 style={{
                   background: 'white',
-                  border: '1px solid #ede9fe',
+                  border: '1px solid #E5E7EB',
                   color: '#6b21a8',
                   padding: '9px 24px',
                   borderRadius: 12,
@@ -280,7 +280,7 @@ export default function FlashcardSets() {
               style={{
                 width: '100%',
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 12,
                 padding: '9px 14px',
                 fontSize: '0.875rem',
@@ -301,7 +301,7 @@ export default function FlashcardSets() {
               style={{
                 width: '100%',
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 12,
                 padding: '9px 14px',
                 fontSize: '0.875rem',
@@ -322,7 +322,7 @@ export default function FlashcardSets() {
               style={{
                 width: '100%',
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 12,
                 padding: '9px 14px',
                 fontSize: '0.875rem',
@@ -372,7 +372,7 @@ function FlashcardSetCard({ set, onDelete }) {
       className="group"
       style={{
         background: 'white',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '20px',
@@ -386,7 +386,7 @@ function FlashcardSetCard({ set, onDelete }) {
         e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.12)';
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.borderColor = '#ede9fe';
+        e.currentTarget.style.borderColor = '#E5E7EB';
         e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
       }}
     >
@@ -396,7 +396,7 @@ function FlashcardSetCard({ set, onDelete }) {
           width: 42,
           height: 42,
           borderRadius: 12,
-          background: '#f5f0ff',
+          background: 'rgba(107,33,168,0.08)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -416,7 +416,7 @@ function FlashcardSetCard({ set, onDelete }) {
                 display: 'flex',
                 alignItems: 'center',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#6b21a8'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
             >
               <Edit3 size={13} />
@@ -468,7 +468,7 @@ function FlashcardSetCard({ set, onDelete }) {
         )}
         <span style={{
           display: 'inline-block',
-          background: '#f5f0ff',
+          background: 'rgba(107,33,168,0.08)',
           color: '#6b21a8',
           fontSize: '0.75rem',
           fontWeight: 500,
@@ -490,7 +490,7 @@ function FlashcardSetCard({ set, onDelete }) {
               gap: 5,
               padding: '6px 14px',
               borderRadius: 10,
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               background: 'white',
               color: '#374151',
               fontSize: '0.8125rem',
@@ -499,7 +499,7 @@ function FlashcardSetCard({ set, onDelete }) {
               transition: 'all 0.12s',
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b21a8'; e.currentTarget.style.color = '#6b21a8'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#ede9fe'; e.currentTarget.style.color = '#374151'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#E5E7EB'; e.currentTarget.style.color = '#374151'; }}
           >
             <Play size={12} /> Study
           </button>

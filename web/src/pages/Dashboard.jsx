@@ -29,7 +29,7 @@ function StatCard({ icon: Icon, label, value, to, accent }) {
     <div
       style={{
         background: '#ffffff',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '1.25rem 1.375rem',
@@ -99,7 +99,7 @@ function NoteCard({ note }) {
       <div
         style={{
           background: '#ffffff',
-          border: '1px solid #ede9fe',
+          border: '1px solid #E5E7EB',
           borderRadius: 16,
           boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
           padding: '1rem 1.125rem',
@@ -109,12 +109,12 @@ function NoteCard({ note }) {
         }}
         onMouseEnter={e => {
           e.currentTarget.style.boxShadow = '0 4px 18px rgba(107,33,168,0.13)';
-          e.currentTarget.style.borderColor = '#c4b5fd';
+          e.currentTarget.style.borderColor = '#6b21a8';
           e.currentTarget.style.transform = 'translateY(-2px)';
         }}
         onMouseLeave={e => {
           e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
-          e.currentTarget.style.borderColor = '#ede9fe';
+          e.currentTarget.style.borderColor = '#E5E7EB';
           e.currentTarget.style.transform = 'translateY(0)';
         }}
       >
@@ -178,7 +178,7 @@ function FlashcardSetCard({ set }) {
       <div
         style={{
           background: '#ffffff',
-          border: '1px solid #ede9fe',
+          border: '1px solid #E5E7EB',
           borderRadius: 16,
           boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
           padding: '1.125rem 1.25rem',
@@ -188,12 +188,12 @@ function FlashcardSetCard({ set }) {
         }}
         onMouseEnter={e => {
           e.currentTarget.style.boxShadow = '0 4px 18px rgba(107,33,168,0.13)';
-          e.currentTarget.style.borderColor = '#c4b5fd';
+          e.currentTarget.style.borderColor = '#6b21a8';
           e.currentTarget.style.transform = 'translateY(-2px)';
         }}
         onMouseLeave={e => {
           e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
-          e.currentTarget.style.borderColor = '#ede9fe';
+          e.currentTarget.style.borderColor = '#E5E7EB';
           e.currentTarget.style.transform = 'translateY(0)';
         }}
       >
@@ -264,7 +264,7 @@ function TaskItem({ task, onView }) {
         alignItems: 'center',
         gap: 12,
         padding: '10px 0',
-        borderBottom: '1px solid #f5f0ff',
+        borderBottom: '1px solid #E5E7EB',
         cursor: 'pointer',
         transition: 'background 0.12s',
       }}
@@ -351,7 +351,7 @@ function AppItem({ app }) {
         alignItems: 'center',
         gap: 12,
         padding: '10px 0',
-        borderBottom: '1px solid #f5f0ff',
+        borderBottom: '1px solid #E5E7EB',
         textDecoration: 'none',
         cursor: 'pointer',
         transition: 'background 0.12s',
@@ -476,7 +476,7 @@ function FeedItem({ item }) {
         alignItems: 'flex-start',
         gap: 12,
         padding: '11px 0',
-        borderBottom: '1px solid #f5f0ff',
+        borderBottom: '1px solid #E5E7EB',
       }}
     >
       <Link to="/users/view" state={{ id: actor?._id }} style={{ flexShrink: 0, marginTop: 1 }}>
@@ -674,10 +674,10 @@ export default function Dashboard() {
         }}
       >
         <StatCard icon={FileText}    label="Notes"           value={notesData?.pagination?.total} to="/notes" />
-        <StatCard icon={BookOpen}    label="Flashcards"      value={flashcardData?.pagination?.total ?? flashcardData?.sets?.length} to="/flashcards" accent="#7c3aed" />
-        <StatCard icon={CheckSquare} label="Open Tasks"      value={openTaskCount}                  to="/tasks" accent="#2563eb" />
-        <StatCard icon={Briefcase}   label="Applications"    value={appsDashboard?.total || apps.length} to="/applications" accent="#0891b2" />
-        <StatCard icon={Activity}    label="New Activity"    value={activityTotal}                  to="/activity" accent="#16a34a" />
+        <StatCard icon={BookOpen}    label="Flashcards"      value={flashcardData?.pagination?.total ?? flashcardData?.sets?.length} to="/flashcards" />
+        <StatCard icon={CheckSquare} label="Open Tasks"      value={openTaskCount}                  to="/tasks" />
+        <StatCard icon={Briefcase}   label="Applications"    value={appsDashboard?.total || apps.length} to="/applications" />
+        <StatCard icon={Activity}    label="New Activity"    value={activityTotal}                  to="/activity" />
       </div>
 
       {/* 2-col grid */}
@@ -692,7 +692,7 @@ export default function Dashboard() {
             ) : notes.length === 0 ? (
               <div
                 style={{
-                  border: '1.5px dashed #ede9fe',
+                  border: '1.5px dashed #E5E7EB',
                   borderRadius: 16,
                   padding: '2.25rem',
                   textAlign: 'center',
@@ -721,7 +721,7 @@ export default function Dashboard() {
             ) : flashcardSets.length === 0 ? (
               <div
                 style={{
-                  border: '1.5px dashed #ede9fe',
+                  border: '1.5px dashed #E5E7EB',
                   borderRadius: 16,
                   padding: '2.25rem',
                   textAlign: 'center',
@@ -743,7 +743,7 @@ export default function Dashboard() {
             <div
               style={{
                 background: '#ffffff',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 16,
                 boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                 padding: '0 20px',
@@ -769,7 +769,7 @@ export default function Dashboard() {
             <div
               style={{
                 background: '#ffffff',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 16,
                 boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                 padding: '0 20px',
@@ -821,7 +821,7 @@ export default function Dashboard() {
             <div
               style={{
                 background: '#ffffff',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 16,
                 boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                 padding: '0 20px',

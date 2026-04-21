@@ -4,7 +4,7 @@ import { Send, ArrowLeft, FileText, BookOpen, CheckSquare, Search, X, Trash2 } f
 import { Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import { useAuth } from '@/context/AuthContext';
@@ -155,10 +155,10 @@ export default function Conversation({ conversationId }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header */}
-      <div style={{ borderBottom: '1px solid #ede9fe', background: '#fff', flexShrink: 0 }}>
+      <div style={{ borderBottom: '1px solid #E5E7EB', background: '#fff', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px' }}>
           <Link to="/messages" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, color: '#a087b0', textDecoration: 'none', flexShrink: 0, transition: 'background 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <ArrowLeft size={18} />
@@ -171,7 +171,7 @@ export default function Conversation({ conversationId }) {
               style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flex: 1 }}
               className="hover:opacity-80 transition-opacity"
             >
-              <Avatar name={fullName(other)} src={other?.avatarUrl || null} size="sm" />
+              <AppAvatar name={fullName(other)} src={other?.avatarUrl || null} size="sm" />
               <div>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 700, fontSize: 14, color: '#111827', lineHeight: 1.2 }}>
                   {fullName(other)}<VerifiedBadge roles={other?.roles} />
@@ -192,7 +192,7 @@ export default function Conversation({ conversationId }) {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 32, height: 32, borderRadius: 8, border: 'none',
-              background: showSearch ? '#f5f0ff' : 'transparent',
+              background: showSearch ? 'rgba(107,33,168,0.08)' : 'transparent',
               color: showSearch ? '#6b21a8' : '#a087b0',
               cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s',
             }}
@@ -228,7 +228,7 @@ export default function Conversation({ conversationId }) {
               disabled={deleteConversationMutation.isPending}
               style={{
                 padding: '5px 14px', borderRadius: 8, border: 'none',
-                background: '#dc2626', color: '#fff', fontSize: 12, fontWeight: 600,
+                background: 'transparent', border: '1px solid #E5E7EB', color: '#dc2626', fontSize: 12, fontWeight: 600,
                 cursor: 'pointer', flexShrink: 0,
               }}
             >
@@ -237,7 +237,7 @@ export default function Conversation({ conversationId }) {
             <button
               onClick={() => setShowDeleteConvConfirm(false)}
               style={{
-                padding: '5px 10px', borderRadius: 8, border: '1px solid #ede9fe',
+                padding: '5px 10px', borderRadius: 8, border: '1px solid #E5E7EB',
                 background: 'transparent', color: '#a087b0', fontSize: 12, fontWeight: 600,
                 cursor: 'pointer', flexShrink: 0,
               }}
@@ -258,11 +258,11 @@ export default function Conversation({ conversationId }) {
                 placeholder="Search messages..."
                 style={{
                   width: '100%', paddingLeft: 30, paddingRight: 10, paddingTop: 7, paddingBottom: 7,
-                  borderRadius: 10, border: '1px solid #ede9fe', background: '#fef7ff',
+                  borderRadius: 10, border: '1px solid #E5E7EB', background: '#F8F9FA',
                   fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box',
                 }}
                 onFocus={e => e.target.style.borderColor = '#6b21a8'}
-                onBlur={e => e.target.style.borderColor = '#ede9fe'}
+                onBlur={e => e.target.style.borderColor = '#E5E7EB'}
               />
             </div>
             {msgSearch && (
@@ -281,7 +281,7 @@ export default function Conversation({ conversationId }) {
       </div>
 
       {/* Messages */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px', background: '#fef7ff' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px', background: '#F8F9FA' }}>
         {isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {Array.from({ length: 5 }).map((_, i) => (
@@ -294,7 +294,7 @@ export default function Conversation({ conversationId }) {
         ) : messages.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(107,33,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
                 <Send size={20} style={{ color: '#a087b0' }} />
               </div>
               <p style={{ fontSize: 13, color: '#a087b0' }}>No messages yet. Say hello!</p>
@@ -329,7 +329,7 @@ export default function Conversation({ conversationId }) {
                 {/* Avatar slot */}
                 <div style={{ width: 28, flexShrink: 0 }}>
                   {!isOwn && isLastInGroup && (
-                    <Avatar name={senderName} src={msg.senderId?.avatarUrl || null} size="sm" />
+                    <AppAvatar name={senderName} src={msg.senderId?.avatarUrl || null} size="sm" />
                   )}
                 </div>
 
@@ -364,7 +364,7 @@ export default function Conversation({ conversationId }) {
                           lineHeight: 1.5,
                           background: isOwn ? '#6b21a8' : '#fff',
                           color: isOwn ? '#fff' : '#111827',
-                          border: isOwn ? 'none' : '1px solid #ede9fe',
+                          border: isOwn ? 'none' : '1px solid #E5E7EB',
                           borderRadius: bubbleRadius,
                           wordBreak: 'break-word',
                           boxShadow: isOwn ? 'none' : '0 1px 4px rgba(107,33,168,0.06)',
@@ -379,7 +379,7 @@ export default function Conversation({ conversationId }) {
                               gap: 6,
                               padding: '5px 12px',
                               borderRadius: 8,
-                              background: isOwn ? 'rgba(255,255,255,0.2)' : '#f5f0ff',
+                              background: isOwn ? 'rgba(255,255,255,0.2)' : 'rgba(107,33,168,0.08)',
                               color: isOwn ? '#fff' : '#6b21a8',
                               fontSize: 12,
                               fontWeight: 600,
@@ -400,7 +400,7 @@ export default function Conversation({ conversationId }) {
                         lineHeight: 1.5,
                         background: isOwn ? '#6b21a8' : '#fff',
                         color: isOwn ? '#fff' : '#111827',
-                        border: isOwn ? 'none' : '1px solid #ede9fe',
+                        border: isOwn ? 'none' : '1px solid #E5E7EB',
                         borderRadius: bubbleRadius,
                         wordBreak: 'break-word',
                         boxShadow: isOwn ? 'none' : '0 1px 4px rgba(107,33,168,0.06)',
@@ -443,11 +443,11 @@ export default function Conversation({ conversationId }) {
 
       {/* Input bar */}
       {user?.isDemo ? (
-        <div style={{ flexShrink: 0, padding: '12px 16px', borderTop: '1px solid #ede9fe', background: '#fef7ff', textAlign: 'center' }}>
+        <div style={{ flexShrink: 0, padding: '12px 16px', borderTop: '1px solid #E5E7EB', background: '#F8F9FA', textAlign: 'center' }}>
           <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>Messaging is view-only in the demo account.</p>
         </div>
       ) : (
-        <div style={{ flexShrink: 0, display: 'flex', gap: 10, padding: '12px 16px', borderTop: '1px solid #ede9fe', background: '#fff', alignItems: 'center' }}>
+        <div style={{ flexShrink: 0, display: 'flex', gap: 10, padding: '12px 16px', borderTop: '1px solid #E5E7EB', background: '#fff', alignItems: 'center' }}>
           <input
             type="text"
             placeholder="Message..."
@@ -460,15 +460,15 @@ export default function Conversation({ conversationId }) {
               flex: 1,
               padding: '10px 18px',
               borderRadius: 24,
-              border: '1px solid #ede9fe',
-              background: '#fef7ff',
+              border: '1px solid #E5E7EB',
+              background: '#F8F9FA',
               fontSize: 14,
               color: '#111827',
               outline: 'none',
               transition: 'border-color 0.15s',
             }}
             onFocus={e => e.target.style.borderColor = '#6b21a8'}
-            onBlur={e => e.target.style.borderColor = '#ede9fe'}
+            onBlur={e => e.target.style.borderColor = '#E5E7EB'}
           />
           <button
             onClick={handleSend}
@@ -477,7 +477,7 @@ export default function Conversation({ conversationId }) {
               width: 40,
               height: 40,
               borderRadius: '50%',
-              background: message.trim() ? '#6b21a8' : '#f5f0ff',
+              background: message.trim() ? '#6b21a8' : 'rgba(107,33,168,0.08)',
               border: 'none',
               cursor: message.trim() ? 'pointer' : 'default',
               display: 'flex',

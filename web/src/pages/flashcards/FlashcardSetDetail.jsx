@@ -190,7 +190,7 @@ export default function FlashcardSetDetail() {
               alignItems: 'center',
               transition: 'background 0.12s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#111827'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#111827'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
           >
             <ArrowLeft size={18} />
@@ -230,7 +230,7 @@ export default function FlashcardSetDetail() {
                 <button
                   onClick={() => { setTitleDraft(set.title); setEditingTitle(true); }}
                   style={{ padding: 4, borderRadius: 6, border: 'none', background: 'transparent', color: '#a087b0', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0 }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#6b21a8'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
                 >
                   <Pencil size={14} />
@@ -254,7 +254,7 @@ export default function FlashcardSetDetail() {
               gap: 6,
               padding: '7px 14px',
               borderRadius: 12,
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               background: 'white',
               color: '#374151',
               fontSize: '0.8125rem',
@@ -276,7 +276,7 @@ export default function FlashcardSetDetail() {
               gap: 6,
               padding: '7px 14px',
               borderRadius: 12,
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               background: 'white',
               color: '#374151',
               fontSize: '0.8125rem',
@@ -306,13 +306,13 @@ export default function FlashcardSetDetail() {
               width: 34,
               height: 34,
               borderRadius: 10,
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               background: 'white',
               color: '#a087b0',
               cursor: 'pointer',
             }}
             onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = '#fecaca'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#ede9fe'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#E5E7EB'; }}
             title="Delete set"
           >
             <Trash2 size={15} />
@@ -328,7 +328,7 @@ export default function FlashcardSetDetail() {
               gap: 6,
               padding: '7px 14px',
               borderRadius: 12,
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               background: 'white',
               color: '#374151',
               fontSize: '0.8125rem',
@@ -404,8 +404,8 @@ export default function FlashcardSetDetail() {
               fontWeight: 500,
               border: 'none',
               cursor: 'pointer',
-              background: activeTab === tab ? '#6b21a8' : '#f5f0ff',
-              color: activeTab === tab ? 'white' : '#6b21a8',
+              background: activeTab === tab ? '#6b21a8' : 'transparent',
+              color: activeTab === tab ? 'white' : '#6B7280',
               textTransform: 'capitalize',
               transition: 'all 0.15s',
             }}
@@ -423,7 +423,7 @@ export default function FlashcardSetDetail() {
               width: 56,
               height: 56,
               borderRadius: '50%',
-              background: '#f5f0ff',
+              background: 'rgba(107,33,168,0.08)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -443,7 +443,7 @@ export default function FlashcardSetDetail() {
                 className="group"
                 style={{
                   background: 'white',
-                  border: '1px solid #ede9fe',
+                  border: '1px solid #E5E7EB',
                   borderRadius: 16,
                   boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                   padding: '18px 20px',
@@ -455,7 +455,7 @@ export default function FlashcardSetDetail() {
                   e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.12)';
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = '#ede9fe';
+                  e.currentTarget.style.borderColor = '#E5E7EB';
                   e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
                 }}
               >
@@ -474,7 +474,7 @@ export default function FlashcardSetDetail() {
                         display: 'flex',
                         alignItems: 'center',
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#6b21a8'; }}
                       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
                     >
                       <Pencil size={12} />
@@ -500,7 +500,7 @@ export default function FlashcardSetDetail() {
                 )}
 
                 {/* Front */}
-                <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #ede9fe' }}>
+                <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #E5E7EB' }}>
                   <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#6b21a8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
                     Front
                   </p>
@@ -545,7 +545,7 @@ export default function FlashcardSetDetail() {
       {/* Comments section */}
       <div style={{
         background: 'white',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '24px 28px',
@@ -565,7 +565,7 @@ export default function FlashcardSetDetail() {
               style={{
                 width: '100%',
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 12,
                 padding: '9px 14px',
                 fontSize: '0.875rem',
@@ -588,7 +588,7 @@ export default function FlashcardSetDetail() {
               style={{
                 width: '100%',
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 12,
                 padding: '9px 14px',
                 fontSize: '0.875rem',
@@ -661,7 +661,7 @@ export default function FlashcardSetDetail() {
               style={{
                 width: '100%',
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 12,
                 padding: '9px 14px',
                 fontSize: '0.875rem',
@@ -684,7 +684,7 @@ export default function FlashcardSetDetail() {
               style={{
                 width: '100%',
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 12,
                 padding: '9px 14px',
                 fontSize: '0.875rem',
@@ -741,7 +741,7 @@ function SessionRow({ session }) {
   return (
     <div style={{
       background: 'white',
-      border: `1px solid ${expanded ? '#6b21a8' : '#ede9fe'}`,
+      border: `1px solid ${expanded ? '#6b21a8' : '#E5E7EB'}`,
       borderRadius: 14,
       boxShadow: '0 1px 4px rgba(107,33,168,0.04)',
       overflow: 'hidden',
@@ -785,7 +785,7 @@ function SessionRow({ session }) {
       </div>
 
       {expanded && (
-        <div style={{ borderTop: '1px solid #ede9fe', padding: '12px 18px 16px', background: '#faf8ff' }}>
+        <div style={{ borderTop: '1px solid #E5E7EB', padding: '12px 18px 16px', background: '#faf8ff' }}>
           {detailLoading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {Array.from({ length: 3 }).map((_, i) => (

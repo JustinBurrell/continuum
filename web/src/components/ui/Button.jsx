@@ -3,15 +3,15 @@ import { Loader2 } from 'lucide-react';
 
 const variants = {
   primary:
-    'bg-[#6b21a8] text-white font-semibold hover:bg-[#5b18a0] rounded-xl',
+    'bg-[#6b21a8] text-white font-semibold hover:bg-[#3b0764] rounded-xl',
   outline:
-    'border border-[#ede9fe] bg-white text-[#111827] hover:bg-[#f5f0ff] rounded-xl',
+    'border border-[#e5e7eb] bg-white text-[#111827] hover:bg-[#f3f4f6] rounded-xl',
   ghost:
-    'bg-transparent text-[#6b21a8] hover:bg-[#f5f0ff] rounded-xl',
+    'bg-transparent text-[#6b21a8] hover:bg-[rgba(107,33,168,0.08)] rounded-xl',
   danger:
-    'bg-[#dc2626] text-white hover:bg-[#b91c1c] rounded-xl',
+    'bg-transparent border border-[#e5e7eb] text-[#dc2626] hover:bg-[#fee2e2] hover:border-[#dc2626] rounded-xl',
   secondary:
-    'bg-[#f5f0ff] text-[#6b21a8] hover:bg-[#ede9fe] rounded-xl',
+    'bg-white border border-[#e5e7eb] text-[#111827] hover:bg-[#f3f4f6] rounded-xl',
 };
 
 const shadowMap = {

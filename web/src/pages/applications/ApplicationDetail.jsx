@@ -18,7 +18,7 @@ const STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn
 const STAGE_STYLES = {
   draft:     { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
   applied:   { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
-  interview: { bg: '#fdf4ff', color: '#7c3aed', border: '#e9d5ff' },
+  interview: { bg: 'rgba(107,33,168,0.08)', color: '#6b21a8', border: 'rgba(107,33,168,0.2)' },
   offer:     { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
   rejected:  { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
   withdrawn: { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
@@ -29,7 +29,7 @@ const emptyReminder = { description: '', date: '' };
 
 const cardStyle = {
   background: '#fff',
-  border: '1px solid #ede9fe',
+  border: '1px solid #E5E7EB',
   borderRadius: 16,
   boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
   padding: '20px 24px',
@@ -142,7 +142,7 @@ export default function ApplicationDetail() {
             padding: 8,
             borderRadius: 10,
             border: 'none',
-            background: '#f5f0ff',
+            background: 'rgba(107,33,168,0.08)',
             cursor: 'pointer',
             color: '#6b21a8',
             display: 'flex',
@@ -168,11 +168,11 @@ export default function ApplicationDetail() {
               onClick={() => setShowDeleteConfirm(true)}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: 32, height: 32, borderRadius: 8, border: '1px solid #ede9fe',
+                width: 32, height: 32, borderRadius: 8, border: '1px solid #E5E7EB',
                 background: 'white', color: '#a087b0', cursor: 'pointer',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = '#fecaca'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#ede9fe'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#E5E7EB'; }}
               title="Delete application"
             >
               <Trash2 size={15} />
@@ -192,9 +192,10 @@ export default function ApplicationDetail() {
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => setShowDeleteConfirm(false)} className="flex-1">Cancel</Button>
             <Button
+              variant="danger"
               onClick={() => deleteMutation.mutate()}
               loading={deleteMutation.isPending}
-              style={{ background: '#ef4444', flex: 1 }}
+              style={{ flex: 1 }}
             >
               Delete
             </Button>
@@ -312,7 +313,7 @@ export default function ApplicationDetail() {
             </div>
 
             {app.notes && (
-              <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #ede9fe' }}>
+              <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #E5E7EB' }}>
                 <p style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Notes</p>
                 <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{app.notes}</p>
               </div>
@@ -346,7 +347,7 @@ export default function ApplicationDetail() {
                 alignItems: 'flex-start',
                 gap: 12,
                 padding: '12px 14px',
-                background: '#f5f0ff',
+                background: 'rgba(107,33,168,0.08)',
                 borderRadius: 12,
               }}>
                 <div style={{
@@ -383,7 +384,7 @@ export default function ApplicationDetail() {
         )}
 
         {showContactForm && (
-          <div style={{ border: '1px solid #ede9fe', borderRadius: 12, padding: '14px 16px' }} className="space-y-3">
+          <div style={{ border: '1px solid #E5E7EB', borderRadius: 12, padding: '14px 16px' }} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-secondary block mb-1">Name *</label>
@@ -502,7 +503,7 @@ export default function ApplicationDetail() {
         )}
 
         {showReminderForm && (
-          <div style={{ border: '1px solid #ede9fe', borderRadius: 12, padding: '14px 16px' }} className="space-y-3">
+          <div style={{ border: '1px solid #E5E7EB', borderRadius: 12, padding: '14px 16px' }} className="space-y-3">
             <div>
               <label className="text-xs font-medium text-secondary block mb-1">Description *</label>
               <textarea

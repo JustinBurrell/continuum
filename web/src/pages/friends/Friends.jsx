@@ -6,7 +6,7 @@ import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import FriendsSkeleton from '@/components/skeletons/FriendsSkeleton';
@@ -132,8 +132,8 @@ export default function Friends() {
                 border: 'none',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
-                background: active ? '#6b21a8' : '#f5f0ff',
-                color: active ? '#fff' : '#6b21a8',
+                background: active ? '#6b21a8' : 'transparent',
+                color: active ? '#fff' : '#6b7280',
               }}
             >
               {t.label}
@@ -168,7 +168,7 @@ export default function Friends() {
                 paddingTop: 9,
                 paddingBottom: 9,
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 12,
                 fontSize: '0.875rem',
                 color: '#111827',
@@ -188,7 +188,7 @@ export default function Friends() {
                 width: 64,
                 height: 64,
                 borderRadius: '50%',
-                background: '#f5f0ff',
+                background: 'rgba(107,33,168,0.08)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -211,7 +211,7 @@ export default function Friends() {
                     key={f._id}
                     style={{
                       background: '#fff',
-                      border: '1px solid #ede9fe',
+                      border: '1px solid #E5E7EB',
                       borderRadius: 16,
                       boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                       padding: '14px 18px',
@@ -221,7 +221,7 @@ export default function Friends() {
                     }}
                   >
                     <Link to="/users/view" state={{ id: friendUser._id }} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
-                      <Avatar name={fullName(friendUser)} src={friendUser.avatarUrl} size="md" />
+                      <AppAvatar name={fullName(friendUser)} src={friendUser.avatarUrl} size="md" />
                       <div style={{ minWidth: 0 }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 700, color: '#111827', fontSize: 14 }}>
                           {fullName(friendUser)}<VerifiedBadge roles={friendUser.roles} />
@@ -243,7 +243,7 @@ export default function Friends() {
                         style={{
                           padding: '6px 10px',
                           borderRadius: 8,
-                          border: '1px solid #ede9fe',
+                          border: '1px solid #E5E7EB',
                           background: 'transparent',
                           cursor: 'pointer',
                           color: '#a087b0',
@@ -252,7 +252,7 @@ export default function Friends() {
                           transition: 'color 0.15s, border-color 0.15s',
                         }}
                         onMouseEnter={e => { e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.borderColor = '#fecaca'; }}
-                        onMouseLeave={e => { e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#ede9fe'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#E5E7EB'; }}
                       >
                         <UserMinus size={14} />
                       </button>
@@ -285,7 +285,7 @@ export default function Friends() {
                     key={req._id}
                     style={{
                       background: '#fff',
-                      border: '1px solid #ede9fe',
+                      border: '1px solid #E5E7EB',
                       borderRadius: 16,
                       boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                       padding: '14px 18px',
@@ -295,7 +295,7 @@ export default function Friends() {
                     }}
                   >
                     <Link to="/users/view" state={{ id: requester?._id }} style={{ flexShrink: 0 }}>
-                      <Avatar name={fullName(requester)} src={requester?.avatarUrl} className="hover:opacity-80 transition-opacity" />
+                      <AppAvatar name={fullName(requester)} src={requester?.avatarUrl} className="hover:opacity-80 transition-opacity" />
                     </Link>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Link to="/users/view" state={{ id: requester?._id }} style={{ textDecoration: 'none' }}>
@@ -349,7 +349,7 @@ export default function Friends() {
                     key={req._id}
                     style={{
                       background: '#fff',
-                      border: '1px solid #ede9fe',
+                      border: '1px solid #E5E7EB',
                       borderRadius: 16,
                       boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                       padding: '14px 18px',
@@ -359,7 +359,7 @@ export default function Friends() {
                     }}
                   >
                     <Link to="/users/view" state={{ id: recipient?._id }} style={{ flexShrink: 0 }}>
-                      <Avatar name={fullName(recipient)} src={recipient?.avatarUrl} className="hover:opacity-80 transition-opacity" />
+                      <AppAvatar name={fullName(recipient)} src={recipient?.avatarUrl} className="hover:opacity-80 transition-opacity" />
                     </Link>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Link to="/users/view" state={{ id: recipient?._id }} style={{ textDecoration: 'none' }}>
@@ -407,7 +407,7 @@ export default function Friends() {
                     key={u._id}
                     style={{
                       background: '#fff',
-                      border: '1px solid #ede9fe',
+                      border: '1px solid #E5E7EB',
                       borderRadius: 14,
                       boxShadow: '0 1px 6px rgba(107,33,168,0.05)',
                       padding: '12px 16px',
@@ -417,7 +417,7 @@ export default function Friends() {
                     }}
                   >
                     <Link to="/users/view" state={{ id: u._id }} style={{ flexShrink: 0 }}>
-                      <Avatar name={fullName(u)} src={u.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
+                      <AppAvatar name={fullName(u)} src={u.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
                     </Link>
                     <div style={{ flex: 1 }}>
                       <Link to="/users/view" state={{ id: u._id }} style={{ textDecoration: 'none' }}>

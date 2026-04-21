@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getInitials, cn } from '@/lib/utils';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import queryClient from '@/lib/queryClient';
 import api from '@/lib/api';
 
@@ -58,7 +58,7 @@ export default function Sidebar() {
   return (
     <aside
       className="flex flex-col flex-shrink-0 h-screen"
-      style={{ width: 240, background: '#ffffff', borderRight: '1px solid #ede9fe' }}
+      style={{ width: 240, background: '#ffffff', borderRight: '1px solid #E5E7EB' }}
     >
       {/* Brand */}
       <div style={{ padding: '20px 16px 16px' }}>
@@ -97,7 +97,7 @@ export default function Sidebar() {
                       fontSize: 13,
                       fontWeight: isActive ? 600 : 400,
                       color: isActive ? '#6b21a8' : '#4b5563',
-                      background: isActive ? '#f5f0ff' : 'transparent',
+                      background: isActive ? 'rgba(107,33,168,0.08)' : 'transparent',
                       borderLeft: isActive ? '3px solid #6b21a8' : '3px solid transparent',
                       paddingLeft: isActive ? 7 : 10,
                       textDecoration: 'none',
@@ -105,7 +105,7 @@ export default function Sidebar() {
                     })}
                     onMouseEnter={e => {
                       if (!e.currentTarget.getAttribute('data-active')) {
-                        e.currentTarget.style.background = '#f5f0ff';
+                        e.currentTarget.style.background = 'rgba(107,33,168,0.08)';
                       }
                       prefetchMap[to]?.();
                     }}
@@ -130,7 +130,7 @@ export default function Sidebar() {
       </nav>
 
       {/* User footer */}
-      <div style={{ padding: 12, borderTop: '1px solid #ede9fe' }}>
+      <div style={{ padding: 12, borderTop: '1px solid #E5E7EB' }}>
         <button
           onClick={() => navigate('/profile')}
           className="w-full text-left transition-colors"
@@ -145,10 +145,10 @@ export default function Sidebar() {
             cursor: 'pointer',
             width: '100%',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          <Avatar name={fullName} src={user?.avatarUrl} size="sm" />
+          <AppAvatar name={fullName} src={user?.avatarUrl} size="sm" />
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
               fontSize: 13,

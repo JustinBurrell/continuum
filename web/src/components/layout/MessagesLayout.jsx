@@ -5,7 +5,7 @@ import { Plus, Search, MessageCircle } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { useAuth } from '@/context/AuthContext';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
@@ -67,14 +67,14 @@ export default function MessagesLayout() {
   return (
     <div style={{ display: 'flex', height: 'calc(100vh)', marginTop: -32, marginLeft: -32, marginRight: -32 }}>
       {/* Left panel */}
-      <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#fff', borderRight: '1px solid #ede9fe' }}>
+      <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#fff', borderRight: '1px solid #E5E7EB' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 12px', borderBottom: '1px solid #ede9fe' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 12px', borderBottom: '1px solid #E5E7EB' }}>
           <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Messages</h2>
           <button
             onClick={() => setShowNew(true)}
             style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <Plus size={16} style={{ color: '#6b21a8' }} />
@@ -82,7 +82,7 @@ export default function MessagesLayout() {
         </div>
 
         {/* Search input */}
-        <div style={{ padding: '10px 12px', borderBottom: '1px solid #ede9fe' }}>
+        <div style={{ padding: '10px 12px', borderBottom: '1px solid #E5E7EB' }}>
           <div style={{ position: 'relative' }}>
             <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
             <input
@@ -90,9 +90,9 @@ export default function MessagesLayout() {
               placeholder="Search conversations..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{ width: '100%', padding: '7px 10px 7px 30px', borderRadius: 20, border: '1px solid #ede9fe', background: '#fef7ff', fontSize: 12, color: '#111827', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
+              style={{ width: '100%', padding: '7px 10px 7px 30px', borderRadius: 20, border: '1px solid #E5E7EB', background: '#F8F9FA', fontSize: 12, color: '#111827', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
               onFocus={e => e.target.style.borderColor = '#6b21a8'}
-              onBlur={e => e.target.style.borderColor = '#ede9fe'}
+              onBlur={e => e.target.style.borderColor = '#E5E7EB'}
             />
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function MessagesLayout() {
             </div>
           ) : filteredConversations.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: '0 24px 64px', textAlign: 'center' }}>
-              <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(107,33,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
                 <MessageCircle size={22} style={{ color: '#6b21a8' }} />
               </div>
               <p style={{ fontSize: 13, color: '#111827', fontWeight: 600, margin: '0 0 4px' }}>No conversations yet</p>
@@ -143,16 +143,16 @@ export default function MessagesLayout() {
                     height: 72,
                     padding: '0 16px',
                     cursor: 'pointer',
-                    background: isActive ? '#f5f0ff' : 'transparent',
+                    background: isActive ? 'rgba(107,33,168,0.08)' : 'transparent',
                     borderLeft: isActive ? '3px solid #6b21a8' : '3px solid transparent',
-                    borderBottom: '1px solid #ede9fe',
+                    borderBottom: '1px solid #E5E7EB',
                     transition: 'background 0.15s',
                     boxSizing: 'border-box',
                   }}
-                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#fef7ff'; }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F8F9FA'; }}
                   onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <Avatar name={getName(other)} src={other?.avatarUrl} size="md" />
+                  <AppAvatar name={getName(other)} src={other?.avatarUrl} size="md" />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
                       <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -183,7 +183,7 @@ export default function MessagesLayout() {
       </div>
 
       {/* Right panel */}
-      <div style={{ flex: 1, overflow: 'hidden', background: '#fef7ff' }}>
+      <div style={{ flex: 1, overflow: 'hidden', background: '#F8F9FA' }}>
         {activeConversationId ? (
           <Conversation conversationId={activeConversationId} />
         ) : (
@@ -201,9 +201,9 @@ export default function MessagesLayout() {
               value={friendSearch}
               onChange={e => setFriendSearch(e.target.value)}
               autoFocus
-              style={{ width: '100%', padding: '9px 12px 9px 34px', borderRadius: 10, border: '1px solid #ede9fe', background: '#fef7ff', fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
+              style={{ width: '100%', padding: '9px 12px 9px 34px', borderRadius: 10, border: '1px solid #E5E7EB', background: '#F8F9FA', fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
               onFocus={e => e.target.style.borderColor = '#6b21a8'}
-              onBlur={e => e.target.style.borderColor = '#ede9fe'}
+              onBlur={e => e.target.style.borderColor = '#E5E7EB'}
             />
           </div>
           <div style={{ maxHeight: 256, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -219,10 +219,10 @@ export default function MessagesLayout() {
                     key={f._id}
                     onClick={() => newConvMutation.mutate(friend?._id)}
                     style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'background 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
-                    <Avatar name={getName(friend)} src={friend?.avatarUrl} size="sm" />
+                    <AppAvatar name={getName(friend)} src={friend?.avatarUrl} size="sm" />
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0, lineHeight: 1.3 }}>{getName(friend)}</p>
                       <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>@{friend?.username}</p>
@@ -241,7 +241,7 @@ export default function MessagesLayout() {
 export function MessagesEmpty() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-      <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+      <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(107,33,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
         <MessageCircle size={28} style={{ color: '#6b21a8' }} />
       </div>
       <p style={{ fontFamily: 'Georgia, serif', fontSize: 18, fontWeight: 700, color: '#6b21a8', margin: '0 0 6px' }}>Select a conversation</p>

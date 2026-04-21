@@ -49,7 +49,7 @@ export default function FlashcardHistory() {
               alignItems: 'center',
               transition: 'background 0.12s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#111827'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#111827'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
           >
             <ArrowLeft size={18} />
@@ -65,8 +65,8 @@ export default function FlashcardHistory() {
         {streak >= 1 && (
           <div style={{
             flex: '1 1 160px',
-            background: streak >= 7 ? '#fef9c3' : '#f5f0ff',
-            border: `1px solid ${streak >= 7 ? '#fde047' : '#ede9fe'}`,
+            background: '#FFFFFF',
+            border: '1px solid #E5E7EB',
             borderRadius: 14,
             padding: '14px 18px',
             display: 'flex',
@@ -83,7 +83,7 @@ export default function FlashcardHistory() {
         <div style={{
           flex: '1 1 120px',
           background: 'white',
-          border: '1px solid #ede9fe',
+          border: '1px solid #E5E7EB',
           borderRadius: 14,
           padding: '14px 18px',
         }}>
@@ -94,7 +94,7 @@ export default function FlashcardHistory() {
           <div style={{
             flex: '1 1 120px',
             background: 'white',
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 14,
             padding: '14px 18px',
           }}>
@@ -106,7 +106,7 @@ export default function FlashcardHistory() {
           <div style={{
             flex: '1 1 120px',
             background: 'white',
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 14,
             padding: '14px 18px',
           }}>
@@ -129,7 +129,7 @@ export default function FlashcardHistory() {
             width: 56,
             height: 56,
             borderRadius: '50%',
-            background: '#f5f0ff',
+            background: 'rgba(107,33,168,0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -161,7 +161,7 @@ export default function FlashcardHistory() {
             style={{
               padding: '7px 16px',
               borderRadius: 10,
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               background: 'white',
               color: page === 1 ? '#c4b5d4' : '#374151',
               fontSize: '0.875rem',
@@ -180,7 +180,7 @@ export default function FlashcardHistory() {
             style={{
               padding: '7px 16px',
               borderRadius: 10,
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               background: 'white',
               color: page === totalPages ? '#c4b5d4' : '#374151',
               fontSize: '0.875rem',
@@ -220,7 +220,7 @@ function HistoryRow({ session }) {
   return (
     <div style={{
       background: 'white',
-      border: `1px solid ${expanded ? '#6b21a8' : '#ede9fe'}`,
+      border: `1px solid ${expanded ? '#6b21a8' : '#E5E7EB'}`,
       borderRadius: 14,
       boxShadow: '0 1px 4px rgba(107,33,168,0.04)',
       overflow: 'hidden',
@@ -300,7 +300,7 @@ function HistoryRow({ session }) {
       {/* Expanded card-by-card breakdown */}
       {expanded && (
         <div style={{
-          borderTop: '1px solid #ede9fe',
+          borderTop: '1px solid #E5E7EB',
           padding: '12px 18px 16px',
           background: '#faf8ff',
         }}>
