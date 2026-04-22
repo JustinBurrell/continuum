@@ -2,6 +2,7 @@ const { PDFParse } = require('pdf-parse');
 const Resume = require('../models/Resume');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
+const posthog = require('../lib/posthog');
 
 // ============================================================
 // RESUMES CONTROLLER
@@ -173,6 +174,15 @@ exports.generateFeedback = async (req, res) => {
         },
         { new: true }
     );
+
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'resume_feedback_generated',
+        properties: {
+            platform: 'web',
+            resume_id: resume._id.toString(),
+        },
+    });
 
     res.status(200).json({ success: true, feedback: updated.feedback[updated.feedback.length - 1], resume: updated });
 };

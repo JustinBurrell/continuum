@@ -21,6 +21,13 @@ const { PDFParse } = require('pdf-parse');
 
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const sanitizeHtml = require('sanitize-html');
+const posthog = require('../lib/posthog');
+
+function getNoteSource(note) {
+    if (note.googleDocId) return 'google_doc';
+    if (note.pdfUrl) return 'pdf_upload';
+    return 'manual';
+}
 
 // ----------------------------------------
 // Helper: handleDriveError
@@ -508,6 +515,17 @@ exports.generateSummary = async (req, res) => {
     // Summary is fast — always run synchronously for instant UX
     const result = await groqService.generateSummary(note.content, req.user._id);
 
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'note_summary_generated',
+        properties: {
+            platform: 'web',
+            note_id: note._id.toString(),
+            source: getNoteSource(note),
+            note_type: note.type,
+        },
+    });
+
     if (isOwner) {
         const updatedNote = await Note.findByIdAndUpdate(
             note._id,
@@ -599,6 +617,19 @@ exports.generateFlashcardsFromNote = async (req, res) => {
     }
 
     const populatedSet = await FlashcardSet.findById(set._id).populate('flashcards');
+
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'flashcard_set_generated',
+        properties: {
+            platform: 'web',
+            set_id: set._id.toString(),
+            note_id: note._id.toString(),
+            source: getNoteSource(note),
+            card_count: result.cards.length,
+            generation_path: 'from_note',
+        },
+    });
 
     res.status(201).json({ success: true, set: populatedSet });
 };
