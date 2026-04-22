@@ -200,7 +200,7 @@ export default function NotesList() {
       {/* Page header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '2rem', color: '#111827', fontWeight: 700, lineHeight: 1.2 }}>
+          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', color: '#111827', fontWeight: 700, lineHeight: 1.2 }}>
             Notes
           </h1>
           <p style={{ color: '#6B7280', fontSize: '0.875rem', marginTop: 2 }}>
