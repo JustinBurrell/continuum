@@ -94,7 +94,20 @@ Each feature follows the same layered pattern:
    WEB_CLIENT_ID=<your Google Web OAuth client ID>
    ```
 
-   For local backend development, omit `BASE_URL` — the build script auto-detects `PORT` from `backend/.env` and uses `http://10.0.2.2:<PORT>/api/`. For production or to test the Google Drive CCT Picker (which requires HTTPS), set `BASE_URL=https://api.usecontinuum.dev/api/`.
+   For local backend development, omit `BASE_URL` — the build script auto-detects `PORT` from `backend/.env` and uses `http://10.0.2.2:<PORT>/api/`.
+
+   **Google Drive CCT Picker in the emulator requires ngrok.** Google's GIS blocks `requestAccessToken` from HTTP origins (`http://10.0.2.2:5001` is not a valid public domain and cannot be registered as an authorized JavaScript origin). Set `BASE_URL` to the ngrok tunnel so the picker page is served over HTTPS from an origin already registered in Cloud Console:
+
+   ```properties
+   BASE_URL=https://compacter-groovy-conclude.ngrok-free.dev/api/
+   ```
+
+   Then start ngrok before running the app:
+   ```bash
+   ngrok http 5001 --domain=compacter-groovy-conclude.ngrok-free.dev
+   ```
+
+   For production, set `BASE_URL=https://api.usecontinuum.dev/api/`. If you skip `BASE_URL` entirely (emulator default), use the URL paste fallback instead of the file picker.
 
 4. Sync Gradle: File > Sync Project with Gradle Files
 
