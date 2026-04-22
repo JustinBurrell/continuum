@@ -32,10 +32,10 @@ function StatCard({ icon: Icon, label, value, to, accent }) {
         border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
-        padding: '1.25rem 1.375rem',
+        padding: '1rem 1.125rem',
         display: 'flex',
         alignItems: 'center',
-        gap: 16,
+        gap: 12,
         transition: 'box-shadow 0.18s, transform 0.18s',
         cursor: to ? 'pointer' : 'default',
       }}
@@ -52,9 +52,9 @@ function StatCard({ icon: Icon, label, value, to, accent }) {
     >
       <div
         style={{
-          width: 44,
-          height: 44,
-          borderRadius: 12,
+          width: 38,
+          height: 38,
+          borderRadius: 10,
           background: `${accentColor}14`,
           display: 'flex',
           alignItems: 'center',
@@ -62,17 +62,17 @@ function StatCard({ icon: Icon, label, value, to, accent }) {
           flexShrink: 0,
         }}
       >
-        <Icon size={19} style={{ color: accentColor }} />
+        <Icon size={17} style={{ color: accentColor }} />
       </div>
       <div>
         <p
           style={{
             fontFamily: 'Fraunces, Georgia, serif',
-            fontSize: '1.75rem',
+            fontSize: '1.375rem',
             fontWeight: 700,
             color: '#111827',
             lineHeight: 1,
-            letterSpacing: '-0.5px',
+            letterSpacing: '-0.3px',
           }}
         >
           {value ?? '\u2014'}
@@ -446,18 +446,18 @@ function getFeedSentence(item, actor) {
 
   switch (item.type) {
     case 'note_shared':
-      return <>{bold} shared their note {m.noteTitle && <span style={{ color: '#a087b0' }}>"{truncate(m.noteTitle, 40)}"</span>}{suffix}</>;
+      return <>{bold} shared their note {m.noteTitle && <span style={{ color: '#9CA3AF' }}>"{truncate(m.noteTitle, 40)}"</span>}{suffix}</>;
     case 'flashcard_shared':
-      return <>{bold} shared a flashcard set {m.setTitle && <span style={{ color: '#a087b0' }}>"{truncate(m.setTitle, 40)}"</span>}{suffix}</>;
+      return <>{bold} shared a flashcard set {m.setTitle && <span style={{ color: '#9CA3AF' }}>"{truncate(m.setTitle, 40)}"</span>}{suffix}</>;
     case 'task_created':
-      return <>{bold} shared a task {m.taskTitle && <span style={{ color: '#a087b0' }}>"{truncate(m.taskTitle, 40)}"</span>}{suffix}</>;
+      return <>{bold} shared a task {m.taskTitle && <span style={{ color: '#9CA3AF' }}>"{truncate(m.taskTitle, 40)}"</span>}{suffix}</>;
     case 'comment_added':
       return m.commentPreview
-        ? <>{bold} commented: <span style={{ color: '#a087b0' }}>"{truncate(m.commentPreview, 50)}"</span></>
+        ? <>{bold} commented: <span style={{ color: '#9CA3AF' }}>"{truncate(m.commentPreview, 50)}"</span></>
         : <>{bold} left a comment</>;
     case 'like_added':
       return m.commentPreview
-        ? <>{bold} liked a comment: <span style={{ color: '#a087b0' }}>"{truncate(m.commentPreview, 50)}"</span></>
+        ? <>{bold} liked a comment: <span style={{ color: '#9CA3AF' }}>"{truncate(m.commentPreview, 50)}"</span></>
         : <>{bold} liked a comment</>;
     default:
       return <>{bold} did something</>;
@@ -645,7 +645,7 @@ export default function Dashboard() {
         <h1
           style={{
             fontFamily: 'Fraunces, Georgia, serif',
-            fontSize: '2rem',
+            fontSize: '1.625rem',
             fontWeight: 700,
             color: '#111827',
             letterSpacing: '-0.3px',

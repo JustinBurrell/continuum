@@ -119,7 +119,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
               </Link>
               <VerifiedBadge roles={c.userSnapshot?.roles} />
             </span>
-            <span style={{ fontSize: '0.75rem', color: '#a087b0' }}>{formatRelative(c.createdAt)}</span>
+            <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{formatRelative(c.createdAt)}</span>
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
               <button
                 onClick={() => likeMutation.mutate(c._id)}
@@ -133,7 +133,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
                   border: 'none',
                   cursor: 'pointer',
                   background: isLiked ? '#fef2f2' : 'transparent',
-                  color: isLiked ? '#ef4444' : '#a087b0',
+                  color: isLiked ? '#ef4444' : '#9CA3AF',
                   transition: 'all 0.12s',
                 }}
               >
@@ -150,11 +150,11 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
                     border: 'none',
                     cursor: 'pointer',
                     background: 'transparent',
-                    color: '#a087b0',
+                    color: '#9CA3AF',
                     transition: 'all 0.12s',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.color = '#6b21a8'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = '#a087b0'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#9CA3AF'; }}
                 >
                   Reply
                 </button>
@@ -168,14 +168,14 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
                     borderRadius: 6,
                     border: 'none',
                     background: 'transparent',
-                    color: '#a087b0',
+                    color: '#9CA3AF',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     transition: 'all 0.12s',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; }}
                 >
                   <Trash size={12} />
                 </button>
@@ -223,7 +223,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
             onClick={() => setExpandedReplies(p => ({ ...p, [parentId]: false }))}
             style={{
               fontSize: '0.8125rem',
-              color: '#a087b0',
+              color: '#9CA3AF',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
@@ -255,7 +255,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>
         {topLevel.length === 0 && orphanedParentIds.length === 0 ? (
-          <p style={{ fontSize: '0.875rem', color: '#a087b0' }}>
+          <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
             No comments yet. Be the first to comment.
           </p>
         ) : (
@@ -279,7 +279,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
                     padding: '10px 14px',
                     border: '1px solid #E5E7EB',
                   }}>
-                    <p style={{ fontSize: '0.8125rem', color: '#a087b0', fontStyle: 'italic' }}>
+                    <p style={{ fontSize: '0.8125rem', color: '#6B7280', fontStyle: 'italic' }}>
                       [Comment deleted]
                     </p>
                   </div>
@@ -319,7 +319,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: '#a087b0',
+                  color: '#9CA3AF',
                   fontSize: '1.1rem',
                   lineHeight: 1,
                   padding: 0,

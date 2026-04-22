@@ -162,7 +162,7 @@ export default function Sidebar() {
             </p>
             <p style={{
               fontSize: 11,
-              color: '#a087b0',
+              color: '#9CA3AF',
               lineHeight: 1.3,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
