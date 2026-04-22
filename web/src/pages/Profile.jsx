@@ -38,7 +38,7 @@ const sectionLabel = {
   fontWeight: 700,
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
-  color: '#a087b0',
+  color: '#9CA3AF',
   marginBottom: 10,
   marginTop: 4,
 };
@@ -105,7 +105,7 @@ const PasswordInput = forwardRef(function PasswordInput({ label, error, required
           tabIndex={-1}
           style={{
             position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-            background: 'none', border: 'none', cursor: 'pointer', color: '#a087b0',
+            background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF',
             display: 'flex', alignItems: 'center', padding: 2,
           }}
         >
@@ -195,7 +195,7 @@ function AvatarCropModal({ file, onSave, onClose }) {
         boxShadow: '0 20px 60px rgba(107,33,168,0.25)',
       }}>
         <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 3px' }}>Adjust photo</h3>
-        <p style={{ fontSize: 12, color: '#a087b0', margin: '0 0 16px' }}>Drag to reposition · Scroll to zoom</p>
+        <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 16px' }}>Drag to reposition · Scroll to zoom</p>
         <div
           ref={containerRef}
           style={{
@@ -304,7 +304,7 @@ function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading 
               />
               <button type="button" onClick={() => setShowPw(s => !s)} tabIndex={-1} style={{
                 position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                background: 'none', border: 'none', cursor: 'pointer', color: '#a087b0',
+                background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF',
               }}>
                 {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
@@ -322,7 +322,7 @@ function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading 
             style={{
               flex: 1, padding: '10px 16px', borderRadius: 10, border: 'none',
               background: usernameMatch ? '#dc2626' : '#f3f4f6',
-              color: usernameMatch ? '#fff' : '#a087b0',
+              color: usernameMatch ? '#fff' : '#D1D5DB',
               fontSize: 13, fontWeight: 600, cursor: usernameMatch ? 'pointer' : 'not-allowed',
               transition: 'all 0.15s', opacity: loading ? 0.7 : 1,
             }}
@@ -627,10 +627,10 @@ export default function Profile() {
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
       {/* Page header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
           Settings
         </h1>
-        <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>Manage your account and preferences</p>
+        <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>Manage your account and preferences</p>
       </div>
 
       {/* Tab bar */}
@@ -649,7 +649,7 @@ export default function Profile() {
                 borderRadius: 10,
                 border: 'none',
                 background: active ? '#6b21a8' : 'transparent',
-                color: active ? '#fff' : '#a087b0',
+                color: active ? '#fff' : '#6B7280',
                 fontSize: 13,
                 fontWeight: active ? 600 : 500,
                 cursor: 'pointer',
@@ -700,7 +700,7 @@ export default function Profile() {
                   <span style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>{fullName}</span>
                   <VerifiedBadge roles={me?.roles} expanded />
                 </span>
-                <p style={{ fontSize: 13, color: '#a087b0', margin: '2px 0 6px' }}>@{me?.username}</p>
+                <p style={{ fontSize: 13, color: '#9CA3AF', margin: '2px 0 6px' }}>@{me?.username}</p>
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <CalendarIcon size={11} /> Joined {formatDate(me?.createdAt)}
@@ -728,7 +728,7 @@ export default function Profile() {
                   </div>
                   <div>
                     <span style={{ fontWeight: 700, fontSize: 20, color: '#111827', lineHeight: 1 }}>{streak}</span>
-                    <span style={{ fontSize: 13, color: '#a087b0', marginLeft: 6 }}>day study streak</span>
+                    <span style={{ fontSize: 13, color: '#9CA3AF', marginLeft: 6 }}>day study streak</span>
                   </div>
                 </div>
                 <Link to="/flashcards" style={{ fontSize: 12, color: '#6b21a8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -753,7 +753,7 @@ export default function Profile() {
                     <Icon size={14} style={{ color: '#6b21a8' }} />
                   </div>
                   <span style={{ fontWeight: 600, fontSize: 14, color: '#111827' }}>{label}</span>
-                  <span style={{ fontSize: 11, color: '#a087b0', background: 'rgba(107,33,168,0.08)', padding: '1px 7px', borderRadius: 20 }}>{items.length}</span>
+                  <span style={{ fontSize: 11, color: '#9CA3AF', background: 'rgba(107,33,168,0.08)', padding: '1px 7px', borderRadius: 20 }}>{items.length}</span>
                 </div>
                 <Link to={path} style={{ fontSize: 12, color: '#6b21a8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 2 }}>
                   View all <ChevronRight size={12} />
@@ -764,12 +764,12 @@ export default function Profile() {
                 const nav = itemNav ? itemNav(item) : null;
                 const stage = stageFn ? stageFn(item) : null;
                 const stageColors = {
-                  draft:     { bg: '#f3f4f6', color: '#6b7280' },
-                  applied:   { bg: '#eff6ff', color: '#2563eb' },
-                  interview: { bg: 'rgba(107,33,168,0.08)', color: '#6b21a8' },
-                  offer:     { bg: '#f0fdf4', color: '#16a34a' },
-                  rejected:  { bg: '#fef2f2', color: '#dc2626' },
-                  withdrawn: { bg: '#f3f4f6', color: '#6b7280' },
+                  draft:     { bg: '#F3F4F6', color: '#6B7280' },
+                  applied:   { bg: 'rgba(107,33,168,0.08)', color: '#6b21a8' },
+                  interview: { bg: 'rgba(217,119,6,0.08)', color: '#D97706' },
+                  offer:     { bg: 'rgba(5,150,105,0.08)', color: '#059669' },
+                  rejected:  { bg: '#FEE2E2', color: '#DC2626' },
+                  withdrawn: { bg: '#F3F4F6', color: '#6B7280' },
                 };
                 const sc = stageColors[stage] || stageColors.draft;
                 return (
@@ -833,9 +833,9 @@ export default function Profile() {
               </div>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 2px' }}>{fullName}</p>
-                <p style={{ fontSize: 12, color: '#a087b0', margin: 0 }}>JPG or PNG, max 5 MB</p>
+                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>JPG or PNG, max 5 MB</p>
               </div>
-              {avatarMutation.isPending && <span style={{ fontSize: 12, color: '#a087b0' }}>Uploading…</span>}
+              {avatarMutation.isPending && <span style={{ fontSize: 12, color: '#9CA3AF' }}>Uploading…</span>}
             </div>
           </div>
 
@@ -843,7 +843,7 @@ export default function Profile() {
           <div style={card}>
             <p style={sectionLabel}>Personal info</p>
             {user?.isDemo && (
-              <p style={{ fontSize: 12, color: '#a087b0', marginBottom: 12, fontStyle: 'italic' }}>
+              <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 12, fontStyle: 'italic' }}>
                 Demo account — profile is read-only.
               </p>
             )}
@@ -945,7 +945,7 @@ export default function Profile() {
                     },
                   })}
                 />
-                <p style={{ fontSize: 11, color: '#a087b0', marginTop: 5 }}>
+                <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 5 }}>
                   3–30 characters. Letters, numbers, underscores and hyphens only.
                 </p>
               </div>
@@ -989,7 +989,7 @@ export default function Profile() {
               </div>
               <div>
                 <p style={{ fontWeight: 700, fontSize: 14, color: '#111827', margin: 0 }}>Change password</p>
-                <p style={{ fontSize: 12, color: '#a087b0', margin: 0 }}>
+                <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
                   {me?.googleId ? 'Google sign-in users must use Forgot Password to set a password first.' : 'Use a strong, unique password.'}
                 </p>
               </div>
@@ -1052,7 +1052,7 @@ export default function Profile() {
                 >
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{label}</p>
-                    <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>{desc}</p>
+                    <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{desc}</p>
                   </div>
                   <div style={{ position: 'relative', flexShrink: 0 }}>
                     <input type="checkbox" style={{ display: 'none' }} {...notifForm.register(key)} />
@@ -1075,7 +1075,7 @@ export default function Profile() {
               ))}
               <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Button type="submit" loading={notifMutation.isPending}>Save</Button>
-                {notifSaved && <span style={{ fontSize: 12, color: '#16a34a' }}>Saved!</span>}
+                {notifSaved && <span style={{ fontSize: 12, color: '#059669' }}>Saved!</span>}
               </div>
             </form>
           </div>
@@ -1162,9 +1162,9 @@ export default function Profile() {
             <div style={card}>
               <p style={sectionLabel}>Active sessions</p>
               {sessionsLoading ? (
-                <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>Loading sessions...</p>
+                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>Loading sessions...</p>
               ) : !sessionsData || sessionsData.length === 0 ? (
-                <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>No active sessions found.</p>
+                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>No active sessions found.</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {sessionsData.map((s) => (
@@ -1178,7 +1178,7 @@ export default function Profile() {
                             </span>
                           )}
                         </div>
-                        <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>
+                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
                           Signed in {new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                           {s.lastUsedAt && (
                             <> &middot; Last active {(() => {
@@ -1216,7 +1216,7 @@ export default function Profile() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Sign out of all devices</p>
-                  <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>Revokes all active sessions. You will need to log in again.</p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>Revokes all active sessions. You will need to log in again.</p>
                 </div>
                 <Button size="sm" variant="danger" loading={logoutAllLoading} onClick={handleLogoutAll}>
                   <LogOut size={13} /> Sign out all
@@ -1225,7 +1225,7 @@ export default function Profile() {
               <div style={{ borderTop: '1px solid #fecaca', paddingTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#dc2626', margin: 0 }}>Delete account</p>
-                  <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>Permanently deletes your account and all data. This cannot be undone.</p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>Permanently deletes your account and all data. This cannot be undone.</p>
                 </div>
                 <Button size="sm" variant="danger" loading={deleteAccountLoading} onClick={handleDeleteAccount}>
                   Delete account
