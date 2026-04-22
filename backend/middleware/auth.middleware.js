@@ -3,6 +3,7 @@ const User = require('../models/User');
 const { getOrSet, invalidate } = require('../lib/cache');
 const cache = require('../lib/cache');
 const { hardDeleteUser } = require('../services/account.service');
+const Sentry = require('@sentry/node');
 
 // ============================================================
 // AUTH MIDDLEWARE
@@ -80,6 +81,7 @@ const authMiddleware = async (req, res, next) => {
 
     // Attach user to request so controllers can access req.user
     req.user = user;
+    Sentry.setUser({ id: user._id.toString(), email: user.email, username: user.username });
 
     // Block all write operations for the demo account — it is read-only.
     // Logout paths are exempt so the user can always sign out.
