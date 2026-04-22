@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { connectSocket } from '@/lib/socket';
+import { posthog } from '@/lib/posthog';
 
 export default function AuthCallback() {
   const [searchParams] = useSearchParams();
@@ -33,6 +34,13 @@ export default function AuthCallback() {
         const user = res.data.user || res.data.data;
         queryClient.invalidateQueries({ queryKey: ['me'] });
         updateUser(user);
+        posthog.identify(user._id, {
+          email: user.email,
+          username: user.username,
+          name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.username,
+          created_at: user.createdAt,
+        });
+        posthog.capture('user_logged_in', { platform: 'web', method: 'google' });
         navigate('/dashboard');
       })
       .catch(() => {

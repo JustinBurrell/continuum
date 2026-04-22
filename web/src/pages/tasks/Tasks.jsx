@@ -4,6 +4,7 @@ import { useInfiniteQuery, useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Clock, AlertCircle, Trash2, Users, Search } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
+import { posthog } from '@/lib/posthog';
 import queryClient from '@/lib/queryClient';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -105,6 +106,7 @@ export default function Tasks() {
   const createMutation = useMutation({
     mutationFn: (payload) => api.post('/tasks', payload),
     onSuccess: () => {
+      posthog.capture('task_created', { platform: 'web' });
       invalidateTasks();
       setShowCreate(false);
       setForm(emptyForm);

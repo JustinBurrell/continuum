@@ -5,6 +5,7 @@ const Friendship = require('../models/Friendship');
 const { bulkUpdateCardProgress } = require('./flashcardSets.controller');
 const { computeStreak, getCachedStreak, invalidateStreakCache } = require('../services/studyStreak.service');
 const { getIO } = require('../lib/socket');
+const posthog = require('../lib/posthog');
 
 // ============================================================
 // STUDY SESSIONS CONTROLLER
@@ -116,6 +117,16 @@ exports.submitSession = async (req, res) => {
     } catch (_) {
         // Socket not critical — swallow errors
     }
+
+    posthog.capture({
+        distinctId: userId,
+        event: 'study_session_completed',
+        properties: {
+            platform: 'web',
+            session_id: session._id.toString(),
+            set_id: setId.toString(),
+        },
+    });
 
     res.status(201).json({ success: true, session, streak });
 };

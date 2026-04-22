@@ -3,6 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, CheckCircle2, X } from 'lucide-react';
 import api from '@/lib/api';
+import { posthog } from '@/lib/posthog';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 
@@ -38,6 +39,14 @@ export default function StudyMode() {
       queryClient.invalidateQueries({ queryKey: ['study-sessions', id] });
     },
   });
+
+  // Fire study_session_started once when the set loads and the first card is visible
+  useEffect(() => {
+    if (cards.length > 0 && !done) {
+      posthog.capture('study_session_started', { platform: 'web', set_id: id });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cards.length]);
 
   // Submit session when done, but only if the user marked at least one card
   useEffect(() => {

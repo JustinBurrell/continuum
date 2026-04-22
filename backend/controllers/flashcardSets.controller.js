@@ -2,6 +2,7 @@ const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
 const Friendship = require('../models/Friendship');
 const groqService = require('../services/groq.service');
+const posthog = require('../lib/posthog');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { getIO } = require('../lib/socket');
 const { sendShareMessage } = require('../services/share.service');
@@ -53,6 +54,19 @@ exports.generateFromContent = async (req, res) => {
     await Flashcard.insertMany(flashcardDocs);
 
     const populatedSet = await FlashcardSet.findById(set._id).populate('flashcards');
+
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'flashcard_set_generated',
+        properties: {
+            platform: 'web',
+            set_id: set._id.toString(),
+            note_id: null,
+            source: 'text_paste',
+            card_count: result.cards.length,
+            generation_path: 'from_text_paste',
+        },
+    });
 
     res.status(201).json({ success: true, set: populatedSet });
 };

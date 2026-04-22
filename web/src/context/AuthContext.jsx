@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import api from '@/lib/api';
 import { connectSocket, disconnectSocket } from '@/lib/socket';
 import queryClient from '@/lib/queryClient';
+import { posthog } from '@/lib/posthog';
 
 const AuthContext = createContext(null);
 
@@ -85,6 +86,12 @@ export function AuthProvider({ children }) {
       .then((res) => {
         const u = res.data.user || res.data.data;
         setUser(u);
+        posthog.identify(u._id, {
+          email: u.email,
+          username: u.username,
+          name: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.username,
+          created_at: u.createdAt,
+        });
         // Reconnect socket on page refresh if already logged in
         const socket = connectSocket(token);
         registerSocketEvents(socket);
@@ -101,6 +108,13 @@ export function AuthProvider({ children }) {
     const { token, user: u } = res.data;
     localStorage.setItem('token', token);
     setUser(u);
+    posthog.identify(u._id, {
+      email: u.email,
+      username: u.username,
+      name: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.username,
+      created_at: u.createdAt,
+    });
+    posthog.capture('user_logged_in', { platform: 'web', method: 'email' });
     const socket = connectSocket(token);
     registerSocketEvents(socket);
     return u;
@@ -111,12 +125,21 @@ export function AuthProvider({ children }) {
     const { token, user: u } = res.data;
     localStorage.setItem('token', token);
     setUser(u);
+    posthog.identify(u._id, {
+      email: u.email,
+      username: u.username,
+      name: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.username,
+      created_at: u.createdAt,
+    });
+    posthog.capture('user_registered', { platform: 'web', method: 'email' });
     const socket = connectSocket(token);
     registerSocketEvents(socket);
     return u;
   }, []);
 
   const logout = useCallback(() => {
+    posthog.capture('user_logged_out', { platform: 'web' });
+    posthog.reset();
     api.post('/auth/logout').catch(() => {});
     disconnectSocket();
     localStorage.removeItem('token');

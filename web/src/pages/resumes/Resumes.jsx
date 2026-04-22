@@ -3,6 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, FileCheck, Sparkles, Download, ChevronDown, ChevronUp, History, Trash2, Search } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
+import { posthog } from '@/lib/posthog';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
@@ -35,6 +36,7 @@ export default function Resumes() {
       await api.post('/resumes/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+      posthog.capture('resume_uploaded', { platform: 'web' });
       queryClient.invalidateQueries({ queryKey: ['resumes'] });
     } catch (err) {
       console.error(err);
