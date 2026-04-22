@@ -4,7 +4,7 @@ export default function ConversationSkeleton() {
   return (
     <div style={{ display: 'flex', height: '100%' }}>
       {/* Inbox list */}
-      <div style={{ width: 260, borderRight: '1px solid #ede9fe', padding: '16px 12px', flexShrink: 0 }}>
+      <div style={{ width: 260, borderRight: '1px solid #E5E7EB', padding: '16px 12px', flexShrink: 0 }}>
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
             <Skeleton circle className="h-9 w-9" style={{ flexShrink: 0 }} />

@@ -69,10 +69,10 @@ export default function Resumes() {
       {/* Page header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
             Resumes
           </h1>
-          <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>
+          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>
             {resumeSearch ? `${resumes.length} result${resumes.length !== 1 ? 's' : ''}` : `${resumes.length} uploaded`}
           </p>
         </div>
@@ -108,11 +108,11 @@ export default function Resumes() {
           textAlign: 'center',
           marginBottom: 24,
           cursor: 'pointer',
-          background: '#fef7ff',
+          background: '#FFFFFF',
           transition: 'border-color 0.15s, background 0.15s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b21a8'; e.currentTarget.style.background = '#f5f0ff'; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(107,33,168,0.25)'; e.currentTarget.style.background = '#fef7ff'; }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b21a8'; e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(107,33,168,0.25)'; e.currentTarget.style.background = '#FFFFFF'; }}
       >
         <div style={{
           width: 52,
@@ -127,12 +127,12 @@ export default function Resumes() {
           <FileCheck size={24} style={{ color: '#6b21a8' }} />
         </div>
         <p style={{ fontSize: 14, fontWeight: 600, color: '#374151', margin: '0 0 4px' }}>Upload your resume</p>
-        <p style={{ fontSize: 12, color: '#a087b0', margin: 0 }}>Drag and drop a PDF here, or click to browse</p>
+        <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Drag and drop a PDF here, or click to browse</p>
       </div>}
 
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: 20 }}>
-        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
         <input
           style={{
             width: '100%',
@@ -141,7 +141,7 @@ export default function Resumes() {
             paddingTop: 9,
             paddingBottom: 9,
             background: 'white',
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 12,
             fontSize: '0.875rem',
             color: '#111827',
@@ -152,14 +152,14 @@ export default function Resumes() {
           value={resumeSearch}
           onChange={e => setResumeSearch(e.target.value)}
           onFocus={e => e.target.style.borderColor = '#6b21a8'}
-          onBlur={e => e.target.style.borderColor = '#ede9fe'}
+          onBlur={e => e.target.style.borderColor = '#E5E7EB'}
         />
       </div>
 
       {isLoading ? (
         <ResumesSkeleton />
       ) : resumes.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '32px 0', color: '#a087b0', fontSize: 14 }}>
+        <div style={{ textAlign: 'center', padding: '32px 0', color: '#6B7280', fontSize: 14 }}>
           {resumeSearch ? `No resumes match "${resumeSearch}".` : 'No resumes uploaded yet. Upload your first resume to get AI-powered feedback.'}
         </div>
       ) : (
@@ -216,12 +216,12 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
   };
 
   const score = latestFeedback?.overallScore;
-  const scoreColor = score >= 80 ? '#16a34a' : score >= 60 ? '#f59e0b' : score !== undefined ? '#dc2626' : '#a087b0';
+  const scoreColor = score >= 80 ? '#059669' : score >= 60 ? '#D97706' : score !== undefined ? '#DC2626' : '#9CA3AF';
 
   return (
     <div style={{
       background: '#fff',
-      border: '1px solid #ede9fe',
+      border: '1px solid #E5E7EB',
       borderRadius: 16,
       boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
       padding: '18px 22px',
@@ -262,7 +262,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
           <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>
             {resume.fileName || resume.name || 'Untitled Resume'}
           </p>
-          <p style={{ fontSize: 11, color: '#a087b0', margin: '3px 0 0' }}>
+          <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0' }}>
             Uploaded {formatDate(resume.createdAt)}
             {resume.fileSize && ` · ${(resume.fileSize / 1024).toFixed(0)} KB`}
           </p>
@@ -289,7 +289,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
 
       {/* AI Feedback section */}
       {hasFeedback && (
-        <div style={{ borderTop: '1px solid #ede9fe', paddingTop: 14 }}>
+        <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 14 }}>
           {/* Feedback toggle */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
@@ -324,7 +324,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
                   {latestFeedback.overallScore}/100
                 </span>
               )}
-              {expanded ? <ChevronUp size={14} style={{ marginLeft: 'auto', color: '#a087b0' }} /> : <ChevronDown size={14} style={{ marginLeft: 'auto', color: '#a087b0' }} />}
+              {expanded ? <ChevronUp size={14} style={{ marginLeft: 'auto', color: '#9CA3AF' }} /> : <ChevronDown size={14} style={{ marginLeft: 'auto', color: '#9CA3AF' }} />}
             </button>
 
             {olderFeedback.length > 0 && (
@@ -335,9 +335,9 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
                   alignItems: 'center',
                   gap: 4,
                   fontSize: 11,
-                  color: '#a087b0',
+                  color: '#9CA3AF',
                   background: 'none',
-                  border: '1px solid #ede9fe',
+                  border: '1px solid #E5E7EB',
                   borderRadius: 8,
                   padding: '4px 10px',
                   cursor: 'pointer',
@@ -353,13 +353,13 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
           {/* Expanded feedback */}
           {expanded && latestFeedback && (
             <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>
+              <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>
                 {formatDate(latestFeedback.generatedAt)} · {latestFeedback.model || 'AI'}
               </p>
 
               {latestFeedback.strengths?.length > 0 && (
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', marginBottom: 8 }}>Strengths</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 8 }}>Strengths</p>
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {latestFeedback.strengths.map((s, i) => (
                       <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: '#374151' }}>
@@ -373,11 +373,11 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
 
               {latestFeedback.improvements?.length > 0 && (
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', marginBottom: 8 }}>Improvements</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 8 }}>Improvements</p>
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {latestFeedback.improvements.map((s, i) => (
                       <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: '#374151' }}>
-                        <span style={{ marginTop: 6, width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: '#f59e0b' }} />
+                        <span style={{ marginTop: 6, width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: '#D97706' }} />
                         {s}
                       </li>
                     ))}
@@ -387,12 +387,12 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
 
               {latestFeedback.sections?.length > 0 && (
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', marginBottom: 8 }}>Section Scores</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 8 }}>Section Scores</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {latestFeedback.sections.map((sec, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <span style={{ fontSize: 12, color: '#6b7280', flex: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{sec.name}</span>
-                        <div style={{ flex: 2, height: 6, borderRadius: 10, background: '#ede9fe' }}>
+                        <div style={{ flex: 2, height: 6, borderRadius: 10, background: '#E5E7EB' }}>
                           <div style={{
                             height: '100%',
                             borderRadius: 10,
@@ -409,11 +409,11 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
               )}
 
               {latestFeedback.keywordOptimization && (
-                <div style={{ borderRadius: 12, padding: '12px 14px', background: '#f5f0ff', border: '1px solid #ede9fe' }}>
+                <div style={{ borderRadius: 12, padding: '12px 14px', background: 'rgba(107,33,168,0.08)', border: '1px solid #E5E7EB' }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#6b21a8', marginBottom: 8 }}>Keyword Optimization</p>
                   {latestFeedback.keywordOptimization.presentKeywords?.length > 0 && (
                     <div style={{ marginBottom: 8 }}>
-                      <p style={{ fontSize: 10, color: '#a087b0', marginBottom: 4 }}>Present</p>
+                      <p style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 4 }}>Present</p>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                         {latestFeedback.keywordOptimization.presentKeywords.map((kw, i) => (
                           <span key={i} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: 'rgba(107,33,168,0.1)', color: '#6b21a8' }}>{kw}</span>
@@ -423,10 +423,10 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
                   )}
                   {latestFeedback.keywordOptimization.missingKeywords?.length > 0 && (
                     <div>
-                      <p style={{ fontSize: 10, color: '#a087b0', marginBottom: 4 }}>Missing</p>
+                      <p style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 4 }}>Missing</p>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                         {latestFeedback.keywordOptimization.missingKeywords.map((kw, i) => (
-                          <span key={i} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: 'rgba(245,158,11,0.1)', color: '#b45309' }}>{kw}</span>
+                          <span key={i} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: 'rgba(217,119,6,0.08)', color: '#D97706' }}>{kw}</span>
                         ))}
                       </div>
                     </div>
@@ -438,24 +438,24 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
 
           {/* Feedback history */}
           {showHistory && olderFeedback.length > 0 && (
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #ede9fe' }}>
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #E5E7EB' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', margin: 0 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', margin: 0 }}>
                   Feedback history ({olderFeedback.length})
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <button
                     onClick={() => setHistoryIndex(i => Math.max(0, i - 1))}
                     disabled={historyIndex === 0}
-                    style={{ padding: 4, borderRadius: 6, border: 'none', background: 'none', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center', opacity: historyIndex === 0 ? 0.3 : 1 }}
+                    style={{ padding: 4, borderRadius: 6, border: 'none', background: 'none', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center', opacity: historyIndex === 0 ? 0.3 : 1 }}
                   >
                     <ChevronUp size={13} />
                   </button>
-                  <span style={{ fontSize: 11, color: '#a087b0' }}>{historyIndex + 1}/{olderFeedback.length}</span>
+                  <span style={{ fontSize: 11, color: '#9CA3AF' }}>{historyIndex + 1}/{olderFeedback.length}</span>
                   <button
                     onClick={() => setHistoryIndex(i => Math.min(olderFeedback.length - 1, i + 1))}
                     disabled={historyIndex === olderFeedback.length - 1}
-                    style={{ padding: 4, borderRadius: 6, border: 'none', background: 'none', cursor: 'pointer', color: '#a087b0', display: 'flex', alignItems: 'center', opacity: historyIndex === olderFeedback.length - 1 ? 0.3 : 1 }}
+                    style={{ padding: 4, borderRadius: 6, border: 'none', background: 'none', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center', opacity: historyIndex === olderFeedback.length - 1 ? 0.3 : 1 }}
                   >
                     <ChevronDown size={13} />
                   </button>
@@ -465,9 +465,9 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
                 const hf = olderFeedback[historyIndex];
                 if (!hf) return null;
                 return (
-                  <div style={{ borderRadius: 12, padding: '12px 14px', background: '#fef7ff', border: '1px solid #ede9fe' }}>
+                  <div style={{ borderRadius: 12, padding: '12px 14px', background: '#F8F9FA', border: '1px solid #E5E7EB' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                      <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>
+                      <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>
                         {formatDate(hf.generatedAt)} · {hf.model || 'AI'}
                       </p>
                       {hf.overallScore !== undefined && (
@@ -476,7 +476,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
                     </div>
                     {hf.strengths?.length > 0 && (
                       <div style={{ marginBottom: 8 }}>
-                        <p style={{ fontSize: 10, fontWeight: 700, color: '#a087b0', marginBottom: 4 }}>Strengths</p>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', marginBottom: 4 }}>Strengths</p>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                           {hf.strengths.map((s, i) => (
                             <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151' }}>
@@ -489,11 +489,11 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
                     )}
                     {hf.improvements?.length > 0 && (
                       <div>
-                        <p style={{ fontSize: 10, fontWeight: 700, color: '#a087b0', marginBottom: 4 }}>Improvements</p>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', marginBottom: 4 }}>Improvements</p>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                           {hf.improvements.map((s, i) => (
                             <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#374151' }}>
-                              <span style={{ marginTop: 5, width: 5, height: 5, borderRadius: '50%', flexShrink: 0, background: '#f59e0b' }} />
+                              <span style={{ marginTop: 5, width: 5, height: 5, borderRadius: '50%', flexShrink: 0, background: '#D97706' }} />
                               {s}
                             </li>
                           ))}

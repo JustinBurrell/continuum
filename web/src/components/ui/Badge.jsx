@@ -2,17 +2,17 @@ import { cn } from '@/lib/utils';
 
 const variants = {
   primary:
-    'bg-[#f5f0ff] text-[#6b21a8] border border-[#ede9fe]',
+    'bg-[rgba(107,33,168,0.08)] text-[#6b21a8] border border-[rgba(107,33,168,0.12)]',
   success:
-    'bg-[#f0fdf4] text-[#16a34a] border border-[#bbf7d0]',
+    'bg-[rgba(5,150,105,0.08)] text-[#059669] border border-[rgba(5,150,105,0.2)]',
   warning:
-    'bg-[#fffbeb] text-[#d97706] border border-[#fde68a]',
+    'bg-[rgba(217,119,6,0.08)] text-[#d97706] border border-[rgba(217,119,6,0.2)]',
   danger:
-    'bg-[#fef2f2] text-[#dc2626] border border-[#fecaca]',
+    'bg-[#fee2e2] text-[#dc2626] border border-[#fecaca]',
   neutral:
-    'bg-[#f9fafb] text-[#6b7280] border border-[#e5e7eb]',
+    'bg-[#f3f4f6] text-[#6b7280] border border-[#e5e7eb]',
   purple:
-    'bg-[#f5f3ff] text-[#7c3aed] border border-[#ddd6fe]',
+    'bg-[rgba(107,33,168,0.08)] text-[#6b21a8] border border-[rgba(107,33,168,0.12)]',
 };
 
 export default function Badge({ children, variant = 'neutral', className }) {

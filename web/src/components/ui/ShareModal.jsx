@@ -4,7 +4,7 @@ import { Check, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -120,8 +120,8 @@ export default function ShareModal({
                     gap: 12,
                     padding: '10px 14px',
                     borderRadius: 12,
-                    border: visibility === opt.value ? '1.5px solid #6b21a8' : '1px solid #ede9fe',
-                    background: visibility === opt.value ? '#f5f0ff' : 'white',
+                    border: visibility === opt.value ? '1.5px solid #6b21a8' : '1px solid #E5E7EB',
+                    background: visibility === opt.value ? 'rgba(107,33,168,0.08)' : 'white',
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: 'all 0.12s',
@@ -175,13 +175,13 @@ export default function ShareModal({
                         padding: '8px 12px',
                         borderRadius: 10,
                         border: isSelected ? '1.5px solid #6b21a8' : '1px solid transparent',
-                        background: isSelected ? '#f5f0ff' : 'transparent',
+                        background: isSelected ? 'rgba(107,33,168,0.08)' : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.12s',
                         textAlign: 'left',
                       }}
                     >
-                      <Avatar name={fullName(friend)} src={friend.avatarUrl} size="sm" />
+                      <AppAvatar name={fullName(friend)} src={friend.avatarUrl} size="sm" />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {fullName(friend)}

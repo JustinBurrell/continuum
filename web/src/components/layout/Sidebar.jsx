@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getInitials, cn } from '@/lib/utils';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import queryClient from '@/lib/queryClient';
 import api from '@/lib/api';
 
@@ -58,7 +58,7 @@ export default function Sidebar() {
   return (
     <aside
       className="flex flex-col flex-shrink-0 h-screen"
-      style={{ width: 240, background: '#ffffff', borderRight: '1px solid #ede9fe' }}
+      style={{ width: 240, background: '#ffffff', borderRight: '1px solid #E5E7EB' }}
     >
       {/* Brand */}
       <div style={{ padding: '20px 16px 16px' }}>
@@ -72,13 +72,13 @@ export default function Sidebar() {
         {navGroups.map((group) => (
           <div key={group.label}>
             <p style={{
-              fontSize: 10,
-              fontWeight: 500,
-              letterSpacing: '0.1em',
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: '#a087b0',
-              marginBottom: 6,
-              padding: '0 10px',
+              color: '#9CA3AF',
+              marginBottom: 4,
+              padding: '8px 10px 4px',
             }}>
               {group.label}
             </p>
@@ -93,19 +93,17 @@ export default function Sidebar() {
                       alignItems: 'center',
                       gap: 10,
                       padding: '8px 10px',
-                      borderRadius: isActive ? '0 8px 8px 0' : 10,
-                      fontSize: 13,
-                      fontWeight: isActive ? 600 : 400,
-                      color: isActive ? '#6b21a8' : '#4b5563',
-                      background: isActive ? '#f5f0ff' : 'transparent',
-                      borderLeft: isActive ? '3px solid #6b21a8' : '3px solid transparent',
-                      paddingLeft: isActive ? 7 : 10,
+                      borderRadius: 6,
+                      fontSize: '0.875rem',
+                      fontWeight: isActive ? 600 : 500,
+                      color: isActive ? '#6b21a8' : '#6B7280',
+                      background: isActive ? 'rgba(107,33,168,0.08)' : 'transparent',
                       textDecoration: 'none',
                       transition: 'background 0.15s, color 0.15s',
                     })}
                     onMouseEnter={e => {
                       if (!e.currentTarget.getAttribute('data-active')) {
-                        e.currentTarget.style.background = '#f5f0ff';
+                        e.currentTarget.style.background = 'rgba(107,33,168,0.08)';
                       }
                       prefetchMap[to]?.();
                     }}
@@ -117,7 +115,7 @@ export default function Sidebar() {
                   >
                     {({ isActive }) => (
                       <>
-                        <Icon size={16} strokeWidth={1.75} style={{ flexShrink: 0, color: isActive ? '#6b21a8' : '#4b5563' }} />
+                        <Icon size={16} strokeWidth={1.75} style={{ flexShrink: 0, color: isActive ? '#6b21a8' : '#9CA3AF' }} />
                         <span>{label}</span>
                       </>
                     )}
@@ -130,7 +128,7 @@ export default function Sidebar() {
       </nav>
 
       {/* User footer */}
-      <div style={{ padding: 12, borderTop: '1px solid #ede9fe' }}>
+      <div style={{ padding: 12, borderTop: '1px solid #E5E7EB' }}>
         <button
           onClick={() => navigate('/profile')}
           className="w-full text-left transition-colors"
@@ -145,10 +143,10 @@ export default function Sidebar() {
             cursor: 'pointer',
             width: '100%',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          <Avatar name={fullName} src={user?.avatarUrl} size="sm" />
+          <AppAvatar name={fullName} src={user?.avatarUrl} size="sm" />
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
               fontSize: 13,
@@ -164,7 +162,7 @@ export default function Sidebar() {
             </p>
             <p style={{
               fontSize: 11,
-              color: '#a087b0',
+              color: '#9CA3AF',
               lineHeight: 1.3,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -184,7 +182,7 @@ export default function Sidebar() {
             fontSize: 13,
             padding: '8px 10px',
             borderRadius: 8,
-            color: '#a087b0',
+            color: '#6B7280',
             background: 'transparent',
             border: 'none',
             cursor: 'pointer',
@@ -198,7 +196,7 @@ export default function Sidebar() {
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = '#a087b0';
+            e.currentTarget.style.color = '#6B7280';
           }}
         >
           <LogOut size={14} strokeWidth={1.75} />

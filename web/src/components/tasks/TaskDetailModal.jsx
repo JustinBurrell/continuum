@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Clock, AlertCircle, Pencil, ArrowLeft, Users, Trash2 } from 'lucide-react';
 import CommentThread from '@/components/comments/CommentThread';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import Modal from '@/components/ui/Modal';
@@ -19,13 +19,13 @@ const STATUS_COLORS = { todo: 'neutral', in_progress: 'warning', completed: 'suc
 const PRIORITIES = ['low', 'medium', 'high'];
 const TYPES = ['homework', 'study', 'project', 'exam', 'club', 'professional', 'personal', 'other'];
 const TYPE_COLORS = {
-  homework: { bg: '#dbeafe', text: '#1d4ed8' },
-  study: { bg: '#f5f0ff', text: '#6b21a8' },
-  project: { bg: '#fef3c7', text: '#b45309' },
-  exam: { bg: '#fce7f3', text: '#be185d' },
-  club: { bg: '#d1fae5', text: '#065f46' },
-  professional: { bg: '#e0e7ff', text: '#3730a3' },
-  personal: { bg: '#fef9c3', text: '#854d0e' },
+  homework: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
+  study: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
+  project: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
+  exam: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
+  club: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
+  professional: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
+  personal: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
   other: { bg: '#f3f4f6', text: '#374151' },
 };
 
@@ -121,9 +121,9 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
   const myParticipant = task?.participants?.find(p => String(p.userId?._id || p.userId) === String(user?._id));
 
   const priorityPillStyle = (priority) => {
-    if (priority === 'high') return { background: '#fef2f2', color: '#dc2626' };
-    if (priority === 'medium') return { background: '#fffbeb', color: '#b45309' };
-    return { background: '#f9fafb', color: '#6b7280' };
+    if (priority === 'high') return { background: '#FEE2E2', color: '#DC2626' };
+    if (priority === 'medium') return { background: 'rgba(217,119,6,0.08)', color: '#D97706' };
+    return { background: '#F3F4F6', color: '#6B7280' };
   };
 
   return (
@@ -145,7 +145,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
               alignItems: 'center',
               gap: 6,
               fontSize: 12,
-              color: '#a087b0',
+              color: '#9CA3AF',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
@@ -154,30 +154,30 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
               transition: 'color 0.15s',
             }}
             onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
-            onMouseLeave={e => e.currentTarget.style.color = '#a087b0'}
+            onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}
           >
             <ArrowLeft size={13} /> Back to detail
           </button>
 
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9CA3AF', marginBottom: 6 }}>
               Title *
             </label>
             <input
               className="input-field"
-              style={{ borderColor: '#ede9fe', borderRadius: 12 }}
+              style={{ borderColor: '#E5E7EB', borderRadius: 12 }}
               value={editForm.title}
               onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9CA3AF', marginBottom: 6 }}>
               Description
             </label>
             <textarea
               className="input-field resize-none min-h-[72px]"
-              style={{ borderColor: '#ede9fe', borderRadius: 12 }}
+              style={{ borderColor: '#E5E7EB', borderRadius: 12 }}
               value={editForm.description}
               onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
             />
@@ -185,12 +185,12 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9CA3AF', marginBottom: 6 }}>
                 Priority
               </label>
               <select
                 className="input-field capitalize"
-                style={{ borderColor: '#ede9fe', borderRadius: 12 }}
+                style={{ borderColor: '#E5E7EB', borderRadius: 12 }}
                 value={editForm.priority}
                 onChange={e => setEditForm(f => ({ ...f, priority: e.target.value }))}
               >
@@ -198,12 +198,12 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9CA3AF', marginBottom: 6 }}>
                 Type
               </label>
               <select
                 className="input-field capitalize"
-                style={{ borderColor: '#ede9fe', borderRadius: 12 }}
+                style={{ borderColor: '#E5E7EB', borderRadius: 12 }}
                 value={editForm.type}
                 onChange={e => setEditForm(f => ({ ...f, type: e.target.value }))}
               >
@@ -213,13 +213,13 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
             </div>
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9CA3AF', marginBottom: 6 }}>
               Due date
             </label>
             <input
               type="date"
               className="input-field"
-              style={{ borderColor: '#ede9fe', borderRadius: 12 }}
+              style={{ borderColor: '#E5E7EB', borderRadius: 12 }}
               value={editForm.dueDate}
               onChange={e => setEditForm(f => ({ ...f, dueDate: e.target.value }))}
             />
@@ -234,8 +234,8 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
               gap: 8,
               padding: '8px 14px',
               borderRadius: 12,
-              border: '1px solid #ede9fe',
-              background: task?.participants?.length > 0 ? '#f5f0ff' : 'white',
+              border: '1px solid #E5E7EB',
+              background: task?.participants?.length > 0 ? 'rgba(107,33,168,0.08)' : 'white',
               color: task?.participants?.length > 0 ? '#6b21a8' : '#374151',
               fontSize: '0.8125rem',
               fontWeight: 500,
@@ -274,7 +274,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
               background: task.priority === 'high' ? '#ef4444' : task.priority === 'medium' ? '#f59e0b' : '#d1d5db',
             }} />
             <h3 style={{
-              fontFamily: 'Georgia, serif',
+              fontFamily: 'Fraunces, Georgia, serif',
               fontSize: 16,
               fontWeight: 700,
               color: '#111827',
@@ -289,7 +289,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
 
           {/* Status pills — owner can change, others see read-only */}
           <div>
-            <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 8 }}>
+            <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#9CA3AF', marginBottom: 8 }}>
               Status
             </p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -303,7 +303,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
                     fontWeight: task.status === s ? 600 : 400,
                     padding: '5px 14px',
                     borderRadius: 999,
-                    border: task.status === s ? 'none' : '1px solid #ede9fe',
+                    border: task.status === s ? 'none' : '1px solid #E5E7EB',
                     background: task.status === s ? '#6b21a8' : '#ffffff',
                     color: task.status === s ? '#ffffff' : '#111827',
                     cursor: !isOwner ? 'default' : statusMutation.isPending ? 'not-allowed' : 'pointer',
@@ -348,7 +348,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
                 fontWeight: 500,
                 padding: '4px 12px',
                 borderRadius: 999,
-                background: '#f5f0ff',
+                background: 'rgba(107,33,168,0.08)',
                 color: '#6b21a8',
               }}>
                 Shared
@@ -358,7 +358,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
 
           {/* Description */}
           {task.description && (
-            <div style={{ background: '#f5f0ff', borderRadius: 12, padding: '12px' }}>
+            <div style={{ background: 'rgba(107,33,168,0.08)', borderRadius: 12, padding: '12px' }}>
               <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, margin: 0 }}>
                 {task.description}
               </p>
@@ -375,7 +375,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
               fontWeight: 500,
               padding: '5px 12px',
               borderRadius: 999,
-              background: isOverdue ? '#fef2f2' : '#f5f0ff',
+              background: isOverdue ? '#fef2f2' : 'rgba(107,33,168,0.08)',
               color: isOverdue ? '#dc2626' : '#6b21a8',
             }}>
               {isOverdue ? <AlertCircle size={13} /> : <Clock size={13} />}
@@ -392,7 +392,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 8,
-                  background: '#f5f0ff',
+                  background: 'rgba(107,33,168,0.08)',
                   borderRadius: 12,
                   padding: '8px 12px',
                   border: 'none',
@@ -406,7 +406,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
                 </span>
               </button>
               {showParticipants && (
-                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6, background: '#fef7ff', borderRadius: 12, padding: '10px 12px', border: '1px solid #ede9fe' }}>
+                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6, background: '#F8F9FA', borderRadius: 12, padding: '10px 12px', border: '1px solid #E5E7EB' }}>
                   {task.participants.map(p => {
                     const pUser = p.userId;
                     const name = pUser?.firstName
@@ -418,18 +418,18 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
                         to="/users/view"
                         state={{ id: pUser?._id || p.userId }}
                         style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', padding: '4px 6px', borderRadius: 8, transition: 'background 0.12s' }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
-                        <Avatar name={name} src={pUser?.avatarUrl} size="sm" />
+                        <AppAvatar name={name} src={pUser?.avatarUrl} size="sm" />
                         <span style={{ fontSize: 13, color: '#111827', fontWeight: 500 }}>{name}</span>
                         <span style={{
                           fontSize: 11,
                           fontWeight: 500,
                           padding: '2px 8px',
                           borderRadius: 20,
-                          background: p.status === 'completed' ? '#dcfce7' : p.status === 'in_progress' ? '#fef3c7' : '#f3f4f6',
-                          color: p.status === 'completed' ? '#16a34a' : p.status === 'in_progress' ? '#b45309' : '#6b7280',
+                          background: p.status === 'completed' ? 'rgba(5,150,105,0.08)' : p.status === 'in_progress' ? 'rgba(217,119,6,0.08)' : '#F3F4F6',
+                          color: p.status === 'completed' ? '#059669' : p.status === 'in_progress' ? '#D97706' : '#6B7280',
                           marginLeft: 'auto',
                         }}>
                           {STATUS_LABELS[p.status] || p.status}
@@ -445,7 +445,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
           {/* My progress — shown to participants (non-owners) on shared tasks */}
           {!isOwner && myParticipant && (
             <div>
-              <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 8 }}>
+              <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#9CA3AF', marginBottom: 8 }}>
                 My progress
               </p>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -459,7 +459,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
                       fontWeight: myParticipant.status === s ? 600 : 400,
                       padding: '5px 14px',
                       borderRadius: 999,
-                      border: myParticipant.status === s ? 'none' : '1px solid #ede9fe',
+                      border: myParticipant.status === s ? 'none' : '1px solid #E5E7EB',
                       background: myParticipant.status === s ? '#6b21a8' : '#ffffff',
                       color: myParticipant.status === s ? '#ffffff' : '#111827',
                       cursor: participantStatusMutation.isPending ? 'not-allowed' : 'pointer',
@@ -475,23 +475,23 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
           )}
 
           {/* Comments */}
-          <div style={{ borderTop: '1px solid #ede9fe', paddingTop: 16, marginTop: 4 }}>
+          <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 16, marginTop: 4 }}>
             <CommentThread targetType="task" targetId={taskId} user={user} isDemo={false} />
           </div>
 
           {/* Actions */}
-          <div style={{ display: 'flex', gap: 12, paddingTop: 8, borderTop: '1px solid #ede9fe', marginTop: 4 }}>
+          <div style={{ display: 'flex', gap: 12, paddingTop: 8, borderTop: '1px solid #E5E7EB', marginTop: 4 }}>
             <Button variant="outline" onClick={handleClose} className="flex-1">Close</Button>
             {isOwner && (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: 36, height: 36, borderRadius: 10, border: '1px solid #ede9fe',
-                  background: 'white', color: '#a087b0', cursor: 'pointer', flexShrink: 0,
+                  width: 36, height: 36, borderRadius: 10, border: '1px solid #E5E7EB',
+                  background: 'white', color: '#9CA3AF', cursor: 'pointer', flexShrink: 0,
                 }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = '#fecaca'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#ede9fe'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.borderColor = '#E5E7EB'; }}
                 title="Delete task"
               >
                 <Trash2 size={15} />
@@ -516,7 +516,8 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
                   size="sm"
                   onClick={() => deleteMutation.mutate()}
                   loading={deleteMutation.isPending}
-                  style={{ background: '#ef4444', flex: 1 }}
+                  variant="danger"
+                  style={{ flex: 1 }}
                 >
                   Delete
                 </Button>

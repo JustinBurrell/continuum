@@ -71,8 +71,8 @@ export default function AppLayout() {
         {/* Demo account banner */}
         {user?.isDemo && (
           <div style={{
-            background: '#f5f0ff',
-            borderBottom: '1px solid #ede9fe',
+            background: 'rgba(107,33,168,0.04)',
+            borderBottom: '1px solid #E5E7EB',
             borderLeft: '4px solid #6b21a8',
             padding: '10px 20px',
             display: 'flex',
@@ -112,7 +112,7 @@ export default function AppLayout() {
               width: 36,
               height: 36,
               borderRadius: 8,
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               background: '#fff',
               cursor: 'pointer',
               color: '#6b21a8',

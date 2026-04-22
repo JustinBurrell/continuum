@@ -29,13 +29,13 @@ function StatCard({ icon: Icon, label, value, to, accent }) {
     <div
       style={{
         background: '#ffffff',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
-        padding: '1.25rem 1.375rem',
+        padding: '1rem 1.125rem',
         display: 'flex',
         alignItems: 'center',
-        gap: 16,
+        gap: 12,
         transition: 'box-shadow 0.18s, transform 0.18s',
         cursor: to ? 'pointer' : 'default',
       }}
@@ -52,9 +52,9 @@ function StatCard({ icon: Icon, label, value, to, accent }) {
     >
       <div
         style={{
-          width: 44,
-          height: 44,
-          borderRadius: 12,
+          width: 38,
+          height: 38,
+          borderRadius: 10,
           background: `${accentColor}14`,
           display: 'flex',
           alignItems: 'center',
@@ -62,17 +62,17 @@ function StatCard({ icon: Icon, label, value, to, accent }) {
           flexShrink: 0,
         }}
       >
-        <Icon size={19} style={{ color: accentColor }} />
+        <Icon size={17} style={{ color: accentColor }} />
       </div>
       <div>
         <p
           style={{
-            fontFamily: 'Georgia, "Times New Roman", serif',
-            fontSize: 26,
+            fontFamily: 'Fraunces, Georgia, serif',
+            fontSize: '1.375rem',
             fontWeight: 700,
-            color: accentColor,
+            color: '#111827',
             lineHeight: 1,
-            letterSpacing: '-0.5px',
+            letterSpacing: '-0.3px',
           }}
         >
           {value ?? '\u2014'}
@@ -99,7 +99,7 @@ function NoteCard({ note }) {
       <div
         style={{
           background: '#ffffff',
-          border: '1px solid #ede9fe',
+          border: '1px solid #E5E7EB',
           borderRadius: 16,
           boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
           padding: '1rem 1.125rem',
@@ -109,12 +109,12 @@ function NoteCard({ note }) {
         }}
         onMouseEnter={e => {
           e.currentTarget.style.boxShadow = '0 4px 18px rgba(107,33,168,0.13)';
-          e.currentTarget.style.borderColor = '#c4b5fd';
+          e.currentTarget.style.borderColor = '#6b21a8';
           e.currentTarget.style.transform = 'translateY(-2px)';
         }}
         onMouseLeave={e => {
           e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
-          e.currentTarget.style.borderColor = '#ede9fe';
+          e.currentTarget.style.borderColor = '#E5E7EB';
           e.currentTarget.style.transform = 'translateY(0)';
         }}
       >
@@ -178,7 +178,7 @@ function FlashcardSetCard({ set }) {
       <div
         style={{
           background: '#ffffff',
-          border: '1px solid #ede9fe',
+          border: '1px solid #E5E7EB',
           borderRadius: 16,
           boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
           padding: '1.125rem 1.25rem',
@@ -188,12 +188,12 @@ function FlashcardSetCard({ set }) {
         }}
         onMouseEnter={e => {
           e.currentTarget.style.boxShadow = '0 4px 18px rgba(107,33,168,0.13)';
-          e.currentTarget.style.borderColor = '#c4b5fd';
+          e.currentTarget.style.borderColor = '#6b21a8';
           e.currentTarget.style.transform = 'translateY(-2px)';
         }}
         onMouseLeave={e => {
           e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
-          e.currentTarget.style.borderColor = '#ede9fe';
+          e.currentTarget.style.borderColor = '#E5E7EB';
           e.currentTarget.style.transform = 'translateY(0)';
         }}
       >
@@ -231,7 +231,7 @@ function FlashcardSetCard({ set }) {
           {set.title}
         </p>
         {set.subject && (
-          <p style={{ fontSize: 12, color: '#a087b0', lineHeight: 1.4 }}>
+          <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.4 }}>
             {set.subject}
           </p>
         )}
@@ -264,11 +264,11 @@ function TaskItem({ task, onView }) {
         alignItems: 'center',
         gap: 12,
         padding: '10px 0',
-        borderBottom: '1px solid #f5f0ff',
+        borderBottom: '1px solid #E5E7EB',
         cursor: 'pointer',
         transition: 'background 0.12s',
       }}
-      onMouseEnter={e => (e.currentTarget.style.background = '#faf8ff')}
+      onMouseEnter={e => (e.currentTarget.style.background = '#F8F9FA')}
       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
     >
       <div
@@ -333,12 +333,12 @@ function TaskItem({ task, onView }) {
    ──────────────────────────────────────── */
 function AppItem({ app }) {
   const sc = {
-    draft:     { background: '#f3f4f6', color: '#6B7280' },
-    applied:   { background: '#eff6ff', color: '#2563eb' },
-    interview: { background: '#fffbeb', color: '#d97706' },
-    offer:     { background: '#f0fdf4', color: '#16a34a' },
-    rejected:  { background: '#fef2f2', color: '#dc2626' },
-    withdrawn: { background: '#f3f4f6', color: '#6B7280' },
+    draft:     { background: '#F3F4F6', color: '#6B7280' },
+    applied:   { background: 'rgba(107,33,168,0.08)', color: '#6b21a8' },
+    interview: { background: 'rgba(217,119,6,0.08)', color: '#D97706' },
+    offer:     { background: 'rgba(5,150,105,0.08)', color: '#059669' },
+    rejected:  { background: '#FEE2E2', color: '#DC2626' },
+    withdrawn: { background: '#F3F4F6', color: '#9CA3AF' },
   };
   const badgeStyle = sc[app.status] || sc.applied;
 
@@ -351,12 +351,12 @@ function AppItem({ app }) {
         alignItems: 'center',
         gap: 12,
         padding: '10px 0',
-        borderBottom: '1px solid #f5f0ff',
+        borderBottom: '1px solid #E5E7EB',
         textDecoration: 'none',
         cursor: 'pointer',
         transition: 'background 0.12s',
       }}
-      onMouseEnter={e => (e.currentTarget.style.background = '#faf8ff')}
+      onMouseEnter={e => (e.currentTarget.style.background = '#F8F9FA')}
       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -446,18 +446,18 @@ function getFeedSentence(item, actor) {
 
   switch (item.type) {
     case 'note_shared':
-      return <>{bold} shared their note {m.noteTitle && <span style={{ color: '#a087b0' }}>"{truncate(m.noteTitle, 40)}"</span>}{suffix}</>;
+      return <>{bold} shared their note {m.noteTitle && <span style={{ color: '#9CA3AF' }}>"{truncate(m.noteTitle, 40)}"</span>}{suffix}</>;
     case 'flashcard_shared':
-      return <>{bold} shared a flashcard set {m.setTitle && <span style={{ color: '#a087b0' }}>"{truncate(m.setTitle, 40)}"</span>}{suffix}</>;
+      return <>{bold} shared a flashcard set {m.setTitle && <span style={{ color: '#9CA3AF' }}>"{truncate(m.setTitle, 40)}"</span>}{suffix}</>;
     case 'task_created':
-      return <>{bold} shared a task {m.taskTitle && <span style={{ color: '#a087b0' }}>"{truncate(m.taskTitle, 40)}"</span>}{suffix}</>;
+      return <>{bold} shared a task {m.taskTitle && <span style={{ color: '#9CA3AF' }}>"{truncate(m.taskTitle, 40)}"</span>}{suffix}</>;
     case 'comment_added':
       return m.commentPreview
-        ? <>{bold} commented: <span style={{ color: '#a087b0' }}>"{truncate(m.commentPreview, 50)}"</span></>
+        ? <>{bold} commented: <span style={{ color: '#9CA3AF' }}>"{truncate(m.commentPreview, 50)}"</span></>
         : <>{bold} left a comment</>;
     case 'like_added':
       return m.commentPreview
-        ? <>{bold} liked a comment: <span style={{ color: '#a087b0' }}>"{truncate(m.commentPreview, 50)}"</span></>
+        ? <>{bold} liked a comment: <span style={{ color: '#9CA3AF' }}>"{truncate(m.commentPreview, 50)}"</span></>
         : <>{bold} liked a comment</>;
     default:
       return <>{bold} did something</>;
@@ -476,7 +476,7 @@ function FeedItem({ item }) {
         alignItems: 'flex-start',
         gap: 12,
         padding: '11px 0',
-        borderBottom: '1px solid #f5f0ff',
+        borderBottom: '1px solid #E5E7EB',
       }}
     >
       <Link to="/users/view" state={{ id: actor?._id }} style={{ flexShrink: 0, marginTop: 1 }}>
@@ -561,12 +561,12 @@ function Section({ label, to, children }) {
 const PIPELINE_STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
 
 const PIPELINE_BADGE = {
-  draft:     { background: '#f3f4f6', color: '#6B7280' },
-  applied:   { background: '#eff6ff', color: '#2563eb' },
-  interview: { background: '#fffbeb', color: '#d97706' },
-  offer:     { background: '#f0fdf4', color: '#16a34a' },
-  rejected:  { background: '#fef2f2', color: '#dc2626' },
-  withdrawn: { background: '#f3f4f6', color: '#6B7280' },
+  draft:     { background: '#F3F4F6', color: '#6B7280' },
+  applied:   { background: 'rgba(107,33,168,0.08)', color: '#6b21a8' },
+  interview: { background: 'rgba(217,119,6,0.08)', color: '#D97706' },
+  offer:     { background: 'rgba(5,150,105,0.08)', color: '#059669' },
+  rejected:  { background: '#FEE2E2', color: '#DC2626' },
+  withdrawn: { background: '#F3F4F6', color: '#9CA3AF' },
 };
 
 /* ════════════════════════════════════════
@@ -644,8 +644,8 @@ export default function Dashboard() {
       <div style={{ marginBottom: 36 }}>
         <h1
           style={{
-            fontFamily: 'Georgia, "Times New Roman", serif',
-            fontSize: '1.6rem',
+            fontFamily: 'Fraunces, Georgia, serif',
+            fontSize: '1.625rem',
             fontWeight: 700,
             color: '#111827',
             letterSpacing: '-0.3px',
@@ -654,7 +654,7 @@ export default function Dashboard() {
         >
           Good {getGreeting()}, {greeting}
         </h1>
-        <p style={{ fontSize: 14, color: '#9CA3AF', marginTop: 6, fontWeight: 400 }}>
+        <p style={{ fontSize: '0.9375rem', color: '#6B7280', marginTop: 4, fontWeight: 400 }}>
           Here's what's happening today.
         </p>
       </div>
@@ -674,10 +674,10 @@ export default function Dashboard() {
         }}
       >
         <StatCard icon={FileText}    label="Notes"           value={notesData?.pagination?.total} to="/notes" />
-        <StatCard icon={BookOpen}    label="Flashcards"      value={flashcardData?.pagination?.total ?? flashcardData?.sets?.length} to="/flashcards" accent="#7c3aed" />
-        <StatCard icon={CheckSquare} label="Open Tasks"      value={openTaskCount}                  to="/tasks" accent="#2563eb" />
-        <StatCard icon={Briefcase}   label="Applications"    value={appsDashboard?.total || apps.length} to="/applications" accent="#0891b2" />
-        <StatCard icon={Activity}    label="New Activity"    value={activityTotal}                  to="/activity" accent="#16a34a" />
+        <StatCard icon={BookOpen}    label="Flashcards"      value={flashcardData?.pagination?.total ?? flashcardData?.sets?.length} to="/flashcards" />
+        <StatCard icon={CheckSquare} label="Open Tasks"      value={openTaskCount}                  to="/tasks" />
+        <StatCard icon={Briefcase}   label="Applications"    value={appsDashboard?.total || apps.length} to="/applications" />
+        <StatCard icon={Activity}    label="New Activity"    value={activityTotal}                  to="/activity" />
       </div>
 
       {/* 2-col grid */}
@@ -692,13 +692,13 @@ export default function Dashboard() {
             ) : notes.length === 0 ? (
               <div
                 style={{
-                  border: '1.5px dashed #ede9fe',
+                  border: '1.5px dashed #E5E7EB',
                   borderRadius: 16,
                   padding: '2.25rem',
                   textAlign: 'center',
                   fontSize: 14,
                   color: '#9CA3AF',
-                  background: '#faf8ff',
+                  background: '#F8F9FA',
                 }}
               >
                 No notes yet.{' '}
@@ -721,13 +721,13 @@ export default function Dashboard() {
             ) : flashcardSets.length === 0 ? (
               <div
                 style={{
-                  border: '1.5px dashed #ede9fe',
+                  border: '1.5px dashed #E5E7EB',
                   borderRadius: 16,
                   padding: '2.25rem',
                   textAlign: 'center',
                   fontSize: 14,
                   color: '#9CA3AF',
-                  background: '#faf8ff',
+                  background: '#F8F9FA',
                 }}
               >
                 No flashcard sets yet. Create one from a note or manually.
@@ -743,7 +743,7 @@ export default function Dashboard() {
             <div
               style={{
                 background: '#ffffff',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 16,
                 boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                 padding: '0 20px',
@@ -769,7 +769,7 @@ export default function Dashboard() {
             <div
               style={{
                 background: '#ffffff',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 16,
                 boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                 padding: '0 20px',
@@ -821,7 +821,7 @@ export default function Dashboard() {
             <div
               style={{
                 background: '#ffffff',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 16,
                 boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                 padding: '0 20px',

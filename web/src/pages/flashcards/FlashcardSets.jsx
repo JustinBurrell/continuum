@@ -86,10 +86,10 @@ export default function FlashcardSets() {
       {/* Page header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
         <div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', color: '#111827', fontWeight: 700, lineHeight: 1.2 }}>
+          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', color: '#111827', fontWeight: 700, lineHeight: 1.2 }}>
             Flashcards
           </h1>
-          <p style={{ color: '#a087b0', fontSize: '0.8125rem', marginTop: 2 }}>
+          <p style={{ color: '#6B7280', fontSize: '0.875rem', marginTop: 2 }}>
             {totalSets} {totalSets === 1 ? 'set' : 'sets'}
           </p>
         </div>
@@ -120,8 +120,8 @@ export default function FlashcardSets() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: streak >= 7 ? '#fef9c3' : streak >= 1 ? '#f5f0ff' : 'white',
-        border: `1px solid ${streak >= 7 ? '#fde047' : '#ede9fe'}`,
+        background: '#FFFFFF',
+        border: '1px solid #E5E7EB',
         borderRadius: 14,
         padding: '12px 18px',
         marginBottom: 20,
@@ -132,7 +132,7 @@ export default function FlashcardSets() {
             <p style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem', margin: 0 }}>
               {streak >= 1 ? `${streak} day${streak !== 1 ? 's' : ''} in a row!` : 'Start your streak today'}
             </p>
-            <p style={{ fontSize: '0.75rem', color: '#a087b0', margin: '2px 0 0' }}>
+            <p style={{ fontSize: '0.75rem', color: '#6B7280', margin: '2px 0 0' }}>
               {streak >= 7 ? "You're on fire. Keep going!" : streak >= 1 ? 'Study today to keep your streak alive.' : 'Complete a study session to begin.'}
             </p>
           </div>
@@ -144,7 +144,7 @@ export default function FlashcardSets() {
 
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: 16 }}>
-        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
         <input
           style={{
             width: '100%',
@@ -153,7 +153,7 @@ export default function FlashcardSets() {
             paddingTop: 9,
             paddingBottom: 9,
             background: 'white',
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 12,
             fontSize: '0.875rem',
             color: '#111827',
@@ -182,8 +182,8 @@ export default function FlashcardSets() {
               fontWeight: 500,
               border: 'none',
               cursor: 'pointer',
-              background: sharedTab === value ? '#6b21a8' : '#f5f0ff',
-              color: sharedTab === value ? 'white' : '#6b21a8',
+              background: sharedTab === value ? '#6b21a8' : 'transparent',
+              color: sharedTab === value ? 'white' : '#6B7280',
               transition: 'all 0.15s',
             }}
           >
@@ -200,7 +200,7 @@ export default function FlashcardSets() {
             width: 64,
             height: 64,
             borderRadius: '50%',
-            background: '#f5f0ff',
+            background: 'rgba(107,33,168,0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -211,7 +211,7 @@ export default function FlashcardSets() {
           <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '1rem', marginBottom: 6 }}>
             {sharedTab ? 'No shared sets' : 'No flashcard sets'}
           </h3>
-          <p style={{ color: '#a087b0', fontSize: '0.875rem', marginBottom: 20 }}>
+          <p style={{ color: '#6B7280', fontSize: '0.875rem', marginBottom: 20 }}>
             {sharedTab
               ? 'No flashcard sets have been shared with you yet.'
               : 'Create your first set to start studying.'}
@@ -252,7 +252,7 @@ export default function FlashcardSets() {
                 disabled={isFetchingNextPage}
                 style={{
                   background: 'white',
-                  border: '1px solid #ede9fe',
+                  border: '1px solid #E5E7EB',
                   color: '#6b21a8',
                   padding: '9px 24px',
                   borderRadius: 12,
@@ -280,7 +280,7 @@ export default function FlashcardSets() {
               style={{
                 width: '100%',
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 12,
                 padding: '9px 14px',
                 fontSize: '0.875rem',
@@ -301,7 +301,7 @@ export default function FlashcardSets() {
               style={{
                 width: '100%',
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 12,
                 padding: '9px 14px',
                 fontSize: '0.875rem',
@@ -322,7 +322,7 @@ export default function FlashcardSets() {
               style={{
                 width: '100%',
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 12,
                 padding: '9px 14px',
                 fontSize: '0.875rem',
@@ -372,7 +372,7 @@ function FlashcardSetCard({ set, onDelete }) {
       className="group"
       style={{
         background: 'white',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '20px',
@@ -386,7 +386,7 @@ function FlashcardSetCard({ set, onDelete }) {
         e.currentTarget.style.boxShadow = '0 4px 16px rgba(107,33,168,0.12)';
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.borderColor = '#ede9fe';
+        e.currentTarget.style.borderColor = '#E5E7EB';
         e.currentTarget.style.boxShadow = '0 1px 8px rgba(107,33,168,0.06)';
       }}
     >
@@ -396,7 +396,7 @@ function FlashcardSetCard({ set, onDelete }) {
           width: 42,
           height: 42,
           borderRadius: 12,
-          background: '#f5f0ff',
+          background: 'rgba(107,33,168,0.08)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -411,13 +411,13 @@ function FlashcardSetCard({ set, onDelete }) {
                 borderRadius: 8,
                 border: 'none',
                 background: 'transparent',
-                color: '#a087b0',
+                color: '#9CA3AF',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#6b21a8'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#6b21a8'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; }}
             >
               <Edit3 size={13} />
             </button>
@@ -430,13 +430,13 @@ function FlashcardSetCard({ set, onDelete }) {
                 borderRadius: 8,
                 border: 'none',
                 background: 'transparent',
-                color: '#a087b0',
+                color: '#9CA3AF',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; }}
             >
               <Trash2 size={13} />
             </button>
@@ -464,11 +464,11 @@ function FlashcardSetCard({ set, onDelete }) {
           {set.title}
         </h3>
         {set.subject && (
-          <p style={{ fontSize: '0.8125rem', color: '#a087b0', marginBottom: 8 }}>{set.subject}</p>
+          <p style={{ fontSize: '0.8125rem', color: '#6B7280', marginBottom: 8 }}>{set.subject}</p>
         )}
         <span style={{
           display: 'inline-block',
-          background: '#f5f0ff',
+          background: 'rgba(107,33,168,0.08)',
           color: '#6b21a8',
           fontSize: '0.75rem',
           fontWeight: 500,
@@ -481,25 +481,25 @@ function FlashcardSetCard({ set, onDelete }) {
 
       {/* Footer */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
-        <span style={{ fontSize: '0.75rem', color: '#a087b0' }}>{formatRelative(set.updatedAt)}</span>
+        <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{formatRelative(set.updatedAt)}</span>
         <Link to="/flashcards/study" state={{ id: set._id }}>
           <button
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 5,
-              padding: '6px 14px',
-              borderRadius: 10,
-              border: '1px solid #ede9fe',
+              padding: '5px 12px',
+              borderRadius: 6,
+              border: '1px solid #6b21a8',
               background: 'white',
-              color: '#374151',
+              color: '#6b21a8',
               fontSize: '0.8125rem',
               fontWeight: 500,
               cursor: 'pointer',
               transition: 'all 0.12s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b21a8'; e.currentTarget.style.color = '#6b21a8'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#ede9fe'; e.currentTarget.style.color = '#374151'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#6b21a8'; e.currentTarget.style.color = 'white'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#6b21a8'; }}
           >
             <Play size={12} /> Study
           </button>

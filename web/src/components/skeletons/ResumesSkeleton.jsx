@@ -4,7 +4,7 @@ export default function ResumesSkeleton() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} style={{ background: 'white', border: '1px solid #ede9fe', borderRadius: 14, padding: '18px 20px' }}>
+        <div key={i} style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 14, padding: '18px 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ flex: 1 }}>
               <Skeleton className="h-4 w-48 mb-2" />

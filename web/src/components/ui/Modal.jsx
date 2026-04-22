@@ -25,7 +25,7 @@ export default function Modal({ open, onClose, title, children, className }) {
           className
         )}
         style={{
-          border: '1px solid #ede9fe',
+          border: '1px solid #E5E7EB',
           boxShadow:
             '0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(107,33,168,0.04)',
         }}
@@ -34,7 +34,7 @@ export default function Modal({ open, onClose, title, children, className }) {
           className="flex items-center justify-between"
           style={{
             padding: '20px 24px',
-            borderBottom: '1px solid #ede9fe',
+            borderBottom: '1px solid #E5E7EB',
           }}
         >
           <h2
@@ -61,7 +61,7 @@ export default function Modal({ open, onClose, title, children, className }) {
               cursor: 'pointer',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#f5f0ff';
+              e.currentTarget.style.background = 'rgba(107,33,168,0.08)';
               e.currentTarget.style.color = '#6b21a8';
             }}
             onMouseLeave={(e) => {

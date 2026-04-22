@@ -131,7 +131,7 @@ export default function NoteDetail() {
   if (!note) {
     return (
       <div style={{ textAlign: 'center', padding: '64px 0' }}>
-        <p style={{ color: '#a087b0', marginBottom: 8 }}>Note not found.</p>
+        <p style={{ color: '#9CA3AF', marginBottom: 8 }}>Note not found.</p>
         <Link to="/notes" style={{ color: '#6b21a8', fontSize: '0.875rem', textDecoration: 'none' }}>
           Back to notes
         </Link>
@@ -149,14 +149,14 @@ export default function NoteDetail() {
             borderRadius: 10,
             border: 'none',
             background: 'transparent',
-            color: '#a087b0',
+            color: '#9CA3AF',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             transition: 'background 0.12s',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#111827'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#111827'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; }}
           >
             <ArrowLeft size={18} />
           </button>
@@ -166,7 +166,7 @@ export default function NoteDetail() {
         {isOwner && !user?.isDemo && (
           <button
             onClick={() => setShowShareModal(true)}
-            style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+            style={{ border: '1px solid #E5E7EB', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
           >
             <Share2 size={14} />
             {note.visibility && note.visibility !== 'private' ? (
@@ -181,7 +181,7 @@ export default function NoteDetail() {
         )}
         {isOwner && !user?.isDemo && (
           <Link to="/notes/edit" state={{ id }}>
-            <button style={{ border: '1px solid #ede9fe', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+            <button style={{ border: '1px solid #E5E7EB', background: 'white', color: '#374151', padding: '7px 14px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
               <Edit3 size={14} /> Edit
             </button>
           </Link>
@@ -218,7 +218,7 @@ export default function NoteDetail() {
       {/* Note content card */}
       <div style={{
         background: 'white',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '28px 32px',
@@ -226,13 +226,13 @@ export default function NoteDetail() {
       }}>
         {/* Title + meta */}
         <div style={{ marginBottom: 16 }}>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', marginBottom: 10, lineHeight: 1.3 }}>
+          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.75rem', fontWeight: 700, color: '#111827', marginBottom: 10, lineHeight: 1.3 }}>
             {note.title}
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{
               display: 'inline-block',
-              background: '#f5f0ff',
+              background: 'rgba(107,33,168,0.08)',
               color: '#6b21a8',
               fontSize: '0.6875rem',
               fontWeight: 600,
@@ -242,7 +242,7 @@ export default function NoteDetail() {
             }}>
               {note.type || 'note'}
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: '#a087b0' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: '#9CA3AF' }}>
               <Clock size={11} /> {formatDate(note.updatedAt)}
             </span>
           </div>
@@ -250,7 +250,7 @@ export default function NoteDetail() {
 
         {/* Creator attribution — shown only for shared users */}
         {!isOwner && creator && (
-          <p style={{ fontSize: '0.8125rem', color: '#a087b0', marginTop: 8, marginBottom: 4 }}>
+          <p style={{ fontSize: '0.8125rem', color: '#9CA3AF', marginTop: 8, marginBottom: 4 }}>
             Created by{' '}
             <Link
               to="/users/view"
@@ -274,7 +274,7 @@ export default function NoteDetail() {
                 gap: 4,
                 fontSize: '0.75rem',
                 color: '#6b21a8',
-                background: '#f5f0ff',
+                background: 'rgba(107,33,168,0.08)',
                 padding: '3px 10px',
                 borderRadius: 20,
               }}>
@@ -295,7 +295,7 @@ export default function NoteDetail() {
       {/* AI Summary card */}
       <div style={{
         background: 'white',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '24px 28px',
@@ -322,7 +322,7 @@ export default function NoteDetail() {
                   padding: '6px 14px',
                   borderRadius: 10,
                   border: 'none',
-                  background: '#f5f0ff',
+                  background: 'rgba(107,33,168,0.08)',
                   color: '#6b21a8',
                   fontSize: '0.8125rem',
                   fontWeight: 500,
@@ -354,7 +354,7 @@ export default function NoteDetail() {
           return displaySummary ? (
             <p style={{ fontSize: '0.875rem', color: '#374151', lineHeight: 1.7 }}>{displaySummary}</p>
           ) : (
-            <p style={{ fontSize: '0.875rem', color: '#a087b0' }}>
+            <p style={{ fontSize: '0.875rem', color: '#9CA3AF' }}>
               Click "Generate" to get an AI-powered summary of this note.
             </p>
           );
@@ -364,7 +364,7 @@ export default function NoteDetail() {
       {/* Comments card */}
       <div style={{
         background: 'white',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '24px 28px',

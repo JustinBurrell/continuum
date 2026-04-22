@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Activity as ActivityIcon, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/lib/api';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import ActivitySkeleton from '@/components/skeletons/ActivitySkeleton';
@@ -59,18 +59,18 @@ function getActivitySentence(item, actor) {
 
   switch (item.type) {
     case 'note_shared':
-      return <>{bold} shared their note {m.noteTitle && <span style={{ color: '#a087b0' }}>"{m.noteTitle}"</span>}{suffix}</>;
+      return <>{bold} shared their note {m.noteTitle && <span style={{ color: '#9CA3AF' }}>"{m.noteTitle}"</span>}{suffix}</>;
     case 'flashcard_shared':
-      return <>{bold} shared a flashcard set {m.setTitle && <span style={{ color: '#a087b0' }}>"{m.setTitle}"</span>}{suffix}</>;
+      return <>{bold} shared a flashcard set {m.setTitle && <span style={{ color: '#9CA3AF' }}>"{m.setTitle}"</span>}{suffix}</>;
     case 'task_created':
-      return <>{bold} shared a task {m.taskTitle && <span style={{ color: '#a087b0' }}>"{m.taskTitle}"</span>}{suffix}</>;
+      return <>{bold} shared a task {m.taskTitle && <span style={{ color: '#9CA3AF' }}>"{m.taskTitle}"</span>}{suffix}</>;
     case 'comment_added':
       return m.commentPreview
-        ? <>{bold} commented: <span style={{ color: '#a087b0' }}>"{m.commentPreview}"</span></>
+        ? <>{bold} commented: <span style={{ color: '#9CA3AF' }}>"{m.commentPreview}"</span></>
         : <>{bold} left a comment</>;
     case 'like_added':
       return m.commentPreview
-        ? <>{bold} liked a comment: <span style={{ color: '#a087b0' }}>"{m.commentPreview}"</span></>
+        ? <>{bold} liked a comment: <span style={{ color: '#9CA3AF' }}>"{m.commentPreview}"</span></>
         : <>{bold} liked a comment</>;
     default:
       return <>{bold} did something</>;
@@ -79,17 +79,17 @@ function getActivitySentence(item, actor) {
 
 const TYPE_COLORS = {
   note_shared: '#6b21a8',
-  flashcard_shared: '#7c3aed',
-  task_created: '#2563eb',
-  comment_added: '#16a34a',
-  like_added: '#dc2626',
+  flashcard_shared: '#6b21a8',
+  task_created: '#6b21a8',
+  comment_added: '#6b21a8',
+  like_added: '#6b21a8',
 };
 
 function ActivityItem({ item }) {
   const actor = item.userId;
   const name = fullName(actor);
   const actorId = actor?._id;
-  const dotColor = TYPE_COLORS[item.type] || '#a087b0';
+  const dotColor = TYPE_COLORS[item.type] || '#9CA3AF';
 
   return (
     <div style={{
@@ -97,13 +97,13 @@ function ActivityItem({ item }) {
       alignItems: 'flex-start',
       gap: 14,
       padding: '14px 0',
-      borderBottom: '1px solid #ede9fe',
+      borderBottom: '1px solid #E5E7EB',
       position: 'relative',
     }}>
       {/* Activity type dot */}
       <div style={{ position: 'relative', flexShrink: 0 }}>
         <Link to="/users/view" state={{ id: actorId }} style={{ display: 'block' }}>
-          <Avatar name={name} src={actor?.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
+          <AppAvatar name={name} src={actor?.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
         </Link>
         <div style={{
           position: 'absolute',
@@ -121,7 +121,7 @@ function ActivityItem({ item }) {
         <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.5 }}>
           {getActivitySentence(item, actor)}
         </p>
-        <p style={{ fontSize: 11, color: '#c4b5d4', marginTop: 4 }}>{formatRelative(item.createdAt)}</p>
+        <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>{formatRelative(item.createdAt)}</p>
       </div>
     </div>
   );
@@ -170,17 +170,17 @@ export default function Activity() {
     <div>
       {/* Page header */}
       <div style={{ marginBottom: 16 }}>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
           Activity
         </h1>
-        <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>
+        <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>
           {activities.length > 0 ? `${activities.length} item${activities.length === 1 ? '' : 's'} loaded` : 'Track what\'s happening'}
         </p>
       </div>
 
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: 24 }}>
-        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+        <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
         <input
           style={{
             width: '100%',
@@ -189,7 +189,7 @@ export default function Activity() {
             paddingTop: 9,
             paddingBottom: 9,
             background: 'white',
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 12,
             fontSize: '0.875rem',
             color: '#111827',
@@ -204,7 +204,7 @@ export default function Activity() {
 
       <div style={{
         background: '#fff',
-        border: '1px solid #ede9fe',
+        border: '1px solid #E5E7EB',
         borderRadius: 16,
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         overflow: 'hidden',
@@ -218,15 +218,15 @@ export default function Activity() {
                 width: 56,
                 height: 56,
                 borderRadius: '50%',
-                background: '#f5f0ff',
+                background: 'rgba(107,33,168,0.08)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 12px',
               }}>
-                <ActivityIcon size={24} style={{ color: '#a087b0' }} />
+                <ActivityIcon size={24} style={{ color: '#6b21a8' }} />
               </div>
-              <p style={{ fontSize: 14, color: '#a087b0', margin: 0 }}>
+              <p style={{ fontSize: 14, color: '#6B7280', margin: 0 }}>
                 No activity yet. Start creating notes, tasks, and more.
               </p>
             </div>
@@ -237,7 +237,7 @@ export default function Activity() {
 
         {/* Load more */}
         {hasNextPage && (
-          <div style={{ padding: '16px 20px', borderTop: '1px solid #ede9fe', textAlign: 'center' }}>
+          <div style={{ padding: '16px 20px', borderTop: '1px solid #E5E7EB', textAlign: 'center' }}>
             <Button
               variant="outline"
               size="sm"

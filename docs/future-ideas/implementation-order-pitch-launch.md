@@ -7,7 +7,13 @@
 
 ## Pre-Pitch (now → April 29)
 
-### 1. Google Drive Scope Migration ✅ Done
+### 1. Authenticated App Pages Redesign ✅ Done
+
+Full visual redesign of all 13 authenticated routes (Sidebar, Dashboard, Notes, Flashcards, Tasks, Calendar, Applications, Resumes, Messages, Friends, Activity, Profile, UserProfile). Banned lavender/pastel colors purged, Fraunces typography applied to all page headings, semantic badge/status color system unified across all pages. PR #195.
+
+---
+
+### 2. Google Drive Scope Migration ✅ Done
 
 - [x] Swap OAuth scope to `drive.file` in `passport.js` and `auth.routes.js`
 - [x] Remove/deprecate `GET /api/google/files` from production flow
@@ -18,7 +24,7 @@
 - [x] Run full web + backend QA (import, refresh, download, open-in-docs)
 - [ ] Reply to Google with "Confirming narrower scopes" — draft ready; send after Cloud Console scopes updated
 
-### 2. Observability
+### 3. Observability
 **Spec:** `observability.md`
 
 Goes in before the pitch so every crash that follows is visible. At minimum: the Sentry `ErrorBoundary` fallback (the current bare `<p>Something went wrong</p>` is a bad look in a pitch demo), PostHog init + identity wiring, and the activation funnel events. Skip building dashboards for now — just get data flowing.
@@ -34,7 +40,7 @@ Goes in before the pitch so every crash that follows is visible. At minimum: the
 - [ ] `npm install @vercel/speed-insights @vercel/analytics` in `web/`
 - [ ] Add `<SpeedInsights />` and `<Analytics />` components to the React tree in `main.jsx`
 
-### 3. Onboarding Modal
+### 4. Onboarding Modal
 **Spec:** `onboarding-new-user-process.md`
 
 Critical for the pitch. Any recruiter or judge handed the app will be a new user. Without onboarding they bounce before finding the value. The spec is fully designed — the backend is a single new field (`onboardingCompleted`) and one endpoint. Focus on the feature tour first; profile setup steps are secondary.
@@ -48,7 +54,7 @@ Critical for the pitch. Any recruiter or judge handed the app will be a new user
 - [ ] Mount modal in `AppLayout.jsx`
 - [ ] Add "Finish setup" resume path on Profile page
 
-### 4. Logout Others
+### 5. Logout Others
 **Spec:** `logout-others-spec.md`
 
 Low effort, high signal. The backend is essentially copy-paste from the spec, the frontend is one extra button on the Profile security tab. It's a security story that sounds sophisticated in a pitch. Ship it while onboarding is being polished.
@@ -63,7 +69,7 @@ Low effort, high signal. The backend is essentially copy-paste from the spec, th
 
 ## Pre-Public Launch (April 29 → May 6)
 
-### 5. In-App Notification Bell (partial)
+### 6. In-App Notification Bell (partial)
 **Spec:** `notifications-spec.md`
 
 Stop at the in-app bell + Socket.io delivery. That means: `Notification` model, `notification.service.js`, wire into comments/friends/share, bell component with unread badge + dropdown. Skip email delivery and FCM entirely for now — those are steps 5–7 in the spec's implementation order.
@@ -76,7 +82,7 @@ Stop at the in-app bell + Socket.io delivery. That means: `Notification` model, 
 - [ ] Build notification bell component in sidebar with unread badge + dropdown
 - [ ] Register `socket.on('new_notification')` handler in `AuthContext.jsx`
 
-### 6. Deep Links
+### 7. Deep Links
 **Spec:** `fcm-push-notifications.md` (deep link strategy section)
 
 Deep links are needed before public launch so that notification taps, shared links, and any external entry points land on the correct screen instead of the dashboard root. Covers both web (URL routing) and Android (intent handling via `MainActivity`).
@@ -88,7 +94,7 @@ Deep links are needed before public launch so that notification taps, shared lin
 - [ ] Android: handle deep link entry points for: message → `ConversationDetail`, friend request → `FriendsList` (Pending tab), shared note → `SharedNoteView`, task → `TaskDetail`
 - [ ] Test link previews in iMessage, Slack, and browser
 
-### 7. Accessibility Audit + Statement Page
+### 8. Accessibility Audit + Statement Page
 **Spec:** `accessibility.md`
 
 Before going public, run Lighthouse and axe on every route, fix contrast/label/focus violations, and add the Accessibility Statement page to the footer. One day of work that makes the launch credible and avoids embarrassment with disabled users.
@@ -100,7 +106,7 @@ Before going public, run Lighthouse and axe on every route, fix contrast/label/f
 - [ ] Add Accessibility link to `MarketingFooter.jsx` Legal column and bottom bar
 - [ ] Add route and title in router + `TitleManager.jsx`
 
-### 8. Email Inbound Routing
+### 9. Email Inbound Routing
 **Spec:** `email-inbound-routing.md`
 
 Check if `usecontinuum.dev` is past 30 days old. If yes, add the ImprovMX MX records and create forwarding rules for `hello@` and `support@`. Twenty-minute task that makes the contact addresses on the landing page actually work when people hit it after launch.

@@ -16,12 +16,12 @@ import { formatDate } from '@/lib/utils';
 const STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
 
 const STAGE_STYLES = {
-  draft:     { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
-  applied:   { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
-  interview: { bg: '#fdf4ff', color: '#7c3aed', border: '#e9d5ff' },
-  offer:     { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
-  rejected:  { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
-  withdrawn: { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' },
+  draft:     { bg: '#F3F4F6',              color: '#6B7280',  border: '#E5E7EB' },
+  applied:   { bg: 'rgba(107,33,168,0.08)', color: '#6b21a8',  border: 'rgba(107,33,168,0.2)' },
+  interview: { bg: 'rgba(217,119,6,0.08)', color: '#D97706',  border: 'rgba(217,119,6,0.2)' },
+  offer:     { bg: 'rgba(5,150,105,0.08)', color: '#059669',  border: 'rgba(5,150,105,0.2)' },
+  rejected:  { bg: '#FEE2E2',              color: '#DC2626',  border: '#FECACA' },
+  withdrawn: { bg: '#F3F4F6',              color: '#9CA3AF',  border: '#E5E7EB' },
 };
 
 const emptyContact = { name: '', email: '', role: '', linkedIn: '' };
@@ -29,7 +29,7 @@ const emptyReminder = { description: '', date: '' };
 
 const cardStyle = {
   background: '#fff',
-  border: '1px solid #ede9fe',
+  border: '1px solid #E5E7EB',
   borderRadius: 16,
   boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
   padding: '20px 24px',
@@ -123,7 +123,7 @@ export default function ApplicationDetail() {
   if (!app) {
     return (
       <div style={{ textAlign: 'center', padding: '64px 0' }}>
-        <p style={{ color: '#a087b0', marginBottom: 8 }}>Application not found.</p>
+        <p style={{ color: '#9CA3AF', marginBottom: 8 }}>Application not found.</p>
         <Link to="/applications" style={{ color: '#6b21a8', fontSize: 13 }}>Back to applications</Link>
       </div>
     );
@@ -142,7 +142,7 @@ export default function ApplicationDetail() {
             padding: 8,
             borderRadius: 10,
             border: 'none',
-            background: '#f5f0ff',
+            background: 'rgba(107,33,168,0.08)',
             cursor: 'pointer',
             color: '#6b21a8',
             display: 'flex',
@@ -168,11 +168,11 @@ export default function ApplicationDetail() {
               onClick={() => setShowDeleteConfirm(true)}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: 32, height: 32, borderRadius: 8, border: '1px solid #ede9fe',
-                background: 'white', color: '#a087b0', cursor: 'pointer',
+                width: 32, height: 32, borderRadius: 8, border: '1px solid #E5E7EB',
+                background: 'white', color: '#9CA3AF', cursor: 'pointer',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = '#fecaca'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#ede9fe'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.borderColor = '#E5E7EB'; }}
               title="Delete application"
             >
               <Trash2 size={15} />
@@ -192,9 +192,10 @@ export default function ApplicationDetail() {
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => setShowDeleteConfirm(false)} className="flex-1">Cancel</Button>
             <Button
+              variant="danger"
               onClick={() => deleteMutation.mutate()}
               loading={deleteMutation.isPending}
-              style={{ background: '#ef4444', flex: 1 }}
+              style={{ flex: 1 }}
             >
               Delete
             </Button>
@@ -275,10 +276,10 @@ export default function ApplicationDetail() {
           <>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
-                <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+                <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
                   {app.company}
                 </h1>
-                <p style={{ fontSize: 15, color: '#a087b0', marginTop: 4 }}>{app.position}</p>
+                <p style={{ fontSize: 15, color: '#6B7280', marginTop: 4 }}>{app.position}</p>
               </div>
               <StageBadge stage={app.status} />
             </div>
@@ -286,17 +287,17 @@ export default function ApplicationDetail() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {app.location && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6b7280' }}>
-                  <MapPin size={14} style={{ color: '#a087b0' }} /> {app.location}
+                  <MapPin size={14} style={{ color: '#9CA3AF' }} /> {app.location}
                 </div>
               )}
               {app.salary && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6b7280' }}>
-                  <DollarSign size={14} style={{ color: '#a087b0' }} /> {app.salary}
+                  <DollarSign size={14} style={{ color: '#9CA3AF' }} /> {app.salary}
                 </div>
               )}
               {app.appliedAt && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6b7280' }}>
-                  <Calendar size={14} style={{ color: '#a087b0' }} /> Applied {formatDate(app.appliedAt)}
+                  <Calendar size={14} style={{ color: '#9CA3AF' }} /> Applied {formatDate(app.appliedAt)}
                 </div>
               )}
               {app.jobUrl && (
@@ -312,8 +313,8 @@ export default function ApplicationDetail() {
             </div>
 
             {app.notes && (
-              <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #ede9fe' }}>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Notes</p>
+              <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #E5E7EB' }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Notes</p>
                 <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{app.notes}</p>
               </div>
             )}
@@ -335,7 +336,7 @@ export default function ApplicationDetail() {
         </div>
 
         {displayContacts.length === 0 && !showContactForm && (
-          <p style={{ fontSize: 13, color: '#a087b0' }}>No contacts added yet.</p>
+          <p style={{ fontSize: 13, color: '#6B7280' }}>No contacts added yet.</p>
         )}
 
         {displayContacts.length > 0 && (
@@ -346,7 +347,7 @@ export default function ApplicationDetail() {
                 alignItems: 'flex-start',
                 gap: 12,
                 padding: '12px 14px',
-                background: '#f5f0ff',
+                background: 'rgba(107,33,168,0.08)',
                 borderRadius: 12,
               }}>
                 <div style={{
@@ -363,7 +364,7 @@ export default function ApplicationDetail() {
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{c.name}</p>
-                  {c.role && <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>{c.role}</p>}
+                  {c.role && <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>{c.role}</p>}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 6 }}>
                     {c.email && (
                       <a href={`mailto:${c.email}`} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b21a8', textDecoration: 'none' }}>
@@ -371,7 +372,7 @@ export default function ApplicationDetail() {
                       </a>
                     )}
                     {c.linkedIn && (
-                      <a href={c.linkedIn} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#a087b0', textDecoration: 'none' }}>
+                      <a href={c.linkedIn} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#9CA3AF', textDecoration: 'none' }}>
                         <Phone size={11} /> LinkedIn
                       </a>
                     )}
@@ -383,7 +384,7 @@ export default function ApplicationDetail() {
         )}
 
         {showContactForm && (
-          <div style={{ border: '1px solid #ede9fe', borderRadius: 12, padding: '14px 16px' }} className="space-y-3">
+          <div style={{ border: '1px solid #E5E7EB', borderRadius: 12, padding: '14px 16px' }} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-secondary block mb-1">Name *</label>
@@ -460,7 +461,7 @@ export default function ApplicationDetail() {
         </div>
 
         {displayReminders.length === 0 && !showReminderForm && (
-          <p style={{ fontSize: 13, color: '#a087b0' }}>No reminders set yet.</p>
+          <p style={{ fontSize: 13, color: '#6B7280' }}>No reminders set yet.</p>
         )}
 
         {displayReminders.length > 0 && (
@@ -471,26 +472,26 @@ export default function ApplicationDetail() {
                 alignItems: 'flex-start',
                 gap: 12,
                 padding: '12px 14px',
-                background: '#fffbeb',
+                background: 'rgba(217,119,6,0.06)',
                 borderRadius: 12,
-                border: '1px solid #fde68a',
+                border: '1px solid rgba(217,119,6,0.2)',
               }}>
                 <div style={{
                   width: 36,
                   height: 36,
                   borderRadius: '50%',
-                  background: '#fef3c7',
+                  background: 'rgba(217,119,6,0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                 }}>
-                  <Bell size={15} style={{ color: '#f59e0b' }} />
+                  <Bell size={15} style={{ color: '#D97706' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>{r.description}</p>
                   {r.date && (
-                    <p style={{ fontSize: 11, color: '#a087b0', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                    <p style={{ fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
                       <Calendar size={10} />
                       {new Date(r.date).toLocaleString()}
                     </p>
@@ -502,7 +503,7 @@ export default function ApplicationDetail() {
         )}
 
         {showReminderForm && (
-          <div style={{ border: '1px solid #ede9fe', borderRadius: 12, padding: '14px 16px' }} className="space-y-3">
+          <div style={{ border: '1px solid #E5E7EB', borderRadius: 12, padding: '14px 16px' }} className="space-y-3">
             <div>
               <label className="text-xs font-medium text-secondary block mb-1">Description *</label>
               <textarea

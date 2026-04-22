@@ -4,7 +4,7 @@ import { Send, ArrowLeft, FileText, BookOpen, CheckSquare, Search, X, Trash2 } f
 import { Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import { useAuth } from '@/context/AuthContext';
@@ -155,10 +155,10 @@ export default function Conversation({ conversationId }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header */}
-      <div style={{ borderBottom: '1px solid #ede9fe', background: '#fff', flexShrink: 0 }}>
+      <div style={{ borderBottom: '1px solid #E5E7EB', background: '#fff', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px' }}>
-          <Link to="/messages" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, color: '#a087b0', textDecoration: 'none', flexShrink: 0, transition: 'background 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#f5f0ff'}
+          <Link to="/messages" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, color: '#9CA3AF', textDecoration: 'none', flexShrink: 0, transition: 'background 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <ArrowLeft size={18} />
@@ -171,12 +171,12 @@ export default function Conversation({ conversationId }) {
               style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flex: 1 }}
               className="hover:opacity-80 transition-opacity"
             >
-              <Avatar name={fullName(other)} src={other?.avatarUrl || null} size="sm" />
+              <AppAvatar name={fullName(other)} src={other?.avatarUrl || null} size="sm" />
               <div>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 700, fontSize: 14, color: '#111827', lineHeight: 1.2 }}>
                   {fullName(other)}<VerifiedBadge roles={other?.roles} />
                 </span>
-                <p style={{ fontSize: 11, color: '#a087b0', margin: 0 }}>@{other.username}</p>
+                <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>@{other.username}</p>
               </div>
             </Link>
           ) : (
@@ -192,8 +192,8 @@ export default function Conversation({ conversationId }) {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 32, height: 32, borderRadius: 8, border: 'none',
-              background: showSearch ? '#f5f0ff' : 'transparent',
-              color: showSearch ? '#6b21a8' : '#a087b0',
+              background: showSearch ? 'rgba(107,33,168,0.08)' : 'transparent',
+              color: showSearch ? '#6b21a8' : '#9CA3AF',
               cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s',
             }}
             title="Search messages"
@@ -207,11 +207,11 @@ export default function Conversation({ conversationId }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 32, height: 32, borderRadius: 8, border: 'none',
               background: showDeleteConvConfirm ? '#fef2f2' : 'transparent',
-              color: showDeleteConvConfirm ? '#dc2626' : '#a087b0',
+              color: showDeleteConvConfirm ? '#dc2626' : '#9CA3AF',
               cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s, color 0.15s',
             }}
             onMouseEnter={e => { if (!showDeleteConvConfirm) { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#dc2626'; } }}
-            onMouseLeave={e => { if (!showDeleteConvConfirm) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; } }}
+            onMouseLeave={e => { if (!showDeleteConvConfirm) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; } }}
             title="Delete conversation"
           >
             <Trash2 size={15} />
@@ -227,8 +227,8 @@ export default function Conversation({ conversationId }) {
               onClick={() => deleteConversationMutation.mutate()}
               disabled={deleteConversationMutation.isPending}
               style={{
-                padding: '5px 14px', borderRadius: 8, border: 'none',
-                background: '#dc2626', color: '#fff', fontSize: 12, fontWeight: 600,
+                padding: '5px 14px', borderRadius: 8,
+                background: 'transparent', border: '1px solid #E5E7EB', color: '#dc2626', fontSize: 12, fontWeight: 600,
                 cursor: 'pointer', flexShrink: 0,
               }}
             >
@@ -237,8 +237,8 @@ export default function Conversation({ conversationId }) {
             <button
               onClick={() => setShowDeleteConvConfirm(false)}
               style={{
-                padding: '5px 10px', borderRadius: 8, border: '1px solid #ede9fe',
-                background: 'transparent', color: '#a087b0', fontSize: 12, fontWeight: 600,
+                padding: '5px 10px', borderRadius: 8, border: '1px solid #E5E7EB',
+                background: 'transparent', color: '#9CA3AF', fontSize: 12, fontWeight: 600,
                 cursor: 'pointer', flexShrink: 0,
               }}
             >
@@ -250,7 +250,7 @@ export default function Conversation({ conversationId }) {
         {showSearch && (
           <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8, alignItems: 'center' }}>
             <div style={{ position: 'relative', flex: 1 }}>
-              <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+              <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
               <input
                 ref={searchInputRef}
                 value={msgSearch}
@@ -258,21 +258,21 @@ export default function Conversation({ conversationId }) {
                 placeholder="Search messages..."
                 style={{
                   width: '100%', paddingLeft: 30, paddingRight: 10, paddingTop: 7, paddingBottom: 7,
-                  borderRadius: 10, border: '1px solid #ede9fe', background: '#fef7ff',
+                  borderRadius: 10, border: '1px solid #E5E7EB', background: '#F8F9FA',
                   fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box',
                 }}
                 onFocus={e => e.target.style.borderColor = '#6b21a8'}
-                onBlur={e => e.target.style.borderColor = '#ede9fe'}
+                onBlur={e => e.target.style.borderColor = '#E5E7EB'}
               />
             </div>
             {msgSearch && (
-              <span style={{ fontSize: 11, color: '#a087b0', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 11, color: '#9CA3AF', whiteSpace: 'nowrap' }}>
                 {messages.length} result{messages.length !== 1 ? 's' : ''}
               </span>
             )}
             <button
               onClick={() => { setShowSearch(false); setMsgSearch(''); }}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 6, border: 'none', background: 'transparent', color: '#a087b0', cursor: 'pointer', flexShrink: 0 }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 6, border: 'none', background: 'transparent', color: '#9CA3AF', cursor: 'pointer', flexShrink: 0 }}
             >
               <X size={14} />
             </button>
@@ -281,7 +281,7 @@ export default function Conversation({ conversationId }) {
       </div>
 
       {/* Messages */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px', background: '#fef7ff' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px', background: '#F8F9FA' }}>
         {isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {Array.from({ length: 5 }).map((_, i) => (
@@ -294,10 +294,10 @@ export default function Conversation({ conversationId }) {
         ) : messages.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#f5f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                <Send size={20} style={{ color: '#a087b0' }} />
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(107,33,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                <Send size={20} style={{ color: '#9CA3AF' }} />
               </div>
-              <p style={{ fontSize: 13, color: '#a087b0' }}>No messages yet. Say hello!</p>
+              <p style={{ fontSize: 13, color: '#6B7280' }}>No messages yet. Say hello!</p>
             </div>
           </div>
         ) : (
@@ -329,7 +329,7 @@ export default function Conversation({ conversationId }) {
                 {/* Avatar slot */}
                 <div style={{ width: 28, flexShrink: 0 }}>
                   {!isOwn && isLastInGroup && (
-                    <Avatar name={senderName} src={msg.senderId?.avatarUrl || null} size="sm" />
+                    <AppAvatar name={senderName} src={msg.senderId?.avatarUrl || null} size="sm" />
                   )}
                 </div>
 
@@ -339,9 +339,9 @@ export default function Conversation({ conversationId }) {
                       <Link
                         to="/users/view"
                         state={{ id: msg.senderId?._id ?? msg.senderId }}
-                        style={{ fontSize: 11, fontWeight: 600, color: '#a087b0', textDecoration: 'none' }}
+                        style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textDecoration: 'none' }}
                         onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
-                        onMouseLeave={e => e.currentTarget.style.color = '#a087b0'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}
                       >
                         {senderName}
                       </Link>
@@ -364,7 +364,7 @@ export default function Conversation({ conversationId }) {
                           lineHeight: 1.5,
                           background: isOwn ? '#6b21a8' : '#fff',
                           color: isOwn ? '#fff' : '#111827',
-                          border: isOwn ? 'none' : '1px solid #ede9fe',
+                          border: isOwn ? 'none' : '1px solid #E5E7EB',
                           borderRadius: bubbleRadius,
                           wordBreak: 'break-word',
                           boxShadow: isOwn ? 'none' : '0 1px 4px rgba(107,33,168,0.06)',
@@ -379,7 +379,7 @@ export default function Conversation({ conversationId }) {
                               gap: 6,
                               padding: '5px 12px',
                               borderRadius: 8,
-                              background: isOwn ? 'rgba(255,255,255,0.2)' : '#f5f0ff',
+                              background: isOwn ? 'rgba(255,255,255,0.2)' : 'rgba(107,33,168,0.08)',
                               color: isOwn ? '#fff' : '#6b21a8',
                               fontSize: 12,
                               fontWeight: 600,
@@ -400,7 +400,7 @@ export default function Conversation({ conversationId }) {
                         lineHeight: 1.5,
                         background: isOwn ? '#6b21a8' : '#fff',
                         color: isOwn ? '#fff' : '#111827',
-                        border: isOwn ? 'none' : '1px solid #ede9fe',
+                        border: isOwn ? 'none' : '1px solid #E5E7EB',
                         borderRadius: bubbleRadius,
                         wordBreak: 'break-word',
                         boxShadow: isOwn ? 'none' : '0 1px 4px rgba(107,33,168,0.06)',
@@ -411,7 +411,7 @@ export default function Conversation({ conversationId }) {
                   })()}
 
                   {isLastInGroup && (
-                    <p style={{ fontSize: 10, color: '#c4b5d4', marginTop: 4, marginLeft: isOwn ? 0 : 4, marginRight: isOwn ? 4 : 0 }}>
+                    <p style={{ fontSize: 10, color: '#D1D5DB', marginTop: 4, marginLeft: isOwn ? 0 : 4, marginRight: isOwn ? 4 : 0 }}>
                       {formatRelative(msg.createdAt)}
                     </p>
                   )}
@@ -423,11 +423,11 @@ export default function Conversation({ conversationId }) {
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         width: 22, height: 22, borderRadius: 6, border: 'none',
-                        background: 'transparent', color: '#c4b5d4', cursor: 'pointer',
+                        background: 'transparent', color: '#D1D5DB', cursor: 'pointer',
                         marginTop: 2, transition: 'color 0.12s',
                       }}
                       onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
-                      onMouseLeave={e => e.currentTarget.style.color = '#c4b5d4'}
+                      onMouseLeave={e => e.currentTarget.style.color = '#D1D5DB'}
                       title="Delete for me"
                     >
                       <Trash2 size={11} />
@@ -443,11 +443,11 @@ export default function Conversation({ conversationId }) {
 
       {/* Input bar */}
       {user?.isDemo ? (
-        <div style={{ flexShrink: 0, padding: '12px 16px', borderTop: '1px solid #ede9fe', background: '#fef7ff', textAlign: 'center' }}>
-          <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>Messaging is view-only in the demo account.</p>
+        <div style={{ flexShrink: 0, padding: '12px 16px', borderTop: '1px solid #E5E7EB', background: '#F8F9FA', textAlign: 'center' }}>
+          <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>Messaging is view-only in the demo account.</p>
         </div>
       ) : (
-        <div style={{ flexShrink: 0, display: 'flex', gap: 10, padding: '12px 16px', borderTop: '1px solid #ede9fe', background: '#fff', alignItems: 'center' }}>
+        <div style={{ flexShrink: 0, display: 'flex', gap: 10, padding: '12px 16px', borderTop: '1px solid #E5E7EB', background: '#fff', alignItems: 'center' }}>
           <input
             type="text"
             placeholder="Message..."
@@ -460,15 +460,15 @@ export default function Conversation({ conversationId }) {
               flex: 1,
               padding: '10px 18px',
               borderRadius: 24,
-              border: '1px solid #ede9fe',
-              background: '#fef7ff',
+              border: '1px solid #E5E7EB',
+              background: '#F8F9FA',
               fontSize: 14,
               color: '#111827',
               outline: 'none',
               transition: 'border-color 0.15s',
             }}
             onFocus={e => e.target.style.borderColor = '#6b21a8'}
-            onBlur={e => e.target.style.borderColor = '#ede9fe'}
+            onBlur={e => e.target.style.borderColor = '#E5E7EB'}
           />
           <button
             onClick={handleSend}
@@ -477,7 +477,7 @@ export default function Conversation({ conversationId }) {
               width: 40,
               height: 40,
               borderRadius: '50%',
-              background: message.trim() ? '#6b21a8' : '#f5f0ff',
+              background: message.trim() ? '#6b21a8' : 'rgba(107,33,168,0.08)',
               border: 'none',
               cursor: message.trim() ? 'pointer' : 'default',
               display: 'flex',
@@ -487,7 +487,7 @@ export default function Conversation({ conversationId }) {
               transition: 'background 0.15s',
             }}
           >
-            <Send size={16} style={{ color: message.trim() ? '#fff' : '#a087b0' }} />
+            <Send size={16} style={{ color: message.trim() ? '#fff' : '#9CA3AF' }} />
           </button>
         </div>
       )}

@@ -6,7 +6,7 @@ import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
-import Avatar from '@/components/ui/Avatar';
+import AppAvatar from '@/components/ui/AppAvatar';
 import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import FriendsSkeleton from '@/components/skeletons/FriendsSkeleton';
@@ -107,10 +107,10 @@ export default function Friends() {
     <div>
       {/* Page header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
           Friends
         </h1>
-        <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>Manage your connections</p>
+        <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>Manage your connections</p>
       </div>
 
       {/* Tabs */}
@@ -132,8 +132,8 @@ export default function Friends() {
                 border: 'none',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
-                background: active ? '#6b21a8' : '#f5f0ff',
-                color: active ? '#fff' : '#6b21a8',
+                background: active ? '#6b21a8' : 'transparent',
+                color: active ? '#fff' : '#6b7280',
               }}
             >
               {t.label}
@@ -159,7 +159,7 @@ export default function Friends() {
         <div>
           {/* Search */}
           <div style={{ position: 'relative', marginBottom: 16 }}>
-            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
             <input
               style={{
                 width: '100%',
@@ -168,7 +168,7 @@ export default function Friends() {
                 paddingTop: 9,
                 paddingBottom: 9,
                 background: 'white',
-                border: '1px solid #ede9fe',
+                border: '1px solid #E5E7EB',
                 borderRadius: 12,
                 fontSize: '0.875rem',
                 color: '#111827',
@@ -188,16 +188,16 @@ export default function Friends() {
                 width: 64,
                 height: 64,
                 borderRadius: '50%',
-                background: '#f5f0ff',
+                background: 'rgba(107,33,168,0.08)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 16px',
               }}>
-                <Users size={28} style={{ color: '#a087b0' }} />
+                <Users size={28} style={{ color: '#6b21a8' }} />
               </div>
               <h3 style={{ fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>No friends yet</h3>
-              <p style={{ color: '#a087b0', fontSize: 14, marginBottom: 16 }}>Find people to connect with.</p>
+              <p style={{ color: '#6B7280', fontSize: 14, marginBottom: 16 }}>Find people to connect with.</p>
               <Button size="sm" onClick={() => setTab('find')}>Find people</Button>
             </div>
           ) : (
@@ -211,7 +211,7 @@ export default function Friends() {
                     key={f._id}
                     style={{
                       background: '#fff',
-                      border: '1px solid #ede9fe',
+                      border: '1px solid #E5E7EB',
                       borderRadius: 16,
                       boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                       padding: '14px 18px',
@@ -221,12 +221,12 @@ export default function Friends() {
                     }}
                   >
                     <Link to="/users/view" state={{ id: friendUser._id }} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
-                      <Avatar name={fullName(friendUser)} src={friendUser.avatarUrl} size="md" />
+                      <AppAvatar name={fullName(friendUser)} src={friendUser.avatarUrl} size="md" />
                       <div style={{ minWidth: 0 }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 700, color: '#111827', fontSize: 14 }}>
                           {fullName(friendUser)}<VerifiedBadge roles={friendUser.roles} />
                         </span>
-                        <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>@{friendUser.username}</p>
+                        <p style={{ fontSize: 12, color: '#9CA3AF', margin: '2px 0 0' }}>@{friendUser.username}</p>
                       </div>
                     </Link>
                     <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
@@ -243,16 +243,16 @@ export default function Friends() {
                         style={{
                           padding: '6px 10px',
                           borderRadius: 8,
-                          border: '1px solid #ede9fe',
+                          border: '1px solid #E5E7EB',
                           background: 'transparent',
                           cursor: 'pointer',
-                          color: '#a087b0',
+                          color: '#9CA3AF',
                           display: 'flex',
                           alignItems: 'center',
                           transition: 'color 0.15s, border-color 0.15s',
                         }}
                         onMouseEnter={e => { e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.borderColor = '#fecaca'; }}
-                        onMouseLeave={e => { e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#ede9fe'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#9CA3AF'; e.currentTarget.style.borderColor = '#E5E7EB'; }}
                       >
                         <UserMinus size={14} />
                       </button>
@@ -273,7 +273,7 @@ export default function Friends() {
               {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
             </div>
           ) : requests.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: '#a087b0', fontSize: 14 }}>
+            <div style={{ textAlign: 'center', padding: '48px 0', color: '#6B7280', fontSize: 14 }}>
               No pending friend requests.
             </div>
           ) : (
@@ -285,7 +285,7 @@ export default function Friends() {
                     key={req._id}
                     style={{
                       background: '#fff',
-                      border: '1px solid #ede9fe',
+                      border: '1px solid #E5E7EB',
                       borderRadius: 16,
                       boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                       padding: '14px 18px',
@@ -295,7 +295,7 @@ export default function Friends() {
                     }}
                   >
                     <Link to="/users/view" state={{ id: requester?._id }} style={{ flexShrink: 0 }}>
-                      <Avatar name={fullName(requester)} src={requester?.avatarUrl} className="hover:opacity-80 transition-opacity" />
+                      <AppAvatar name={fullName(requester)} src={requester?.avatarUrl} className="hover:opacity-80 transition-opacity" />
                     </Link>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Link to="/users/view" state={{ id: requester?._id }} style={{ textDecoration: 'none' }}>
@@ -303,7 +303,7 @@ export default function Friends() {
                           {fullName(requester)}<VerifiedBadge roles={requester?.roles} />
                         </span>
                       </Link>
-                      <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>@{requester?.username} wants to connect</p>
+                      <p style={{ fontSize: 12, color: '#9CA3AF', margin: '2px 0 0' }}>@{requester?.username} wants to connect</p>
                     </div>
                     <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                       <Button
@@ -337,7 +337,7 @@ export default function Friends() {
               {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
             </div>
           ) : sentRequests.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: '#a087b0', fontSize: 14 }}>
+            <div style={{ textAlign: 'center', padding: '48px 0', color: '#6B7280', fontSize: 14 }}>
               No pending outgoing requests.
             </div>
           ) : (
@@ -349,7 +349,7 @@ export default function Friends() {
                     key={req._id}
                     style={{
                       background: '#fff',
-                      border: '1px solid #ede9fe',
+                      border: '1px solid #E5E7EB',
                       borderRadius: 16,
                       boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                       padding: '14px 18px',
@@ -359,13 +359,13 @@ export default function Friends() {
                     }}
                   >
                     <Link to="/users/view" state={{ id: recipient?._id }} style={{ flexShrink: 0 }}>
-                      <Avatar name={fullName(recipient)} src={recipient?.avatarUrl} className="hover:opacity-80 transition-opacity" />
+                      <AppAvatar name={fullName(recipient)} src={recipient?.avatarUrl} className="hover:opacity-80 transition-opacity" />
                     </Link>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Link to="/users/view" state={{ id: recipient?._id }} style={{ textDecoration: 'none' }}>
                         <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>{fullName(recipient)}</p>
                       </Link>
-                      <p style={{ fontSize: 12, color: '#a087b0', margin: '2px 0 0' }}>@{recipient?.username} · Request pending</p>
+                      <p style={{ fontSize: 12, color: '#9CA3AF', margin: '2px 0 0' }}>@{recipient?.username} · Request pending</p>
                     </div>
                     <Button
                       size="sm"
@@ -387,7 +387,7 @@ export default function Friends() {
       {tab === 'find' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ position: 'relative' }}>
-            <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0' }} />
+            <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
             <input
               className="input-field"
               style={{ paddingLeft: 36 }}
@@ -400,14 +400,14 @@ export default function Friends() {
           {searchQ.length >= 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {searchResults.length === 0 ? (
-                <p style={{ fontSize: 13, color: '#a087b0', textAlign: 'center', padding: '16px 0' }}>No users found.</p>
+                <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '16px 0' }}>No users found.</p>
               ) : (
                 searchResults.map(u => (
                   <div
                     key={u._id}
                     style={{
                       background: '#fff',
-                      border: '1px solid #ede9fe',
+                      border: '1px solid #E5E7EB',
                       borderRadius: 14,
                       boxShadow: '0 1px 6px rgba(107,33,168,0.05)',
                       padding: '12px 16px',
@@ -417,7 +417,7 @@ export default function Friends() {
                     }}
                   >
                     <Link to="/users/view" state={{ id: u._id }} style={{ flexShrink: 0 }}>
-                      <Avatar name={fullName(u)} src={u.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
+                      <AppAvatar name={fullName(u)} src={u.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
                     </Link>
                     <div style={{ flex: 1 }}>
                       <Link to="/users/view" state={{ id: u._id }} style={{ textDecoration: 'none' }}>
@@ -425,7 +425,7 @@ export default function Friends() {
                           {fullName(u)}<VerifiedBadge roles={u.roles} />
                         </span>
                       </Link>
-                      <p style={{ fontSize: 11, color: '#a087b0', margin: '2px 0 0' }}>@{u.username}</p>
+                      <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>@{u.username}</p>
                     </div>
                     {!user?.isDemo && (
                       <Button
@@ -444,7 +444,7 @@ export default function Friends() {
           )}
 
           {sendRequestMutation.isSuccess && (
-            <p style={{ fontSize: 12, color: '#16a34a' }}>Friend request sent!</p>
+            <p style={{ fontSize: 12, color: '#059669' }}>Friend request sent!</p>
           )}
           {sendRequestMutation.isError && (
             <p style={{ fontSize: 12, color: '#dc2626' }}>

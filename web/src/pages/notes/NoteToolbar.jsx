@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 
 const divider = (
-  <span style={{ width: 1, height: 18, background: '#ede9fe', display: 'inline-block', margin: '0 4px', flexShrink: 0 }} />
+  <span style={{ width: 1, height: 18, background: '#E5E7EB', display: 'inline-block', margin: '0 4px', flexShrink: 0 }} />
 );
 
 function ToolBtn({ onClick, isActive, disabled, title, children }) {
@@ -36,8 +36,8 @@ export default function NoteToolbar({ editor, editorTick: _ }) {
       flexWrap: 'wrap',
       gap: 2,
       padding: '8px 12px',
-      borderBottom: '1px solid #ede9fe',
-      background: 'white',
+      borderBottom: '1px solid #E5E7EB',
+      background: '#F8F9FA',
     }}>
       {/* Headings */}
       <ToolBtn

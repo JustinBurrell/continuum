@@ -43,19 +43,19 @@ export default function FlashcardHistory() {
               borderRadius: 10,
               border: 'none',
               background: 'transparent',
-              color: '#a087b0',
+              color: '#9CA3AF',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               transition: 'background 0.12s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#f5f0ff'; e.currentTarget.style.color = '#111827'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a087b0'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; e.currentTarget.style.color = '#111827'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; }}
           >
             <ArrowLeft size={18} />
           </button>
         </Link>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>
+        <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827' }}>
           Study History
         </h1>
       </div>
@@ -65,8 +65,8 @@ export default function FlashcardHistory() {
         {streak >= 1 && (
           <div style={{
             flex: '1 1 160px',
-            background: streak >= 7 ? '#fef9c3' : '#f5f0ff',
-            border: `1px solid ${streak >= 7 ? '#fde047' : '#ede9fe'}`,
+            background: '#FFFFFF',
+            border: '1px solid #E5E7EB',
             borderRadius: 14,
             padding: '14px 18px',
             display: 'flex',
@@ -75,43 +75,43 @@ export default function FlashcardHistory() {
           }}>
             <span style={{ fontSize: '1.5rem' }}>{streak >= 7 ? '🔥' : '⚡'}</span>
             <div>
-              <p style={{ fontWeight: 700, fontSize: '1.25rem', color: '#111827', margin: 0, lineHeight: 1 }}>{streak}</p>
-              <p style={{ fontSize: '0.75rem', color: '#a087b0', margin: '2px 0 0' }}>day streak</p>
+              <p style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: '1.375rem', color: '#111827', margin: 0, lineHeight: 1 }}>{streak}</p>
+              <p style={{ fontSize: '0.75rem', color: '#9CA3AF', margin: '2px 0 0' }}>day streak</p>
             </div>
           </div>
         )}
         <div style={{
           flex: '1 1 120px',
           background: 'white',
-          border: '1px solid #ede9fe',
+          border: '1px solid #E5E7EB',
           borderRadius: 14,
           padding: '14px 18px',
         }}>
-          <p style={{ fontWeight: 700, fontSize: '1.25rem', color: '#111827', margin: 0, lineHeight: 1 }}>{total}</p>
-          <p style={{ fontSize: '0.75rem', color: '#a087b0', margin: '2px 0 0' }}>total sessions</p>
+          <p style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: '1.375rem', color: '#111827', margin: 0, lineHeight: 1 }}>{total}</p>
+          <p style={{ fontSize: '0.75rem', color: '#9CA3AF', margin: '2px 0 0' }}>total sessions</p>
         </div>
         {avgScore !== null && (
           <div style={{
             flex: '1 1 120px',
             background: 'white',
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 14,
             padding: '14px 18px',
           }}>
-            <p style={{ fontWeight: 700, fontSize: '1.25rem', color: '#111827', margin: 0, lineHeight: 1 }}>{avgScore}%</p>
-            <p style={{ fontSize: '0.75rem', color: '#a087b0', margin: '2px 0 0' }}>avg score</p>
+            <p style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: '1.375rem', color: '#111827', margin: 0, lineHeight: 1 }}>{avgScore}%</p>
+            <p style={{ fontSize: '0.75rem', color: '#9CA3AF', margin: '2px 0 0' }}>avg score</p>
           </div>
         )}
         {totalCards > 0 && (
           <div style={{
             flex: '1 1 120px',
             background: 'white',
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 14,
             padding: '14px 18px',
           }}>
-            <p style={{ fontWeight: 700, fontSize: '1.25rem', color: '#111827', margin: 0, lineHeight: 1 }}>{totalCards}</p>
-            <p style={{ fontSize: '0.75rem', color: '#a087b0', margin: '2px 0 0' }}>cards studied</p>
+            <p style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: '1.375rem', color: '#111827', margin: 0, lineHeight: 1 }}>{totalCards}</p>
+            <p style={{ fontSize: '0.75rem', color: '#9CA3AF', margin: '2px 0 0' }}>cards studied</p>
           </div>
         )}
       </div>
@@ -129,7 +129,7 @@ export default function FlashcardHistory() {
             width: 56,
             height: 56,
             borderRadius: '50%',
-            background: '#f5f0ff',
+            background: 'rgba(107,33,168,0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -137,7 +137,7 @@ export default function FlashcardHistory() {
           }}>
             <BookOpen size={22} style={{ color: '#6b21a8' }} />
           </div>
-          <p style={{ color: '#a087b0', fontSize: '0.875rem' }}>
+          <p style={{ color: '#9CA3AF', fontSize: '0.875rem' }}>
             No study sessions yet. Go study a set to get started!
           </p>
           <Link to="/flashcards" style={{ color: '#6b21a8', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none', marginTop: 12, display: 'inline-block' }}>
@@ -161,9 +161,9 @@ export default function FlashcardHistory() {
             style={{
               padding: '7px 16px',
               borderRadius: 10,
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               background: 'white',
-              color: page === 1 ? '#c4b5d4' : '#374151',
+              color: page === 1 ? '#D1D5DB' : '#374151',
               fontSize: '0.875rem',
               fontWeight: 500,
               cursor: page === 1 ? 'not-allowed' : 'pointer',
@@ -171,7 +171,7 @@ export default function FlashcardHistory() {
           >
             Previous
           </button>
-          <span style={{ fontSize: '0.875rem', color: '#a087b0' }}>
+          <span style={{ fontSize: '0.875rem', color: '#9CA3AF' }}>
             {page} / {totalPages}
           </span>
           <button
@@ -180,9 +180,9 @@ export default function FlashcardHistory() {
             style={{
               padding: '7px 16px',
               borderRadius: 10,
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               background: 'white',
-              color: page === totalPages ? '#c4b5d4' : '#374151',
+              color: page === totalPages ? '#D1D5DB' : '#374151',
               fontSize: '0.875rem',
               fontWeight: 500,
               cursor: page === totalPages ? 'not-allowed' : 'pointer',
@@ -206,8 +206,8 @@ function HistoryRow({ session }) {
     staleTime: Infinity,
   });
 
-  const scoreColor = session.score >= 70 ? '#16a34a' : session.score >= 40 ? '#d97706' : '#dc2626';
-  const scoreBg = session.score >= 70 ? '#f0fdf4' : session.score >= 40 ? '#fffbeb' : '#fef2f2';
+  const scoreColor = session.score >= 70 ? '#059669' : session.score >= 40 ? '#D97706' : '#DC2626';
+  const scoreBg = session.score >= 70 ? 'rgba(5,150,105,0.08)' : session.score >= 40 ? 'rgba(217,119,6,0.08)' : '#FEE2E2';
   const mins = Math.floor(session.durationSeconds / 60);
   const secs = session.durationSeconds % 60;
   const duration = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
@@ -220,7 +220,7 @@ function HistoryRow({ session }) {
   return (
     <div style={{
       background: 'white',
-      border: `1px solid ${expanded ? '#6b21a8' : '#ede9fe'}`,
+      border: `1px solid ${expanded ? '#6b21a8' : '#E5E7EB'}`,
       borderRadius: 14,
       boxShadow: '0 1px 4px rgba(107,33,168,0.04)',
       overflow: 'hidden',
@@ -276,7 +276,7 @@ function HistoryRow({ session }) {
               {setTitle}
             </p>
           )}
-          <p style={{ fontSize: '0.75rem', color: '#a087b0', margin: '3px 0 0' }}>
+          <p style={{ fontSize: '0.75rem', color: '#9CA3AF', margin: '3px 0 0' }}>
             {session.correctCount}/{session.totalCards} correct &middot; {duration} &middot; {formatRelative(session.completedAt)}
           </p>
         </div>
@@ -292,7 +292,7 @@ function HistoryRow({ session }) {
         }}>
           {session.score}%
         </div>
-        <div style={{ flexShrink: 0, color: '#a087b0', display: 'flex', alignItems: 'center' }}>
+        <div style={{ flexShrink: 0, color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
           {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
       </div>
@@ -300,9 +300,9 @@ function HistoryRow({ session }) {
       {/* Expanded card-by-card breakdown */}
       {expanded && (
         <div style={{
-          borderTop: '1px solid #ede9fe',
+          borderTop: '1px solid #E5E7EB',
           padding: '12px 18px 16px',
-          background: '#faf8ff',
+          background: '#F8F9FA',
         }}>
           {detailLoading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -345,7 +345,7 @@ function HistoryRow({ session }) {
               })}
             </div>
           ) : (
-            <p style={{ fontSize: '0.8125rem', color: '#a087b0', margin: 0 }}>No card detail available for this session.</p>
+            <p style={{ fontSize: '0.8125rem', color: '#9CA3AF', margin: 0 }}>No card detail available for this session.</p>
           )}
         </div>
       )}

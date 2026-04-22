@@ -20,13 +20,13 @@ const PRIORITIES = ['low', 'medium', 'high'];
 const TYPES = ['homework', 'study', 'project', 'exam', 'club', 'professional', 'personal', 'other'];
 
 const TYPE_COLORS = {
-  homework: { bg: '#dbeafe', text: '#1d4ed8' },
-  study: { bg: '#f5f0ff', text: '#6b21a8' },
-  project: { bg: '#fef3c7', text: '#b45309' },
-  exam: { bg: '#fce7f3', text: '#be185d' },
-  club: { bg: '#d1fae5', text: '#065f46' },
-  professional: { bg: '#e0e7ff', text: '#3730a3' },
-  personal: { bg: '#fef9c3', text: '#854d0e' },
+  homework: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
+  study: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
+  project: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
+  exam: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
+  club: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
+  professional: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
+  personal: { bg: 'rgba(107,33,168,0.08)', text: '#6b21a8' },
   other: { bg: '#f3f4f6', text: '#374151' },
 };
 
@@ -191,10 +191,10 @@ export default function Tasks() {
       {/* Page header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+          <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
             Tasks
           </h1>
-          <p style={{ fontSize: 13, color: '#a087b0', marginTop: 4 }}>{allTasks.length} tasks</p>
+          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{allTasks.length} tasks</p>
         </div>
         {!user?.isDemo && (
           <Button onClick={() => setShowCreate(true)}>
@@ -206,7 +206,7 @@ export default function Tasks() {
       {/* Search */}
       {(
         <div style={{ position: 'relative', marginBottom: 16 }}>
-          <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a087b0', pointerEvents: 'none' }} />
+          <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
           <input
             style={{
               width: '100%',
@@ -215,7 +215,7 @@ export default function Tasks() {
               paddingTop: 9,
               paddingBottom: 9,
               background: 'white',
-              border: '1px solid #ede9fe',
+              border: '1px solid #E5E7EB',
               borderRadius: 12,
               fontSize: '0.875rem',
               color: '#111827',
@@ -243,8 +243,8 @@ export default function Tasks() {
               border: 'none',
               cursor: 'pointer',
               transition: 'all 0.15s',
-              background: sharedTab === key ? '#6b21a8' : '#f5f0ff',
-              color: sharedTab === key ? '#fff' : '#6b21a8',
+              background: sharedTab === key ? '#6b21a8' : 'transparent',
+              color: sharedTab === key ? '#fff' : '#6b7280',
             }}
           >
             {label}
@@ -334,8 +334,8 @@ export default function Tasks() {
                 gap: 8,
                 padding: '8px 14px',
                 borderRadius: 12,
-                border: '1px solid #ede9fe',
-                background: form.participants.length > 0 ? '#f5f0ff' : 'white',
+                border: '1px solid #E5E7EB',
+                background: form.participants.length > 0 ? 'rgba(107,33,168,0.08)' : 'white',
                 color: form.participants.length > 0 ? '#6b21a8' : '#374151',
                 fontSize: '0.8125rem',
                 fontWeight: 500,
@@ -448,12 +448,12 @@ function KanbanColumn({ status, tasks, onStatusChange, onDelete, onView, isShare
           <div style={{
             height: 80,
             borderRadius: 12,
-            border: '2px dashed #ede9fe',
+            border: '2px dashed #E5E7EB',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <p style={{ fontSize: 12, color: '#a087b0' }}>No tasks</p>
+            <p style={{ fontSize: 12, color: '#6B7280' }}>No tasks</p>
           </div>
         ) : (
           tasks.map(task => (
@@ -487,7 +487,7 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
       className="group"
       style={{
         background: '#fff',
-        border: `1px solid #ede9fe`,
+        border: `1px solid #E5E7EB`,
         borderLeft: `3px solid ${priorityStyle.border}`,
         borderRadius: 12,
         padding: '12px 14px',
@@ -509,7 +509,8 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
       <p style={{
         fontSize: 13,
         fontWeight: 600,
-        color: task.status === 'completed' ? '#a087b0' : '#111827',
+        color: task.status === 'completed' ? '#9CA3AF' : '#111827',
+
         textDecoration: task.status === 'completed' ? 'line-through' : 'none',
         marginBottom: 4,
         lineHeight: 1.4,
@@ -524,7 +525,7 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
       {task.description && (
         <p style={{
           fontSize: 11,
-          color: '#a087b0',
+          color: '#6B7280',
           marginBottom: 8,
           display: '-webkit-box',
           WebkitLineClamp: 2,
@@ -557,7 +558,7 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
               alignItems: 'center',
               gap: 4,
               fontSize: 11,
-              color: isOverdue ? '#ef4444' : '#a087b0',
+              color: isOverdue ? '#ef4444' : '#9CA3AF',
             }}>
               {isOverdue ? <AlertCircle size={11} /> : <Clock size={11} />}
               {isOverdue ? 'Overdue · ' : ''}{formatDate(task.dueDate)}
@@ -573,7 +574,7 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
         justifyContent: 'space-between',
         gap: 8,
         paddingTop: 8,
-        borderTop: '1px solid #f5f0ff',
+        borderTop: '1px solid #E5E7EB',
         marginTop: 4,
       }}>
         <select
@@ -582,18 +583,18 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
           onClick={e => e.stopPropagation()}
           style={{
             fontSize: 11,
-            border: '1px solid #ede9fe',
+            border: '1px solid #E5E7EB',
             borderRadius: 8,
             padding: '4px 10px',
-            background: '#fef7ff',
+            background: '#FFFFFF',
             color: '#6b21a8',
             fontWeight: 600,
             outline: 'none',
             cursor: 'pointer',
             transition: 'border-color 0.15s',
           }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = '#c4b5fd'}
-          onMouseLeave={e => e.currentTarget.style.borderColor = '#ede9fe'}
+          onMouseEnter={e => e.currentTarget.style.borderColor = '#6b21a8'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = '#E5E7EB'}
         >
           {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
         </select>
@@ -610,7 +611,7 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
                 border: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
-                color: '#c4b5d4',
+                color: '#D1D5DB',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -619,7 +620,7 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
               }}
               className="group-hover:opacity-100"
               onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#c4b5d4'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#D1D5DB'; }}
             >
               <Trash2 size={13} />
             </button>

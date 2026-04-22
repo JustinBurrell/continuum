@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 
 const cardBase = {
   background: '#ffffff',
-  border: '1px solid #ede9fe',
+  border: '1px solid #E5E7EB',
   boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
   borderRadius: '1rem',
   padding: '20px',
