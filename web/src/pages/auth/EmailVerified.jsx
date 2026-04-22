@@ -4,6 +4,7 @@ import { CheckCircle, XCircle, Loader } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { useAuth } from '@/context/AuthContext';
+import { posthog } from '@/lib/posthog';
 
 export default function EmailVerified() {
   const [searchParams] = useSearchParams();
@@ -31,6 +32,7 @@ export default function EmailVerified() {
       .then(() => {
         // Invalidate the cached user so emailVerified: true is reflected immediately
         queryClient.invalidateQueries({ queryKey: ['me'] });
+        posthog.capture('email_verified', { platform: 'web' });
         setStatus('success');
       })
       .catch((err) => {

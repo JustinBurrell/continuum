@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { useAuth } from '@/context/AuthContext';
+import { posthog } from '@/lib/posthog';
 import Button from '@/components/ui/Button';
 import AppAvatar from '@/components/ui/AppAvatar';
 import Skeleton from '@/components/ui/Skeleton';
@@ -50,7 +51,10 @@ export default function Friends() {
 
   const sendRequestMutation = useMutation({
     mutationFn: (recipientId) => api.post('/friends/request', { recipientId }),
-    onSuccess: invalidateFriends,
+    onSuccess: () => {
+      posthog.capture('friend_request_sent', { platform: 'web' });
+      invalidateFriends();
+    },
   });
 
   const acceptMutation = useMutation({

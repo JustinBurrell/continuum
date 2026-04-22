@@ -4,6 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Briefcase, Search } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
+import { posthog } from '@/lib/posthog';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/Skeleton';
@@ -75,6 +76,7 @@ export default function ApplicationsList() {
   const createMutation = useMutation({
     mutationFn: (payload) => api.post('/applications', payload),
     onSuccess: () => {
+      posthog.capture('job_application_created', { platform: 'web' });
       invalidateApps();
       setShowCreate(false);
       setForm(emptyForm);

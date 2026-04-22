@@ -4,6 +4,7 @@ import { Send, ArrowLeft, FileText, BookOpen, CheckSquare, Search, X, Trash2 } f
 import { Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
+import { posthog } from '@/lib/posthog';
 import AppAvatar from '@/components/ui/AppAvatar';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
@@ -117,6 +118,7 @@ export default function Conversation({ conversationId }) {
       if (ctx?.prev) queryClient.setQueryData(msgQueryKey, ctx.prev);
     },
     onSuccess: () => {
+      posthog.capture('message_sent', { platform: 'web' });
       setMessage('');
       refetch();
       queryClient.invalidateQueries({ queryKey: ['conversations'] });

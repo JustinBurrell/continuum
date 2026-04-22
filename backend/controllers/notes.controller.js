@@ -139,6 +139,12 @@ exports.uploadNote = async (req, res) => {
         pdfPublicId: cloudinaryResult.public_id,
     });
 
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'note_created',
+        properties: { platform: 'web', source: getNoteSource(note) },
+    });
+
     res.status(201).json({ success: true, note });
 };
 
@@ -192,6 +198,12 @@ exports.createNote = async (req, res) => {
         subject,
         folder,
         visibility,
+    });
+
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'note_created',
+        properties: { platform: 'web', source: getNoteSource(note) },
     });
 
     res.status(201).json({ success: true, note });
@@ -408,6 +420,12 @@ exports.importNote = async (req, res) => {
         googleDocUrl,
         lastSyncedAt: new Date(),
         lastViewedAt: new Date(), // ensures new import sorts to top (list sorts by lastViewedAt desc)
+    });
+
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'note_created',
+        properties: { platform: 'web', source: getNoteSource(note) },
     });
 
     res.status(201).json({ success: true, note });
