@@ -227,7 +227,7 @@ export default function Conversation({ conversationId }) {
               onClick={() => deleteConversationMutation.mutate()}
               disabled={deleteConversationMutation.isPending}
               style={{
-                padding: '5px 14px', borderRadius: 8, border: 'none',
+                padding: '5px 14px', borderRadius: 8,
                 background: 'transparent', border: '1px solid #E5E7EB', color: '#dc2626', fontSize: 12, fontWeight: 600,
                 cursor: 'pointer', flexShrink: 0,
               }}
