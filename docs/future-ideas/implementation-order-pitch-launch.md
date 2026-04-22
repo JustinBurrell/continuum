@@ -24,21 +24,20 @@ Full visual redesign of all 13 authenticated routes (Sidebar, Dashboard, Notes, 
 - [x] Run full web + backend QA (import, refresh, download, open-in-docs)
 - [ ] Reply to Google with "Confirming narrower scopes" — draft ready; send after Cloud Console scopes updated
 
-### 3. Observability
-**Spec:** `observability.md`
+### 3. Observability ✅ Done
 
-Goes in before the pitch so every crash that follows is visible. At minimum: the Sentry `ErrorBoundary` fallback (the current bare `<p>Something went wrong</p>` is a bad look in a pitch demo), PostHog init + identity wiring, and the activation funnel events. Skip building dashboards for now — just get data flowing.
+PostHog (production-only), Sentry session linking, Vercel Speed Insights + Analytics, activation funnel events, and Sentry user context wired across web and backend. PostHog keys intentionally absent from local `.env` — set in Vercel/Render production env only.
 
-- [ ] Install `posthog-js` (web) and `posthog-node` (backend)
-- [ ] Create `web/src/lib/posthog.js` and import it first in `main.jsx`
-- [ ] Create `backend/lib/posthog.js`
-- [ ] Wire `posthog.identify()` in `AuthContext.jsx` on login and `posthog.reset()` on logout
-- [ ] Replace bare `ErrorBoundary` fallback in `main.jsx` with actionable UI
-- [ ] Update Sentry `beforeSend` to link PostHog session replay URL
-- [ ] Add activation funnel events (`user_registered`, `note_created`, `flashcard_set_generated`, `study_session_completed`)
-- [ ] Set Sentry user context in `auth.middleware.js`
-- [ ] `npm install @vercel/speed-insights @vercel/analytics` in `web/`
-- [ ] Add `<SpeedInsights />` and `<Analytics />` components to the React tree in `main.jsx`
+- [x] Install `posthog-js` (web) and `posthog-node` (backend)
+- [x] Create `web/src/lib/posthog.js` and import it first in `main.jsx`
+- [x] Create `backend/lib/posthog.js`
+- [x] Wire `posthog.identify()` in `AuthContext.jsx` on login and `posthog.reset()` on logout
+- [x] Replace bare `ErrorBoundary` fallback in `main.jsx` with actionable UI
+- [x] Update Sentry `beforeSend` to link PostHog session replay URL
+- [x] Add activation funnel events (`user_registered`, `note_created`, `flashcard_set_generated`, `study_session_completed`)
+- [x] Set Sentry user context in `auth.middleware.js`
+- [x] `npm install @vercel/speed-insights @vercel/analytics` in `web/`
+- [x] Add `<SpeedInsights />` and `<Analytics />` components to the React tree in `main.jsx`
 
 ### 4. Onboarding Modal
 **Spec:** `onboarding-new-user-process.md`
@@ -123,10 +122,11 @@ Check if `usecontinuum.dev` is past 30 days old. If yes, add the ImprovMX MX rec
 
 | Feature | Spec | Notes |
 |---|---|---|
+| iOS App | `ios-build-guide.md` | Full SwiftUI port of Android app — 6 phases, 9 feature modules. Start after observability is shipped. |
 | Notification email delivery | `notifications-spec.md` | Complete steps 5–8 once real users are on the platform |
 | FCM push notifications | `fcm-push-notifications.md` | Only relevant once Android ships |
 | Forum | `forum.md` | Too large to touch before launch; existing social primitives cover the pitch story |
 
 ---
 
-*Last Updated: April 21, 2026*
+*Last Updated: April 22, 2026*
