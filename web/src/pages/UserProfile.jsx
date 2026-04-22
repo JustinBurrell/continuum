@@ -232,7 +232,7 @@ export default function UserProfile() {
   if (!profile) {
     return (
       <div style={{ textAlign: 'center', padding: '80px 0' }}>
-        <p style={{ color: '#a087b0', marginBottom: 8 }}>User not found.</p>
+        <p style={{ color: '#6B7280', marginBottom: 8 }}>User not found.</p>
         <button onClick={() => navigate(-1)} style={{ color: '#6b21a8', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
           Go back
         </button>
@@ -252,7 +252,7 @@ export default function UserProfile() {
           alignItems: 'center',
           gap: 6,
           fontSize: 13,
-          color: '#a087b0',
+          color: '#9CA3AF',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
@@ -261,7 +261,7 @@ export default function UserProfile() {
           padding: 0,
         }}
         onMouseEnter={e => e.currentTarget.style.color = '#6b21a8'}
-        onMouseLeave={e => e.currentTarget.style.color = '#a087b0'}
+        onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}
       >
         <ArrowLeft size={14} /> Back
       </button>
@@ -282,16 +282,16 @@ export default function UserProfile() {
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <div>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                  <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '1.25rem', fontWeight: 800, color: '#111827', margin: 0, lineHeight: 1.2 }}>
+                  <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.25rem', fontWeight: 800, color: '#111827', margin: 0, lineHeight: 1.2 }}>
                     {name}
                   </h1>
                   <VerifiedBadge roles={profile.roles} expanded />
                 </span>
-                <p style={{ fontSize: 13, color: '#a087b0', display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
+                <p style={{ fontSize: 13, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
                   <AtSign size={12} />{profile.username}
                 </p>
                 {profile.createdAt && (
-                  <p style={{ fontSize: 11, color: '#c4b5d4', display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
+                  <p style={{ fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
                     <Calendar size={11} /> Joined {formatDate(profile.createdAt)}
                   </p>
                 )}
@@ -306,9 +306,9 @@ export default function UserProfile() {
                   borderRadius: 20,
                   fontSize: 12,
                   fontWeight: 600,
-                  background: '#f0fdf4',
-                  color: '#16a34a',
-                  border: '1px solid #bbf7d0',
+                  background: 'rgba(5,150,105,0.08)',
+                  color: '#059669',
+                  border: '1px solid rgba(5,150,105,0.2)',
                 }}>
                   <UserCheck size={12} /> Friends
                 </span>
@@ -338,12 +338,12 @@ export default function UserProfile() {
                       background: 'transparent',
                       fontSize: 12,
                       fontWeight: 600,
-                      color: '#a087b0',
+                      color: '#6B7280',
                       cursor: 'pointer',
                       transition: 'color 0.15s, border-color 0.15s',
                     }}
                     onMouseEnter={e => { e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.borderColor = '#fecaca'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = '#a087b0'; e.currentTarget.style.borderColor = '#E5E7EB'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.borderColor = '#E5E7EB'; }}
                   >
                     <UserMinus size={13} /> Remove
                   </button>
@@ -399,8 +399,8 @@ export default function UserProfile() {
           {/* Shared notes */}
           <section style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, paddingLeft: 2 }}>
-              <FileText size={13} style={{ color: '#a087b0' }} />
-              <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', margin: 0 }}>
+              <FileText size={13} style={{ color: '#9CA3AF' }} />
+              <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', margin: 0 }}>
                 Shared Notes
               </h2>
             </div>
@@ -413,7 +413,7 @@ export default function UserProfile() {
                 padding: '32px 0',
                 textAlign: 'center',
               }}>
-                <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>{name} hasn't shared any notes with you yet.</p>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>{name} hasn't shared any notes with you yet.</p>
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -448,7 +448,7 @@ export default function UserProfile() {
                         )}
                       </div>
                       {note.createdAt && (
-                        <p style={{ fontSize: 11, color: '#c4b5d4', margin: 0 }}>{formatDate(note.createdAt)}</p>
+                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>{formatDate(note.createdAt)}</p>
                       )}
                     </div>
                   </Link>
@@ -460,15 +460,15 @@ export default function UserProfile() {
           {/* Shared tasks */}
           <section style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, paddingLeft: 2 }}>
-              <CheckSquare size={13} style={{ color: '#a087b0' }} />
-              <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', margin: 0 }}>
+              <CheckSquare size={13} style={{ color: '#9CA3AF' }} />
+              <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', margin: 0 }}>
                 Shared Tasks
               </h2>
             </div>
 
             {sharedTasks.length === 0 ? (
               <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16, padding: '32px 0', textAlign: 'center' }}>
-                <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>{name} hasn't shared any tasks with you yet.</p>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>{name} hasn't shared any tasks with you yet.</p>
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -494,7 +494,7 @@ export default function UserProfile() {
                         )}
                       </div>
                       {task.dueDate && (
-                        <p style={{ fontSize: 11, color: '#c4b5d4', margin: 0 }}>Due {formatDate(task.dueDate)}</p>
+                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>Due {formatDate(task.dueDate)}</p>
                       )}
                     </div>
                   </Link>
@@ -506,15 +506,15 @@ export default function UserProfile() {
           {/* Shared flashcard sets */}
           <section style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, paddingLeft: 2 }}>
-              <Layers size={13} style={{ color: '#a087b0' }} />
-              <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', margin: 0 }}>
+              <Layers size={13} style={{ color: '#9CA3AF' }} />
+              <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', margin: 0 }}>
                 Shared Flashcard Sets
               </h2>
             </div>
 
             {sharedSets.length === 0 ? (
               <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16, padding: '32px 0', textAlign: 'center' }}>
-                <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>{name} hasn't shared any flashcard sets with you yet.</p>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>{name} hasn't shared any flashcard sets with you yet.</p>
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -532,7 +532,7 @@ export default function UserProfile() {
                       <p style={{ fontWeight: 700, fontSize: 13, color: '#111827', lineHeight: 1.4, margin: '0 0 8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                         {set.title || 'Untitled'}
                       </p>
-                      <p style={{ fontSize: 11, color: '#c4b5d4', margin: 0 }}>
+                      <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>
                         {set.totalCards ?? set.cardCount ?? 0} cards
                       </p>
                     </div>
@@ -545,8 +545,8 @@ export default function UserProfile() {
           {/* Recent activity */}
           <section>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, paddingLeft: 2 }}>
-              <ActivityIcon size={13} style={{ color: '#a087b0' }} />
-              <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#a087b0', margin: 0 }}>
+              <ActivityIcon size={13} style={{ color: '#9CA3AF' }} />
+              <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', margin: 0 }}>
                 Recent Activity
               </h2>
             </div>
@@ -559,7 +559,7 @@ export default function UserProfile() {
                 padding: '32px 0',
                 textAlign: 'center',
               }}>
-                <p style={{ fontSize: 13, color: '#a087b0', margin: 0 }}>No recent activity to show.</p>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>No recent activity to show.</p>
               </div>
             ) : (
               <div style={{
@@ -572,7 +572,7 @@ export default function UserProfile() {
                 {recentActivity.map((item, idx) => {
                   const Icon = ACTIVITY_ICONS[item.type] || ActivityIcon;
                   const label = ACTIVITY_LABELS[item.type] || item.type;
-                  const color = ACTIVITY_COLORS[item.type] || '#a087b0';
+                  const color = ACTIVITY_COLORS[item.type] || '#9CA3AF';
                   return (
                     <div
                       key={item._id}
@@ -601,11 +601,11 @@ export default function UserProfile() {
                         <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>
                           <Link to="/users/view" state={{ id: profile?._id }} style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}>{name}</Link> {label}
                           {item.metadata?.noteTitle && (
-                            <span style={{ color: '#a087b0' }}> · {item.metadata.noteTitle}</span>
+                            <span style={{ color: '#9CA3AF' }}> · {item.metadata.noteTitle}</span>
                           )}
                         </p>
                         {item.createdAt && (
-                          <p style={{ fontSize: 11, color: '#c4b5d4', margin: '3px 0 0' }}>
+                          <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0' }}>
                             {formatRelative ? formatRelative(item.createdAt) : formatDate(item.createdAt)}
                           </p>
                         )}
