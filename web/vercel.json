@@ -1,8 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/ingest/:path*",
-      "destination": "/api/ingest/:path*"
+      "source": "/ph/:path*",
+      "destination": "/api/ph/:path*"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
