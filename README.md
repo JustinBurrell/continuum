@@ -152,3 +152,5 @@ Jest + Supertest integration suite covering auth, notes, tasks, flashcards, appl
 | [docs/android/react-to-android.md](docs/android/react-to-android.md) | How the React web app was ported to native Kotlin |
 | [docs/android/api-coverage.md](docs/android/api-coverage.md) | Android endpoint-by-endpoint API coverage matrix |
 | [docs/future-ideas/demo-video-script.md](docs/future-ideas/demo-video-script.md) | Scene-by-scene Android demo recording script |
+| [docs/observability/events.md](docs/observability/events.md) | PostHog events catalog — all custom events, properties, and activation funnel |
+| [docs/observability/architecture.md](docs/observability/architecture.md) | Observability architecture — PostHog proxy, Sentry, identity model, how to test |
