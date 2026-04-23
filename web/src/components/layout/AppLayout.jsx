@@ -22,6 +22,16 @@ export default function AppLayout() {
     return () => window.removeEventListener('api:ratelimit', handler);
   }, [toast]);
 
+  useEffect(() => {
+    const handler = () => toast({
+      message: "That note is too large — try shortening the content and saving again.",
+      type: 'error',
+      duration: 6000,
+    });
+    window.addEventListener('api:toolarge', handler);
+    return () => window.removeEventListener('api:toolarge', handler);
+  }, [toast]);
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">

@@ -38,8 +38,8 @@ app.use(cors({
 }));
 
 app.use(cookieParser());
-app.use(bodyParser.json({ limit: '200kb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '200kb' }));
+app.use(bodyParser.json({ limit: '1mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '1mb' }));
 
 app.use((req, res, next) => {
   req.body = mongoSanitize(req.body);
@@ -91,7 +91,13 @@ app.use((err, req, res, next) => {
     const messages = Object.values(err.errors).map(e => e.message);
     return res.status(400).json({ success: false, error: messages.join(', ') });
   }
-  const message = process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message;
+  if (err.status === 413 || err.type === 'entity.too.large') {
+    return res.status(413).json({ success: false, error: 'Your note is too large to save. Try shortening the content.' });
+  }
+  const message =
+    process.env.NODE_ENV === 'production' && !err.status
+      ? 'Internal server error'
+      : err.message;
   if (process.env.NODE_ENV !== 'test') {
     logger.error({ err, url: req.url, method: req.method }, 'Unhandled error');
   }
