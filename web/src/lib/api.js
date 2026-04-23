@@ -39,6 +39,11 @@ api.interceptors.response.use(
     const url = err.config?.url || '';
     const isAuthEndpoint = AUTH_ENDPOINTS.some((path) => url.includes(path));
 
+    if (err.response?.status === 413) {
+      window.dispatchEvent(new CustomEvent('api:toolarge'));
+      return Promise.reject(err);
+    }
+
     if (err.response?.status === 429) {
       if (!rateLimitFired) {
         rateLimitFired = true;

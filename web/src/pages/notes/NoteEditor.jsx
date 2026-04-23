@@ -10,6 +10,7 @@ import queryClient from '@/lib/queryClient';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import NoteToolbar from './NoteToolbar';
+import { useToast } from '@/components/ui/Toast';
 
 const NOTE_TYPES = ['general', 'lecture', 'research', 'todo', 'journal'];
 
@@ -18,6 +19,7 @@ export default function NoteEditor() {
   const id = state?.id;
   const navigate = useNavigate();
   const isEdit = Boolean(id);
+  const toast = useToast();
 
   const [form, setForm] = useState({
     title: '',
@@ -96,6 +98,11 @@ export default function NoteEditor() {
       // Background invalidation for eventual consistency
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       navigate(noteId ? '/notes/view' : '/notes', noteId ? { state: { id: noteId } } : undefined);
+    },
+    onError: (err) => {
+      if (err.response?.status !== 413) {
+        toast({ message: err.response?.data?.error || 'Failed to save note. Please try again.', type: 'error' });
+      }
     },
   });
 
