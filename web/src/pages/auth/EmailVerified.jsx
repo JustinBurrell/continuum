@@ -9,7 +9,7 @@ import { posthog } from '@/lib/posthog';
 export default function EmailVerified() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
 
   const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
   const [errorMsg, setErrorMsg] = useState('');
@@ -30,8 +30,14 @@ export default function EmailVerified() {
 
     api.get(`/auth/verify-email?token=${token}`)
       .then(() => {
-        // Invalidate the cached user so emailVerified: true is reflected immediately
-        queryClient.invalidateQueries({ queryKey: ['me'] });
+        updateUser({ emailVerified: true });
+        queryClient.setQueryData(['me'], (old) => {
+          if (!old) return old;
+          const user = old.user || old.data;
+          if (!user) return old;
+          const updated = { ...user, emailVerified: true };
+          return old.user ? { ...old, user: updated } : { ...old, data: updated };
+        });
         posthog.capture('email_verified', { platform: 'web' });
         setStatus('success');
       })

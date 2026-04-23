@@ -425,11 +425,12 @@ export default function Profile() {
 
   useEffect(() => { setNewPasswordValue(newPwdWatch); }, [newPwdWatch]);
 
-  // Sync profile + notif forms when fresh /me data loads
+  // Sync profile + notif forms when fresh /me data loads, and keep AuthContext in sync
   useEffect(() => {
     if (data) {
       const fresh = data.user || data.data;
       if (!fresh) return;
+      updateUser(fresh);
       resetProfile({
         firstName: fresh.firstName || '',
         lastName: fresh.lastName || '',
@@ -468,7 +469,10 @@ export default function Profile() {
     mutationFn: ({ username }) => api.patch('/auth/me/username', { username }),
     onSuccess: (res) => {
       const updated = res.data.user || res.data.data;
-      if (updated) updateUser(updated);
+      if (updated) {
+        updateUser(updated);
+        queryClient.setQueryData(['me'], (old) => old ? { ...old, user: updated } : old);
+      }
       toast({ type: 'success', message: 'Username updated' });
     },
     onError: (err) => {
@@ -491,7 +495,10 @@ export default function Profile() {
     },
     onSuccess: (res) => {
       const updated = res.data.user || res.data.data;
-      if (updated) updateUser(updated);
+      if (updated) {
+        updateUser(updated);
+        queryClient.setQueryData(['me'], (old) => old ? { ...old, user: updated } : old);
+      }
       setNotifSaved(true);
       setTimeout(() => setNotifSaved(false), 2000);
     },
@@ -506,7 +513,10 @@ export default function Profile() {
     },
     onSuccess: (res) => {
       const updated = res.data.user || res.data.data;
-      if (updated) updateUser(updated);
+      if (updated) {
+        updateUser(updated);
+        queryClient.setQueryData(['me'], (old) => old ? { ...old, user: updated } : old);
+      }
       toast({ type: 'success', message: 'Avatar updated' });
     },
   });
