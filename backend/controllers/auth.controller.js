@@ -748,26 +748,34 @@ exports.sendVerificationEmail = async (req, res) => {
         return res.status(400).json({ success: false, error: 'Email is already verified' });
     }
 
-    const rawToken = req.user.createEmailVerificationToken();
-    // Write token fields directly — avoids validator issues on select:false password field
+    // req.user may be a plain object deserialized from Redis cache (not a Mongoose doc),
+    // so we can't call req.user.createEmailVerificationToken(). Inline the same logic.
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const tokenExpires = Date.now() + 24 * 60 * 60 * 1000;
+
     await User.findByIdAndUpdate(req.user._id, {
-        emailVerificationToken: req.user.emailVerificationToken,
-        emailVerificationExpires: req.user.emailVerificationExpires,
+        emailVerificationToken: hashedToken,
+        emailVerificationExpires: tokenExpires,
     });
 
     const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`;
 
-    await resend.emails.send({
-        from: 'Continuum <noreply@usecontinuum.dev>',
-        to: req.user.email,
-        subject: 'Verify your Continuum email',
-        html: emailTemplate(`
+    try {
+        await resend.emails.send({
+            from: 'Continuum <noreply@usecontinuum.dev>',
+            to: req.user.email,
+            subject: 'Verify your Continuum email',
+            html: emailTemplate(`
             <p style="color:#111827;font-size:16px;margin:0 0 12px;">Hi ${req.user.firstName},</p>
             <p style="color:#374151;font-size:15px;margin:0 0 24px;">Click the button below to verify your email address. This link expires in 24 hours.</p>
             <a href="${verifyUrl}" style="display:inline-block;background:#6B21A8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600;">Verify Email</a>
             <p style="color:#6B7280;font-size:13px;margin:24px 0 0;">If you didn't request this, you can safely ignore this email.</p>
         `),
-    });
+        });
+    } catch (emailErr) {
+        return res.status(500).json({ success: false, error: 'Failed to send verification email. Please try again.' });
+    }
 
     res.status(200).json({ success: true, message: 'Verification email sent' });
 };
