@@ -202,6 +202,12 @@ exports.removeFriend = async (req, res) => {
         return res.status(404).json({ success: false, error: 'Friendship not found' });
     }
 
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'friend_removed',
+        properties: { friendshipId: friendship._id.toString() },
+    });
+
     res.status(200).json({ success: true, message: 'Friend removed' });
 };
 
