@@ -228,6 +228,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
   const scoreColor = score >= 80 ? '#059669' : score >= 60 ? '#D97706' : score !== undefined ? '#DC2626' : '#9CA3AF';
 
   return (
+    <>
     <div style={{
       background: '#fff',
       border: '1px solid #E5E7EB',
@@ -538,5 +539,6 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
         />
       </div>
     </Modal>
+    </>
   );
 }
