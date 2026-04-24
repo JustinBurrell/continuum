@@ -68,7 +68,7 @@ exports.searchUsers = async (req, res) => {
         isSeedUser: { $ne: true },
         $or: [{ username: regex }, { email: regex }],
     })
-        .select('username firstName lastName')
+        .select('username firstName lastName avatarUrl roles')
         .limit(20);
 
     res.status(200).json({ success: true, users });
