@@ -48,7 +48,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 
 | Event | Source | Fired When | Key Properties |
 |-------|--------|-----------|----------------|
-| `study_session_started` | backend | User begins a study session on a flashcard set | `sessionId`, `flashcardSetId`, `userId` |
+| `study_session_started` | frontend | User begins a study session on a flashcard set | `platform: 'web'`, `set_id` |
 | `study_session_completed` | backend | User finishes a study session | `sessionId`, `flashcardSetId`, `userId`, `cardsStudied`, `score` |
 
 ---
@@ -57,7 +57,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 
 | Event | Source | Fired When | Key Properties |
 |-------|--------|-----------|----------------|
-| `resume_uploaded` | backend | User uploads a PDF resume to Cloudinary | `resumeId`, `userId` |
+| `resume_uploaded` | frontend | User uploads a PDF resume to Cloudinary | `platform: 'web'` |
 | `resume_feedback_generated` | backend | AI runs section-by-section resume analysis | `resumeId`, `userId` |
 
 ---
@@ -84,7 +84,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 |-------|--------|-----------|----------------|
 | `friend_request_sent` | backend | User sends a friend request | `fromUserId`, `toUserId` |
 | `message_sent` | backend | User sends a direct message | `conversationId`, `userId` |
-| `comment_added` | backend | User leaves a comment on a note | `commentId`, `targetId`, `targetType`, `userId` |
+| `comment_added` | backend | User leaves a comment on a note, flashcard set, or task | `commentId`, `targetId`, `targetType` |
 
 ---
 
