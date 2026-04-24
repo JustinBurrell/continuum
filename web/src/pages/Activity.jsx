@@ -77,19 +77,10 @@ function getActivitySentence(item, actor) {
   }
 }
 
-const TYPE_COLORS = {
-  note_shared: '#6b21a8',
-  flashcard_shared: '#6b21a8',
-  task_created: '#6b21a8',
-  comment_added: '#6b21a8',
-  like_added: '#6b21a8',
-};
-
 function ActivityItem({ item }) {
   const actor = item.userId;
   const name = fullName(actor);
   const actorId = actor?._id;
-  const dotColor = TYPE_COLORS[item.type] || '#9CA3AF';
 
   return (
     <div style={{
@@ -98,23 +89,11 @@ function ActivityItem({ item }) {
       gap: 14,
       padding: '14px 0',
       borderBottom: '1px solid #E5E7EB',
-      position: 'relative',
     }}>
-      {/* Activity type dot */}
-      <div style={{ position: 'relative', flexShrink: 0 }}>
+      <div style={{ flexShrink: 0 }}>
         <Link to="/users/view" state={{ id: actorId }} style={{ display: 'block' }}>
           <AppAvatar name={name} src={actor?.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
         </Link>
-        <div style={{
-          position: 'absolute',
-          bottom: -2,
-          right: -2,
-          width: 10,
-          height: 10,
-          borderRadius: '50%',
-          background: dotColor,
-          border: '2px solid #fff',
-        }} />
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
