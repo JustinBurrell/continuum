@@ -168,11 +168,10 @@ const resolveLocation = (ip) => {
 exports.register = async (req, res) => {
     const { email, username, password, firstName, lastName } = req.body;
 
-    // Return 409 if email or username is already taken
-    const existing = await User.findOne({ $or: [{ email }, { username }] });
-    if (existing) {
-        return res.status(409).json({ success: false, error: 'Email or username already in use' });
-    }
+    const emailExists = await User.findOne({ email }).select('_id');
+    if (emailExists) return res.status(409).json({ success: false, error: 'Email already registered' });
+    const usernameExists = await User.findOne({ username }).select('_id');
+    if (usernameExists) return res.status(409).json({ success: false, error: 'Username already taken' });
 
     // Create user — pre-save hook in User.js automatically hashes the password
     const user = await User.create({ email, username, password, firstName, lastName });
