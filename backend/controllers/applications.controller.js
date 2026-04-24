@@ -1,4 +1,5 @@
 const Application = require('../models/Application');
+const posthog = require('../lib/posthog');
 
 // ============================================================
 // APPLICATIONS CONTROLLER
@@ -46,6 +47,12 @@ exports.createApplication = async (req, res) => {
         deadlineDate,
         notes,
         resumeUsed: resumeUsed || null,
+    });
+
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'job_application_created',
+        properties: { applicationId: application._id.toString() },
     });
 
     res.status(201).json({ success: true, application });
