@@ -31,7 +31,6 @@ export default function MessagesLayout() {
   const { data, isLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: () => api.get('/conversations').then(r => r.data),
-    refetchInterval: 8000,
   });
 
   const { data: friendsData } = useQuery({
