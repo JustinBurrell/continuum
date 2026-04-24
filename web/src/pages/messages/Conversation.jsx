@@ -347,7 +347,6 @@ export default function Conversation({ conversationId }) {
                       >
                         {senderName}
                       </Link>
-                      <VerifiedBadge roles={msg.senderId?.roles} />
                     </span>
                   )}
 
