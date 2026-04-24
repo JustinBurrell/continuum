@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Plus, Sparkles, Play, Trash2, Pencil, Share2, Copy, ChevronDown, ChevronUp, CheckCircle, XCircle } from 'lucide-react';
@@ -12,6 +12,7 @@ import Modal from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
 import ShareModal from '@/components/ui/ShareModal';
 import { useAuth } from '@/context/AuthContext';
+import { posthog } from '@/lib/posthog';
 
 export default function FlashcardSetDetail() {
   const { state } = useLocation();
@@ -43,6 +44,12 @@ export default function FlashcardSetDetail() {
     queryFn: () => api.get(`/flashcard-sets/${id}`).then(r => r.data),
     enabled: !!id,
   });
+
+  useEffect(() => {
+    const set = data?.set || data?.data;
+    if (set?._id) posthog.capture('flashcard_set_viewed', { platform: 'web', setId: set._id });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
   const { data: historyData, isLoading: historyLoading } = useQuery({
     queryKey: ['study-sessions', id],

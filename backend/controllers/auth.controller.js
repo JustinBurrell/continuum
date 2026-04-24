@@ -457,6 +457,12 @@ exports.googleLink = async (req, res) => {
     req.user.googleTokenExpiry = new Date(Date.now() + 3600 * 1000);
     await req.user.save();
 
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'google_auth_linked',
+        properties: {},
+    });
+
     res.status(200).json({ success: true, user: req.user });
 };
 

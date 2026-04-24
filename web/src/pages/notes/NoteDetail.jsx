@@ -18,6 +18,7 @@ import Modal from '@/components/ui/Modal';
 import ShareModal from '@/components/ui/ShareModal';
 import { useAuth } from '@/context/AuthContext';
 import { formatDate } from '@/lib/utils';
+import { posthog } from '@/lib/posthog';
 
 export default function NoteDetail() {
   const { state } = useLocation();
@@ -38,6 +39,12 @@ export default function NoteDetail() {
     queryKey: ['note', id],
     queryFn: () => api.get(`/notes/${id}`).then(r => r.data),
   });
+
+  useEffect(() => {
+    const n = data?.note || data?.data;
+    if (n?._id) posthog.capture('note_viewed', { platform: 'web', noteId: n._id });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
   // Viewing a note updates lastViewedAt on the backend (affects list sort order).
   // Invalidate the notes list on unmount so the list refetches with the correct order.
