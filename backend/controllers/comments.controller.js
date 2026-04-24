@@ -266,7 +266,11 @@ exports.toggleLike = async (req, res) => {
             type: 'like_added',
             targetId: comment._id,
             targetType: 'comment',
-            metadata: { commentPreview: comment.content?.slice(0, 100) },
+            metadata: {
+                commentPreview: comment.content?.slice(0, 100),
+                resourceId: comment.targetId?.toString(),
+                resourceType: comment.targetType,
+            },
         }).catch(() => {});
 
         // Notify the comment author instantly so their activity feed updates

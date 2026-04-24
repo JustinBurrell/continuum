@@ -57,11 +57,11 @@ function getActivitySentence(item, actor) {
   );
   const suffix = shareSuffix(m);
 
-  const titleLink = (to, state, text) => (
+  const contentLink = (to, state, text, style = {}) => (
     <Link
       to={to}
       state={state}
-      style={{ color: '#9CA3AF', fontStyle: 'italic', textDecoration: 'none' }}
+      style={{ color: '#6b21a8', fontStyle: 'italic', fontWeight: 500, textDecoration: 'none', ...style }}
       onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
       onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
     >
@@ -69,21 +69,32 @@ function getActivitySentence(item, actor) {
     </Link>
   );
 
+  const resourceNav = (type, id) => {
+    if (type === 'note') return { to: '/notes/view', state: { id } };
+    if (type === 'flashcardSet') return { to: '/flashcards/view', state: { id } };
+    if (type === 'task') return { to: '/tasks', state: { openTaskId: id } };
+    return null;
+  };
+
   switch (item.type) {
     case 'note_shared':
-      return <>{bold} shared their note {m.noteTitle && titleLink('/notes/view', { id: item.targetId }, m.noteTitle)}{suffix}</>;
+      return <>{bold} shared their note {m.noteTitle && contentLink('/notes/view', { id: item.targetId }, m.noteTitle)}{suffix}</>;
     case 'flashcard_shared':
-      return <>{bold} shared a flashcard set {m.setTitle && titleLink('/flashcards/view', { id: item.targetId }, m.setTitle)}{suffix}</>;
+      return <>{bold} shared a flashcard set {m.setTitle && contentLink('/flashcards/view', { id: item.targetId }, m.setTitle)}{suffix}</>;
     case 'task_created':
-      return <>{bold} shared a task {m.taskTitle && titleLink('/tasks', { openTaskId: item.targetId }, m.taskTitle)}{suffix}</>;
-    case 'comment_added':
+      return <>{bold} shared a task {m.taskTitle && contentLink('/tasks', { openTaskId: item.targetId }, m.taskTitle)}{suffix}</>;
+    case 'comment_added': {
+      const nav = resourceNav(item.targetType, item.targetId);
       return m.commentPreview
-        ? <>{bold} commented: <span style={{ color: '#9CA3AF' }}>"{m.commentPreview}"</span></>
+        ? <>{bold} commented: {nav ? contentLink(nav.to, nav.state, m.commentPreview) : <span style={{ color: '#9CA3AF', fontStyle: 'italic' }}>"{m.commentPreview}"</span>}</>
         : <>{bold} left a comment</>;
-    case 'like_added':
+    }
+    case 'like_added': {
+      const nav = m.resourceId ? resourceNav(m.resourceType, m.resourceId) : null;
       return m.commentPreview
-        ? <>{bold} liked a comment: <span style={{ color: '#9CA3AF' }}>"{m.commentPreview}"</span></>
+        ? <>{bold} liked your comment: {nav ? contentLink(nav.to, nav.state, m.commentPreview) : <span style={{ color: '#9CA3AF', fontStyle: 'italic' }}>"{m.commentPreview}"</span>}</>
         : <>{bold} liked a comment</>;
+    }
     default:
       return <>{bold} did something</>;
   }
