@@ -57,13 +57,25 @@ function getActivitySentence(item, actor) {
   );
   const suffix = shareSuffix(m);
 
+  const titleLink = (to, state, text) => (
+    <Link
+      to={to}
+      state={state}
+      style={{ color: '#9CA3AF', fontStyle: 'italic', textDecoration: 'none' }}
+      onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+      onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+    >
+      "{text}"
+    </Link>
+  );
+
   switch (item.type) {
     case 'note_shared':
-      return <>{bold} shared their note {m.noteTitle && <span style={{ color: '#9CA3AF' }}>"{m.noteTitle}"</span>}{suffix}</>;
+      return <>{bold} shared their note {m.noteTitle && titleLink('/notes/view', { id: item.targetId }, m.noteTitle)}{suffix}</>;
     case 'flashcard_shared':
-      return <>{bold} shared a flashcard set {m.setTitle && <span style={{ color: '#9CA3AF' }}>"{m.setTitle}"</span>}{suffix}</>;
+      return <>{bold} shared a flashcard set {m.setTitle && titleLink('/flashcards/view', { id: item.targetId }, m.setTitle)}{suffix}</>;
     case 'task_created':
-      return <>{bold} shared a task {m.taskTitle && <span style={{ color: '#9CA3AF' }}>"{m.taskTitle}"</span>}{suffix}</>;
+      return <>{bold} shared a task {m.taskTitle && titleLink('/tasks', { openTaskId: item.targetId }, m.taskTitle)}{suffix}</>;
     case 'comment_added':
       return m.commentPreview
         ? <>{bold} commented: <span style={{ color: '#9CA3AF' }}>"{m.commentPreview}"</span></>
