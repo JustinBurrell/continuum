@@ -131,7 +131,7 @@ export default function ActivityFeedItem({ item, isLast = false }) {
         borderRadius: 4,
         transition: 'background 0.1s',
       }}
-      onMouseEnter={e => { if (rowNav) e.currentTarget.style.background = 'rgba(107,33,168,0.03)'; }}
+      onMouseEnter={e => { if (rowNav) e.currentTarget.style.background = 'rgba(107,33,168,0.08)'; }}
       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
     >
       {/* Avatar — links to the actor's profile, stops row click */}
