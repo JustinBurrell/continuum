@@ -38,6 +38,7 @@ exports.getActivityFeed = async (req, res) => {
 
     // Base filter — no cursor constraint, used for the total count
     const baseFilter = {
+        userId: { $ne: userId },
         $or: [
             { visibleTo: userId },
             { isPublic: true },
