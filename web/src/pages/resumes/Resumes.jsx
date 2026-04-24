@@ -23,7 +23,7 @@ export default function Resumes() {
   const { data, isLoading } = useQuery({
     queryKey: ['resumes', resumeSearch],
     queryFn: () => api.get('/resumes', { params: resumeSearch ? { search: resumeSearch } : {} }).then(r => r.data),
-    staleTime: 300_000,
+    staleTime: 60_000,
   });
 
   const handleUpload = async (file) => {

@@ -52,6 +52,11 @@ function registerSocketEvents(socket) {
     queryClient.invalidateQueries({ queryKey: ['activity'] });
   });
 
+  // Someone liked your comment
+  socket.on('like_added', () => {
+    queryClient.invalidateQueries({ queryKey: ['activity'] });
+  });
+
   // Flashcard set shared with you
   socket.on('flashcard_shared', () => {
     queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
