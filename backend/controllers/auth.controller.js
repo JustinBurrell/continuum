@@ -14,6 +14,7 @@ const { invalidate, setKey } = require('../lib/cache');
 const { hardDeleteUser } = require('../services/account.service');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const posthog = require('../lib/posthog');
 
 function emailTemplate(content) {
     return `<!DOCTYPE html>
@@ -922,6 +923,12 @@ exports.deleteAccount = async (req, res) => {
         });
     } catch (_) { /* non-blocking */ }
 
+    posthog.capture({
+        distinctId: userId.toString(),
+        event: 'account_deletion_requested',
+        properties: { scheduledDeletionAt: scheduledDeletionAt.toISOString() },
+    });
+
     res.status(200).json({ success: true, message: 'Account scheduled for deletion. Log in within 30 days to restore it.' });
 };
 
@@ -938,6 +945,12 @@ exports.restoreAccount = async (req, res) => {
     await User.findByIdAndUpdate(req.user._id, {
         pendingDeletion: false,
         scheduledDeletionAt: null,
+    });
+
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'account_restored',
+        properties: {},
     });
 
     // Re-fetch the clean user object to return

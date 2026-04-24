@@ -583,6 +583,18 @@ exports.shareSet = async (req, res) => {
         invalidate(...sharedWith.map(uid => `shared-sets:${uid}`)).catch(() => {});
     }
 
+    if (visibility !== 'private') {
+        posthog.capture({
+            distinctId: req.user._id.toString(),
+            event: 'flashcard_set_shared',
+            properties: {
+                flashcardSetId: set._id.toString(),
+                visibility,
+                recipientCount: visibility === 'specific' ? sharedWith.length : null,
+            },
+        });
+    }
+
     res.status(200).json({ success: true, set });
 };
 
