@@ -5,6 +5,7 @@ const Task = require('../models/Task');
 const Friendship = require('../models/Friendship');
 const { createActivity } = require('../services/activity.service');
 const { getIO } = require('../lib/socket');
+const posthog = require('../lib/posthog');
 
 // ============================================================
 // COMMENTS CONTROLLER
@@ -110,6 +111,12 @@ exports.addComment = async (req, res) => {
         userId: req.user._id,
         parentId: parentId || null,
     }).save();
+
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'comment_added',
+        properties: { commentId: comment._id.toString(), targetId: comment.targetId.toString(), targetType: comment.targetType },
+    });
 
     createActivity({
         actorId: req.user._id,
