@@ -529,12 +529,13 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
       open={showPdf}
       onClose={() => setShowPdf(false)}
       title={resume.fileName || resume.name || 'Resume'}
-      className="max-w-4xl"
+      className="max-w-none"
+      containerStyle={{ width: '92vw', maxHeight: '94vh' }}
     >
       <div style={{ margin: '-24px', borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
         <iframe
           src={resume.fileUrl}
-          style={{ width: '100%', height: '78vh', border: 'none', display: 'block' }}
+          style={{ width: '100%', height: '84vh', border: 'none', display: 'block' }}
           title={resume.fileName || 'Resume'}
         />
       </div>
