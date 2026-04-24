@@ -530,7 +530,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
       onClose={() => setShowPdf(false)}
       title={resume.fileName || resume.name || 'Resume'}
       className="max-w-none"
-      containerStyle={{ width: '92vw', maxHeight: '94vh' }}
+      containerStyle={{ width: '78vw', maxHeight: '92vh' }}
     >
       <div style={{ margin: '-24px', borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
         <iframe
