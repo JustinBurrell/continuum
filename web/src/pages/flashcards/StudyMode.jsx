@@ -22,6 +22,7 @@ export default function StudyMode() {
   // (refs are synchronous — no React batching issue when reading at submit time)
   const startTimeRef = useRef(Date.now());
   const cardResultsRef = useRef([]);
+  const doneRef = useRef(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['flashcard-set', id],
@@ -47,6 +48,22 @@ export default function StudyMode() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cards.length]);
+
+  useEffect(() => { if (done) doneRef.current = true; }, [done]);
+
+  // Fire abandoned if user leaves mid-session without completing
+  useEffect(() => {
+    return () => {
+      if (!doneRef.current && cardResultsRef.current.length > 0) {
+        posthog.capture('study_session_abandoned', {
+          platform: 'web',
+          set_id: id,
+          cards_seen: cardResultsRef.current.length,
+        });
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Submit session when done, but only if the user marked at least one card
   useEffect(() => {

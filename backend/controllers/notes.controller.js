@@ -359,6 +359,12 @@ exports.deleteNote = async (req, res) => {
         return res.status(404).json({ success: false, error: 'Note not found' });
     }
 
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'note_deleted',
+        properties: { noteId: note._id.toString() },
+    });
+
     res.status(200).json({ success: true, message: 'Note deleted' });
 };
 
@@ -426,6 +432,12 @@ exports.importNote = async (req, res) => {
         distinctId: req.user._id.toString(),
         event: 'note_created',
         properties: { platform: 'web', source: getNoteSource(note) },
+    });
+
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'google_doc_imported',
+        properties: { noteId: note._id.toString() },
     });
 
     res.status(201).json({ success: true, note });

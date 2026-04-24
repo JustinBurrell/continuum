@@ -1,6 +1,7 @@
 const Friendship = require('../models/Friendship');
 const User = require('../models/User');
 const { getIO } = require('../lib/socket');
+const posthog = require('../lib/posthog');
 
 // ============================================================
 // FRIENDS CONTROLLER
@@ -113,8 +114,12 @@ exports.respondToRequest = async (req, res) => {
     friendship.respondedAt = new Date();
     await friendship.save();
 
-    // Notify the original sender when their request is accepted
     if (action === 'accept') {
+        posthog.capture({
+            distinctId: req.user._id.toString(),
+            event: 'friend_request_accepted',
+            properties: { friendshipId: friendship._id.toString(), fromUserId: friendship.requestedBy.toString() },
+        });
         try { getIO().to(`user:${friendship.requestedBy}`).emit('friend_accepted', { friendship }); } catch (_) {}
     }
 
