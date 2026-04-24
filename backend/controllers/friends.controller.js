@@ -72,12 +72,6 @@ exports.sendRequest = async (req, res) => {
         requestedAt: new Date(),
     });
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'friend_request_sent',
-        properties: { toUserId: recipientId },
-    });
-
     // Notify recipient in real-time
     try { getIO().to(`user:${recipientId}`).emit('friend_request', { friendship }); } catch (_) {}
 

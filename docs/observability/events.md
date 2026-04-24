@@ -77,7 +77,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 
 | Event | Source | Fired When | Key Properties |
 |-------|--------|-----------|----------------|
-| `job_application_created` | backend | User creates a new job application entry | `applicationId`, `userId` |
+| `job_application_created` | frontend | User creates a new job application entry | `platform: 'web'` |
 
 ---
 
@@ -85,7 +85,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 
 | Event | Source | Fired When | Key Properties |
 |-------|--------|-----------|----------------|
-| `task_created` | backend | User creates a new task | `taskId`, `userId` |
+| `task_created` | frontend | User creates a new task | `platform: 'web'` |
 | `task_shared` | backend | User creates a shared task with participants | `taskId`, `recipientCount` |
 
 ---
@@ -94,10 +94,10 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 
 | Event | Source | Fired When | Key Properties |
 |-------|--------|-----------|----------------|
-| `friend_request_sent` | backend | User sends a friend request | `fromUserId`, `toUserId` |
+| `friend_request_sent` | frontend | User sends a friend request | `platform: 'web'` |
 | `friend_request_accepted` | backend | User accepts a friend request | `friendshipId`, `fromUserId` |
 | `friend_removed` | backend | User removes an accepted friend | `friendshipId` |
-| `message_sent` | backend | User sends a direct message | `conversationId`, `userId` |
+| `message_sent` | frontend | User sends a direct message | `platform: 'web'` |
 | `comment_added` | backend | User leaves a top-level comment on a note, flashcard set, or task | `commentId`, `targetId`, `targetType` |
 | `comment_reply_added` | backend | User replies to an existing comment | `commentId`, `targetId`, `targetType`, `parentCommentId` |
 

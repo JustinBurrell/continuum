@@ -198,12 +198,6 @@ exports.sendMessage = async (req, res) => {
         } catch (_) {}
     }
 
-    posthog.capture({
-        distinctId: userId.toString(),
-        event: 'message_sent',
-        properties: { conversationId: conversationId.toString() },
-    });
-
     res.status(201).json({ success: true, message });
 };
 
