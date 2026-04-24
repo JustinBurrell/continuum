@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AppAvatar from '@/components/ui/AppAvatar';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
 import { formatRelative } from '@/lib/utils';
@@ -13,6 +13,7 @@ const nameLink = (u) => (
       to="/users/view"
       state={{ id: u._id }}
       style={{ color: '#6b21a8', fontWeight: 600, textDecoration: 'none' }}
+      onClick={e => e.stopPropagation()}
       onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
       onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
     >
@@ -41,6 +42,7 @@ const contentLink = (to, state, text) => (
     to={to}
     state={state}
     style={{ color: '#6b21a8', fontStyle: 'italic', fontWeight: 500, textDecoration: 'none' }}
+    onClick={e => e.stopPropagation()}
     onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
     onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
   >
@@ -55,12 +57,30 @@ const resourceNav = (type, id) => {
   return null;
 };
 
+// Primary destination for the whole row — used for the row-level click
+function getRowNav(item) {
+  const m = item.metadata || {};
+  switch (item.type) {
+    case 'note_shared':    return { to: '/notes/view', state: { id: item.targetId } };
+    case 'flashcard_shared': return { to: '/flashcards/view', state: { id: item.targetId } };
+    case 'task_created':   return { to: '/tasks', state: { openTaskId: item.targetId } };
+    case 'comment_added':  return resourceNav(item.targetType, item.targetId);
+    case 'like_added':     return m.resourceId ? resourceNav(m.resourceType, m.resourceId) : null;
+    default: return null;
+  }
+}
+
 export function getActivitySentence(item, actor) {
   const m = item.metadata || {};
   const name = fullName(actor);
   const bold = (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-      <Link to="/users/view" state={{ id: actor?._id }} style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}>
+      <Link
+        to="/users/view"
+        state={{ id: actor?._id }}
+        style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}
+        onClick={e => e.stopPropagation()}
+      >
         {name}
       </Link>
       <VerifiedBadge roles={actor?.roles} />
@@ -95,18 +115,32 @@ export function getActivitySentence(item, actor) {
 export default function ActivityFeedItem({ item, isLast = false }) {
   const actor = item.userId;
   const name = fullName(actor);
+  const navigate = useNavigate();
+  const rowNav = getRowNav(item);
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'flex-start',
-      gap: 14,
-      padding: '14px 0',
-      borderBottom: isLast ? 'none' : '1px solid #E5E7EB',
-    }}>
-      <Link to="/users/view" state={{ id: actor?._id }} style={{ flexShrink: 0 }}>
-        <AppAvatar name={name} src={actor?.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
-      </Link>
+    <div
+      onClick={rowNav ? () => navigate(rowNav.to, { state: rowNav.state }) : undefined}
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 14,
+        padding: '14px 0',
+        borderBottom: isLast ? 'none' : '1px solid #E5E7EB',
+        cursor: rowNav ? 'pointer' : 'default',
+        borderRadius: 4,
+        transition: 'background 0.1s',
+      }}
+      onMouseEnter={e => { if (rowNav) e.currentTarget.style.background = 'rgba(107,33,168,0.03)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+    >
+      {/* Avatar — links to the actor's profile, stops row click */}
+      <div onClick={e => e.stopPropagation()} style={{ flexShrink: 0 }}>
+        <Link to="/users/view" state={{ id: actor?._id }}>
+          <AppAvatar name={name} src={actor?.avatarUrl} size="sm" className="hover:opacity-80 transition-opacity" />
+        </Link>
+      </div>
+
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.5 }}>
           {getActivitySentence(item, actor)}
