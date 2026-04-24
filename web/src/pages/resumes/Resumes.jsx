@@ -1,12 +1,13 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, FileCheck, Sparkles, Download, ChevronDown, ChevronUp, History, Trash2, Search } from 'lucide-react';
+import { Plus, FileCheck, Sparkles, Download, ChevronDown, ChevronUp, History, Trash2, Search, Eye } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { posthog } from '@/lib/posthog';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import Modal from '@/components/ui/Modal';
 import ResumesSkeleton from '@/components/skeletons/ResumesSkeleton';
 import { useAuth } from '@/context/AuthContext';
 import { formatDate } from '@/lib/utils';
@@ -209,6 +210,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
   const [downloading, setDownloading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [showPdf, setShowPdf] = useState(false);
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -282,7 +284,12 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
             </Button>
           )}
           {resume.fileUrl && (
-            <Button size="sm" variant="outline" onClick={handleDownload} loading={downloading}>
+            <Button size="sm" variant="outline" onClick={() => setShowPdf(true)} title="View resume">
+              <Eye size={13} />
+            </Button>
+          )}
+          {resume.fileUrl && (
+            <Button size="sm" variant="outline" onClick={handleDownload} loading={downloading} title="Download resume">
               <Download size={13} />
             </Button>
           )}
@@ -515,5 +522,21 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
         </div>
       )}
     </div>
+
+    {/* PDF Viewer Modal */}
+    <Modal
+      open={showPdf}
+      onClose={() => setShowPdf(false)}
+      title={resume.fileName || resume.name || 'Resume'}
+      className="max-w-4xl"
+    >
+      <div style={{ margin: '-24px', borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
+        <iframe
+          src={resume.fileUrl}
+          style={{ width: '100%', height: '78vh', border: 'none', display: 'block' }}
+          title={resume.fileName || 'Resume'}
+        />
+      </div>
+    </Modal>
   );
 }

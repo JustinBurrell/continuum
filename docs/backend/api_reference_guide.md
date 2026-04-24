@@ -184,7 +184,7 @@ Sharing activities are personalized: the sharer's feed shows who they shared wit
 ### **Resume Management**
 - `POST /api/resumes/upload` - Upload resume PDF with label and target role (multipart/form-data); stored as `type: authenticated` in Cloudinary
 - `GET /api/resumes` - List all resume versions for user. Supports `?search=` for case-insensitive regex match on `fileName`, `version`, and `targetRole`.
-- `GET /api/resumes/:resumeId/download` - Generate a 10-minute signed download URL via `private_download_url`; requires ownership
+- `GET /api/resumes/:resumeId/download` - Generate a download URL (adds `fl_attachment` transform); used by both the Download button and the PDF viewer modal on web
 - `POST /api/resumes/:resumeId/feedback` - Generate AI-powered feedback via Groq (appended to embedded feedback array)
 - `GET /api/resumes/:resumeId/feedback` - Retrieve all feedback entries for a resume
 - `DELETE /api/resumes/:resumeId` - Soft delete resume

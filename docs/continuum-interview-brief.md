@@ -61,7 +61,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 - **Tasks** — kanban board with shared tasks, per-participant status tracking, recurrence support, infinite-scroll pagination
 - **Calendar** — event creation and scheduling integrated with the task system
 - **Social** — friend requests, activity feed (cursor-paginated, own actions filtered Instagram-style, shared content titles and comment previews are clickable purple links with scroll-to-comment on the target page), direct messaging with real-time socket delivery (no polling), profile photos in feed and comments
-- **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section), contacts and reminders per application
+- **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section), contacts and reminders per application, inline PDF resume viewer (iframe modal matching Android's in-app viewer)
 - **Auth** — email/password and Google OAuth (`drive.file` scope — non-sensitive, no CASA assessment required) with JWT + httpOnly refresh cookie rotation
 - **Dashboard** — accurate total counts pulled from paginated response metadata (not capped list lengths)
 

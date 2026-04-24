@@ -64,5 +64,7 @@ test.describe('Career — Applications', () => {
     await page.goto('/resumes');
     // The resumes page should load (even if empty)
     await expect(page.getByRole('heading').filter({ hasText: /resumes/i })).toBeVisible({ timeout: 8_000 });
+    // Upload input should be present
+    await expect(page.locator('input[type="file"]')).toBeAttached();
   });
 });
