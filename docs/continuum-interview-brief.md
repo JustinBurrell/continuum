@@ -60,7 +60,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 - **Flashcards** — study mode with flip cards, per-card progress tracking, AI extraction from notes or PDFs, study history screen, infinite-scroll pagination
 - **Tasks** — kanban board with shared tasks, per-participant status tracking, recurrence support, infinite-scroll pagination
 - **Calendar** — event creation and scheduling integrated with the task system
-- **Social** — friend requests, activity feed (cursor-paginated), direct messaging with real-time delivery, profile photos in feed and comments
+- **Social** — friend requests, activity feed (cursor-paginated, own actions filtered Instagram-style, shared content titles clickable), direct messaging with real-time socket delivery (no polling), profile photos in feed and comments
 - **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section), contacts and reminders per application
 - **Auth** — email/password and Google OAuth (`drive.file` scope — non-sensitive, no CASA assessment required) with JWT + httpOnly refresh cookie rotation
 - **Dashboard** — accurate total counts pulled from paginated response metadata (not capped list lengths)
@@ -873,11 +873,16 @@ Token is passed in `auth`, which maps to `socket.handshake.auth` on the backend.
 | `task_deleted` | `['tasks']`, `['calendar']` |
 | `note_updated` | `['notes']` |
 | `note_shared` | `['notes']` |
+| `note_deleted` | `['notes']` + removes `['note', noteId]` from cache |
 | `comment_added` | `['note', targetId]` or `['flashcard-set', targetId]` or `['tasks']`, + `['activity']` |
+| `like_added` | `['activity']` |
 | `flashcard_shared` | `['flashcard-sets']` |
+| `flashcard_set_deleted` | `['flashcard-sets']` + removes `['flashcard-set', setId]` from cache |
 | `activity_updated` | `['activity']` |
 
 This is the bridge between real-time events and the UI. When a socket event fires, `queryClient.invalidateQueries()` marks the data as stale. React Query automatically refetches the next time the component is visible or focused. The user sees updated data without a page reload, without polling, and without manual state management.
+
+**Socket token refresh:** After the Axios interceptor silently refreshes a JWT, `updateSocketToken(newToken)` updates the socket's `auth` object so any future reconnection uses the new token — preventing a socket that reconnects after a network blip from failing auth with a stale token.
 
 ---
 
@@ -1408,4 +1413,4 @@ Each PR includes:
 
 This creates a paper trail. Six months from now, you can read a PR and understand exactly what problem it solved, what it changed, and how to verify it worked.
 
-*Last updated: April 21, 2026*
+*Last updated: April 24, 2026*
