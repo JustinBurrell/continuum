@@ -26,6 +26,8 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 | `user_logged_out` | frontend | User clicks logout | `platform: 'web'` |
 | `account_deletion_requested` | backend | User soft-deletes their account (30-day grace period starts) | `scheduledDeletionAt` |
 | `account_restored` | backend | User recovers their account before the 30-day window closes | — |
+| `google_auth_linked` | backend | User links a Google account to an existing email/password account | — |
+| `email_verified` | frontend | User successfully verifies their email address | `platform: 'web'` |
 
 ---
 
@@ -34,6 +36,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 | Event | Source | Fired When | Key Properties |
 |-------|--------|-----------|----------------|
 | `note_created` | backend | A new note is saved | `noteId`, `userId` |
+| `note_viewed` | frontend | User opens a note detail page | `platform: 'web'`, `noteId` |
 | `note_summary_generated` | backend | AI summary is generated for a note | `noteId`, `userId` |
 | `note_deleted` | backend | User soft-deletes a note | `noteId` |
 | `note_shared` | backend | User shares a note — `audience: 'friends'` = all friends, `audience: 'specific'` = named friends | `noteId`, `audience`, `recipientCount` |
@@ -47,6 +50,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 | Event | Source | Fired When | Key Properties |
 |-------|--------|-----------|----------------|
 | `flashcard_set_generated` | backend | AI generates a flashcard set from a note or PDF | `flashcardSetId`, `userId`, `cardCount` |
+| `flashcard_set_viewed` | frontend | User opens a flashcard set detail page | `platform: 'web'`, `setId` |
 | `flashcard_set_deleted` | backend | User deletes a flashcard set | `flashcardSetId` |
 | `flashcard_set_shared` | backend | User shares a flashcard set — `audience: 'friends'` or `audience: 'specific'` | `flashcardSetId`, `audience`, `recipientCount` |
 | `flashcard_set_unshared` | backend | User sets a flashcard set back to private | `flashcardSetId`, `previousAudience` |
