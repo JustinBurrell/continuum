@@ -27,6 +27,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 | `account_deletion_requested` | backend | User soft-deletes their account (30-day grace period starts) | `scheduledDeletionAt` |
 | `account_restored` | backend | User recovers their account before the 30-day window closes | — |
 | `google_auth_linked` | backend | User links a Google account to an existing email/password account | — |
+| `email_verified` | frontend | User successfully verifies their email address | `platform: 'web'` |
 
 ---
 
