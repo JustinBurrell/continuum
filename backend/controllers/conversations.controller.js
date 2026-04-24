@@ -2,6 +2,7 @@ const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const Friendship = require('../models/Friendship');
 const { getIO } = require('../lib/socket');
+const posthog = require('../lib/posthog');
 
 // ============================================================
 // CONVERSATIONS CONTROLLER
@@ -196,6 +197,12 @@ exports.sendMessage = async (req, res) => {
             });
         } catch (_) {}
     }
+
+    posthog.capture({
+        distinctId: userId.toString(),
+        event: 'message_sent',
+        properties: { conversationId: conversationId.toString() },
+    });
 
     res.status(201).json({ success: true, message });
 };

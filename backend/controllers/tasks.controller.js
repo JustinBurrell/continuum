@@ -4,6 +4,7 @@ const { createActivity, createShareActivities } = require('../services/activity.
 const { sendShareMessage } = require('../services/share.service');
 const { getIO } = require('../lib/socket');
 const { getOrSet, invalidate } = require('../lib/cache');
+const posthog = require('../lib/posthog');
 
 // Emit an event to all task participants/owner except the actor
 function emitToTaskAudience(event, task, actorId, payload = {}) {
@@ -107,6 +108,15 @@ exports.createTask = async (req, res) => {
     });
 
     if (task.isShared && validatedParticipants.length > 0) {
+        posthog.capture({
+            distinctId: req.user._id.toString(),
+            event: 'task_shared',
+            properties: {
+                taskId: task._id.toString(),
+                recipientCount: validatedParticipants.length,
+            },
+        });
+
         createShareActivities({
             actorId: req.user._id,
             type: 'task_created',
