@@ -11,7 +11,8 @@ Every critical user journey from the backend perspective. Maps each user action 
 User fills out registration form
   → POST /api/auth/register { email, username, password, firstName, lastName, deviceId? }
   → Server validates: email format, username length, password strength
-  → Server checks: email unique, username unique (409 CONFLICT if not)
+  → Server checks email unique (409 'Email already registered' if not)
+  → Server checks username unique (409 'Username already taken' if not)
   → User.create() → pre-save hook hashes password with bcrypt
   → Sign JWT { userId } — access token (1d)
   → Generate RefreshToken (SHA-256 hash in DB, raw 80-char hex to client, 30d)

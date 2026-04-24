@@ -11,7 +11,7 @@
 ## Authentication & User Management
 
 ### **Authentication**
-- `POST /api/auth/register` - Create new user account, return JWT + refresh token
+- `POST /api/auth/register` - Create new user account, return JWT + refresh token. Email and username are checked separately — returns 409 `'Email already registered'` or `'Username already taken'` with distinct messages so the UI can surface which field is the problem.
 - `POST /api/auth/login` - Authenticate user, return JWT + refresh token
 - `POST /api/auth/refresh` - Exchange a valid refresh token for a new access token with full token rotation — the old token is immediately revoked and a new httpOnly cookie is issued. Old `sessionId` written to Redis blocklist to reject any still-valid JWT bearing it. Device/location metadata inherited by new token. (public)
 - `POST /api/auth/logout` - Revoke current device's refresh token (protected)
