@@ -114,8 +114,13 @@ exports.addComment = async (req, res) => {
 
     posthog.capture({
         distinctId: req.user._id.toString(),
-        event: 'comment_added',
-        properties: { commentId: comment._id.toString(), targetId: comment.targetId.toString(), targetType: comment.targetType },
+        event: parentId ? 'comment_reply_added' : 'comment_added',
+        properties: {
+            commentId: comment._id.toString(),
+            targetId: comment.targetId.toString(),
+            targetType: comment.targetType,
+            ...(parentId && { parentCommentId: parentId.toString() }),
+        },
     });
 
     createActivity({
