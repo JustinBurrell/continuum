@@ -66,7 +66,7 @@ export default function Conversation({ conversationId }) {
     queryKey: ['messages', conversationId, msgSearch],
     queryFn: () =>
       api.get(`/conversations/${conversationId}/messages`, { params: msgSearch ? { search: msgSearch } : {} }).then(r => r.data),
-    refetchInterval: msgSearch ? false : 5000, // disable polling while searching
+    refetchInterval: false,
   });
 
   const msgQueryKey = ['messages', conversationId, msgSearch];
@@ -347,7 +347,6 @@ export default function Conversation({ conversationId }) {
                       >
                         {senderName}
                       </Link>
-                      <VerifiedBadge roles={msg.senderId?.roles} />
                     </span>
                   )}
 

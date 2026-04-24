@@ -433,6 +433,7 @@ exports.updateParticipantStatus = async (req, res) => {
     participant.completedAt = status === 'completed' ? new Date() : null;
 
     await task.save();
+    emitTaskUpdate(task, req.user._id);
 
     res.status(200).json({ success: true, task });
 };

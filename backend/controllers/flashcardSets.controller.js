@@ -189,6 +189,15 @@ exports.deleteSet = async (req, res) => {
         properties: { flashcardSetId: set._id.toString() },
     });
 
+    // Notify shared users so their UI removes the set without a refresh
+    try {
+        const io = getIO();
+        const setId = set._id.toString();
+        set.sharedWith.forEach(uid => {
+            io.to(`user:${uid}`).emit('flashcard_set_deleted', { setId });
+        });
+    } catch (_) {}
+
     res.status(200).json({ success: true, message: 'Flashcard set deleted' });
 };
 

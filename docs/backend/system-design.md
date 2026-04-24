@@ -70,7 +70,7 @@ flowchart TB
     CC -- "invalidate keys" --> REDIS_LIB
 
     %% Socket pushes to client
-    IO -- "new_message\nfriend_request\ntask_updated\nnote_shared\nactivity_updated\nflashcard_shared\ncomment_added\nstudy:session-complete" --> SC
+    IO -- "new_message\nfriend_request\ntask_updated\nnote_shared\nnote_deleted\nactivity_updated\nlike_added\nflashcard_shared\nflashcard_set_deleted\ncomment_added\nstudy:session-complete" --> SC
 
     %% Client reacts
     SC -- "invalidateQueries" --> RQ

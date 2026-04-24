@@ -22,6 +22,10 @@ export function getSocket() {
   return socket;
 }
 
+export function updateSocketToken(token) {
+  if (socket) socket.auth = { token };
+}
+
 export function disconnectSocket() {
   socket?.disconnect();
   socket = null;

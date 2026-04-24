@@ -365,6 +365,15 @@ exports.deleteNote = async (req, res) => {
         properties: { noteId: note._id.toString() },
     });
 
+    // Notify shared users so their UI removes the note without a refresh
+    try {
+        const io = getIO();
+        const noteId = note._id.toString();
+        note.sharedWith.forEach(uid => {
+            io.to(`user:${uid}`).emit('note_deleted', { noteId });
+        });
+    } catch (_) {}
+
     res.status(200).json({ success: true, message: 'Note deleted' });
 };
 

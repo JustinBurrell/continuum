@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { updateSocketToken } from '@/lib/socket';
 
 const api = axios.create({
   baseURL: (import.meta.env.VITE_API_URL || 'http://localhost:5001') + '/api',
@@ -84,6 +85,7 @@ api.interceptors.response.use(
 
       try {
         const newToken = await refreshPromise;
+        updateSocketToken(newToken);
         err.config.headers.Authorization = `Bearer ${newToken}`;
         return api(err.config);
       } catch {

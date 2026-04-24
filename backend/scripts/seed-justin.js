@@ -1463,10 +1463,10 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
     await Activity.create({
       userId: justin._id,
       type: 'comment_added',
-      targetId: comment._id,
-      targetType: 'comment',
+      targetId: comment.targetId,
+      targetType: comment.targetType,
       visibleTo: [justin._id, ...allFriendIds],
-      metadata: { commentPreview: comment.content.slice(0, 100) },
+      metadata: { commentPreview: comment.content.slice(0, 100), commentId: comment._id.toString() },
       createdAt: bumpDate(),
     });
     count++;
@@ -1540,10 +1540,10 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
       await Activity.create({
         userId: friend._id,
         type: 'comment_added',
-        targetId: fc._id,
-        targetType: 'comment',
+        targetId: fc.targetId,
+        targetType: fc.targetType,
         visibleTo: visibleToAll,
-        metadata: { commentPreview: fc.content.slice(0, 100) },
+        metadata: { commentPreview: fc.content.slice(0, 100), commentId: fc._id.toString() },
         createdAt: bumpDate(),
       });
       count++;
@@ -1788,6 +1788,14 @@ async function main() {
       'settings.activityVisibility': 'friends',
       roles: ['founder', 'team'],
     });
+
+    // Bust Redis activity cache so dashboard/activity pages don't show stale data
+    try {
+      const { invalidatePattern } = require('../lib/cache');
+      await invalidatePattern(`activity:${justin._id}:first`);
+      const allIds = [...allFriendIds, justin._id];
+      for (const uid of allIds) await invalidatePattern(`activity:${uid}:first`);
+    } catch (_) {}
 
     console.log('\nSeed complete!');
   } catch (err) {

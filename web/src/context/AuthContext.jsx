@@ -36,12 +36,16 @@ function registerSocketEvents(socket) {
     queryClient.invalidateQueries({ queryKey: ['calendar'] });
   });
 
-  // Note updates and shares
+  // Note updates, shares, and deletions
   socket.on('note_updated', () => {
     queryClient.invalidateQueries({ queryKey: ['notes'] });
   });
   socket.on('note_shared', () => {
     queryClient.invalidateQueries({ queryKey: ['notes'] });
+  });
+  socket.on('note_deleted', ({ noteId }) => {
+    queryClient.invalidateQueries({ queryKey: ['notes'] });
+    queryClient.removeQueries({ queryKey: ['note', noteId] });
   });
 
   // New comment on something you own
@@ -52,9 +56,18 @@ function registerSocketEvents(socket) {
     queryClient.invalidateQueries({ queryKey: ['activity'] });
   });
 
-  // Flashcard set shared with you
+  // Someone liked your comment
+  socket.on('like_added', () => {
+    queryClient.invalidateQueries({ queryKey: ['activity'] });
+  });
+
+  // Flashcard set shared with or deleted for you
   socket.on('flashcard_shared', () => {
     queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
+  });
+  socket.on('flashcard_set_deleted', ({ setId }) => {
+    queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
+    queryClient.removeQueries({ queryKey: ['flashcard-set', setId] });
   });
 
   // Activity feed — someone's action just appeared in your feed

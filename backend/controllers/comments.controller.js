@@ -128,7 +128,7 @@ exports.addComment = async (req, res) => {
         type: 'comment_added',
         targetId: comment.targetId,
         targetType: comment.targetType,
-        metadata: { commentPreview: content.trim().slice(0, 100) },
+        metadata: { commentPreview: content.trim().slice(0, 100), commentId: comment._id.toString() },
     }).catch(() => {});
 
     // Notify the resource owner (if different from commenter)
@@ -266,8 +266,20 @@ exports.toggleLike = async (req, res) => {
             type: 'like_added',
             targetId: comment._id,
             targetType: 'comment',
-            metadata: { commentPreview: comment.content?.slice(0, 100) },
+            metadata: {
+                commentPreview: comment.content?.slice(0, 100),
+                resourceId: comment.targetId?.toString(),
+                resourceType: comment.targetType,
+            },
         }).catch(() => {});
+
+        // Notify the comment author instantly so their activity feed updates
+        const commentAuthorId = comment.userId?.toString();
+        if (commentAuthorId && commentAuthorId !== userId.toString()) {
+            try {
+                getIO().to(`user:${commentAuthorId}`).emit('like_added');
+            } catch (_) {}
+        }
     }
 
     res.status(200).json({ success: true, liked: !alreadyLiked, comment: updated });

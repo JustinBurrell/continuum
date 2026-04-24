@@ -1,12 +1,13 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, FileCheck, Sparkles, Download, ChevronDown, ChevronUp, History, Trash2, Search } from 'lucide-react';
+import { Plus, FileCheck, Sparkles, Download, ChevronDown, ChevronUp, History, Trash2, Search, Eye } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
 import { posthog } from '@/lib/posthog';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import Modal from '@/components/ui/Modal';
 import ResumesSkeleton from '@/components/skeletons/ResumesSkeleton';
 import { useAuth } from '@/context/AuthContext';
 import { formatDate } from '@/lib/utils';
@@ -23,7 +24,7 @@ export default function Resumes() {
   const { data, isLoading } = useQuery({
     queryKey: ['resumes', resumeSearch],
     queryFn: () => api.get('/resumes', { params: resumeSearch ? { search: resumeSearch } : {} }).then(r => r.data),
-    staleTime: 300_000,
+    staleTime: 60_000,
   });
 
   const handleUpload = async (file) => {
@@ -57,8 +58,7 @@ export default function Resumes() {
     setFeedbackLoading(prev => ({ ...prev, [resumeId]: true }));
     try {
       await api.post(`/resumes/${resumeId}/feedback`);
-      const updated = await api.get('/resumes').then(r => r.data);
-      queryClient.setQueryData(['resumes'], updated);
+      await queryClient.invalidateQueries({ queryKey: ['resumes'] });
       setExpandedFeedback(prev => ({ ...prev, [resumeId]: true }));
     } catch (err) {
       console.error('AI feedback error:', err);
@@ -210,6 +210,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
   const [downloading, setDownloading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [showPdf, setShowPdf] = useState(false);
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -227,6 +228,7 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
   const scoreColor = score >= 80 ? '#059669' : score >= 60 ? '#D97706' : score !== undefined ? '#DC2626' : '#9CA3AF';
 
   return (
+    <>
     <div style={{
       background: '#fff',
       border: '1px solid #E5E7EB',
@@ -283,7 +285,12 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
             </Button>
           )}
           {resume.fileUrl && (
-            <Button size="sm" variant="outline" onClick={handleDownload} loading={downloading}>
+            <Button size="sm" variant="outline" onClick={() => setShowPdf(true)} title="View resume">
+              <Eye size={13} />
+            </Button>
+          )}
+          {resume.fileUrl && (
+            <Button size="sm" variant="outline" onClick={handleDownload} loading={downloading} title="Download resume">
               <Download size={13} />
             </Button>
           )}
@@ -516,5 +523,23 @@ function ResumeCard({ resume, expanded, feedbackLoading, onToggleFeedback, onAiF
         </div>
       )}
     </div>
+
+    {/* PDF Viewer Modal */}
+    <Modal
+      open={showPdf}
+      onClose={() => setShowPdf(false)}
+      title={resume.fileName || resume.name || 'Resume'}
+      className="max-w-none"
+      containerStyle={{ width: '78vw', maxHeight: '92vh' }}
+    >
+      <div style={{ margin: '-24px', borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
+        <iframe
+          src={resume.fileUrl}
+          style={{ width: '100%', height: '84vh', border: 'none', display: 'block' }}
+          title={resume.fileName || 'Resume'}
+        />
+      </div>
+    </Modal>
+    </>
   );
 }

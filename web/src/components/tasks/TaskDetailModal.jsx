@@ -37,7 +37,7 @@ const TYPE_COLORS = {
 //   onClose  — callback
 //   onUpdated — optional callback after a successful mutation (use to invalidate parent queries)
 // ----------------------------------------
-export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
+export default function TaskDetailModal({ taskId, open, onClose, onUpdated, scrollToCommentId }) {
   const { user } = useAuth();
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
@@ -476,7 +476,7 @@ export default function TaskDetailModal({ taskId, open, onClose, onUpdated }) {
 
           {/* Comments */}
           <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 16, marginTop: 4 }}>
-            <CommentThread targetType="task" targetId={taskId} user={user} isDemo={false} />
+            <CommentThread targetType="task" targetId={taskId} user={user} isDemo={false} scrollToCommentId={scrollToCommentId} />
           </div>
 
           {/* Actions */}

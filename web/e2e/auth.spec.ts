@@ -34,10 +34,9 @@ test.describe('Auth', () => {
     await page.fill('input[name="password"]', user.password);
     await page.click('button:has-text("Create account")');
 
-    // Should stay on register with an error banner visible
+    // Should stay on register with a specific error banner visible
     await expect(page).toHaveURL(/\/register/);
-    // Backend returns 'Email or username already in use' — friendlyError falls back to 'Registration failed'
-    await expect(page.locator('text=Registration failed')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=An account with this email already exists')).toBeVisible({ timeout: 5000 });
   });
 
   test('login with correct credentials lands on dashboard', async ({ page }) => {

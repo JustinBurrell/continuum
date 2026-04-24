@@ -56,6 +56,7 @@ export default function Tasks() {
   const [form, setForm] = useState(emptyForm);
   const [sharedTab, setSharedTab] = useState(false);
   const [viewingTaskId, setViewingTaskId] = useState(location.state?.openTaskId ?? null);
+  const [viewingCommentId, setViewingCommentId] = useState(location.state?.commentId ?? null);
   const [showSharePicker, setShowSharePicker] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -387,8 +388,9 @@ export default function Tasks() {
       <TaskDetailModal
         taskId={viewingTaskId}
         open={!!viewingTaskId}
-        onClose={() => setViewingTaskId(null)}
+        onClose={() => { setViewingTaskId(null); setViewingCommentId(null); }}
         onUpdated={invalidateTasks}
+        scrollToCommentId={viewingCommentId}
       />
 
       <ConfirmModal

@@ -16,6 +16,14 @@ function getName(p) {
   return [p?.firstName, p?.lastName].filter(Boolean).join(' ') || p?.username || 'Unknown';
 }
 
+function previewText(content) {
+  if (!content) return '';
+  if (/^\[shared:note:/i.test(content)) return 'Shared a note';
+  if (/^\[shared:flashcardSet:/i.test(content)) return 'Shared flashcards';
+  if (/^\[shared:task:/i.test(content)) return 'Shared a task';
+  return truncate(content, 50);
+}
+
 export default function MessagesLayout() {
   const { user } = useAuth();
   const { state } = useLocation();
@@ -25,13 +33,15 @@ export default function MessagesLayout() {
   const [activeConversationId, setActiveConversationId] = useState(state?.conversationId ?? null);
 
   useEffect(() => {
-    if (state?.conversationId) window.history.replaceState({}, '');
+    if (state?.conversationId) {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      window.history.replaceState({}, '');
+    }
   }, []);
 
   const { data, isLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: () => api.get('/conversations').then(r => r.data),
-    refetchInterval: 8000,
   });
 
   const { data: friendsData } = useQuery({
@@ -169,7 +179,7 @@ export default function MessagesLayout() {
                     </div>
                     {lastMsg ? (
                       <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {isLastMine ? 'You: ' : ''}{truncate(lastMsg.content, 50)}
+                        {isLastMine ? 'You: ' : ''}{previewText(lastMsg.content)}
                       </p>
                     ) : (
                       <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0, fontStyle: 'italic' }}>No messages yet</p>

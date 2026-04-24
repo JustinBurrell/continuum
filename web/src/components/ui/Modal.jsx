@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function Modal({ open, onClose, title, children, className }) {
+export default function Modal({ open, onClose, title, children, className, containerStyle }) {
   useEffect(() => {
     if (!open) return;
     const handler = (e) => e.key === 'Escape' && onClose?.();
@@ -26,8 +26,8 @@ export default function Modal({ open, onClose, title, children, className }) {
         )}
         style={{
           border: '1px solid #E5E7EB',
-          boxShadow:
-            '0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(107,33,168,0.04)',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(107,33,168,0.04)',
+          ...containerStyle,
         }}
       >
         <div
