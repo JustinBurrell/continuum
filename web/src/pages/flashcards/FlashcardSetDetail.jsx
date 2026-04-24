@@ -17,6 +17,7 @@ import { posthog } from '@/lib/posthog';
 export default function FlashcardSetDetail() {
   const { state } = useLocation();
   const id = state?.id;
+  const commentId = state?.commentId;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('cards'); // 'cards' | 'history'
@@ -558,7 +559,7 @@ export default function FlashcardSetDetail() {
         padding: '24px 28px',
         marginTop: 24,
       }}>
-        <CommentThread targetType="flashcardSet" targetId={id} user={user} isDemo={user?.isDemo} />
+        <CommentThread targetType="flashcardSet" targetId={id} user={user} isDemo={user?.isDemo} scrollToCommentId={commentId} />
       </div>
 
       {/* Add card modal */}

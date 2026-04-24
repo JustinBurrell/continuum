@@ -128,7 +128,7 @@ exports.addComment = async (req, res) => {
         type: 'comment_added',
         targetId: comment.targetId,
         targetType: comment.targetType,
-        metadata: { commentPreview: content.trim().slice(0, 100) },
+        metadata: { commentPreview: content.trim().slice(0, 100), commentId: comment._id.toString() },
     }).catch(() => {});
 
     // Notify the resource owner (if different from commenter)

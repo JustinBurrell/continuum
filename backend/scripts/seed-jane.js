@@ -723,10 +723,10 @@ async function seedActivities(jane, friends, sharedNotes, allSets, allTasks, all
     await Activity.create({
       userId: jane._id,
       type: 'comment_added',
-      targetId: comment._id,
-      targetType: 'comment',
+      targetId: comment.targetId,
+      targetType: comment.targetType,
       visibleTo: [jane._id, ...allFriendIds],
-      metadata: { commentPreview: comment.content.slice(0, 100) },
+      metadata: { commentPreview: comment.content.slice(0, 100), commentId: comment._id.toString() },
       createdAt: bumpDate(),
     });
     count++;
@@ -745,10 +745,10 @@ async function seedActivities(jane, friends, sharedNotes, allSets, allTasks, all
     await Activity.create({
       userId: commenterFriend._id,
       type: 'comment_added',
-      targetId: fc._id,
-      targetType: 'comment',
+      targetId: fc.targetId,
+      targetType: fc.targetType,
       visibleTo: visibleToAll,
-      metadata: { commentPreview: fc.content.slice(0, 100) },
+      metadata: { commentPreview: fc.content.slice(0, 100), commentId: fc._id.toString() },
       createdAt: bumpDate(),
     });
     count++;
@@ -1057,6 +1057,13 @@ async function main() {
 
     // 12. Friend content (shared notes, flashcard sets, shared tasks with Jane)
     await seedFriendContent(jane, friends);
+
+    // Bust Redis activity cache so pages don't show stale data after reseed
+    try {
+      const { invalidatePattern } = require('../lib/cache');
+      const allIds = [jane._id, ...friends.map(f => f._id)];
+      for (const uid of allIds) await invalidatePattern(`activity:${uid}:first`);
+    } catch (_) {}
 
     console.log('\nJane Doe demo account seeded successfully!');
     console.log('  Email:    janedoe_demo@example.com');

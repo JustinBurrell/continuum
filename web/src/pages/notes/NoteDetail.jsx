@@ -23,6 +23,7 @@ import { posthog } from '@/lib/posthog';
 export default function NoteDetail() {
   const { state } = useLocation();
   const id = state?.id;
+  const commentId = state?.commentId;
   const navigate = useNavigate();
   const { user } = useAuth();
   const [aiSummary, setAiSummary] = useState(null);
@@ -376,7 +377,7 @@ export default function NoteDetail() {
         boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
         padding: '24px 28px',
       }}>
-        <CommentThread targetType="note" targetId={id} user={user} isDemo={user?.isDemo} />
+        <CommentThread targetType="note" targetId={id} user={user} isDemo={user?.isDemo} scrollToCommentId={commentId} />
       </div>
 
       <ConfirmModal

@@ -64,8 +64,17 @@ function getRowNav(item) {
     case 'note_shared':    return { to: '/notes/view', state: { id: item.targetId } };
     case 'flashcard_shared': return { to: '/flashcards/view', state: { id: item.targetId } };
     case 'task_created':   return { to: '/tasks', state: { openTaskId: item.targetId } };
-    case 'comment_added':  return resourceNav(item.targetType, item.targetId);
-    case 'like_added':     return m.resourceId ? resourceNav(m.resourceType, m.resourceId) : null;
+    case 'comment_added': {
+      const base = resourceNav(item.targetType, item.targetId);
+      if (!base) return null;
+      return m.commentId ? { to: base.to, state: { ...base.state, commentId: m.commentId } } : base;
+    }
+    case 'like_added': {
+      if (!m.resourceId) return null;
+      const base = resourceNav(m.resourceType, m.resourceId);
+      if (!base) return null;
+      return m.commentId ? { to: base.to, state: { ...base.state, commentId: m.commentId } } : base;
+    }
     default: return null;
   }
 }
@@ -96,13 +105,15 @@ export function getActivitySentence(item, actor) {
     case 'task_created':
       return <>{bold} shared a task {m.taskTitle && contentLink('/tasks', { openTaskId: item.targetId }, m.taskTitle)}{suffix}</>;
     case 'comment_added': {
-      const nav = resourceNav(item.targetType, item.targetId);
+      const base = resourceNav(item.targetType, item.targetId);
+      const nav = base && m.commentId ? { to: base.to, state: { ...base.state, commentId: m.commentId } } : base;
       return m.commentPreview
         ? <>{bold} commented: {nav ? contentLink(nav.to, nav.state, m.commentPreview) : <span style={{ color: '#9CA3AF', fontStyle: 'italic' }}>"{m.commentPreview}"</span>}</>
         : <>{bold} left a comment</>;
     }
     case 'like_added': {
-      const nav = m.resourceId ? resourceNav(m.resourceType, m.resourceId) : null;
+      const base = m.resourceId ? resourceNav(m.resourceType, m.resourceId) : null;
+      const nav = base && m.commentId ? { to: base.to, state: { ...base.state, commentId: m.commentId } } : base;
       return m.commentPreview
         ? <>{bold} liked your comment: {nav ? contentLink(nav.to, nav.state, m.commentPreview) : <span style={{ color: '#9CA3AF', fontStyle: 'italic' }}>"{m.commentPreview}"</span>}</>
         : <>{bold} liked a comment</>;

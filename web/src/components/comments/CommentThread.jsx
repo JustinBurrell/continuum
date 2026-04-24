@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, Heart, Trash, Send } from 'lucide-react';
@@ -12,7 +12,7 @@ const getAuthor = (c) => c.userSnapshot || {};
 const fullName = (u) =>
   [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'Unknown';
 
-export default function CommentThread({ targetType, targetId, user, isDemo }) {
+export default function CommentThread({ targetType, targetId, user, isDemo, scrollToCommentId }) {
   const [commentText, setCommentText] = useState('');
   const [replyTo, setReplyTo] = useState(null); // { commentId, username } | null
   const [expandedReplies, setExpandedReplies] = useState({}); // { [commentId]: bool }
@@ -28,6 +28,16 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
   const allComments = data?.comments || [];
   const commentMap = new Map(allComments.map(c => [c._id, c]));
   const topLevel = allComments.filter(c => !c.parentId);
+
+  useEffect(() => {
+    if (!scrollToCommentId || !data) return;
+    const el = document.getElementById(`comment-${scrollToCommentId}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.style.transition = 'background 0.3s';
+    el.style.background = 'rgba(107,33,168,0.08)';
+    setTimeout(() => { el.style.background = 'transparent'; }, 1800);
+  }, [scrollToCommentId, data]);
   const repliesByParent = allComments.reduce((acc, c) => {
     if (c.parentId) {
       (acc[c.parentId] ??= []).push(c);
@@ -91,7 +101,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo }) {
     const likeCount = c.likes?.length || 0;
 
     return (
-      <div key={c._id} className="group" style={{ display: 'flex', gap: 12 }}>
+      <div key={c._id} id={`comment-${c._id}`} className="group" style={{ display: 'flex', gap: 12, borderRadius: 8, padding: '4px 0', transition: 'background 0.3s' }}>
         <Link
           to="/users/view"
           state={{ id: c.userId?._id ?? c.userId }}
