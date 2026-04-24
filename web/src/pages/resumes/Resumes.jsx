@@ -45,6 +45,14 @@ export default function Resumes() {
     }
   };
 
+  const handleToggleFeedback = (resume) => {
+    const isOpening = !expandedFeedback[resume._id];
+    if (isOpening && resume.feedback?.length > 0) {
+      posthog.capture('resume_score_viewed', { platform: 'web', resumeId: resume._id });
+    }
+    setExpandedFeedback(prev => ({ ...prev, [resume._id]: !prev[resume._id] }));
+  };
+
   const handleAiFeedback = async (resumeId) => {
     setFeedbackLoading(prev => ({ ...prev, [resumeId]: true }));
     try {
@@ -172,9 +180,7 @@ export default function Resumes() {
               resume={resume}
               expanded={expandedFeedback[resume._id]}
               feedbackLoading={feedbackLoading[resume._id]}
-              onToggleFeedback={() =>
-                setExpandedFeedback(prev => ({ ...prev, [resume._id]: !prev[resume._id] }))
-              }
+              onToggleFeedback={() => handleToggleFeedback(resume)}
               onAiFeedback={() => handleAiFeedback(resume._id)}
               onDelete={() => setDeleteConfirm(resume._id)}
               deleteLoading={deleteMutation.isPending && deleteMutation.variables === resume._id}

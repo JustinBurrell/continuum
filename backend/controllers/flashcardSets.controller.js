@@ -183,6 +183,12 @@ exports.deleteSet = async (req, res) => {
         return res.status(404).json({ success: false, error: 'Flashcard set not found' });
     }
 
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'flashcard_set_deleted',
+        properties: { flashcardSetId: set._id.toString() },
+    });
+
     res.status(200).json({ success: true, message: 'Flashcard set deleted' });
 };
 

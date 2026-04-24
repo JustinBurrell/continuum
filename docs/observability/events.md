@@ -33,6 +33,8 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 |-------|--------|-----------|----------------|
 | `note_created` | backend | A new note is saved | `noteId`, `userId` |
 | `note_summary_generated` | backend | AI summary is generated for a note | `noteId`, `userId` |
+| `note_deleted` | backend | User soft-deletes a note | `noteId` |
+| `google_doc_imported` | backend | User imports a Google Doc as a note | `noteId` |
 
 ---
 
@@ -41,6 +43,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 | Event | Source | Fired When | Key Properties |
 |-------|--------|-----------|----------------|
 | `flashcard_set_generated` | backend | AI generates a flashcard set from a note or PDF | `flashcardSetId`, `userId`, `cardCount` |
+| `flashcard_set_deleted` | backend | User deletes a flashcard set | `flashcardSetId` |
 
 ---
 
@@ -50,6 +53,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 |-------|--------|-----------|----------------|
 | `study_session_started` | frontend | User begins a study session on a flashcard set | `platform: 'web'`, `set_id` |
 | `study_session_completed` | backend | User finishes a study session | `sessionId`, `flashcardSetId`, `userId`, `cardsStudied`, `score` |
+| `study_session_abandoned` | frontend | User leaves study mode after marking at least one card, without finishing | `platform: 'web'`, `set_id`, `cards_seen` |
 
 ---
 
@@ -59,6 +63,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 |-------|--------|-----------|----------------|
 | `resume_uploaded` | frontend | User uploads a PDF resume to Cloudinary | `platform: 'web'` |
 | `resume_feedback_generated` | backend | AI runs section-by-section resume analysis | `resumeId`, `userId` |
+| `resume_score_viewed` | frontend | User opens the AI feedback panel on a resume that has feedback | `platform: 'web'`, `resumeId` |
 
 ---
 
@@ -83,6 +88,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 | Event | Source | Fired When | Key Properties |
 |-------|--------|-----------|----------------|
 | `friend_request_sent` | backend | User sends a friend request | `fromUserId`, `toUserId` |
+| `friend_request_accepted` | backend | User accepts a friend request | `friendshipId`, `fromUserId` |
 | `message_sent` | backend | User sends a direct message | `conversationId`, `userId` |
 | `comment_added` | backend | User leaves a comment on a note, flashcard set, or task | `commentId`, `targetId`, `targetType` |
 
