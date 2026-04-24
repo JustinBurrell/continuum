@@ -60,7 +60,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 - **Flashcards** — study mode with flip cards, per-card progress tracking, AI extraction from notes or PDFs, study history screen, infinite-scroll pagination
 - **Tasks** — kanban board with shared tasks, per-participant status tracking, recurrence support, infinite-scroll pagination
 - **Calendar** — event creation and scheduling integrated with the task system
-- **Social** — friend requests, activity feed (cursor-paginated, own actions filtered Instagram-style, shared content titles clickable), direct messaging with real-time socket delivery (no polling), profile photos in feed and comments
+- **Social** — friend requests, activity feed (cursor-paginated, own actions filtered Instagram-style, shared content titles and comment previews are clickable purple links with scroll-to-comment on the target page), direct messaging with real-time socket delivery (no polling), profile photos in feed and comments
 - **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section), contacts and reminders per application
 - **Auth** — email/password and Google OAuth (`drive.file` scope — non-sensitive, no CASA assessment required) with JWT + httpOnly refresh cookie rotation
 - **Dashboard** — accurate total counts pulled from paginated response metadata (not capped list lengths)
@@ -1413,4 +1413,4 @@ Each PR includes:
 
 This creates a paper trail. Six months from now, you can read a PR and understand exactly what problem it solved, what it changed, and how to verify it worked.
 
-*Last updated: April 24, 2026*
+*Last updated: April 24, 2026 (evening)*
