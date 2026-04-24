@@ -57,8 +57,7 @@ export default function Resumes() {
     setFeedbackLoading(prev => ({ ...prev, [resumeId]: true }));
     try {
       await api.post(`/resumes/${resumeId}/feedback`);
-      const updated = await api.get('/resumes').then(r => r.data);
-      queryClient.setQueryData(['resumes'], updated);
+      await queryClient.invalidateQueries({ queryKey: ['resumes'] });
       setExpandedFeedback(prev => ({ ...prev, [resumeId]: true }));
     } catch (err) {
       console.error('AI feedback error:', err);
