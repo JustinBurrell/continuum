@@ -72,12 +72,6 @@ exports.sendRequest = async (req, res) => {
         requestedAt: new Date(),
     });
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'friend_request_sent',
-        properties: { toUserId: recipientId },
-    });
-
     // Notify recipient in real-time
     try { getIO().to(`user:${recipientId}`).emit('friend_request', { friendship }); } catch (_) {}
 
@@ -201,6 +195,12 @@ exports.removeFriend = async (req, res) => {
     if (!friendship) {
         return res.status(404).json({ success: false, error: 'Friendship not found' });
     }
+
+    posthog.capture({
+        distinctId: req.user._id.toString(),
+        event: 'friend_removed',
+        properties: { friendshipId: friendship._id.toString() },
+    });
 
     res.status(200).json({ success: true, message: 'Friend removed' });
 };

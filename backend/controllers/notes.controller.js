@@ -775,13 +775,22 @@ exports.shareNote = async (req, res) => {
         } catch (_) {}
     }
 
-    if (visibility !== 'private') {
+    if (visibility === 'private' && existing.visibility !== 'private') {
+        posthog.capture({
+            distinctId: req.user._id.toString(),
+            event: 'note_unshared',
+            properties: {
+                noteId: note._id.toString(),
+                previousAudience: existing.visibility,
+            },
+        });
+    } else if (visibility !== 'private') {
         posthog.capture({
             distinctId: req.user._id.toString(),
             event: 'note_shared',
             properties: {
                 noteId: note._id.toString(),
-                visibility,
+                audience: visibility,
                 recipientCount: visibility === 'specific' ? sharedWith.length : null,
             },
         });

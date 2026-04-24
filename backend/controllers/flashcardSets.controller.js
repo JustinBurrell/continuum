@@ -583,13 +583,22 @@ exports.shareSet = async (req, res) => {
         invalidate(...sharedWith.map(uid => `shared-sets:${uid}`)).catch(() => {});
     }
 
-    if (visibility !== 'private') {
+    if (visibility === 'private' && existing.visibility !== 'private') {
+        posthog.capture({
+            distinctId: req.user._id.toString(),
+            event: 'flashcard_set_unshared',
+            properties: {
+                flashcardSetId: set._id.toString(),
+                previousAudience: existing.visibility,
+            },
+        });
+    } else if (visibility !== 'private') {
         posthog.capture({
             distinctId: req.user._id.toString(),
             event: 'flashcard_set_shared',
             properties: {
                 flashcardSetId: set._id.toString(),
-                visibility,
+                audience: visibility,
                 recipientCount: visibility === 'specific' ? sharedWith.length : null,
             },
         });

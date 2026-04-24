@@ -36,7 +36,8 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 | `note_created` | backend | A new note is saved | `noteId`, `userId` |
 | `note_summary_generated` | backend | AI summary is generated for a note | `noteId`, `userId` |
 | `note_deleted` | backend | User soft-deletes a note | `noteId` |
-| `note_shared` | backend | User shares a note with friends or specific users | `noteId`, `visibility`, `recipientCount` |
+| `note_shared` | backend | User shares a note — `audience: 'friends'` = all friends, `audience: 'specific'` = named friends | `noteId`, `audience`, `recipientCount` |
+| `note_unshared` | backend | User sets a note back to private | `noteId`, `previousAudience` |
 | `google_doc_imported` | backend | User imports a Google Doc as a note | `noteId` |
 
 ---
@@ -47,7 +48,8 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 |-------|--------|-----------|----------------|
 | `flashcard_set_generated` | backend | AI generates a flashcard set from a note or PDF | `flashcardSetId`, `userId`, `cardCount` |
 | `flashcard_set_deleted` | backend | User deletes a flashcard set | `flashcardSetId` |
-| `flashcard_set_shared` | backend | User shares a flashcard set with friends or specific users | `flashcardSetId`, `visibility`, `recipientCount` |
+| `flashcard_set_shared` | backend | User shares a flashcard set — `audience: 'friends'` or `audience: 'specific'` | `flashcardSetId`, `audience`, `recipientCount` |
+| `flashcard_set_unshared` | backend | User sets a flashcard set back to private | `flashcardSetId`, `previousAudience` |
 
 ---
 
@@ -75,7 +77,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 
 | Event | Source | Fired When | Key Properties |
 |-------|--------|-----------|----------------|
-| `job_application_created` | backend | User creates a new job application entry | `applicationId`, `userId` |
+| `job_application_created` | frontend | User creates a new job application entry | `platform: 'web'` |
 
 ---
 
@@ -83,7 +85,7 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 
 | Event | Source | Fired When | Key Properties |
 |-------|--------|-----------|----------------|
-| `task_created` | backend | User creates a new task | `taskId`, `userId` |
+| `task_created` | frontend | User creates a new task | `platform: 'web'` |
 | `task_shared` | backend | User creates a shared task with participants | `taskId`, `recipientCount` |
 
 ---
@@ -92,9 +94,10 @@ Called on: email login, email registration, Google OAuth callback, and page hydr
 
 | Event | Source | Fired When | Key Properties |
 |-------|--------|-----------|----------------|
-| `friend_request_sent` | backend | User sends a friend request | `fromUserId`, `toUserId` |
+| `friend_request_sent` | frontend | User sends a friend request | `platform: 'web'` |
 | `friend_request_accepted` | backend | User accepts a friend request | `friendshipId`, `fromUserId` |
-| `message_sent` | backend | User sends a direct message | `conversationId`, `userId` |
+| `friend_removed` | backend | User removes an accepted friend | `friendshipId` |
+| `message_sent` | frontend | User sends a direct message | `platform: 'web'` |
 | `comment_added` | backend | User leaves a top-level comment on a note, flashcard set, or task | `commentId`, `targetId`, `targetType` |
 | `comment_reply_added` | backend | User replies to an existing comment | `commentId`, `targetId`, `targetType`, `parentCommentId` |
 
