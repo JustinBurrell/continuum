@@ -7,6 +7,7 @@ import Skeleton from '@/components/ui/Skeleton';
 import DashboardSkeleton from '@/components/skeletons/DashboardSkeleton';
 import { formatRelative, truncate, stripHtml } from '@/lib/utils';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
+import ActivityFeedItem from '@/components/ui/ActivityFeedItem';
 
 // Verified backend response shapes:
 // GET /notes → { notes[], pagination: { total, page, limit, pages } }
@@ -403,110 +404,6 @@ function AppItem({ app }) {
   );
 }
 
-/* ────────────────────────────────────────
-   Activity Feed
-   ──────────────────────────────────────── */
-const feedNameLink = (u) => (
-  <Link
-    key={u._id}
-    to="/users/view"
-    state={{ id: u._id }}
-    style={{ color: '#6b21a8', fontWeight: 600, textDecoration: 'none' }}
-  >
-    {[u.firstName, u.lastName].filter(Boolean).join(' ') || 'Someone'}
-  </Link>
-);
-
-function feedRenderNames(names) {
-  if (!names || names.length === 0) return null;
-  if (names.length === 1) return feedNameLink(names[0]);
-  if (names.length === 2) return <>{feedNameLink(names[0])} and {feedNameLink(names[1])}</>;
-  return <>{feedNameLink(names[0])}, {feedNameLink(names[1])}, and {names.length - 2} other{names.length - 2 !== 1 ? 's' : ''}</>;
-}
-
-function feedShareSuffix(m) {
-  if (m.isRecipient) return <> with you</>;
-  if (m.sharedWithAll) return <> with friends</>;
-  if (m.sharedWithNames?.length > 0) return <> with {feedRenderNames(m.sharedWithNames)}</>;
-  return null;
-}
-
-function getFeedSentence(item, actor) {
-  const m = item.metadata || {};
-  const name = fullName(actor);
-  const bold = (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-      <Link to="/users/view" state={{ id: actor?._id }} style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}>
-        {name}
-      </Link>
-      <VerifiedBadge roles={actor?.roles} />
-    </span>
-  );
-  const suffix = feedShareSuffix(m);
-
-  switch (item.type) {
-    case 'note_shared':
-      return <>{bold} shared their note {m.noteTitle && <span style={{ color: '#9CA3AF' }}>"{truncate(m.noteTitle, 40)}"</span>}{suffix}</>;
-    case 'flashcard_shared':
-      return <>{bold} shared a flashcard set {m.setTitle && <span style={{ color: '#9CA3AF' }}>"{truncate(m.setTitle, 40)}"</span>}{suffix}</>;
-    case 'task_created':
-      return <>{bold} shared a task {m.taskTitle && <span style={{ color: '#9CA3AF' }}>"{truncate(m.taskTitle, 40)}"</span>}{suffix}</>;
-    case 'comment_added':
-      return m.commentPreview
-        ? <>{bold} commented: <span style={{ color: '#9CA3AF' }}>"{truncate(m.commentPreview, 50)}"</span></>
-        : <>{bold} left a comment</>;
-    case 'like_added':
-      return m.commentPreview
-        ? <>{bold} liked a comment: <span style={{ color: '#9CA3AF' }}>"{truncate(m.commentPreview, 50)}"</span></>
-        : <>{bold} liked a comment</>;
-    default:
-      return <>{bold} did something</>;
-  }
-}
-
-function FeedItem({ item }) {
-  const actor = item.userId;
-  const name = fullName(actor);
-  const initial = name.charAt(0).toUpperCase();
-
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: 12,
-        padding: '11px 0',
-        borderBottom: '1px solid #E5E7EB',
-      }}
-    >
-      <Link to="/users/view" state={{ id: actor?._id }} style={{ flexShrink: 0, marginTop: 1 }}>
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            background: 'rgba(107,33,168,0.08)',
-            border: '1.5px solid rgba(107,33,168,0.15)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-          }}
-        >
-          {actor?.avatarUrl ? (
-            <img src={actor.avatarUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : (
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#6b21a8' }}>{initial}</span>
-          )}
-        </div>
-      </Link>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{getFeedSentence(item, actor)}</p>
-        <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>{formatRelative(item.createdAt)}</p>
-      </div>
-    </div>
-  );
-}
 
 /* ────────────────────────────────────────
    Section Header
@@ -757,7 +654,9 @@ export default function Dashboard() {
                       No activity yet.
                     </p>
                   )
-                  : activities.slice(0, 5).map(item => <FeedItem key={item._id} item={item} />)
+                  : activities.slice(0, 5).map((item, idx, arr) => (
+                      <ActivityFeedItem key={item._id} item={item} isLast={idx === arr.length - 1} />
+                    ))
               }
             </div>
           </Section>

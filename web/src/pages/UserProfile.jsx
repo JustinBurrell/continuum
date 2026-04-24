@@ -4,7 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
 import {
   ArrowLeft, Calendar, AtSign, MessageCircle, UserPlus,
-  UserCheck, Clock, BookOpen, Layers, CheckSquare, Heart, UserMinus,
+  UserCheck, Clock, Layers, CheckSquare, UserMinus,
   FileText, Activity as ActivityIcon,
 } from 'lucide-react';
 import api from '@/lib/api';
@@ -16,7 +16,8 @@ import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
 import SocialLinks from '@/components/ui/SocialLinks';
-import { formatDate, formatRelative } from '@/lib/utils';
+import ActivityFeedItem from '@/components/ui/ActivityFeedItem';
+import { formatDate } from '@/lib/utils';
 
 const fullName = (u) =>
   [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'Unknown';
@@ -26,29 +27,6 @@ const NOTE_TYPE_VARIANTS = {
   todo: 'warning', journal: 'danger',
 };
 
-const ACTIVITY_ICONS = {
-  note_shared: BookOpen,
-  flashcard_shared: Layers,
-  task_created: CheckSquare,
-  comment_added: MessageCircle,
-  like_added: Heart,
-};
-
-const ACTIVITY_LABELS = {
-  note_shared: 'shared a note',
-  flashcard_shared: 'shared a flashcard set',
-  task_created: 'created a task',
-  comment_added: 'left a comment',
-  like_added: 'liked something',
-};
-
-const ACTIVITY_COLORS = {
-  note_shared: '#6b21a8',
-  flashcard_shared: '#6b21a8',
-  task_created: '#6b21a8',
-  comment_added: '#6b21a8',
-  like_added: '#6b21a8',
-};
 
 export default function UserProfile() {
   const { state } = useLocation();
@@ -568,51 +546,11 @@ export default function UserProfile() {
                 borderRadius: 16,
                 boxShadow: '0 1px 8px rgba(107,33,168,0.06)',
                 overflow: 'hidden',
+                padding: '0 20px',
               }}>
-                {recentActivity.map((item, idx) => {
-                  const Icon = ACTIVITY_ICONS[item.type] || ActivityIcon;
-                  const label = ACTIVITY_LABELS[item.type] || item.type;
-                  const color = ACTIVITY_COLORS[item.type] || '#9CA3AF';
-                  return (
-                    <div
-                      key={item._id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: 12,
-                        padding: '14px 20px',
-                        borderBottom: idx < recentActivity.length - 1 ? '1px solid #E5E7EB' : 'none',
-                      }}
-                    >
-                      <div style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: '50%',
-                        background: `${color}14`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        marginTop: 1,
-                      }}>
-                        <Icon size={14} style={{ color }} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 13, color: '#374151', margin: 0 }}>
-                          <Link to="/users/view" state={{ id: profile?._id }} style={{ fontWeight: 700, color: '#111827', textDecoration: 'none' }}>{name}</Link> {label}
-                          {item.metadata?.noteTitle && (
-                            <span style={{ color: '#9CA3AF' }}> · {item.metadata.noteTitle}</span>
-                          )}
-                        </p>
-                        {item.createdAt && (
-                          <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0' }}>
-                            {formatRelative ? formatRelative(item.createdAt) : formatDate(item.createdAt)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                {recentActivity.map((item, idx) => (
+                  <ActivityFeedItem key={item._id} item={item} isLast={idx === recentActivity.length - 1} />
+                ))}
               </div>
             )}
           </section>
