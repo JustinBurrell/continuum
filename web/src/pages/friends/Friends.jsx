@@ -81,8 +81,7 @@ export default function Friends() {
     mutationFn: (friendId) => api.post('/conversations', { participantId: friendId }),
     onSuccess: (res) => {
       const convId = res.data?.conversation?._id || res.data?.data?._id;
-      if (convId) navigate(`/messages/${convId}`);
-      else navigate('/messages');
+      navigate('/messages', { state: { conversationId: convId ?? null } });
     },
   });
 

@@ -33,7 +33,10 @@ export default function MessagesLayout() {
   const [activeConversationId, setActiveConversationId] = useState(state?.conversationId ?? null);
 
   useEffect(() => {
-    if (state?.conversationId) window.history.replaceState({}, '');
+    if (state?.conversationId) {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      window.history.replaceState({}, '');
+    }
   }, []);
 
   const { data, isLoading } = useQuery({
