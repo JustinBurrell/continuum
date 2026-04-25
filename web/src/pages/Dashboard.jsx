@@ -479,7 +479,6 @@ export default function Dashboard() {
   const { data: notesData, isLoading: notesLoading } = useQuery({
     queryKey: ['notes', { limit: 3 }],
     queryFn: () => api.get('/notes', { params: { limit: 3 } }).then(r => r.data),
-    staleTime: 0,
   });
 
   // Fetch the top open tasks for the Priority Tasks display list (todo only, first 10)
