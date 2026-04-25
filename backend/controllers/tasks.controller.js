@@ -108,14 +108,7 @@ exports.createTask = async (req, res) => {
     });
 
     if (task.isShared && validatedParticipants.length > 0) {
-        posthog.capture({
-            distinctId: req.user._id.toString(),
-            event: 'task_shared',
-            properties: {
-                taskId: task._id.toString(),
-                recipientCount: validatedParticipants.length,
-            },
-        });
+        posthog.capture(req.user, 'task_shared', { taskId: task._id.toString(), recipientCount: validatedParticipants.length });
 
         createShareActivities({
             actorId: req.user._id,

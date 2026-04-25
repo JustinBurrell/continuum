@@ -15,5 +15,15 @@ process.on('beforeExit', async () => {
 // Falls back to APP_VERSION if set manually, then 'unknown' locally.
 const appVersion = process.env.RENDER_GIT_COMMIT ?? process.env.APP_VERSION ?? 'unknown'
 
-module.exports = client
-module.exports.appVersion = appVersion
+// Wrapper that silences all events for demo and seed accounts.
+// Usage: posthog.capture(req.user, 'event_name', { ...props })
+function capture(user, event, properties = {}) {
+  if (!user || user.isDemo || user.isSeedUser) return
+  client.capture({
+    distinctId: user._id.toString(),
+    event,
+    properties: { ...properties, appVersion },
+  })
+}
+
+module.exports = { capture, client, appVersion }
