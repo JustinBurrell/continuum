@@ -141,11 +141,26 @@ export default function MessagesLayout() {
               const lastMsg = conv.lastMessage;
               const isLastMine = lastMsg?.senderId === user?._id;
               const isActive = activeConversationId === conv._id;
+              const hasUnread = !isActive && (conv.unreadCount || 0) > 0;
 
               return (
                 <div
                   key={conv._id}
-                  onClick={() => setActiveConversationId(conv._id)}
+                  onClick={() => {
+                    setActiveConversationId(conv._id);
+                    // Optimistically clear unread badge on open
+                    if (hasUnread) {
+                      queryClient.setQueryData(['conversations'], old => {
+                        if (!old) return old;
+                        return {
+                          ...old,
+                          conversations: (old.conversations || []).map(c =>
+                            c._id === conv._id ? { ...c, unreadCount: 0 } : c
+                          ),
+                        };
+                      });
+                    }
+                  }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -165,20 +180,28 @@ export default function MessagesLayout() {
                   <AppAvatar name={getName(other)} src={other?.avatarUrl} size="md" />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                      <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p style={{ fontSize: 14, fontWeight: hasUnread ? 700 : 600, color: hasUnread ? '#111827' : '#374151', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {getName(other)}
                       </p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: 8 }}>
                         {lastMsg?.sentAt && (
-                          <span style={{ fontSize: 11, color: '#9CA3AF' }}>{formatRelative(lastMsg.sentAt)}</span>
+                          <span style={{ fontSize: 11, color: hasUnread ? '#6b21a8' : '#9CA3AF', fontWeight: hasUnread ? 600 : 400 }}>{formatRelative(lastMsg.sentAt)}</span>
                         )}
-                        {conv.unreadCount > 0 && (
-                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6b21a8', flexShrink: 0 }} />
+                        {hasUnread && (
+                          <div style={{
+                            minWidth: 18, height: 18, borderRadius: 9,
+                            background: '#6b21a8', color: '#fff',
+                            fontSize: 10, fontWeight: 700,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            padding: '0 5px', flexShrink: 0,
+                          }}>
+                            {conv.unreadCount > 99 ? '99+' : conv.unreadCount}
+                          </div>
                         )}
                       </div>
                     </div>
                     {lastMsg ? (
-                      <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p style={{ fontSize: 12, color: hasUnread ? '#4B5563' : '#9CA3AF', fontWeight: hasUnread ? 500 : 400, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {isLastMine ? 'You: ' : ''}{previewText(lastMsg.content)}
                       </p>
                     ) : (

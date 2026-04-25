@@ -92,7 +92,15 @@ exports.getConversations = async (req, res) => {
         .populate('participants', 'username firstName lastName avatarUrl roles')
         .sort({ 'lastMessage.sentAt': -1, createdAt: -1 });
 
-    res.status(200).json({ success: true, conversations });
+    // Pluck the current user's unread count from the array and expose as a scalar
+    const serialized = conversations.map(conv => {
+        const raw = conv.toObject();
+        const entry = raw.unreadCounts?.find(u => u.userId?.toString() === userId.toString());
+        raw.unreadCount = entry?.count ?? 0;
+        return raw;
+    });
+
+    res.status(200).json({ success: true, conversations: serialized });
 };
 
 // ----------------------------------------

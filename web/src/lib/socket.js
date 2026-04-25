@@ -12,7 +12,7 @@ export function connectSocket(token) {
   socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5001', {
     auth: { token },
     transports: ['websocket'],
-    reconnectionAttempts: 5,
+    reconnectionDelayMax: 5000,
   });
 
   return socket;

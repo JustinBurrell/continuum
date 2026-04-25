@@ -8,18 +8,50 @@ const AuthContext = createContext(null);
 
 // All socket events and which React Query keys they invalidate
 function registerSocketEvents(socket) {
-  // Direct messages — invalidate the conversation and inbox
-  socket.on('new_message', ({ conversationId }) => {
-    queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
-    queryClient.invalidateQueries({ queryKey: ['conversations'] });
+  // Direct messages — write directly into cache for instant display, then sync sidebar
+  socket.on('new_message', ({ conversationId, message }) => {
+    // Insert into any open message query for this conversation (skip active search results)
+    const queries = queryClient.getQueriesData({ queryKey: ['messages', conversationId] });
+    queries.forEach(([key, data]) => {
+      const searchTerm = key[2];
+      if (!searchTerm && data) {
+        queryClient.setQueryData(key, old => ({
+          ...old,
+          messages: [message, ...(old?.messages || [])],
+        }));
+      }
+    });
+    // Update conversations sidebar: bump lastMessage preview + unread count, re-sort
+    queryClient.setQueryData(['conversations'], old => {
+      if (!old) return old;
+      const updated = (old.conversations || []).map(conv =>
+        conv._id === conversationId
+          ? {
+              ...conv,
+              lastMessage: {
+                senderId: message.senderId?._id ?? message.senderId,
+                content: message.content,
+                sentAt: message.createdAt,
+              },
+              unreadCount: (conv.unreadCount || 0) + 1,
+            }
+          : conv
+      );
+      updated.sort(
+        (a, b) => new Date(b.lastMessage?.sentAt || 0) - new Date(a.lastMessage?.sentAt || 0)
+      );
+      return { ...old, conversations: updated };
+    });
   });
 
-  // Friend requests / accepted
+  // Friend requests / accepted — invalidate all three friend query keys
   socket.on('friend_request', () => {
     queryClient.invalidateQueries({ queryKey: ['friends'] });
+    queryClient.invalidateQueries({ queryKey: ['friend-requests'] });
   });
   socket.on('friend_accepted', () => {
     queryClient.invalidateQueries({ queryKey: ['friends'] });
+    queryClient.invalidateQueries({ queryKey: ['friend-requests-sent'] });
   });
 
   // Task mutations — existing and new Phase 2 events
