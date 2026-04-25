@@ -175,14 +175,7 @@ exports.generateFeedback = async (req, res) => {
         { new: true }
     );
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'resume_feedback_generated',
-        properties: {
-            platform: 'web',
-            resume_id: resume._id.toString(),
-        },
-    });
+    posthog.capture(req.user, 'resume_feedback_generated', { platform: 'web', resume_id: resume._id.toString() });
 
     res.status(200).json({ success: true, feedback: updated.feedback[updated.feedback.length - 1], resume: updated });
 };

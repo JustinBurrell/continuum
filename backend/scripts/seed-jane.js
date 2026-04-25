@@ -25,33 +25,33 @@ const CLEAN = process.argv.includes('--clean');
 
 // ─── Jane's 20 friends (promoted from SEED_STRANGERS) ──────────────────────
 const JANE_FRIEND_USERNAMES = [
-  'carolinehall', 'chrisnguyen', 'connorflynn', 'dianachen', 'ethancooper',
-  'evawong', 'graciecallahan', 'isabellachang', 'jadewashington', 'jasonmendez',
-  'kevinzhang', 'kiananderson', 'logancarter', 'michaelrobbins', 'noahcoleman',
-  'rachelmontgomery', 'ryanfoster', 'taylormorgan', 'trevornash', 'zoeanderson',
+  'carolinehall_demo', 'chrisnguyen_demo', 'connorflynn_demo', 'dianachen_demo', 'ethancooper_demo',
+  'evawong_demo', 'graciecallahan_demo', 'isabellachang_demo', 'jadewashington_demo', 'jasonmendez_demo',
+  'kevinzhang_demo', 'kiananderson_demo', 'logancarter_demo', 'michaelrobbins_demo', 'noahcoleman_demo',
+  'rachelmontgomery_demo', 'ryanfoster_demo', 'taylormorgan_demo', 'trevornash_demo', 'zoeanderson_demo',
 ];
 
 const FRIEND_NAMES = {
-  carolinehall:    { firstName: 'Caroline',  lastName: 'Hall' },
-  chrisnguyen:     { firstName: 'Chris',     lastName: 'Nguyen' },
-  connorflynn:     { firstName: 'Connor',    lastName: 'Flynn' },
-  dianachen:       { firstName: 'Diana',     lastName: 'Chen' },
-  ethancooper:     { firstName: 'Ethan',     lastName: 'Cooper' },
-  evawong:         { firstName: 'Eva',       lastName: 'Wong' },
-  graciecallahan:  { firstName: 'Gracie',    lastName: 'Callahan' },
-  isabellachang:   { firstName: 'Isabella',  lastName: 'Chang' },
-  jadewashington:  { firstName: 'Jade',      lastName: 'Washington' },
-  jasonmendez:     { firstName: 'Jason',     lastName: 'Mendez' },
-  kevinzhang:      { firstName: 'Kevin',     lastName: 'Zhang' },
-  kiananderson:    { firstName: 'Kian',      lastName: 'Anderson' },
-  logancarter:     { firstName: 'Logan',     lastName: 'Carter' },
-  michaelrobbins:  { firstName: 'Michael',   lastName: 'Robbins' },
-  noahcoleman:     { firstName: 'Noah',      lastName: 'Coleman' },
-  rachelmontgomery:{ firstName: 'Rachel',    lastName: 'Montgomery' },
-  ryanfoster:      { firstName: 'Ryan',      lastName: 'Foster' },
-  taylormorgan:    { firstName: 'Taylor',    lastName: 'Morgan' },
-  trevornash:      { firstName: 'Trevor',    lastName: 'Nash' },
-  zoeanderson:     { firstName: 'Zoe',       lastName: 'Anderson' },
+  carolinehall_demo:    { firstName: 'Caroline',  lastName: 'Hall' },
+  chrisnguyen_demo:     { firstName: 'Chris',     lastName: 'Nguyen' },
+  connorflynn_demo:     { firstName: 'Connor',    lastName: 'Flynn' },
+  dianachen_demo:       { firstName: 'Diana',     lastName: 'Chen' },
+  ethancooper_demo:     { firstName: 'Ethan',     lastName: 'Cooper' },
+  evawong_demo:         { firstName: 'Eva',       lastName: 'Wong' },
+  graciecallahan_demo:  { firstName: 'Gracie',    lastName: 'Callahan' },
+  isabellachang_demo:   { firstName: 'Isabella',  lastName: 'Chang' },
+  jadewashington_demo:  { firstName: 'Jade',      lastName: 'Washington' },
+  jasonmendez_demo:     { firstName: 'Jason',     lastName: 'Mendez' },
+  kevinzhang_demo:      { firstName: 'Kevin',     lastName: 'Zhang' },
+  kiananderson_demo:    { firstName: 'Kian',      lastName: 'Anderson' },
+  logancarter_demo:     { firstName: 'Logan',     lastName: 'Carter' },
+  michaelrobbins_demo:  { firstName: 'Michael',   lastName: 'Robbins' },
+  noahcoleman_demo:     { firstName: 'Noah',      lastName: 'Coleman' },
+  rachelmontgomery_demo:{ firstName: 'Rachel',    lastName: 'Montgomery' },
+  ryanfoster_demo:      { firstName: 'Ryan',      lastName: 'Foster' },
+  taylormorgan_demo:    { firstName: 'Taylor',    lastName: 'Morgan' },
+  trevornash_demo:      { firstName: 'Trevor',    lastName: 'Nash' },
+  zoeanderson_demo:     { firstName: 'Zoe',       lastName: 'Anderson' },
 };
 
 // ─── Clean ───────────────────────────────────────────────────────────────────
@@ -104,7 +104,11 @@ async function cleanJaneData(janeId) {
   });
 
   // Friend content (shared notes, flashcard sets, shared tasks seeded for Jane's friends)
-  const friendUsers = await User.find({ username: { $in: JANE_FRIEND_USERNAMES } }).select('_id');
+  // Search by email too — handles migration from pre-rename usernames (e.g. 'carolinehall' → 'carolinehall_demo')
+  const friendEmails = JANE_FRIEND_USERNAMES.map(u => `${u}@example.com`);
+  const friendUsers = await User.find({
+    $or: [{ username: { $in: JANE_FRIEND_USERNAMES } }, { email: { $in: friendEmails } }],
+  }).select('_id');
   const friendIds = friendUsers.map(f => f._id);
   if (friendIds.length) {
     const friendSets = await FlashcardSet.find({ userId: { $in: friendIds } }).select('_id');
@@ -125,10 +129,10 @@ async function cleanJaneData(janeId) {
 
 async function createJane() {
   console.log('Creating Jane Doe...');
-  let jane = await User.findOne({ username: 'janedoe' });
+  let jane = await User.findOne({ email: 'janedoe_demo@example.com' });
   if (!jane) {
     jane = new User({
-      username: 'janedoe',
+      username: 'janedoe_demo',
       email: 'janedoe_demo@example.com',
       password: 'Demo@1234',
       firstName: 'Jane',
@@ -154,13 +158,18 @@ async function seedFriends(jane) {
   const friends = [];
 
   for (const username of JANE_FRIEND_USERNAMES) {
-    let user = await User.findOne({ username });
+    const email = `${username}@example.com`;
+    let user = await User.findOne({ $or: [{ username }, { email }] });
+    if (user && user.username !== username) {
+      user.username = username;
+      await user.save();
+    }
     if (!user) {
       // Friend hasn't been seeded yet — create with isSeedUser flag
       const names = FRIEND_NAMES[username] || { firstName: username, lastName: 'Demo' };
       user = new User({
         username,
-        email: `${username}_demo@example.com`,
+        email,
         password: 'Demo@1234',
         firstName: names.firstName,
         lastName: names.lastName,
@@ -1007,8 +1016,8 @@ async function main() {
     await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
 
-    // Idempotency check
-    const existing = await User.findOne({ username: 'janedoe' });
+    // Idempotency check — match by email to handle migration from old 'janedoe' username
+    const existing = await User.findOne({ email: 'janedoe_demo@example.com' });
     if (existing && !CLEAN) {
       console.log('Jane Doe already exists. Use --clean to reseed.');
       process.exit(0);
@@ -1075,6 +1084,7 @@ async function main() {
     process.exit(1);
   } finally {
     await mongoose.disconnect();
+    process.exit(0);
   }
 }
 

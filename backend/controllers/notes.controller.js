@@ -139,11 +139,7 @@ exports.uploadNote = async (req, res) => {
         pdfPublicId: cloudinaryResult.public_id,
     });
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'note_created',
-        properties: { platform: 'web', source: getNoteSource(note) },
-    });
+    posthog.capture(req.user, 'note_created', { platform: 'web', source: getNoteSource(note) });
 
     res.status(201).json({ success: true, note });
 };
@@ -200,11 +196,7 @@ exports.createNote = async (req, res) => {
         visibility,
     });
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'note_created',
-        properties: { platform: 'web', source: getNoteSource(note) },
-    });
+    posthog.capture(req.user, 'note_created', { platform: 'web', source: getNoteSource(note) });
 
     res.status(201).json({ success: true, note });
 };
@@ -359,11 +351,7 @@ exports.deleteNote = async (req, res) => {
         return res.status(404).json({ success: false, error: 'Note not found' });
     }
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'note_deleted',
-        properties: { noteId: note._id.toString() },
-    });
+    posthog.capture(req.user, 'note_deleted', { noteId: note._id.toString() });
 
     // Notify shared users so their UI removes the note without a refresh
     try {
@@ -437,17 +425,9 @@ exports.importNote = async (req, res) => {
         lastViewedAt: new Date(), // ensures new import sorts to top (list sorts by lastViewedAt desc)
     });
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'note_created',
-        properties: { platform: 'web', source: getNoteSource(note) },
-    });
+    posthog.capture(req.user, 'note_created', { platform: 'web', source: getNoteSource(note) });
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'google_doc_imported',
-        properties: { noteId: note._id.toString() },
-    });
+    posthog.capture(req.user, 'google_doc_imported', { noteId: note._id.toString() });
 
     res.status(201).json({ success: true, note });
 };
@@ -554,16 +534,7 @@ exports.generateSummary = async (req, res) => {
     // Summary is fast — always run synchronously for instant UX
     const result = await groqService.generateSummary(note.content, req.user._id);
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'note_summary_generated',
-        properties: {
-            platform: 'web',
-            note_id: note._id.toString(),
-            source: getNoteSource(note),
-            note_type: note.type,
-        },
-    });
+    posthog.capture(req.user, 'note_summary_generated', { platform: 'web', note_id: note._id.toString(), source: getNoteSource(note), note_type: note.type });
 
     if (isOwner) {
         const updatedNote = await Note.findByIdAndUpdate(
@@ -657,18 +628,7 @@ exports.generateFlashcardsFromNote = async (req, res) => {
 
     const populatedSet = await FlashcardSet.findById(set._id).populate('flashcards');
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'flashcard_set_generated',
-        properties: {
-            platform: 'web',
-            set_id: set._id.toString(),
-            note_id: note._id.toString(),
-            source: getNoteSource(note),
-            card_count: result.cards.length,
-            generation_path: 'from_note',
-        },
-    });
+    posthog.capture(req.user, 'flashcard_set_generated', { platform: 'web', set_id: set._id.toString(), note_id: note._id.toString(), source: getNoteSource(note), card_count: result.cards.length, generation_path: 'from_note' });
 
     res.status(201).json({ success: true, set: populatedSet });
 };
@@ -785,24 +745,9 @@ exports.shareNote = async (req, res) => {
     }
 
     if (visibility === 'private' && existing.visibility !== 'private') {
-        posthog.capture({
-            distinctId: req.user._id.toString(),
-            event: 'note_unshared',
-            properties: {
-                noteId: note._id.toString(),
-                previousAudience: existing.visibility,
-            },
-        });
+        posthog.capture(req.user, 'note_unshared', { noteId: note._id.toString(), previousAudience: existing.visibility });
     } else if (visibility !== 'private') {
-        posthog.capture({
-            distinctId: req.user._id.toString(),
-            event: 'note_shared',
-            properties: {
-                noteId: note._id.toString(),
-                audience: visibility,
-                recipientCount: visibility === 'specific' ? sharedWith.length : null,
-            },
-        });
+        posthog.capture(req.user, 'note_shared', { noteId: note._id.toString(), audience: visibility, recipientCount: visibility === 'specific' ? sharedWith.length : null });
     }
 
     res.status(200).json({ success: true, note });

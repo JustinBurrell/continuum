@@ -118,15 +118,7 @@ exports.submitSession = async (req, res) => {
         // Socket not critical — swallow errors
     }
 
-    posthog.capture({
-        distinctId: userId,
-        event: 'study_session_completed',
-        properties: {
-            platform: 'web',
-            session_id: session._id.toString(),
-            set_id: setId.toString(),
-        },
-    });
+    posthog.capture(req.user, 'study_session_completed', { platform: 'web', session_id: session._id.toString(), set_id: setId.toString() });
 
     res.status(201).json({ success: true, session, streak });
 };

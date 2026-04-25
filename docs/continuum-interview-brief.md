@@ -48,7 +48,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | Storage | Cloudinary (images, PDFs) |
 | Email | Resend — transactional from `noreply@usecontinuum.dev` (custom domain) |
 | Auth | JWT access tokens, httpOnly refresh cookies, Google OAuth 2.0 |
-| Monitoring | Sentry (backend `@sentry/node` + frontend `@sentry/react`) |
+| Monitoring | Sentry (backend `@sentry/node` + frontend `@sentry/react`), PostHog (product analytics + session replay) |
 | Deployment | Vercel (frontend) + Render Starter (backend) + Upstash Redis |
 | CI | GitHub Actions — Jest, Playwright E2E, and Android unit tests run in parallel on every PR |
 
@@ -1029,6 +1029,84 @@ The resume prompt is the most complex. Key techniques used:
 | `generateSummary` | 25/user/day | Core feature, high frequency |
 | `generateFlashcards` | 25/user/day | Core feature, high frequency |
 | `generateResumeFeedback` | 5/user/day | Expensive output, lower frequency |
+
+---
+
+## Observability & Analytics — Deep Dive
+
+### Architecture
+
+Two-layer observability stack:
+- **Sentry** — error monitoring and crash reporting. Backend initialized via `instrument.js` before Express loads; frontend initialized in `main.jsx` before React renders. Sentry errors are tagged with `posthog_session_replay_url` so you can click directly from an error to the session replay that triggered it.
+- **PostHog** — product analytics, session replay, and activation funnel tracking.
+
+### Ad Blocker Bypass via Vercel Proxy
+
+The PostHog SDK is configured with `api_host: '/ph'` (relative path) instead of `https://us.i.posthog.com`. Vercel rewrites in `vercel.json` forward `/ph/*` to PostHog's ingestion endpoint:
+
+```json
+{ "source": "/ph/:path*", "destination": "https://us.i.posthog.com/:path*" }
+```
+
+Ad blockers block `us.i.posthog.com` by hostname. They see `usecontinuum.dev/ph` — your domain — and let it through. This is a standard production pattern; PostHog documents it as the recommended deployment for apps where ad blocker interference matters.
+
+### Identity Model
+
+Both frontend and backend use MongoDB `_id` as the PostHog `distinctId`. On login or register, the frontend calls:
+```js
+posthog.identify(user._id, { email, username, name, created_at })
+```
+The backend sends server-side events via a central `capture(user, event, props)` wrapper in `backend/lib/posthog.js`. Because both sides use the same ID, all events — frontend page views, backend write events — merge into a single user profile in PostHog automatically.
+
+### Person Profiles: `identified_only`
+
+PostHog's person profile mode is set to `identified_only`, meaning anonymous pre-login sessions are not stored as person records — only users who register and are identified generate person profiles. However, anonymous `$pageview` events on the marketing and login pages are still captured intentionally.
+
+When an anonymous visitor registers and `posthog.identify()` fires, PostHog retroactively merges their anonymous session into the new person profile. This preserves the full pre-signup journey — the only way to measure landing page → registration conversion rate. All non-auth pages in the app are marketing or login pages, so there is no risk of capturing anonymous events on authenticated views.
+
+### Demo & Seed Account Exclusion
+
+The demo account (`isDemo: true`) and all seed bot accounts (`isSeedUser: true`) are completely excluded from PostHog:
+
+**Frontend:** On login or hydration, if `user.isDemo || user.isSeedUser`, `posthog.opt_out_capturing()` is called. This disables ALL tracking for that session — including autocapture and automatic `$pageview` events, which cannot be blocked with a simple `if` guard. On logout, `posthog.opt_in_capturing()` restores the default state for the next real user.
+
+**Backend:** `backend/lib/posthog.js` exports a `capture(user, event, props)` wrapper that checks `user.isDemo || user.isSeedUser` before forwarding to the PostHog client. All controllers call this wrapper, so the guard is in one place — no per-controller checks.
+
+### Session Replay with PII Masking
+
+Session recording is enabled with explicit masks on `[type=password]` and `[type=email]`. This captures full interaction recordings while automatically redacting credentials. You can replay exactly what a user did leading up to a bug or drop-off point.
+
+### Backend Batching & Graceful Shutdown
+
+The backend PostHog client flushes in batches (`flushAt: 20` events or every 10 seconds) rather than per-event HTTP calls. On process shutdown, `posthog.shutdown()` is called explicitly to flush any queued events before the Node.js process exits — ensuring no events are lost on Render deploys.
+
+### Event Catalog (35 custom events)
+
+Events are split between frontend (UI interactions) and backend (data mutations):
+
+**Auth:** `user_registered`, `user_logged_in` (method: email|google), `user_logged_out`, `email_verified`, `google_auth_linked`, `account_deletion_requested`, `account_restored`
+
+**Notes:** `note_created` (source: manual|pdf_upload|google_doc), `note_viewed`, `note_shared` (audience, recipientCount), `note_unshared`, `note_deleted`, `note_summary_generated`, `google_doc_imported`
+
+**Flashcards:** `flashcard_set_generated` (source, card_count, generation_path), `flashcard_set_viewed`, `flashcard_set_shared`, `flashcard_set_unshared`, `flashcard_set_deleted`
+
+**Study:** `study_session_started`, `study_session_completed`, `study_session_abandoned` (cards_seen)
+
+**Career:** `resume_uploaded`, `resume_feedback_generated`, `resume_score_viewed`, `job_application_created`
+
+**Social:** `friend_request_sent`, `friend_request_accepted`, `friend_removed`, `message_sent`, `task_shared`, `task_created`, `comment_added`, `comment_reply_added`
+
+### Activation Funnel
+
+The defined activation event — the "aha moment" — is:
+```
+user_registered → (flashcard_set_generated OR note_summary_generated OR resume_feedback_generated)
+```
+Conversion window: 7 days. This tracks whether new users reach the AI-powered core of the product, which is the primary retention driver.
+
+### Source Tracking
+
+Notes and flashcards capture `source` on creation (`manual`, `pdf_upload`, `google_doc`, `text_paste`). This tells you which input modes users actually use — data that directly informs where to invest in UX improvements.
 
 ---
 

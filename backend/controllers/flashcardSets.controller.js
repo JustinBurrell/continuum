@@ -55,18 +55,7 @@ exports.generateFromContent = async (req, res) => {
 
     const populatedSet = await FlashcardSet.findById(set._id).populate('flashcards');
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'flashcard_set_generated',
-        properties: {
-            platform: 'web',
-            set_id: set._id.toString(),
-            note_id: null,
-            source: 'text_paste',
-            card_count: result.cards.length,
-            generation_path: 'from_text_paste',
-        },
-    });
+    posthog.capture(req.user, 'flashcard_set_generated', { platform: 'web', set_id: set._id.toString(), note_id: null, source: 'text_paste', card_count: result.cards.length, generation_path: 'from_text_paste' });
 
     res.status(201).json({ success: true, set: populatedSet });
 };
@@ -183,11 +172,7 @@ exports.deleteSet = async (req, res) => {
         return res.status(404).json({ success: false, error: 'Flashcard set not found' });
     }
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'flashcard_set_deleted',
-        properties: { flashcardSetId: set._id.toString() },
-    });
+    posthog.capture(req.user, 'flashcard_set_deleted', { flashcardSetId: set._id.toString() });
 
     // Notify shared users so their UI removes the set without a refresh
     try {
@@ -593,24 +578,9 @@ exports.shareSet = async (req, res) => {
     }
 
     if (visibility === 'private' && existing.visibility !== 'private') {
-        posthog.capture({
-            distinctId: req.user._id.toString(),
-            event: 'flashcard_set_unshared',
-            properties: {
-                flashcardSetId: set._id.toString(),
-                previousAudience: existing.visibility,
-            },
-        });
+        posthog.capture(req.user, 'flashcard_set_unshared', { flashcardSetId: set._id.toString(), previousAudience: existing.visibility });
     } else if (visibility !== 'private') {
-        posthog.capture({
-            distinctId: req.user._id.toString(),
-            event: 'flashcard_set_shared',
-            properties: {
-                flashcardSetId: set._id.toString(),
-                audience: visibility,
-                recipientCount: visibility === 'specific' ? sharedWith.length : null,
-            },
-        });
+        posthog.capture(req.user, 'flashcard_set_shared', { flashcardSetId: set._id.toString(), audience: visibility, recipientCount: visibility === 'specific' ? sharedWith.length : null });
     }
 
     res.status(200).json({ success: true, set });

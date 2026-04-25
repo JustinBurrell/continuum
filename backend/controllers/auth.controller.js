@@ -456,11 +456,7 @@ exports.googleLink = async (req, res) => {
     req.user.googleTokenExpiry = new Date(Date.now() + 3600 * 1000);
     await req.user.save();
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'google_auth_linked',
-        properties: {},
-    });
+    posthog.capture(req.user, 'google_auth_linked');
 
     res.status(200).json({ success: true, user: req.user });
 };
@@ -928,11 +924,7 @@ exports.deleteAccount = async (req, res) => {
         });
     } catch (_) { /* non-blocking */ }
 
-    posthog.capture({
-        distinctId: userId.toString(),
-        event: 'account_deletion_requested',
-        properties: { scheduledDeletionAt: scheduledDeletionAt.toISOString() },
-    });
+    posthog.capture(req.user, 'account_deletion_requested', { scheduledDeletionAt: scheduledDeletionAt.toISOString() });
 
     res.status(200).json({ success: true, message: 'Account scheduled for deletion. Log in within 30 days to restore it.' });
 };
@@ -952,11 +944,7 @@ exports.restoreAccount = async (req, res) => {
         scheduledDeletionAt: null,
     });
 
-    posthog.capture({
-        distinctId: req.user._id.toString(),
-        event: 'account_restored',
-        properties: {},
-    });
+    posthog.capture(req.user, 'account_restored');
 
     // Re-fetch the clean user object to return
     const restored = await User.findById(req.user._id);
