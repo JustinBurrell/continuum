@@ -120,12 +120,39 @@ Go to **PostHog → Dashboards → Launch → Activation Funnel**. After complet
 
 ---
 
+## Demo & Seed Account Exclusion
+
+The demo account (`isDemo: true`) and all seeded bot accounts (`isSeedUser: true`) are completely silenced from PostHog at two layers:
+
+**Frontend — `posthog.opt_out_capturing()`**  
+In `web/src/context/AuthContext.jsx` and `web/src/pages/auth/AuthCallback.jsx`, after the user object is set on login/hydration, the code checks `user.isDemo || user.isSeedUser`. If true, `posthog.opt_out_capturing()` is called. This disables all PostHog tracking for that browser session — including autocapture and automatic `$pageview` events that cannot be blocked with a simple conditional.
+
+On logout, `posthog.opt_in_capturing()` is always called to restore the default state for the next user who logs in on that browser.
+
+**Backend — centralized `capture()` wrapper**  
+`backend/lib/posthog.js` exports a `capture(user, event, props)` wrapper instead of the raw PostHog client. The wrapper checks `user.isDemo || user.isSeedUser` and silently returns without forwarding the event. All controllers call `posthog.capture(req.user, ...)`, so the guard is enforced in one place.
+
+**PostHog dashboard (belt-and-suspenders)**  
+A "Real users" cohort (person property `isDemo is not true`) is applied as a filter on all dashboards and saved insights. Even if a demo event somehow slipped through the code guards, it would be excluded from all charts.
+
+---
+
+## Anonymous Tracking on Marketing Pages
+
+Anonymous `$pageview` events on the landing page and login page are intentionally retained — they are not blocked or filtered.
+
+With `person_profiles: 'identified_only'`, anonymous sessions do not create person records in PostHog. But when the visitor later registers and `posthog.identify()` fires, PostHog retroactively merges the anonymous session into the new person profile. This preserves the full pre-signup journey and enables the landing page → registration conversion funnel.
+
+All non-auth pages in the app are marketing or login pages, so there is no risk of capturing anonymous events on authenticated views.
+
+---
+
 ## Clean Slate Before Launch
 
 Before your product launch, wipe all test data:
 
-**MongoDB Atlas:**  
-Drop all collections or use the Atlas UI to delete and recreate the database. This removes all test users, notes, flashcard sets, etc.
+**MongoDB:**  
+Run `node backend/scripts/reset-prod.js` (after setting `MONGODB_URI` in `backend/.env` to your prod Atlas URI). The script prints document counts per collection and requires you to type `RESET` to confirm before dropping anything. Then re-seed: `node backend/scripts/seed-jane.js && node backend/scripts/seed-justin.js`.
 
 **PostHog:**  
 Settings → Project → Reset project data. This wipes all persons and events while preserving your project key, funnel configuration, and dashboard setup.

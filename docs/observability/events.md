@@ -2,6 +2,8 @@
 
 All custom events tracked in Continuum. Every event is either fired from the **frontend** (React web, `posthog-js`) or the **backend** (Node.js, `posthog-node`).
 
+> **Demo & seed accounts are fully opted out.** No events fire for accounts where `isDemo: true` or `isSeedUser: true`. The frontend calls `posthog.opt_out_capturing()` on login for these accounts, and the backend `capture()` wrapper silently drops all events before they reach the PostHog client.
+
 ---
 
 ## Identity
