@@ -43,7 +43,7 @@ const SEED_FRIENDS = [
     settings: { activityVisibility: 'friends' },
   },
   {
-    username: 'jordanwilliams',
+    username: 'jordanwilliams_demo',
     email: 'jordanwilliams_demo@example.com',
     password: 'Demo@1234',
     firstName: 'Jordan',
@@ -52,7 +52,7 @@ const SEED_FRIENDS = [
     settings: { activityVisibility: 'friends' },
   },
   {
-    username: 'priyasharma',
+    username: 'priyasharma_demo',
     email: 'priyasharma_demo@example.com',
     password: 'Demo@1234',
     firstName: 'Priya',
@@ -61,7 +61,7 @@ const SEED_FRIENDS = [
     settings: { activityVisibility: 'friends' },
   },
   {
-    username: 'marcusjohnson',
+    username: 'marcusjohnson_demo',
     email: 'marcusjohnson_demo@example.com',
     password: 'Demo@1234',
     firstName: 'Marcus',
@@ -70,7 +70,7 @@ const SEED_FRIENDS = [
     settings: { activityVisibility: 'friends' },
   },
   {
-    username: 'sofiarod',
+    username: 'sofiarod_demo',
     email: 'sofiarod_demo@example.com',
     password: 'Demo@1234',
     firstName: 'Sofia',
@@ -85,137 +85,137 @@ const SEED_USERNAMES = SEED_FRIENDS.map(f => f.username);
 // ─── Non-Friend Users (searchable, no friendship with Justin) ────────────────
 
 const SEED_STRANGERS = [
-  { username: 'aaronmitchell', firstName: 'Aaron', lastName: 'Mitchell', bio: 'CS junior into cybersecurity and CTF competitions. Trying to break into bug bounty.' },
-  { username: 'abbygrant', firstName: 'Abby', lastName: 'Grant', bio: 'English lit senior writing her thesis on postcolonial fiction. Coffee shop regular.' },
-  { username: 'adrianreyes', firstName: 'Adrian', lastName: 'Reyes', bio: 'Mechanical engineering junior. Formula SAE team lead. Loves CAD and motorsport.' },
-  { username: 'alanawhite', firstName: 'Alana', lastName: 'White', bio: 'Public health sophomore. Interested in global health policy and epidemiology.' },
-  { username: 'alexisford', firstName: 'Alexis', lastName: 'Ford', bio: 'Accounting junior with a minor in data analytics. CPA prep starts next year.' },
-  { username: 'aliciamoreno', firstName: 'Alicia', lastName: 'Moreno', bio: 'Architecture student designing sustainable housing. Studio life is real.' },
-  { username: 'allisonbell', firstName: 'Allison', lastName: 'Bell', bio: 'Music performance major and part-time piano teacher. Classical meets jazz.' },
-  { username: 'amandalee', firstName: 'Amanda', lastName: 'Lee', bio: 'Pre-law junior. Mock trial president. Interested in intellectual property law.' },
-  { username: 'amirahassan', firstName: 'Amira', lastName: 'Hassan', bio: 'Neuroscience sophomore. Lab assistant studying memory consolidation.' },
-  { username: 'andrewkim', firstName: 'Andrew', lastName: 'Kim', bio: 'Software engineering senior with a backend focus. Interning at a startup this summer.' },
-  { username: 'angelapark', firstName: 'Angela', lastName: 'Park', bio: 'Marketing major obsessed with brand strategy and social media analytics.' },
-  { username: 'anthonygreen', firstName: 'Anthony', lastName: 'Green', bio: 'Econ major with a quant focus. Interested in hedge funds and algorithmic trading.' },
-  { username: 'aryankapoor', firstName: 'Aryan', lastName: 'Kapoor', bio: 'Data engineering junior. Loves Spark, Kafka, and building data pipelines at scale.' },
-  { username: 'ashleythomas', firstName: 'Ashley', lastName: 'Thomas', bio: 'Kinesiology senior studying sports performance. Training for her first triathlon.' },
-  { username: 'austinwalker', firstName: 'Austin', lastName: 'Walker', bio: 'Game dev enthusiast. Unity and Unreal projects in progress. Indie dev dreams.' },
-  { username: 'averyharris', firstName: 'Avery', lastName: 'Harris', bio: 'Biology sophomore on the pre-vet track. Currently studying for the GRE.' },
-  { username: 'ayeshazahid', firstName: 'Ayesha', lastName: 'Zahid', bio: 'Chemical engineering junior. Research in polymer synthesis and sustainable materials.' },
-  { username: 'baileyrogers', firstName: 'Bailey', lastName: 'Rogers', bio: 'Political science senior interning on a state senator campaign.' },
-  { username: 'benswanson', firstName: 'Ben', lastName: 'Swanson', bio: 'Stats and CS double major. Applying for quant research roles. Kaggle competitor.' },
-  { username: 'brettjohnson', firstName: 'Brett', lastName: 'Johnson', bio: 'Finance junior on the investment club board. DCF and comps all day.' },
-  { username: 'brittanycox', firstName: 'Brittany', lastName: 'Cox', bio: 'Communications major and campus newspaper editor. Aspiring journalist.' },
-  { username: 'camelolivier', firstName: 'Camel', lastName: 'Olivier', bio: 'International relations junior. Studied abroad in Paris last semester. Fluent in French.' },
-  { username: 'carlosfernandez', firstName: 'Carlos', lastName: 'Fernandez', bio: 'Electrical engineering senior specializing in signal processing and embedded systems.' },
-  { username: 'carolinehall', firstName: 'Caroline', lastName: 'Hall', bio: 'Graphic design junior building her portfolio. UI/UX freelance work on the side.' },
-  { username: 'cassandralewis', firstName: 'Cassandra', lastName: 'Lewis', bio: 'Sociology senior studying urban inequality and housing policy.' },
-  { username: 'chandlerdavis', firstName: 'Chandler', lastName: 'Davis', bio: 'Supply chain management junior with internship at a logistics company.' },
-  { username: 'charlottehill', firstName: 'Charlotte', lastName: 'Hill', bio: 'Environmental science sophomore. Research on microplastics in freshwater systems.' },
-  { username: 'chrisnguyen', firstName: 'Chris', lastName: 'Nguyen', bio: 'CS and math double major. Exploring formal verification and type theory.' },
-  { username: 'christinabaker', firstName: 'Christina', lastName: 'Baker', bio: 'Nursing junior. Clinical rotations start in the fall. Future ICU nurse.' },
-  { username: 'claudiavega', firstName: 'Claudia', lastName: 'Vega', bio: 'Psychology senior running a study on social media and anxiety in college students.' },
-  { username: 'connorflynn', firstName: 'Connor', lastName: 'Flynn', bio: 'Philosophy and CS double major. Interested in AI ethics and philosophy of mind.' },
-  { username: 'coopermartin', firstName: 'Cooper', lastName: 'Martin', bio: 'Aerospace engineering junior. Rocketry club president. SpaceX internship goal.' },
-  { username: 'coreystone', firstName: 'Corey', lastName: 'Stone', bio: 'Business analytics junior. Python for finance, Tableau dashboards, Excel power user.' },
-  { username: 'daniellebrown', firstName: 'Danielle', lastName: 'Brown', bio: 'Creative writing MFA. Short stories published in two literary journals this year.' },
-  { username: 'davidwilson', firstName: 'David', lastName: 'Wilson', bio: 'Mechanical engineering senior with a robotics specialization. ROS and SLAM all day.' },
-  { username: 'demi_okonkwo', firstName: 'Demi', lastName: 'Okonkwo', bio: 'Pre-med senior. MCAT score: 518. Applying to MD/PhD programs this cycle.' },
-  { username: 'derek_santos', firstName: 'Derek', lastName: 'Santos', bio: 'Sports management junior. Working on a thesis about NIL deals in college athletics.' },
-  { username: 'dianachen', firstName: 'Diana', lastName: 'Chen', bio: 'Biochem and CS double major. Computational drug discovery research assistant.' },
-  { username: 'dominicross', firstName: 'Dominic', lastName: 'Ross', bio: 'Economics senior writing on cryptocurrency adoption in emerging markets.' },
-  { username: 'dylanmurphy', firstName: 'Dylan', lastName: 'Murphy', bio: 'Computer science sophomore. Just finished my first internship at a SaaS company.' },
-  { username: 'emilyharrison', firstName: 'Emily', lastName: 'Harrison', bio: 'Art history junior with a minor in museum studies. Interning at a local gallery.' },
-  { username: 'ericrogers', firstName: 'Eric', lastName: 'Rogers', bio: 'Physics senior doing undergraduate research in quantum optics lab.' },
-  { username: 'erikamorales', firstName: 'Erika', lastName: 'Morales', bio: 'Industrial engineering junior. Passionate about lean manufacturing and operations research.' },
-  { username: 'ethancooper', firstName: 'Ethan', lastName: 'Cooper', bio: 'CS junior specializing in NLP. Built a sentiment analysis tool for course reviews.' },
-  { username: 'evawong', firstName: 'Eva', lastName: 'Wong', bio: 'Health informatics senior. Bridging EHR data and ML for clinical decision support.' },
-  { username: 'faithturner', firstName: 'Faith', lastName: 'Turner', bio: 'Education major. Student teaching this semester. Passionate about math pedagogy.' },
-  { username: 'fionasmith', firstName: 'Fiona', lastName: 'Smith', bio: 'Environmental studies junior. Campus sustainability committee co-chair.' },
-  { username: 'gabriellalopez', firstName: 'Gabriella', lastName: 'Lopez', bio: 'Theater performance major and improv team captain. Also fluent in Spanish.' },
-  { username: 'garretthughes', firstName: 'Garrett', lastName: 'Hughes', bio: 'Finance and accounting double major. Passed CFA Level I last December.' },
-  { username: 'gemmaoverton', firstName: 'Gemma', lastName: 'Overton', bio: 'Biology junior with a focus on genetics. CRISPR research assistant.' },
-  { username: 'grantpayne', firstName: 'Grant', lastName: 'Payne', bio: 'Management information systems senior. SAP certification in progress.' },
-  { username: 'graciecallahan', firstName: 'Gracie', lastName: 'Callahan', bio: 'Social work junior. Volunteer crisis counselor. Mental health advocacy on campus.' },
-  { username: 'hannahwebb', firstName: 'Hannah', lastName: 'Webb', bio: 'Journalism and political science double major. Campus radio host.' },
-  { username: 'harperscott', firstName: 'Harper', lastName: 'Scott', bio: 'Marketing junior focusing on brand strategy. Founder of a small Etsy shop.' },
-  { username: 'henryfields', firstName: 'Henry', lastName: 'Fields', bio: 'History and economics double major. Writing a thesis on the 2008 financial crisis.' },
-  { username: 'isabellachang', firstName: 'Isabella', lastName: 'Chang', bio: 'CS sophomore interested in full-stack development. Built 3 projects this semester.' },
-  { username: 'ivannazaro', firstName: 'Ivan', lastName: 'Nazaro', bio: 'Materials science and engineering senior. Research in solid-state batteries.' },
-  { username: 'jadewashington', firstName: 'Jade', lastName: 'Washington', bio: "Criminal justice junior. Internship with a public defender's office this summer." },
-  { username: 'jakeoliver', firstName: 'Jake', lastName: 'Oliver', bio: 'Accounting senior. Big Four internship lined up. Loves golf and tax law trivia.' },
-  { username: 'jasmineyoung', firstName: 'Jasmine', lastName: 'Young', bio: 'Pre-pharmacy junior. Completing 300 hours of pharmacy observation this year.' },
-  { username: 'jasonmendez', firstName: 'Jason', lastName: 'Mendez', bio: 'Civil engineering senior. Structural analysis and bridge design competition winner.' },
-  { username: 'jaydennelson', firstName: 'Jayden', lastName: 'Nelson', bio: 'Sports science and exercise physiology major. Strength and conditioning coach.' },
-  { username: 'jessicaadams', firstName: 'Jessica', lastName: 'Adams', bio: 'Psychology and statistics double major. Running logistic regression on clinical data.' },
-  { username: 'jonathanreeves', firstName: 'Jonathan', lastName: 'Reeves', bio: 'Computer engineering junior. FPGA design and embedded Linux enthusiast.' },
-  { username: 'juliacosta', firstName: 'Julia', lastName: 'Costa', bio: 'International business junior with a semester abroad in São Paulo.' },
-  { username: 'justinstewart', firstName: 'Justin', lastName: 'Stewart', bio: 'CS sophomore. Currently grinding LeetCode and looking for internships.' },
-  { username: 'kaileyjones', firstName: 'Kailey', lastName: 'Jones', bio: 'Elementary education major. Student teaching at Lincoln Elementary this fall.' },
-  { username: 'karenshaw', firstName: 'Karen', lastName: 'Shaw', bio: 'Food science and nutrition junior. Research on gut microbiome and cognitive health.' },
-  { username: 'karlmorrison', firstName: 'Karl', lastName: 'Morrison', bio: 'Philosophy junior wrestling with ethics of autonomous systems and AI.' },
-  { username: 'katelyn_price', firstName: 'Katelyn', lastName: 'Price', bio: 'Marketing and design double major. Brand consulting side hustle.' },
-  { username: 'keirajohnston', firstName: 'Keira', lastName: 'Johnston', bio: 'Biology senior heading to medical school in the fall. Pediatrics interest.' },
-  { username: 'kevinzhang', firstName: 'Kevin', lastName: 'Zhang', bio: 'ML engineer track. PyTorch, transformers, and fine-tuning LLMs for fun.' },
-  { username: 'kiananderson', firstName: 'Kian', lastName: 'Anderson', bio: 'Human-computer interaction junior. Obsessed with accessibility and inclusive design.' },
-  { username: 'kristinawills', firstName: 'Kristina', lastName: 'Wills', bio: 'Communications and PR major. Runs the campus events Instagram page.' },
-  { username: 'kylewatson', firstName: 'Kyle', lastName: 'Watson', bio: 'Civil and environmental engineering senior. Capstone: stormwater management system.' },
-  { username: 'laurencollins', firstName: 'Lauren', lastName: 'Collins', bio: 'Human resources management junior. SHRM certification prep in progress.' },
-  { username: 'leahowens', firstName: 'Leah', lastName: 'Owens', bio: 'Chemistry sophomore doing undergraduate research in organometallics.' },
-  { username: 'lewisbishop', firstName: 'Lewis', lastName: 'Bishop', bio: 'Economics and philosophy double major. Writing about behavioral nudges in policy.' },
-  { username: 'lilymcgee', firstName: 'Lily', lastName: 'McGee', bio: 'Graphic design senior with a portfolio in editorial illustration and branding.' },
-  { username: 'linaberger', firstName: 'Lina', lastName: 'Berger', bio: 'German and international relations double major. Exchange student program coordinator.' },
-  { username: 'logancarter', firstName: 'Logan', lastName: 'Carter', bio: 'CS junior doing research on distributed systems and consensus algorithms.' },
-  { username: 'luisaguerra', firstName: 'Luisa', lastName: 'Guerra', bio: 'Public relations junior. Campus newspaper features editor. Aspiring media strategist.' },
-  { username: 'lukethompson', firstName: 'Luke', lastName: 'Thompson', bio: 'Athletic training junior. Working with the football team as a student trainer.' },
-  { username: 'madisonperkins', firstName: 'Madison', lastName: 'Perkins', bio: 'Sociology and criminology double major. Research on recidivism and prison reform.' },
-  { username: 'marcohernandez', firstName: 'Marco', lastName: 'Hernandez', bio: 'Information systems senior. Specializing in ERP implementation and IT consulting.' },
-  { username: 'marissaward', firstName: 'Marissa', lastName: 'Ward', bio: 'Nursing junior completing clinical hours at the county hospital. ICU focus.' },
-  { username: 'matthewevans', firstName: 'Matthew', lastName: 'Evans', bio: 'CS and linguistics double major. NLP research on code-switching in bilingual texts.' },
-  { username: 'meganlewis', firstName: 'Megan', lastName: 'Lewis', bio: 'Finance junior with an internship at a regional bank. CFA prep in progress.' },
-  { username: 'melissacruz', firstName: 'Melissa', lastName: 'Cruz', bio: 'Healthcare management junior. Interning at a hospital administration office.' },
-  { username: 'michaelrobbins', firstName: 'Michael', lastName: 'Robbins', bio: 'Physics and CS double major. Applying for PhD programs in quantum computing.' },
-  { username: 'migueltorres', firstName: 'Miguel', lastName: 'Torres', bio: 'Mechanical engineering junior. Renewable energy focus. Solar car team captain.' },
-  { username: 'morgandixon', firstName: 'Morgan', lastName: 'Dixon', bio: 'Psychology and data science double major. Running sentiment analysis on therapy transcripts.' },
-  { username: 'naomirichards', firstName: 'Naomi', lastName: 'Richards', bio: 'Pre-med senior with a research background in infectious disease and immunology.' },
-  { username: 'nathanielbrown', firstName: 'Nathaniel', lastName: 'Brown', bio: 'CS sophomore learning systems programming in Rust. OS project in progress.' },
-  { username: 'nicolassimon', firstName: 'Nicolas', lastName: 'Simon', bio: 'International economics junior. Thesis on trade policy post-COVID.' },
-  { username: 'nicolewagner', firstName: 'Nicole', lastName: 'Wagner', bio: 'Biology and chemistry double major on the pre-pharmacy track.' },
-  { username: 'noahcoleman', firstName: 'Noah', lastName: 'Coleman', bio: 'CS junior focused on computer vision. Working on a real-time pose estimation project.' },
-  { username: 'oliviachang', firstName: 'Olivia', lastName: 'Chang', bio: 'Biomedical engineering sophomore. Research in drug delivery systems.' },
-  { username: 'owenparker', firstName: 'Owen', lastName: 'Parker', bio: 'Political science and communications double major. Student government vice president.' },
-  { username: 'paigethornton', firstName: 'Paige', lastName: 'Thornton', bio: 'Fashion merchandising junior. Runs a sustainable fashion blog with 5k followers.' },
-  { username: 'patrickhughes', firstName: 'Patrick', lastName: 'Hughes', bio: 'Finance senior with a CFA Level I. Aiming for equity research at a bulge bracket.' },
-  { username: 'paulavargas', firstName: 'Paula', lastName: 'Vargas', bio: 'Biochemistry senior heading to a PhD in pharmacology. Enzyme kinetics researcher.' },
-  { username: 'philippedumont', firstName: 'Philippe', lastName: 'Dumont', bio: 'French and economics double major. Exchange student from Lyon on a one-year program.' },
-  { username: 'rachelmontgomery', firstName: 'Rachel', lastName: 'Montgomery', bio: 'Psychology junior doing research on trauma and cognitive behavioral therapy.' },
-  { username: 'ryanfoster', firstName: 'Ryan', lastName: 'Foster', bio: 'Computer science junior. Competitive programmer, top 5% on Codeforces.' },
-  { username: 'samaraellis', firstName: 'Samara', lastName: 'Ellis', bio: 'Digital marketing and analytics senior. Google Analytics certified.' },
-  { username: 'samuelwhite', firstName: 'Samuel', lastName: 'White', bio: 'Operations research junior using optimization models for supply chain problems.' },
-  { username: 'sarahcampbell', firstName: 'Sarah', lastName: 'Campbell', bio: 'Biostatistics senior applying for epidemiology PhD programs. R and Stata daily.' },
-  { username: 'scottmanning', firstName: 'Scott', lastName: 'Manning', bio: 'History junior specializing in Cold War and US foreign policy.' },
-  { username: 'sierrarobinson', firstName: 'Sierra', lastName: 'Robinson', bio: 'Environmental engineering junior. Capstone: air quality modeling for urban areas.' },
-  { username: 'stephaniegrant', firstName: 'Stephanie', lastName: 'Grant', bio: 'Accounting and information systems double major. ERP systems internship this summer.' },
-  { username: 'tannerwood', firstName: 'Tanner', lastName: 'Wood', bio: 'Finance junior. Investment club treasurer. Day trading on the side.' },
-  { username: 'taylormorgan', firstName: 'Taylor', lastName: 'Morgan', bio: 'CS and graphic design double major. Building a design system for a startup.' },
-  { username: 'tianarobinson', firstName: 'Tiana', lastName: 'Robinson', bio: 'Social work and psychology double major. Runs a peer support program on campus.' },
-  { username: 'timothyjackson', firstName: 'Timothy', lastName: 'Jackson', bio: 'Agricultural economics junior. Research on food deserts and market access.' },
-  { username: 'traceyholmes', firstName: 'Tracey', lastName: 'Holmes', bio: 'Statistics junior applying ML methods to healthcare outcomes research.' },
-  { username: 'trevornash', firstName: 'Trevor', lastName: 'Nash', bio: 'CS sophomore. Full-stack side projects and open source contributor.' },
-  { username: 'tylercole', firstName: 'Tyler', lastName: 'Cole', bio: 'Sports analytics junior. Python and R for basketball performance modeling.' },
-  { username: 'vanessaramirez', firstName: 'Vanessa', lastName: 'Ramirez', bio: 'International business and Spanish double major. Study abroad coordinator.' },
-  { username: 'victorchukwu', firstName: 'Victor', lastName: 'Chukwu', bio: 'Finance and economics junior. Interested in venture capital and startup ecosystems.' },
-  { username: 'victoriastone', firstName: 'Victoria', lastName: 'Stone', bio: 'Marketing and communications senior. Digital advertising campaign manager.' },
-  { username: 'wendyhamilton', firstName: 'Wendy', lastName: 'Hamilton', bio: 'Biomedical engineering senior. Capstone: wearable sensor for cardiac monitoring.' },
-  { username: 'williamford', firstName: 'William', lastName: 'Ford', bio: 'CS senior focused on distributed systems. Docker, Kubernetes, and cloud-native dev.' },
-  { username: 'xaviermeyer', firstName: 'Xavier', lastName: 'Meyer', bio: 'Data science and economics double major. Building predictive models for real estate.' },
-  { username: 'yasminenakamura', firstName: 'Yasmine', lastName: 'Nakamura', bio: 'Japanese and linguistics double major. Computational linguistics research assistant.' },
-  { username: 'zacharyevansholt', firstName: 'Zachary', lastName: 'Evans', bio: 'CS junior. Backend systems, Go, and distributed databases.' },
-  { username: 'zaraali', firstName: 'Zara', lastName: 'Ali', bio: 'Public health senior. Thesis on maternal mortality disparities in urban hospitals.' },
-  { username: 'zoeanderson', firstName: 'Zoe', lastName: 'Anderson', bio: 'Computer science junior. AI safety reading group organizer. ML + alignment research.' },
+  { username: 'aaronmitchell_demo', firstName: 'Aaron', lastName: 'Mitchell', bio: 'CS junior into cybersecurity and CTF competitions. Trying to break into bug bounty.' },
+  { username: 'abbygrant_demo', firstName: 'Abby', lastName: 'Grant', bio: 'English lit senior writing her thesis on postcolonial fiction. Coffee shop regular.' },
+  { username: 'adrianreyes_demo', firstName: 'Adrian', lastName: 'Reyes', bio: 'Mechanical engineering junior. Formula SAE team lead. Loves CAD and motorsport.' },
+  { username: 'alanawhite_demo', firstName: 'Alana', lastName: 'White', bio: 'Public health sophomore. Interested in global health policy and epidemiology.' },
+  { username: 'alexisford_demo', firstName: 'Alexis', lastName: 'Ford', bio: 'Accounting junior with a minor in data analytics. CPA prep starts next year.' },
+  { username: 'aliciamoreno_demo', firstName: 'Alicia', lastName: 'Moreno', bio: 'Architecture student designing sustainable housing. Studio life is real.' },
+  { username: 'allisonbell_demo', firstName: 'Allison', lastName: 'Bell', bio: 'Music performance major and part-time piano teacher. Classical meets jazz.' },
+  { username: 'amandalee_demo', firstName: 'Amanda', lastName: 'Lee', bio: 'Pre-law junior. Mock trial president. Interested in intellectual property law.' },
+  { username: 'amirahassan_demo', firstName: 'Amira', lastName: 'Hassan', bio: 'Neuroscience sophomore. Lab assistant studying memory consolidation.' },
+  { username: 'andrewkim_demo', firstName: 'Andrew', lastName: 'Kim', bio: 'Software engineering senior with a backend focus. Interning at a startup this summer.' },
+  { username: 'angelapark_demo', firstName: 'Angela', lastName: 'Park', bio: 'Marketing major obsessed with brand strategy and social media analytics.' },
+  { username: 'anthonygreen_demo', firstName: 'Anthony', lastName: 'Green', bio: 'Econ major with a quant focus. Interested in hedge funds and algorithmic trading.' },
+  { username: 'aryankapoor_demo', firstName: 'Aryan', lastName: 'Kapoor', bio: 'Data engineering junior. Loves Spark, Kafka, and building data pipelines at scale.' },
+  { username: 'ashleythomas_demo', firstName: 'Ashley', lastName: 'Thomas', bio: 'Kinesiology senior studying sports performance. Training for her first triathlon.' },
+  { username: 'austinwalker_demo', firstName: 'Austin', lastName: 'Walker', bio: 'Game dev enthusiast. Unity and Unreal projects in progress. Indie dev dreams.' },
+  { username: 'averyharris_demo', firstName: 'Avery', lastName: 'Harris', bio: 'Biology sophomore on the pre-vet track. Currently studying for the GRE.' },
+  { username: 'ayeshazahid_demo', firstName: 'Ayesha', lastName: 'Zahid', bio: 'Chemical engineering junior. Research in polymer synthesis and sustainable materials.' },
+  { username: 'baileyrogers_demo', firstName: 'Bailey', lastName: 'Rogers', bio: 'Political science senior interning on a state senator campaign.' },
+  { username: 'benswanson_demo', firstName: 'Ben', lastName: 'Swanson', bio: 'Stats and CS double major. Applying for quant research roles. Kaggle competitor.' },
+  { username: 'brettjohnson_demo', firstName: 'Brett', lastName: 'Johnson', bio: 'Finance junior on the investment club board. DCF and comps all day.' },
+  { username: 'brittanycox_demo', firstName: 'Brittany', lastName: 'Cox', bio: 'Communications major and campus newspaper editor. Aspiring journalist.' },
+  { username: 'camelolivier_demo', firstName: 'Camel', lastName: 'Olivier', bio: 'International relations junior. Studied abroad in Paris last semester. Fluent in French.' },
+  { username: 'carlosfernandez_demo', firstName: 'Carlos', lastName: 'Fernandez', bio: 'Electrical engineering senior specializing in signal processing and embedded systems.' },
+  { username: 'carolinehall_demo', firstName: 'Caroline', lastName: 'Hall', bio: 'Graphic design junior building her portfolio. UI/UX freelance work on the side.' },
+  { username: 'cassandralewis_demo', firstName: 'Cassandra', lastName: 'Lewis', bio: 'Sociology senior studying urban inequality and housing policy.' },
+  { username: 'chandlerdavis_demo', firstName: 'Chandler', lastName: 'Davis', bio: 'Supply chain management junior with internship at a logistics company.' },
+  { username: 'charlottehill_demo', firstName: 'Charlotte', lastName: 'Hill', bio: 'Environmental science sophomore. Research on microplastics in freshwater systems.' },
+  { username: 'chrisnguyen_demo', firstName: 'Chris', lastName: 'Nguyen', bio: 'CS and math double major. Exploring formal verification and type theory.' },
+  { username: 'christinabaker_demo', firstName: 'Christina', lastName: 'Baker', bio: 'Nursing junior. Clinical rotations start in the fall. Future ICU nurse.' },
+  { username: 'claudiavega_demo', firstName: 'Claudia', lastName: 'Vega', bio: 'Psychology senior running a study on social media and anxiety in college students.' },
+  { username: 'connorflynn_demo', firstName: 'Connor', lastName: 'Flynn', bio: 'Philosophy and CS double major. Interested in AI ethics and philosophy of mind.' },
+  { username: 'coopermartin_demo', firstName: 'Cooper', lastName: 'Martin', bio: 'Aerospace engineering junior. Rocketry club president. SpaceX internship goal.' },
+  { username: 'coreystone_demo', firstName: 'Corey', lastName: 'Stone', bio: 'Business analytics junior. Python for finance, Tableau dashboards, Excel power user.' },
+  { username: 'daniellebrown_demo', firstName: 'Danielle', lastName: 'Brown', bio: 'Creative writing MFA. Short stories published in two literary journals this year.' },
+  { username: 'davidwilson_demo', firstName: 'David', lastName: 'Wilson', bio: 'Mechanical engineering senior with a robotics specialization. ROS and SLAM all day.' },
+  { username: 'demi_okonkwo_demo', firstName: 'Demi', lastName: 'Okonkwo', bio: 'Pre-med senior. MCAT score: 518. Applying to MD/PhD programs this cycle.' },
+  { username: 'derek_santos_demo', firstName: 'Derek', lastName: 'Santos', bio: 'Sports management junior. Working on a thesis about NIL deals in college athletics.' },
+  { username: 'dianachen_demo', firstName: 'Diana', lastName: 'Chen', bio: 'Biochem and CS double major. Computational drug discovery research assistant.' },
+  { username: 'dominicross_demo', firstName: 'Dominic', lastName: 'Ross', bio: 'Economics senior writing on cryptocurrency adoption in emerging markets.' },
+  { username: 'dylanmurphy_demo', firstName: 'Dylan', lastName: 'Murphy', bio: 'Computer science sophomore. Just finished my first internship at a SaaS company.' },
+  { username: 'emilyharrison_demo', firstName: 'Emily', lastName: 'Harrison', bio: 'Art history junior with a minor in museum studies. Interning at a local gallery.' },
+  { username: 'ericrogers_demo', firstName: 'Eric', lastName: 'Rogers', bio: 'Physics senior doing undergraduate research in quantum optics lab.' },
+  { username: 'erikamorales_demo', firstName: 'Erika', lastName: 'Morales', bio: 'Industrial engineering junior. Passionate about lean manufacturing and operations research.' },
+  { username: 'ethancooper_demo', firstName: 'Ethan', lastName: 'Cooper', bio: 'CS junior specializing in NLP. Built a sentiment analysis tool for course reviews.' },
+  { username: 'evawong_demo', firstName: 'Eva', lastName: 'Wong', bio: 'Health informatics senior. Bridging EHR data and ML for clinical decision support.' },
+  { username: 'faithturner_demo', firstName: 'Faith', lastName: 'Turner', bio: 'Education major. Student teaching this semester. Passionate about math pedagogy.' },
+  { username: 'fionasmith_demo', firstName: 'Fiona', lastName: 'Smith', bio: 'Environmental studies junior. Campus sustainability committee co-chair.' },
+  { username: 'gabriellalopez_demo', firstName: 'Gabriella', lastName: 'Lopez', bio: 'Theater performance major and improv team captain. Also fluent in Spanish.' },
+  { username: 'garretthughes_demo', firstName: 'Garrett', lastName: 'Hughes', bio: 'Finance and accounting double major. Passed CFA Level I last December.' },
+  { username: 'gemmaoverton_demo', firstName: 'Gemma', lastName: 'Overton', bio: 'Biology junior with a focus on genetics. CRISPR research assistant.' },
+  { username: 'grantpayne_demo', firstName: 'Grant', lastName: 'Payne', bio: 'Management information systems senior. SAP certification in progress.' },
+  { username: 'graciecallahan_demo', firstName: 'Gracie', lastName: 'Callahan', bio: 'Social work junior. Volunteer crisis counselor. Mental health advocacy on campus.' },
+  { username: 'hannahwebb_demo', firstName: 'Hannah', lastName: 'Webb', bio: 'Journalism and political science double major. Campus radio host.' },
+  { username: 'harperscott_demo', firstName: 'Harper', lastName: 'Scott', bio: 'Marketing junior focusing on brand strategy. Founder of a small Etsy shop.' },
+  { username: 'henryfields_demo', firstName: 'Henry', lastName: 'Fields', bio: 'History and economics double major. Writing a thesis on the 2008 financial crisis.' },
+  { username: 'isabellachang_demo', firstName: 'Isabella', lastName: 'Chang', bio: 'CS sophomore interested in full-stack development. Built 3 projects this semester.' },
+  { username: 'ivannazaro_demo', firstName: 'Ivan', lastName: 'Nazaro', bio: 'Materials science and engineering senior. Research in solid-state batteries.' },
+  { username: 'jadewashington_demo', firstName: 'Jade', lastName: 'Washington', bio: "Criminal justice junior. Internship with a public defender's office this summer." },
+  { username: 'jakeoliver_demo', firstName: 'Jake', lastName: 'Oliver', bio: 'Accounting senior. Big Four internship lined up. Loves golf and tax law trivia.' },
+  { username: 'jasmineyoung_demo', firstName: 'Jasmine', lastName: 'Young', bio: 'Pre-pharmacy junior. Completing 300 hours of pharmacy observation this year.' },
+  { username: 'jasonmendez_demo', firstName: 'Jason', lastName: 'Mendez', bio: 'Civil engineering senior. Structural analysis and bridge design competition winner.' },
+  { username: 'jaydennelson_demo', firstName: 'Jayden', lastName: 'Nelson', bio: 'Sports science and exercise physiology major. Strength and conditioning coach.' },
+  { username: 'jessicaadams_demo', firstName: 'Jessica', lastName: 'Adams', bio: 'Psychology and statistics double major. Running logistic regression on clinical data.' },
+  { username: 'jonathanreeves_demo', firstName: 'Jonathan', lastName: 'Reeves', bio: 'Computer engineering junior. FPGA design and embedded Linux enthusiast.' },
+  { username: 'juliacosta_demo', firstName: 'Julia', lastName: 'Costa', bio: 'International business junior with a semester abroad in São Paulo.' },
+  { username: 'justinstewart_demo', firstName: 'Justin', lastName: 'Stewart', bio: 'CS sophomore. Currently grinding LeetCode and looking for internships.' },
+  { username: 'kaileyjones_demo', firstName: 'Kailey', lastName: 'Jones', bio: 'Elementary education major. Student teaching at Lincoln Elementary this fall.' },
+  { username: 'karenshaw_demo', firstName: 'Karen', lastName: 'Shaw', bio: 'Food science and nutrition junior. Research on gut microbiome and cognitive health.' },
+  { username: 'karlmorrison_demo', firstName: 'Karl', lastName: 'Morrison', bio: 'Philosophy junior wrestling with ethics of autonomous systems and AI.' },
+  { username: 'katelyn_price_demo', firstName: 'Katelyn', lastName: 'Price', bio: 'Marketing and design double major. Brand consulting side hustle.' },
+  { username: 'keirajohnston_demo', firstName: 'Keira', lastName: 'Johnston', bio: 'Biology senior heading to medical school in the fall. Pediatrics interest.' },
+  { username: 'kevinzhang_demo', firstName: 'Kevin', lastName: 'Zhang', bio: 'ML engineer track. PyTorch, transformers, and fine-tuning LLMs for fun.' },
+  { username: 'kiananderson_demo', firstName: 'Kian', lastName: 'Anderson', bio: 'Human-computer interaction junior. Obsessed with accessibility and inclusive design.' },
+  { username: 'kristinawills_demo', firstName: 'Kristina', lastName: 'Wills', bio: 'Communications and PR major. Runs the campus events Instagram page.' },
+  { username: 'kylewatson_demo', firstName: 'Kyle', lastName: 'Watson', bio: 'Civil and environmental engineering senior. Capstone: stormwater management system.' },
+  { username: 'laurencollins_demo', firstName: 'Lauren', lastName: 'Collins', bio: 'Human resources management junior. SHRM certification prep in progress.' },
+  { username: 'leahowens_demo', firstName: 'Leah', lastName: 'Owens', bio: 'Chemistry sophomore doing undergraduate research in organometallics.' },
+  { username: 'lewisbishop_demo', firstName: 'Lewis', lastName: 'Bishop', bio: 'Economics and philosophy double major. Writing about behavioral nudges in policy.' },
+  { username: 'lilymcgee_demo', firstName: 'Lily', lastName: 'McGee', bio: 'Graphic design senior with a portfolio in editorial illustration and branding.' },
+  { username: 'linaberger_demo', firstName: 'Lina', lastName: 'Berger', bio: 'German and international relations double major. Exchange student program coordinator.' },
+  { username: 'logancarter_demo', firstName: 'Logan', lastName: 'Carter', bio: 'CS junior doing research on distributed systems and consensus algorithms.' },
+  { username: 'luisaguerra_demo', firstName: 'Luisa', lastName: 'Guerra', bio: 'Public relations junior. Campus newspaper features editor. Aspiring media strategist.' },
+  { username: 'lukethompson_demo', firstName: 'Luke', lastName: 'Thompson', bio: 'Athletic training junior. Working with the football team as a student trainer.' },
+  { username: 'madisonperkins_demo', firstName: 'Madison', lastName: 'Perkins', bio: 'Sociology and criminology double major. Research on recidivism and prison reform.' },
+  { username: 'marcohernandez_demo', firstName: 'Marco', lastName: 'Hernandez', bio: 'Information systems senior. Specializing in ERP implementation and IT consulting.' },
+  { username: 'marissaward_demo', firstName: 'Marissa', lastName: 'Ward', bio: 'Nursing junior completing clinical hours at the county hospital. ICU focus.' },
+  { username: 'matthewevans_demo', firstName: 'Matthew', lastName: 'Evans', bio: 'CS and linguistics double major. NLP research on code-switching in bilingual texts.' },
+  { username: 'meganlewis_demo', firstName: 'Megan', lastName: 'Lewis', bio: 'Finance junior with an internship at a regional bank. CFA prep in progress.' },
+  { username: 'melissacruz_demo', firstName: 'Melissa', lastName: 'Cruz', bio: 'Healthcare management junior. Interning at a hospital administration office.' },
+  { username: 'michaelrobbins_demo', firstName: 'Michael', lastName: 'Robbins', bio: 'Physics and CS double major. Applying for PhD programs in quantum computing.' },
+  { username: 'migueltorres_demo', firstName: 'Miguel', lastName: 'Torres', bio: 'Mechanical engineering junior. Renewable energy focus. Solar car team captain.' },
+  { username: 'morgandixon_demo', firstName: 'Morgan', lastName: 'Dixon', bio: 'Psychology and data science double major. Running sentiment analysis on therapy transcripts.' },
+  { username: 'naomirichards_demo', firstName: 'Naomi', lastName: 'Richards', bio: 'Pre-med senior with a research background in infectious disease and immunology.' },
+  { username: 'nathanielbrown_demo', firstName: 'Nathaniel', lastName: 'Brown', bio: 'CS sophomore learning systems programming in Rust. OS project in progress.' },
+  { username: 'nicolassimon_demo', firstName: 'Nicolas', lastName: 'Simon', bio: 'International economics junior. Thesis on trade policy post-COVID.' },
+  { username: 'nicolewagner_demo', firstName: 'Nicole', lastName: 'Wagner', bio: 'Biology and chemistry double major on the pre-pharmacy track.' },
+  { username: 'noahcoleman_demo', firstName: 'Noah', lastName: 'Coleman', bio: 'CS junior focused on computer vision. Working on a real-time pose estimation project.' },
+  { username: 'oliviachang_demo', firstName: 'Olivia', lastName: 'Chang', bio: 'Biomedical engineering sophomore. Research in drug delivery systems.' },
+  { username: 'owenparker_demo', firstName: 'Owen', lastName: 'Parker', bio: 'Political science and communications double major. Student government vice president.' },
+  { username: 'paigethornton_demo', firstName: 'Paige', lastName: 'Thornton', bio: 'Fashion merchandising junior. Runs a sustainable fashion blog with 5k followers.' },
+  { username: 'patrickhughes_demo', firstName: 'Patrick', lastName: 'Hughes', bio: 'Finance senior with a CFA Level I. Aiming for equity research at a bulge bracket.' },
+  { username: 'paulavargas_demo', firstName: 'Paula', lastName: 'Vargas', bio: 'Biochemistry senior heading to a PhD in pharmacology. Enzyme kinetics researcher.' },
+  { username: 'philippedumont_demo', firstName: 'Philippe', lastName: 'Dumont', bio: 'French and economics double major. Exchange student from Lyon on a one-year program.' },
+  { username: 'rachelmontgomery_demo', firstName: 'Rachel', lastName: 'Montgomery', bio: 'Psychology junior doing research on trauma and cognitive behavioral therapy.' },
+  { username: 'ryanfoster_demo', firstName: 'Ryan', lastName: 'Foster', bio: 'Computer science junior. Competitive programmer, top 5% on Codeforces.' },
+  { username: 'samaraellis_demo', firstName: 'Samara', lastName: 'Ellis', bio: 'Digital marketing and analytics senior. Google Analytics certified.' },
+  { username: 'samuelwhite_demo', firstName: 'Samuel', lastName: 'White', bio: 'Operations research junior using optimization models for supply chain problems.' },
+  { username: 'sarahcampbell_demo', firstName: 'Sarah', lastName: 'Campbell', bio: 'Biostatistics senior applying for epidemiology PhD programs. R and Stata daily.' },
+  { username: 'scottmanning_demo', firstName: 'Scott', lastName: 'Manning', bio: 'History junior specializing in Cold War and US foreign policy.' },
+  { username: 'sierrarobinson_demo', firstName: 'Sierra', lastName: 'Robinson', bio: 'Environmental engineering junior. Capstone: air quality modeling for urban areas.' },
+  { username: 'stephaniegrant_demo', firstName: 'Stephanie', lastName: 'Grant', bio: 'Accounting and information systems double major. ERP systems internship this summer.' },
+  { username: 'tannerwood_demo', firstName: 'Tanner', lastName: 'Wood', bio: 'Finance junior. Investment club treasurer. Day trading on the side.' },
+  { username: 'taylormorgan_demo', firstName: 'Taylor', lastName: 'Morgan', bio: 'CS and graphic design double major. Building a design system for a startup.' },
+  { username: 'tianarobinson_demo', firstName: 'Tiana', lastName: 'Robinson', bio: 'Social work and psychology double major. Runs a peer support program on campus.' },
+  { username: 'timothyjackson_demo', firstName: 'Timothy', lastName: 'Jackson', bio: 'Agricultural economics junior. Research on food deserts and market access.' },
+  { username: 'traceyholmes_demo', firstName: 'Tracey', lastName: 'Holmes', bio: 'Statistics junior applying ML methods to healthcare outcomes research.' },
+  { username: 'trevornash_demo', firstName: 'Trevor', lastName: 'Nash', bio: 'CS sophomore. Full-stack side projects and open source contributor.' },
+  { username: 'tylercole_demo', firstName: 'Tyler', lastName: 'Cole', bio: 'Sports analytics junior. Python and R for basketball performance modeling.' },
+  { username: 'vanessaramirez_demo', firstName: 'Vanessa', lastName: 'Ramirez', bio: 'International business and Spanish double major. Study abroad coordinator.' },
+  { username: 'victorchukwu_demo', firstName: 'Victor', lastName: 'Chukwu', bio: 'Finance and economics junior. Interested in venture capital and startup ecosystems.' },
+  { username: 'victoriastone_demo', firstName: 'Victoria', lastName: 'Stone', bio: 'Marketing and communications senior. Digital advertising campaign manager.' },
+  { username: 'wendyhamilton_demo', firstName: 'Wendy', lastName: 'Hamilton', bio: 'Biomedical engineering senior. Capstone: wearable sensor for cardiac monitoring.' },
+  { username: 'williamford_demo', firstName: 'William', lastName: 'Ford', bio: 'CS senior focused on distributed systems. Docker, Kubernetes, and cloud-native dev.' },
+  { username: 'xaviermeyer_demo', firstName: 'Xavier', lastName: 'Meyer', bio: 'Data science and economics double major. Building predictive models for real estate.' },
+  { username: 'yasminenakamura_demo', firstName: 'Yasmine', lastName: 'Nakamura', bio: 'Japanese and linguistics double major. Computational linguistics research assistant.' },
+  { username: 'zacharyevansholt_demo', firstName: 'Zachary', lastName: 'Evans', bio: 'CS junior. Backend systems, Go, and distributed databases.' },
+  { username: 'zaraali_demo', firstName: 'Zara', lastName: 'Ali', bio: 'Public health senior. Thesis on maternal mortality disparities in urban hospitals.' },
+  { username: 'zoeanderson_demo', firstName: 'Zoe', lastName: 'Anderson', bio: 'Computer science junior. AI safety reading group organizer. ML + alignment research.' },
 ].map(s => ({
   ...s,
-  email: `${s.username}_demo@example.com`,
+  email: `${s.username}@example.com`,
   password: 'Demo@1234',
   settings: { activityVisibility: 'public' },
 }));
@@ -225,10 +225,10 @@ const SEED_STRANGER_USERNAMES = SEED_STRANGERS.map(s => s.username);
 // Jane's seed friends share usernames with Justin's strangers list.
 // Exclude them from deletion so seed-jane data stays intact when seed-justin --clean runs.
 const JANE_FRIEND_USERNAMES = [
-  'carolinehall', 'chrisnguyen', 'connorflynn', 'dianachen', 'ethancooper',
-  'evawong', 'graciecallahan', 'isabellachang', 'jadewashington', 'jasonmendez',
-  'kevinzhang', 'kiananderson', 'logancarter', 'michaelrobbins', 'noahcoleman',
-  'rachelmontgomery', 'ryanfoster', 'taylormorgan', 'trevornash', 'zoeanderson',
+  'carolinehall_demo', 'chrisnguyen_demo', 'connorflynn_demo', 'dianachen_demo', 'ethancooper_demo',
+  'evawong_demo', 'graciecallahan_demo', 'isabellachang_demo', 'jadewashington_demo', 'jasonmendez_demo',
+  'kevinzhang_demo', 'kiananderson_demo', 'logancarter_demo', 'michaelrobbins_demo', 'noahcoleman_demo',
+  'rachelmontgomery_demo', 'ryanfoster_demo', 'taylormorgan_demo', 'trevornash_demo', 'zoeanderson_demo',
 ];
 
 // ─── Clean Function ─────────────────────────────────────────────────────────
@@ -281,12 +281,16 @@ async function seedFriends() {
   const friends = [];
 
   for (const data of SEED_FRIENDS) {
-    let user = await User.findOne({ username: data.username });
+    let user = await User.findOne({ $or: [{ username: data.username }, { email: data.email }] });
     if (!user) {
       user = new User({ ...data, isSeedUser: true });
       await user.save();
       console.log(`  Created user: ${data.username}`);
     } else {
+      if (user.username !== data.username) {
+        user.username = data.username;
+        await user.save();
+      }
       console.log(`  User exists: ${data.username}`);
     }
     friends.push(user);
@@ -302,10 +306,13 @@ async function seedStrangers() {
   let created = 0;
 
   for (const data of SEED_STRANGERS) {
-    const existing = await User.findOne({ username: data.username });
+    const existing = await User.findOne({ $or: [{ username: data.username }, { email: data.email }] });
     if (!existing) {
       await new User({ ...data, isSeedUser: true }).save();
       created++;
+    } else if (existing.username !== data.username) {
+      existing.username = data.username;
+      await existing.save();
     }
   }
 
@@ -346,10 +353,10 @@ async function seedFriendships(justin, friends) {
 
   const interFriendPairs = [
     ['alexchen_cs', 'mayapatel_ds'],
-    ['alexchen_cs', 'jordanwilliams'],
-    ['mayapatel_ds', 'priyasharma'],
-    ['marcusjohnson', 'sofiarod'],
-    ['jordanwilliams', 'marcusjohnson'],
+    ['alexchen_cs', 'jordanwilliams_demo'],
+    ['mayapatel_ds', 'priyasharma_demo'],
+    ['marcusjohnson_demo', 'sofiarod_demo'],
+    ['jordanwilliams_demo', 'marcusjohnson_demo'],
   ];
 
   for (const [u1, u2] of interFriendPairs) {
@@ -734,10 +741,10 @@ async function seedTasks(justin, friends) {
   // ── Shared tasks: Justin → friends ────────────────────────────────────────
   const alexId    = friendMap.alexchen_cs._id;
   const mayaId    = friendMap.mayapatel_ds._id;
-  const jordanId  = friendMap.jordanwilliams._id;
-  const priyaId   = friendMap.priyasharma._id;
-  const marcusId  = friendMap.marcusjohnson._id;
-  const sofiaId   = friendMap.sofiarod._id;
+  const jordanId  = friendMap.jordanwilliams_demo._id;
+  const priyaId   = friendMap.priyasharma_demo._id;
+  const marcusId  = friendMap.marcusjohnson_demo._id;
+  const sofiaId   = friendMap.sofiarod_demo._id;
 
   const sharedTaskDefs = [
     {
@@ -948,10 +955,10 @@ async function seedConversations(justin, friends) {
   const convKeys = [
     { key: 'alex', username: 'alexchen_cs' },
     { key: 'maya', username: 'mayapatel_ds' },
-    { key: 'jordan', username: 'jordanwilliams' },
-    { key: 'priya', username: 'priyasharma' },
-    { key: 'marcus', username: 'marcusjohnson' },
-    { key: 'sofia', username: 'sofiarod' },
+    { key: 'jordan', username: 'jordanwilliams_demo' },
+    { key: 'priya', username: 'priyasharma_demo' },
+    { key: 'marcus', username: 'marcusjohnson_demo' },
+    { key: 'sofia', username: 'sofiarod_demo' },
   ];
 
   for (const { key, username } of convKeys) {
@@ -1803,6 +1810,7 @@ async function main() {
     process.exit(1);
   } finally {
     await mongoose.disconnect();
+    process.exit(0);
   }
 }
 
