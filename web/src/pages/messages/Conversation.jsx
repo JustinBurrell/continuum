@@ -112,16 +112,33 @@ export default function Conversation({ conversationId }) {
         if (!old) return old;
         return { ...old, messages: [...(old.messages || []), tempMsg] };
       });
+      // Instantly move this conversation to the top of the sidebar with the new preview
+      queryClient.setQueryData(['conversations'], old => {
+        if (!old) return old;
+        const updated = (old.conversations || []).map(conv =>
+          conv._id === conversationId
+            ? { ...conv, lastMessage: { senderId: user?._id, content: content.substring(0, 200), sentAt: tempMsg.createdAt } }
+            : conv
+        );
+        updated.sort((a, b) => new Date(b.lastMessage?.sentAt || 0) - new Date(a.lastMessage?.sentAt || 0));
+        return { ...old, conversations: updated };
+      });
       return { prev };
     },
     onError: (_err, _content, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(msgQueryKey, ctx.prev);
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       posthog.capture('message_sent', { platform: 'web' });
       setMessage('');
-      refetch();
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      // Swap the temp placeholder with the real server message — no extra network request needed
+      const realMsg = res.data?.message;
+      if (realMsg) {
+        queryClient.setQueryData(msgQueryKey, old => {
+          if (!old) return old;
+          return { ...old, messages: old.messages.map(m => m._temp ? realMsg : m) };
+        });
+      }
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: msgQueryKey }),
   });
@@ -133,14 +150,20 @@ export default function Conversation({ conversationId }) {
   useEffect(() => {
     if (!user || !data) return;
     const messages = data?.messages || [];
+    let markedAny = false;
     messages.forEach(msg => {
       const senderId = msg.senderId?._id ?? msg.senderId;
       const isOwn = senderId === user._id;
       if (!isOwn && !markedReadRef.current.has(msg._id)) {
         markedReadRef.current.add(msg._id);
         api.put(`/messages/${msg._id}/read`).catch(() => {});
+        markedAny = true;
       }
     });
+    // Sync sidebar unread count after marking messages read
+    if (markedAny) {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    }
   }, [data, user]);
 
   const handleSend = useCallback(() => {
