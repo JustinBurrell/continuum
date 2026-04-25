@@ -236,8 +236,15 @@ const JANE_FRIEND_USERNAMES = [
 async function cleanSeedData(justinId) {
   console.log('Cleaning seed data...');
 
-  // Look up seed friend IDs
-  const seedUsers = await User.find({ username: { $in: SEED_USERNAMES } });
+  // Find ALL seed users by flag — works regardless of current username, handling
+  // migration from old usernames (e.g. 'sofiarod' → 'sofiarod_demo').
+  // Exclude Justin and Jane's friends (identified by their stable emails).
+  const janeFriendEmails = JANE_FRIEND_USERNAMES.map(u => `${u}@example.com`);
+  const seedUsers = await User.find({
+    isSeedUser: true,
+    _id: { $ne: justinId },
+    email: { $nin: janeFriendEmails },
+  });
   const seedIds = seedUsers.map(u => u._id);
   const allIds = [justinId, ...seedIds];
 
@@ -266,10 +273,8 @@ async function cleanSeedData(justinId) {
     ],
   });
 
-  // Delete the seed friend users and stranger users (NOT Justin, NOT Jane's friends)
-  await User.deleteMany({
-    username: { $in: [...SEED_USERNAMES, ...SEED_STRANGER_USERNAMES], $nin: JANE_FRIEND_USERNAMES },
-  });
+  // Delete the seed friend and stranger users (not Justin, not Jane's friends)
+  await User.deleteMany({ _id: { $in: seedIds } });
 
   console.log('Clean complete.');
 }
