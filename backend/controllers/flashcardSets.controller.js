@@ -257,6 +257,8 @@ exports.duplicateSet = async (req, res) => {
         options: { sort: { order: 1 } },
     });
 
+    await invalidatePattern(`flashcardSets:${req.user._id.toString()}`).catch(() => {});
+
     res.status(201).json({ success: true, set: populatedCopy });
 };
 
@@ -290,6 +292,8 @@ exports.updateSet = async (req, res) => {
     if (!set) {
         return res.status(404).json({ success: false, error: 'Flashcard set not found' });
     }
+
+    await invalidatePattern(`flashcardSets:${req.user._id.toString()}`).catch(() => {});
 
     res.status(200).json({ success: true, set });
 };
@@ -328,6 +332,8 @@ exports.addCard = async (req, res) => {
     // Increment totalCards on the set
     await FlashcardSet.findByIdAndUpdate(set._id, { $inc: { totalCards: 1 } });
 
+    await invalidatePattern(`flashcardSets:${req.user._id.toString()}`).catch(() => {});
+
     res.status(201).json({ success: true, card });
 };
 
@@ -363,6 +369,8 @@ exports.updateCard = async (req, res) => {
     if (!card) {
         return res.status(404).json({ success: false, error: 'Flashcard not found' });
     }
+
+    await invalidatePattern(`flashcardSets:${req.user._id.toString()}`).catch(() => {});
 
     res.status(200).json({ success: true, card });
 };
@@ -677,6 +685,8 @@ exports.deleteCard = async (req, res) => {
 
     // Keep totalCards accurate
     await FlashcardSet.findByIdAndUpdate(set._id, { $inc: { totalCards: -1 } });
+
+    await invalidatePattern(`flashcardSets:${req.user._id.toString()}`).catch(() => {});
 
     res.status(200).json({ success: true, message: 'Flashcard deleted' });
 };
