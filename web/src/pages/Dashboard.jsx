@@ -408,7 +408,7 @@ function AppItem({ app }) {
 /* ────────────────────────────────────────
    Section Header
    ──────────────────────────────────────── */
-function Section({ label, to, children }) {
+function Section({ label, to, children, count }) {
   return (
     <div>
       <div
@@ -419,17 +419,32 @@ function Section({ label, to, children }) {
           marginBottom: 12,
         }}
       >
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.12em',
-            color: '#9CA3AF',
-          }}
-        >
-          {label}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
+              color: '#9CA3AF',
+            }}
+          >
+            {label}
+          </span>
+          {count != null && (
+            <span style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: '#6b21a8',
+              background: 'rgba(107,33,168,0.08)',
+              borderRadius: 20,
+              padding: '1px 8px',
+              lineHeight: 1.5,
+            }}>
+              {count}
+            </span>
+          )}
+        </div>
         {to && (
           <Link
             to={to}
@@ -692,7 +707,7 @@ export default function Dashboard() {
             </div>
           </Section>
 
-          <Section label="Applications" to="/applications">
+          <Section label="Applications" to="/applications" count={appsDashboard?.total || undefined}>
             {/* Pipeline pills */}
             {Object.keys(pipeline).length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>

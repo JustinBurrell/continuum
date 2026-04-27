@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Application = require('../models/Application');
 const posthog = require('../lib/posthog');
 const { getOrSet, invalidatePattern } = require('../lib/cache');
@@ -143,8 +144,10 @@ exports.updateApplication = async (req, res) => {
 // Response: { total, pipeline: { draft, applied, interview, offer, rejected, withdrawn } }
 // ----------------------------------------
 exports.getDashboard = async (req, res) => {
+    // Explicitly cast to ObjectId — aggregate $match does not auto-cast types
+    const userId = new mongoose.Types.ObjectId(req.user._id.toString());
     const counts = await Application.aggregate([
-        { $match: { userId: req.user._id, deletedAt: null } },
+        { $match: { userId, deletedAt: null } },
         { $group: { _id: '$status', count: { $sum: 1 } } },
     ]);
 
