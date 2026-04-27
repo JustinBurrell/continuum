@@ -106,8 +106,29 @@ export default function NotesList() {
 
   const importMutation = useMutation({
     mutationFn: (payload) => api.post('/notes/import', payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
+    onSuccess: (data) => {
+      const note = data?.note;
+      if (note) {
+        // Insert immediately so the note appears before the background refetch resolves.
+        // Bypasses the window-focus refetch race that fires when Google Picker closes.
+        queryClient.setQueryData(['notes', { search, type }], (old) => {
+          if (!old?.pages?.length) return old;
+          return {
+            ...old,
+            pages: [
+              {
+                ...old.pages[0],
+                notes: [note, ...old.pages[0].notes],
+                pagination: old.pages[0].pagination
+                  ? { ...old.pages[0].pagination, total: old.pages[0].pagination.total + 1 }
+                  : old.pages[0].pagination,
+              },
+              ...old.pages.slice(1),
+            ],
+          };
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['notes'], refetchType: 'all' });
       setShowImport(false);
       setSelectedFile(null);
       setImportError('');
@@ -124,8 +145,27 @@ export default function NotesList() {
       if (title) form.append('title', title);
       return api.post('/notes/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
+    onSuccess: (data) => {
+      const note = data?.note;
+      if (note) {
+        queryClient.setQueryData(['notes', { search, type }], (old) => {
+          if (!old?.pages?.length) return old;
+          return {
+            ...old,
+            pages: [
+              {
+                ...old.pages[0],
+                notes: [note, ...old.pages[0].notes],
+                pagination: old.pages[0].pagination
+                  ? { ...old.pages[0].pagination, total: old.pages[0].pagination.total + 1 }
+                  : old.pages[0].pagination,
+              },
+              ...old.pages.slice(1),
+            ],
+          };
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['notes'], refetchType: 'all' });
       setShowImport(false);
       setUploadFile(null);
       setUploadTitle('');
