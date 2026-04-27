@@ -261,6 +261,10 @@ async function cleanSeedData(justinId) {
   }
   await StudySession.deleteMany({ userId: { $in: allIds } });
   await Task.deleteMany({ userId: justinId });
+  // Delete all friend-owned tasks where Justin is a participant.
+  // Targeting by participant covers orphans from prior seed runs where friend
+  // users were recreated with new _ids — seedIds only holds current users.
+  await Task.deleteMany({ 'participants.userId': justinId, userId: { $ne: justinId } });
   await Application.deleteMany({ userId: justinId });
   await Comment.deleteMany({ userId: { $in: allIds } });
   await Activity.deleteMany({ userId: { $in: allIds } });
