@@ -70,7 +70,6 @@ export default function Calendar() {
   const [weekAnchor, setWeekAnchor] = useState(now);
   const [viewingTaskId, setViewingTaskId] = useState(null);
   const [calSearch, setCalSearch] = useState('');
-  const [overdueExpanded, setOverdueExpanded] = useState(false);
 
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
@@ -131,8 +130,6 @@ export default function Calendar() {
   const dates = getMonthDates(year, month);
   const selectedTasks = selected ? (days[selected] || []) : [];
 
-  const OVERDUE_CAP = 6;
-  const overdueVisible = overdueExpanded ? overdue : overdue.slice(0, OVERDUE_CAP);
 
   const selectedDateLabel = selected
     ? new Date(selected + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
@@ -460,49 +457,32 @@ export default function Calendar() {
               {overdue.length === 0 ? (
                 <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>No overdue tasks. Nice work.</p>
               ) : (
-                <>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    {overdueVisible.map(task => (
-                      <div
-                        key={task._id}
-                        onClick={() => setViewingTaskId(task._id)}
-                        style={{
-                          display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer',
-                          padding: '6px 8px', borderRadius: 8,
-                          transition: 'background 0.12s', margin: '0 -8px',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.05)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                      >
-                        <div style={{ width: 5, height: 5, borderRadius: '50%', marginTop: 5, background: '#ef4444', flexShrink: 0 }} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontSize: 12, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                            {task.title}
-                          </p>
-                          <p style={{ fontSize: 10, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 3, marginTop: 1, margin: 0 }}>
-                            <Clock size={9} />
-                            {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {overdue.length > OVERDUE_CAP && (
-                    <button
-                      onClick={() => setOverdueExpanded(e => !e)}
+                <div style={{ maxHeight: 260, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {overdue.map(task => (
+                    <div
+                      key={task._id}
+                      onClick={() => setViewingTaskId(task._id)}
                       style={{
-                        marginTop: 8, width: '100%', padding: '6px 0',
-                        background: 'transparent', border: 'none', cursor: 'pointer',
-                        fontSize: 11, fontWeight: 600, color: '#6b21a8',
-                        borderRadius: 8, transition: 'background 0.12s',
+                        display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer',
+                        padding: '6px 8px', borderRadius: 8,
+                        transition: 'background 0.12s', margin: '0 -8px',
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.06)'}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.05)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      {overdueExpanded ? 'Show less' : `Show ${overdue.length - OVERDUE_CAP} more`}
-                    </button>
-                  )}
-                </>
+                      <div style={{ width: 5, height: 5, borderRadius: '50%', marginTop: 5, background: '#ef4444', flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 12, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                          {task.title}
+                        </p>
+                        <p style={{ fontSize: 10, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 3, marginTop: 1, margin: 0 }}>
+                          <Clock size={9} />
+                          {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
