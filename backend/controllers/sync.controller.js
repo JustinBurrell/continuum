@@ -4,6 +4,7 @@ const Task = require('../models/Task');
 const Flashcard = require('../models/Flashcard');
 const FlashcardSet = require('../models/FlashcardSet');
 const Message = require('../models/Message');
+const { invalidatePattern } = require('../lib/cache');
 
 // ============================================================
 // SYNC CONTROLLER
@@ -188,6 +189,13 @@ exports.processSync = async (req, res) => {
             if (operation === 'create') await handler.create(req.user._id, documentId, data);
             else if (operation === 'update') await handler.update(req.user._id, documentId, data);
             else if (operation === 'delete') await handler.delete(req.user._id, documentId);
+
+            // Invalidate the relevant cache so subsequent reads reflect the synced change
+            const userId = req.user._id.toString();
+            if (collection === 'notes') await invalidatePattern(`notes:${userId}`).catch(() => {});
+            else if (collection === 'tasks') await invalidatePattern(`tasks:${userId}`).catch(() => {});
+            else if (collection === 'flashcards') await invalidatePattern(`flashcardSets:${userId}`).catch(() => {});
+            else if (collection === 'messages') await invalidatePattern(`conversations:${userId}`).catch(() => {});
 
             await SyncQueue.findByIdAndUpdate(entry._id, {
                 status: 'completed',
