@@ -59,7 +59,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 - **Notes** — rich-text editor with AI summaries, Google Docs import via Google Picker (`drive.file` scope — user selects specific docs) with PDF export and text caching, "View in Google Docs" button on note detail, flashcard extraction, infinite-scroll pagination with `useInfiniteQuery`
 - **Flashcards** — study mode with flip cards, per-card progress tracking, AI extraction from notes or PDFs, study history screen, infinite-scroll pagination
 - **Tasks** — kanban board with shared tasks, per-participant status tracking, recurrence support, infinite-scroll pagination
-- **Calendar** — event creation and scheduling integrated with the task system
+- **Calendar** — month and week views sharing a single `selected` state in the parent component; clicking a day in either view updates a bounded right sidebar (max-height, scrollable) rather than an inline expansion panel; overdue tasks in a fixed-height scrollable container so they never push content off screen
 - **Social** — friend requests, activity feed (cursor-paginated, own actions filtered Instagram-style, shared content titles and comment previews are clickable purple links with scroll-to-comment on the target page), direct messaging with real-time socket delivery (no polling), profile photos in feed and comments
 - **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section), contacts and reminders per application, inline PDF resume viewer (iframe modal matching Android's in-app viewer)
 - **Auth** — email/password and Google OAuth (`drive.file` scope — non-sensitive, no CASA assessment required) with JWT + httpOnly refresh cookie rotation
@@ -99,14 +99,16 @@ const pagedFilter = cursorTs
 - `invalidatePattern` invalidates ALL affected users on every write — not just the actor. On a social platform this matters: if user A shares a note with user B, user B's `notes:` cache is wiped immediately so they see the shared note on next load. Without cross-user invalidation, user B would see stale data until TTL expires.
 - Scoped per user: one user's cache never bleeds into another's.
 
-**Cache keys (expanded to all hot list endpoints):**
-- `conversations:{userId}` — 30s TTL. sendMessage invalidates both sender and recipient.
-- `friends:{userId}` — 60s TTL. All friend mutations invalidate both sides.
-- `notes:{userId}` — 60s TTL. shareNote(friends) invalidates all accepted friends.
-- `tasks:{userId}` / `calendar:{userId}` — 30s TTL. All participant caches wiped on task mutations.
-- `flashcardSets:{userId}` — 60s TTL. shareSet invalidates all recipients.
-- `activity:{userId}:first` — 5min TTL. `notifyActivityAudience` wipes all users in the `visibleTo` array.
-- `applications:{userId}` — 120s TTL. Actor only (private data).
+**Cache keys (all hot list endpoints):**
+- `conversations:{userId}` — 30s TTL. `sendMessage` and `startConversation` invalidate both participants; `markAsRead` and `deleteConversation` invalidate actor only.
+- `friends:{userId}:{status}:{search}` — 60s TTL. Every friend mutation (request/accept/decline/cancel/remove) invalidates both sides of the friendship.
+- `notes:{userId}:{search}:{type}:{page}:{limit}` — 60s TTL. `shareNote(friends)` queries accepted friendships and invalidates all of them. Cache key includes `limit` to prevent collisions between Dashboard (limit:3) and NotesList (limit:20).
+- `tasks:{userId}:mine:{search}:{status}:{page}:{limit}` — 30s TTL. `invalidateSharedTasksCache` wipes `tasks:{uid}` and `calendar:{uid}` for all participants + owner on every task mutation. Cache key includes `limit` to prevent Dashboard/Kanban collisions.
+- `calendar:{userId}:{fromDate}:{toDate}` — 30s TTL. Wiped by all task mutations via `invalidateSharedTasksCache`.
+- `flashcardSets:{userId}:{search}:{page}:{limit}` — 60s TTL. `shareSet` invalidates actor + all recipients.
+- `activity:{userId}:first` — 5min TTL. `notifyActivityAudience` (called by activity.service.js) wipes all users in the `visibleTo` array after every activity write.
+- `applications:{userId}:{search}:{status}` — 120s TTL. Actor only (private data). Note: backend ignores `limit` param and returns all applications — cache key does not include limit.
+- `shared-tasks:{userId}` — 60s TTL. Legacy key for `/tasks/shared` endpoint.
 
 **Local dev:** If `REDIS_URL` is not set, all operations are no-ops. Never blocks development.
 
@@ -171,7 +173,7 @@ if (process.env.REDIS_URL) {
 
 Traced the path: backend emits to `user:${otherParticipantId}`. Socket.io middleware puts the user in `user:${socket.userId}`. Found the mismatch: the JWT payload uses `{ userId: "..." }` but the socket middleware read `decoded.id` — always `undefined`. Every user was joining `user:undefined`. All socket events were silently discarded.
 
-**Fix:** One line: `socket.userId = decoded.userId`. Restores real-time delivery for every feature — messages, friend requests, task updates, note shares, activity, comments.
+**Fix:** One line in `backend/lib/socket.js`: `socket.userId = decoded.userId` (was `decoded.id` — a field that doesn't exist in the JWT payload). Restores real-time delivery for every feature — messages, friend requests, task updates, note shares, activity, comments.
 
 **Why it matters in interviews:** Shows systematic debugging. Didn't guess — instrumented the actual system to confirm the failure mode before touching code. Playwright as a diagnostic tool, not just a test runner.
 
@@ -195,6 +197,35 @@ Every user-triggered mutation updates the React Query cache immediately via `onM
 `gcTime: 30min` keeps the React Query cache alive for a full session. Return visits to any page are always instant (data shows from cache while background refetch runs silently). Fixed two `staleTime: 0` overrides that were forcing a server round-trip on every component mount. Added `placeholderData: (prev) => prev` to all filtered list queries so changing a search term never blanks the list.
 
 **Why it matters:** These are the same patterns Instagram, TikTok, and Twitter use. The user never sees a loading state they don't have to see.
+
+---
+
+### 8. Kanban All-At-Once Loading + React Query Cache Key Consistency
+
+**The problem:** The Kanban task board showed only 20 of 26 tasks on first visit when navigating from the sidebar. The bug was silent — no error, no spinner, just missing cards.
+
+**Root cause — two-layer:** The sidebar prefetches tasks on hover using `prefetchInfiniteQuery`. The page loads tasks using `useInfiniteQuery`. Both shared the same React Query cache key `['tasks', 'mine', '']`. But the sidebar was prefetching with `limit: 20` while the page queried with `limit: 100`. React Query found the cached entry (from the sidebar's prefetch), saw `pagination.pages: 2` from the 20-item page, and fetched "page 2 at limit 100" — which was empty, since 26 tasks fit in one page at limit 100. Board rendered 20 tasks and stopped.
+
+**Fix — cache key alignment:** Both the sidebar prefetch and the page query must use identical params. `prefetchInfiniteQuery` writes to the same cache slot as `useInfiniteQuery` — any mismatch in `limit` writes a page with wrong `getNextPageParam` metadata that poisons all subsequent fetches.
+
+**Why Jira-style all-at-once:** A Kanban board can't render "partially" — a task on page 2 that belongs in the "In Progress" column would simply be missing from that column with no indication. The board must wait for all pages before painting.
+
+**Solution:** `useInfiniteQuery` with `limit: 100` per page + auto-chain via `useEffect`:
+```js
+useEffect(() => {
+  if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+```
+
+**The timing trap — `isFetchingNextPage` vs `hasNextPage`:**
+Holding the skeleton with `isLoading = ownLoading || isFetchingNextPage` has a one-render gap: page 1 resolves → `ownLoading=false`, `isFetchingNextPage=false` (the `useEffect` hasn't fired yet, it's post-render). The board briefly paints with 26 tasks missing their later pages before the second fetch starts.
+
+`hasNextPage` is synchronously derived from the last page's `getNextPageParam` — it's `true` the moment page 1 resolves with `pagination.page < pagination.pages`. No render gap:
+```js
+const isLoading = ownLoading || hasNextPage;  // skeleton holds until ALL pages are in
+```
+
+**Why it matters:** Cache key discipline is a real production issue. Any time two callers share a React Query key with different params, one's stale data poisons the other's pagination metadata. The rule: if two queries share a key, they must share every param that affects pagination.
 
 ---
 
@@ -577,14 +608,16 @@ Notable schema decisions:
 **27 pages, 26 UI components, 0 component libraries.** Everything is custom-built with Tailwind CSS.
 
 Key implementation decisions:
-- **React Query v5** for all server state — staleTime overrides per query, optimistic mutations on writes
-- **`useInfiniteQuery` for paginated lists** — Notes, Flashcard Sets, and Tasks all use cursor-based infinite scroll with a "Load more" trigger. `initialPageParam` is required in v5 and explicitly set on all three. Dashboard total counts are pulled from `pages[0].pagination.total` (the server's authoritative count), not `pages.flatMap().length`, so counts are accurate even before all pages load.
+- **React Query v5** for all server state — `gcTime: 30min` keeps the cache alive for a full session so return visits are always instant (stale-while-revalidate); `placeholderData: (prev) => prev` on all filtered list queries so search/filter changes never blank the list
+- **`useInfiniteQuery` for paginated lists** — Notes, Flashcard Sets, and Tasks all use server-side pagination with auto-chain. Tasks uses `limit: 100` per page with `useEffect` auto-chaining (`fetchNextPage` until `hasNextPage` is false), holding the skeleton via `isLoading = ownLoading || hasNextPage` until ALL pages are fetched — board renders all-at-once like Jira. Dashboard total counts pulled from `pages[0].pagination.total`, not `pages.flatMap().length`.
+- **Cache key consistency** — `prefetchInfiniteQuery` in the sidebar and `useInfiniteQuery` in the page share the same cache key and must use identical params (including `limit`). Mismatch writes a page with wrong `getNextPageParam` metadata, poisoning all subsequent fetches. See [Section 8](#8-kanban-all-at-once-loading--react-query-cache-key-consistency) for the full story.
 - **Optimistic mutation guards** — all `onMutate` cache updaters guard `old?.pages` before calling `.map()`. Without this, a mutation firing before the first page resolves throws `TypeError: Cannot read properties of undefined (reading 'length')`.
 - **Axios interceptor** deduplicates concurrent 401s — all in-flight requests queue behind one shared refresh promise, preventing N parallel refresh calls
 - **Skeleton loaders** on every data-fetching page — shimmer animation, no layout shift
-- **Sidebar prefetch on hover** — data cached before user clicks, making navigation feel instant
+- **Viewport prefetch** — conversation rows, friend cards, and activity items use `IntersectionObserver` + `requestIdleCallback` to prefetch their detail data when they scroll into view; sidebar nav links use hover-intent prefetch (150ms delay). A module-level `prefetchQueue` ensures prefetches run sequentially to avoid saturating the API on mount.
 - **Error boundaries** around major page sections — one crash doesn't take down the whole app
 - **withCredentials: true** on axios — httpOnly cookies sent automatically with every request
+- **Scroll restoration** — `ScrollToTop` component listens to `pathname` changes and scrolls both `window` and the `<main class="overflow-y-auto">` container. The `<main>` container is the actual scrollable element in `AppLayout`; `window.scrollTo` alone has no effect on it.
 
 ---
 
@@ -800,6 +833,25 @@ UserSchema.pre('save', async function(next) {
 
 ---
 
+### aggregate() Does Not Auto-Cast Types
+
+**The bug:** `GET /api/applications/dashboard` returned `{ total: 0, pipeline: [] }` even though the user had 40 applications. The React Query cache was showing the right count (pulled from the list response's pagination metadata), masking the API bug until a direct API call revealed it.
+
+**Root cause:** Mongoose `find()` auto-casts `req.user._id` (a Mongoose ObjectId) to match the `userId` field type in the schema. `aggregate()` does not. The `$match` stage was comparing an ObjectId against documents whose `userId` field was also an ObjectId — but MongoDB's aggregation pipeline evaluated them as different types, returning zero matches.
+
+```js
+// WRONG — req.user._id is a Mongoose ObjectId, not cast in aggregate()
+{ $match: { userId: req.user._id, deletedAt: null } }
+
+// CORRECT — explicit cast required
+const userId = new mongoose.Types.ObjectId(req.user._id.toString());
+{ $match: { userId, deletedAt: null } }
+```
+
+**Why it matters:** This is a silent failure — no error thrown, just empty results. Any aggregate pipeline that filters on a user-scoped ObjectId field needs an explicit cast. `find()`, `findOne()`, and `findOneAndUpdate()` are safe because Mongoose casts for those automatically; `aggregate()` is raw MongoDB and bypasses Mongoose's type coercion entirely.
+
+---
+
 ### Soft Deletes
 
 Several collections use soft delete (`deletedAt` timestamp) rather than hard delete:
@@ -835,7 +887,7 @@ io.use((socket, next) => {
   if (!token) return next(new Error('Unauthorized'));
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    socket.userId = decoded.id;
+    socket.userId = decoded.userId;  // JWT payload uses `userId`, not `id`
     next();
   } catch {
     next(new Error('Unauthorized'));

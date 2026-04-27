@@ -68,6 +68,11 @@ backend/
 │   ├── messages.routes.js        # /api/messages/*
 │   ├── sync.routes.js            # /api/sync (stretch)
 │   └── activity.routes.js        # /api/activity (stretch)
+├── lib/
+│   ├── cache.js                  # getOrSet / invalidate / invalidatePattern — Redis read-through cache with fail-open
+│   ├── socket.js                 # Socket.io init + getIO() singleton
+│   ├── posthog.js                # PostHog server-side capture wrapper (skips demo/seed users)
+│   └── logger.js                 # Pino logger
 ├── services/
 │   ├── groq.service.js           # Groq API client + prompt templates
 │   ├── google.service.js         # Google Drive/Docs API client

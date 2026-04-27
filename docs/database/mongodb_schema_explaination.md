@@ -372,17 +372,30 @@ flashcard.userProgress = [
 
 4. Shared task
    └─> Task.create({
-       userId: creator,
-       participants: [creator, user2, user3],
+       userId: creator,           // owner
+       participants: [            // each entry is an object, not a raw ID
+         { userId: user2, status: 'todo' },
+         { userId: user3, status: 'todo' }
+       ],
        isShared: true
      })
-   └─> All participants see task in their calendar:
+   └─> Participants see task in their "Shared with me" view:
        Task.find({
-         $or: [
-           { userId: req.user._id },
-           { participants: req.user._id }
-         ]
+         'participants.userId': req.user._id,  // dot-notation into embedded array
+         isShared: true,
+         deletedAt: null
        })
+
+5. Recurring task completion
+   └─> Task.findOneAndUpdate({ _id, userId }, { status: 'completed' })
+   └─> Pre-save hook fires (isModified('status') === true):
+       - Sets completedAt = now
+       - If recurrence.frequency !== 'none' AND within endDate:
+         └─> Task.create({ ...same fields, dueDate: nextDue, status: 'todo',
+                           recurrence.parentTaskId: originalTask._id })
+   └─> Each completion creates exactly one new occurrence — NOT multiple
+   └─> Seed data with many recurring completions will accumulate task
+       documents; clean with Task.deleteMany({ userId }) on reseed
 ```
 
 ---
@@ -534,15 +547,17 @@ const friendship = await Friendship.findOne({
 
 6. Dashboard query
    └─> GET /api/applications/dashboard
+   └─> IMPORTANT: aggregate() does NOT auto-cast types like find() does.
+       req.user._id must be explicitly cast before the pipeline:
+       const userId = new mongoose.Types.ObjectId(req.user._id.toString());
    └─> Application.aggregate([
-       { $match: { userId, deletedAt: null } },
+       { $match: { userId, deletedAt: null } },  // userId is now a real ObjectId
        { $group: {
          _id: '$status',
-         count: { $sum: 1 },
-         applications: { $push: '$$ROOT' }
+         count: { $sum: 1 }
        }}
      ])
-   └─> Returns: { draft: 3, applied: 12, interview: 5, offer: 1, rejected: 8 }
+   └─> Returns: { total: 40, pipeline: { applied: 12, interview: 5, ... } }
 ```
 
 ---
