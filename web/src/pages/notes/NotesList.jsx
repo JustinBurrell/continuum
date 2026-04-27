@@ -104,36 +104,64 @@ export default function NotesList() {
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['notes'] }),
   });
 
+  const insertOptimisticNote = (tempNote) => {
+    queryClient.setQueryData(['notes', { search, type }], (old) => {
+      if (!old?.pages?.length) return old;
+      return {
+        ...old,
+        pages: [{
+          ...old.pages[0],
+          notes: [tempNote, ...old.pages[0].notes],
+          pagination: old.pages[0].pagination
+            ? { ...old.pages[0].pagination, total: old.pages[0].pagination.total + 1 }
+            : old.pages[0].pagination,
+        }, ...old.pages.slice(1)],
+      };
+    });
+  };
+
+  const replaceOptimisticNote = (tempId, realNote) => {
+    queryClient.setQueryData(['notes', { search, type }], (old) => {
+      if (!old?.pages?.length) return old;
+      return {
+        ...old,
+        pages: old.pages.map((page) => ({
+          ...page,
+          notes: page.notes.map((n) => (n._id === tempId ? realNote : n)),
+        })),
+      };
+    });
+  };
+
   const importMutation = useMutation({
     mutationFn: (payload) => api.post('/notes/import', payload),
-    onSuccess: (data) => {
-      const note = data?.note;
-      if (note) {
-        // Insert immediately so the note appears before the background refetch resolves.
-        // Bypasses the window-focus refetch race that fires when Google Picker closes.
-        queryClient.setQueryData(['notes', { search, type }], (old) => {
-          if (!old?.pages?.length) return old;
-          return {
-            ...old,
-            pages: [
-              {
-                ...old.pages[0],
-                notes: [note, ...old.pages[0].notes],
-                pagination: old.pages[0].pagination
-                  ? { ...old.pages[0].pagination, total: old.pages[0].pagination.total + 1 }
-                  : old.pages[0].pagination,
-              },
-              ...old.pages.slice(1),
-            ],
-          };
-        });
-      }
-      queryClient.invalidateQueries({ queryKey: ['notes'], refetchType: 'all' });
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({ queryKey: ['notes'] });
+      const prev = queryClient.getQueryData(['notes', { search, type }]);
+      const tempId = `optimistic-${Date.now()}`;
+      insertOptimisticNote({
+        _id: tempId,
+        title: payload.title || 'Importing…',
+        type: 'general',
+        tags: [],
+        isPinned: false,
+        createdAt: new Date().toISOString(),
+        lastViewedAt: new Date().toISOString(),
+        _isOptimistic: true,
+      });
       setShowImport(false);
       setSelectedFile(null);
       setImportError('');
+      return { prev, tempId };
     },
-    onError: (err) => {
+    onSuccess: (data, _vars, ctx) => {
+      const note = data?.note;
+      if (note && ctx?.tempId) replaceOptimisticNote(ctx.tempId, note);
+      queryClient.invalidateQueries({ queryKey: ['notes'], refetchType: 'all' });
+    },
+    onError: (err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['notes', { search, type }], ctx.prev);
+      setShowImport(true);
       setImportError(err.response?.data?.error || 'Import failed.');
     },
   });
@@ -145,33 +173,34 @@ export default function NotesList() {
       if (title) form.append('title', title);
       return api.post('/notes/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
     },
-    onSuccess: (data) => {
-      const note = data?.note;
-      if (note) {
-        queryClient.setQueryData(['notes', { search, type }], (old) => {
-          if (!old?.pages?.length) return old;
-          return {
-            ...old,
-            pages: [
-              {
-                ...old.pages[0],
-                notes: [note, ...old.pages[0].notes],
-                pagination: old.pages[0].pagination
-                  ? { ...old.pages[0].pagination, total: old.pages[0].pagination.total + 1 }
-                  : old.pages[0].pagination,
-              },
-              ...old.pages.slice(1),
-            ],
-          };
-        });
-      }
-      queryClient.invalidateQueries({ queryKey: ['notes'], refetchType: 'all' });
+    onMutate: async ({ file, title }) => {
+      await queryClient.cancelQueries({ queryKey: ['notes'] });
+      const prev = queryClient.getQueryData(['notes', { search, type }]);
+      const tempId = `optimistic-${Date.now()}`;
+      insertOptimisticNote({
+        _id: tempId,
+        title: title || file?.name?.replace(/\.pdf$/i, '') || 'Uploading…',
+        type: 'general',
+        tags: [],
+        isPinned: false,
+        createdAt: new Date().toISOString(),
+        lastViewedAt: new Date().toISOString(),
+        _isOptimistic: true,
+      });
       setShowImport(false);
       setUploadFile(null);
       setUploadTitle('');
       setImportError('');
+      return { prev, tempId };
     },
-    onError: (err) => {
+    onSuccess: (data, _vars, ctx) => {
+      const note = data?.note;
+      if (note && ctx?.tempId) replaceOptimisticNote(ctx.tempId, note);
+      queryClient.invalidateQueries({ queryKey: ['notes'], refetchType: 'all' });
+    },
+    onError: (err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['notes', { search, type }], ctx.prev);
+      setShowImport(true);
       setImportError(err.response?.data?.error || 'Upload failed.');
     },
   });
@@ -410,7 +439,7 @@ export default function NotesList() {
               <NoteCard
                 key={note._id}
                 note={note}
-                onDelete={sharedTab || user?.isDemo ? null : () => setDeleteConfirm(note._id)}
+                onDelete={sharedTab || user?.isDemo || note._isOptimistic ? null : () => setDeleteConfirm(note._id)}
               />
             ))}
           </div>
@@ -656,6 +685,32 @@ export default function NotesList() {
 }
 
 function NoteCard({ note, onDelete }) {
+  if (note._isOptimistic) {
+    return (
+      <div className="animate-pulse" style={{
+        background: 'white',
+        border: '1px dashed #D8B4FE',
+        borderRadius: 16,
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        opacity: 0.7,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 56, height: 20, background: '#F3E8FF', borderRadius: 20 }} />
+          <div style={{ marginLeft: 'auto', width: 16, height: 16, borderRadius: '50%', border: '2px solid #D8B4FE', borderTopColor: '#7C3AED', animation: 'spin 0.8s linear infinite' }} />
+        </div>
+        <div style={{ height: 16, background: '#F3E8FF', borderRadius: 6, width: '70%' }} />
+        <div style={{ height: 12, background: '#F9F5FF', borderRadius: 6, width: '90%' }} />
+        <div style={{ height: 12, background: '#F9F5FF', borderRadius: 6, width: '60%' }} />
+        <div style={{ marginTop: 4, fontSize: '0.75rem', color: '#7C3AED', fontWeight: 500 }}>
+          {note.title}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="group"
