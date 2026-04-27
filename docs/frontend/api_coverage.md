@@ -88,13 +88,13 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/tasks` | `pages/tasks/Tasks.jsx` | Kanban grouped by status; supports `?search=` for title filter |
+| GET | `/api/tasks` | `pages/tasks/Tasks.jsx` | Kanban board. Uses `useInfiniteQuery` with `limit: 100` per page and auto-chain (`useEffect` calls `fetchNextPage` until `hasNextPage` is false). `isLoading = ownLoading \|\| hasNextPage` holds the skeleton until ALL pages are fetched — board renders all-at-once like Jira, never partially. Supports `?search=`. |
 | POST | `/api/tasks` | `pages/tasks/Tasks.jsx` → New task modal | |
 | GET | `/api/tasks/:id` | Not needed (list used) | |
 | PUT | `/api/tasks/:id` | `pages/tasks/Tasks.jsx` → status dropdown | Full update including status change |
 | PATCH | `/api/tasks/:id/status` | Available but not used directly | Status-only update (use `PUT` instead) |
 | DELETE | `/api/tasks/:id` | `pages/tasks/Tasks.jsx` → card delete | |
-| PATCH | `/api/tasks/:id/participant-status` | Not yet exposed in UI | Update a participant's status |
+| PATCH | `/api/tasks/:id/participant-status` | `pages/tasks/Tasks.jsx` → "Shared with me" tab → status dropdown on task card | Updates the current user's own participant status entry |
 | GET | `/api/tasks/shared` | `pages/tasks/Tasks.jsx` → "Shared with me" tab (supports `?search=`); `pages/UserProfile.jsx` → Shared Tasks section (friend-gated, links to `/tasks` with `state: { openTaskId }` to open task detail modal) | Tasks shared with you |
 
 ---
@@ -103,7 +103,7 @@ Frontend base URL: `http://localhost:5173`
 
 | Method | Endpoint | Frontend Page | Notes |
 |--------|----------|---------------|-------|
-| GET | `/api/calendar` | `pages/Calendar.jsx` | Supports `from`, `to`, `view` query params |
+| GET | `/api/calendar` | `pages/Calendar.jsx` | Supports `from`, `to`, `view` query params. Month and week views share a single `selected` state in the parent component — clicking a day in either view updates the right sidebar (not an inline expansion panel). Overdue section is a fixed-height (260px) scrollable container. |
 
 ---
 
@@ -150,7 +150,7 @@ Frontend base URL: `http://localhost:5173`
 | POST | `/api/applications` | `pages/applications/ApplicationsList.jsx` → Add modal | |
 | PUT | `/api/applications/:id` | `pages/applications/ApplicationDetail.jsx` → Edit | Stage, notes, role, company, etc. |
 | DELETE | `/api/applications/:id` | `pages/applications/ApplicationDetail.jsx` → delete | Soft delete |
-| GET | `/api/applications/dashboard` | Not yet exposed in UI | Summary stats |
+| GET | `/api/applications/dashboard` | `pages/Dashboard.jsx` — pipeline pills (Draft/Applied/Interview/Offer/Rejected/Withdrawn counts) + total count badge in Applications section header | Aggregate returns `{ total, pipeline }`. **Note:** `aggregate()` does not auto-cast types — `userId` must be explicitly cast via `new mongoose.Types.ObjectId(req.user._id.toString())` or the match returns 0 results even when documents exist. |
 | POST | `/api/applications/:id/contacts` | Not yet exposed in UI | Add a contact to an application |
 | POST | `/api/applications/:id/reminders` | Not yet exposed in UI | Set a reminder |
 
@@ -218,9 +218,7 @@ These backend endpoints exist but have no frontend UI yet:
 | `POST /api/notes/:id/flashcards/generate` | "Generate flashcards" button on NoteDetail |
 | `PATCH /api/flashcard-sets/:id/share` | Share set button on FlashcardSetDetail |
 | `GET /api/flashcard-sets/shared` | ~~Wired~~ — `pages/flashcards/FlashcardSets.jsx` → Shared tab (supports `?search=`) |
-| `PATCH /api/tasks/:id/participant-status` | Participant status toggle on task card |
 | `PUT /api/messages/:id/read` | Auto-mark read on Conversation mount |
-| `GET /api/applications/dashboard` | Stats widget on Dashboard or Applications header |
 | `POST /api/applications/:id/contacts` | Contacts section on ApplicationDetail |
 | `POST /api/applications/:id/reminders` | Reminder section on ApplicationDetail |
 | `DELETE /api/resumes/:id` | Delete button on Resumes page |
