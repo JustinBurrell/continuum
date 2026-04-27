@@ -77,9 +77,23 @@ export default function ApplicationsList() {
 
   const createMutation = useMutation({
     mutationFn: (payload) => api.post('/applications', payload),
-    onSuccess: () => {
+    onSuccess: (data) => {
       posthog.capture('job_application_created', { platform: 'web' });
-      invalidateApps();
+      const application = data?.application;
+      if (application) {
+        queryClient.setQueryData(['applications', { search, status: stageFilter }], (old) => {
+          if (!old?.applications) return old;
+          return {
+            ...old,
+            applications: [application, ...old.applications],
+            pagination: old.pagination
+              ? { ...old.pagination, total: old.pagination.total + 1 }
+              : old.pagination,
+          };
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['applications'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['applications-dashboard'], refetchType: 'all' });
       setShowCreate(false);
       setForm(emptyForm);
     },

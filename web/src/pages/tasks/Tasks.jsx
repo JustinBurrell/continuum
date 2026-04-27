@@ -113,9 +113,27 @@ export default function Tasks() {
 
   const createMutation = useMutation({
     mutationFn: (payload) => api.post('/tasks', payload),
-    onSuccess: () => {
+    onSuccess: (data) => {
       posthog.capture('task_created', { platform: 'web' });
-      invalidateTasks();
+      const task = data?.task;
+      if (task) {
+        queryClient.setQueryData(['tasks', 'mine', search], (old) => {
+          if (!old?.pages?.length) return old;
+          return {
+            ...old,
+            pages: [{
+              ...old.pages[0],
+              tasks: [task, ...old.pages[0].tasks],
+              pagination: old.pages[0].pagination
+                ? { ...old.pages[0].pagination, total: old.pages[0].pagination.total + 1 }
+                : old.pages[0].pagination,
+            }, ...old.pages.slice(1)],
+          };
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['tasks'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['calendar'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['activity'], refetchType: 'all' });
       setShowCreate(false);
       setForm(emptyForm);
     },
