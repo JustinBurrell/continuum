@@ -102,10 +102,6 @@
     border-color: var(--border);
   }
 
-  html {
-    zoom: 0.9;
-  }
-
   body {
     background-color: var(--bg);
     color: var(--text-primary);
