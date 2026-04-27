@@ -141,6 +141,8 @@ exports.uploadNote = async (req, res) => {
 
     posthog.capture(req.user, 'note_created', { platform: 'web', source: getNoteSource(note) });
 
+    await invalidatePattern(`notes:${req.user._id.toString()}`).catch(() => {});
+
     res.status(201).json({ success: true, note });
 };
 
@@ -432,8 +434,9 @@ exports.importNote = async (req, res) => {
     });
 
     posthog.capture(req.user, 'note_created', { platform: 'web', source: getNoteSource(note) });
-
     posthog.capture(req.user, 'google_doc_imported', { noteId: note._id.toString() });
+
+    await invalidatePattern(`notes:${req.user._id.toString()}`).catch(() => {});
 
     res.status(201).json({ success: true, note });
 };
@@ -486,6 +489,9 @@ exports.refreshNote = async (req, res) => {
         { content, pdfUrl: cloudinaryResult.secure_url, pdfPublicId: cloudinaryResult.public_id, lastSyncedAt: new Date() },
         { new: true }
     );
+
+    const refreshAffectedIds = [req.user._id.toString(), ...(note.sharedWith || []).map(id => id.toString())];
+    await Promise.all(refreshAffectedIds.map(id => invalidatePattern(`notes:${id}`))).catch(() => {});
 
     res.status(200).json({ success: true, note: updatedNote });
 };
