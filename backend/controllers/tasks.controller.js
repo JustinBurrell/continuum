@@ -173,7 +173,7 @@ exports.getTasks = async (req, res) => {
     }
 
     const skip = (Number(page) - 1) * Number(limit);
-    const cacheKey = `tasks:${req.user._id.toString()}:mine:${search || ''}:${status || ''}:${page}`;
+    const cacheKey = `tasks:${req.user._id.toString()}:mine:${search || ''}:${status || ''}:${page}:${limit}`;
     const fetchTasks = async () => {
         const [tasks, total] = await Promise.all([
             Task.find(filter).sort({ dueDate: 1 }).skip(skip).limit(Number(limit)),

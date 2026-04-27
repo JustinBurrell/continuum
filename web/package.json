@@ -35,7 +35,7 @@
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "dompurify": "^3.3.3",
+    "dompurify": "^3.4.1",
     "lucide-react": "^0.468.0",
     "marked": "^17.0.5",
     "posthog-js": "^1.369.5",

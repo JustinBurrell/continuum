@@ -235,7 +235,7 @@ exports.getNotes = async (req, res) => {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const cacheKey = `notes:${req.user._id.toString()}:${search || ''}:${type || ''}:${page}`;
+    const cacheKey = `notes:${req.user._id.toString()}:${search || ''}:${type || ''}:${page}:${limit}`;
     const fetchNotes = async () => {
         const [notes, total] = await Promise.all([
             Note.find(filter)

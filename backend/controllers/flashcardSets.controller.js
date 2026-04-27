@@ -97,7 +97,7 @@ exports.getSets = async (req, res) => {
     if (search) filter.title = { $regex: search, $options: 'i' };
 
     const skip = (Number(page) - 1) * Number(limit);
-    const cacheKey = `flashcardSets:${req.user._id.toString()}:${search || ''}:${page}`;
+    const cacheKey = `flashcardSets:${req.user._id.toString()}:${search || ''}:${page}:${limit}`;
     const fetchSets = async () => {
         const [sets, total] = await Promise.all([
             FlashcardSet.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
