@@ -62,17 +62,18 @@ export default function Tasks() {
   const [showSharePicker, setShowSharePicker] = useState(false);
   const [search, setSearch] = useState('');
 
-  // Own tasks — auto-fetch all pages so the full Kanban board is always complete
+  // Own tasks — pages of 100, auto-chained until exhausted so Kanban is always complete
   const {
     data: ownData,
     isLoading: ownLoading,
     hasNextPage,
+    isFetchingNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
     queryKey: ['tasks', 'mine', search],
     queryFn: ({ pageParam }) =>
       api.get('/tasks', {
-        params: { ...(search && { search }), page: pageParam, limit: 50 },
+        params: { ...(search && { search }), page: pageParam, limit: 100 },
       }).then(r => r.data),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -92,10 +93,10 @@ export default function Tasks() {
     enabled: sharedTab,
   });
 
-  // Silently fetch remaining pages so all Kanban columns are populated
+  // Silently chain-fetch remaining pages so all Kanban columns are populated
   useEffect(() => {
-    if (hasNextPage) fetchNextPage();
-  }, [hasNextPage, fetchNextPage]);
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const isLoading = sharedTab ? sharedLoading : ownLoading;
   const allTasks = sharedTab
