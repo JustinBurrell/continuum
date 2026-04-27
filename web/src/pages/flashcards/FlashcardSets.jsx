@@ -12,10 +12,12 @@ import Skeleton from '@/components/ui/Skeleton';
 import Badge from '@/components/ui/Badge';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelative } from '@/lib/utils';
+import { useToast } from '@/components/ui/Toast';
 
 export default function FlashcardSets() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [deleteConfirm, setDeleteConfirm] = useState(null); // set._id to delete
   const [showCreate, setShowCreate] = useState(false);
   const [newSet, setNewSet] = useState({ title: '', description: '', subject: '' });
@@ -66,7 +68,20 @@ export default function FlashcardSets() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => api.delete(`/flashcard-sets/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['flashcard-sets', search] });
+      const prev = queryClient.getQueryData(['flashcard-sets', search]);
+      queryClient.setQueryData(['flashcard-sets', search], (old) => {
+        if (!old?.pages) return old;
+        return { ...old, pages: old.pages.map(page => ({ ...page, sets: page.sets.filter(s => s._id !== id) })) };
+      });
+      return { prev };
+    },
+    onError: (err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['flashcard-sets', search], ctx.prev);
+      toast({ message: err?.response?.data?.error || 'Failed to delete flashcard set.', type: 'error' });
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] }),
   });
 
   const { data: streakData } = useQuery({

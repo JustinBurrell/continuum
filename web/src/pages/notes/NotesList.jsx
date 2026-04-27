@@ -12,11 +12,13 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import NotesListSkeleton from '@/components/skeletons/NotesListSkeleton';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelative, truncate, stripHtml } from '@/lib/utils';
+import { useToast } from '@/components/ui/Toast';
 
 const NOTE_TYPES = ['all', 'general', 'lecture', 'research', 'todo', 'journal'];
 
 export default function NotesList() {
   const { user } = useAuth();
+  const toast = useToast();
   const [search, setSearch] = useState('');
   const [sharedSearch, setSharedSearch] = useState('');
   const [type, setType] = useState('all');
@@ -95,8 +97,9 @@ export default function NotesList() {
       });
       return { prev };
     },
-    onError: (_err, _id, ctx) => {
+    onError: (err, _id, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(['notes', { search, type }], ctx.prev);
+      toast({ message: err?.response?.data?.error || 'Failed to delete note.', type: 'error' });
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['notes'] }),
   });

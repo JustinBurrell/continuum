@@ -14,6 +14,7 @@ import Skeleton from '@/components/ui/Skeleton';
 import ShareModal from '@/components/ui/ShareModal';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import { formatDate } from '@/lib/utils';
+import { useToast } from '@/components/ui/Toast';
 
 const STATUSES = ['todo', 'in_progress', 'completed'];
 const STATUS_LABELS = { 'todo': 'To Do', 'in_progress': 'In Progress', 'completed': 'Completed' };
@@ -56,6 +57,7 @@ export default function Tasks() {
   const [form, setForm] = useState(emptyForm);
   const [sharedTab, setSharedTab] = useState(false);
   const [viewingTaskId, setViewingTaskId] = useState(location.state?.openTaskId ?? null);
+  const toast = useToast();
   const [viewingCommentId, setViewingCommentId] = useState(location.state?.commentId ?? null);
   const [showSharePicker, setShowSharePicker] = useState(false);
   const [search, setSearch] = useState('');
@@ -142,8 +144,9 @@ export default function Tasks() {
       }
       return { prev };
     },
-    onError: (_err, _vars, ctx) => {
+    onError: (err, _vars, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(taskQueryKey, ctx.prev);
+      toast({ message: err?.response?.data?.error || 'Failed to update task status.', type: 'error' });
     },
     onSettled: invalidateTasks,
   });
@@ -166,15 +169,29 @@ export default function Tasks() {
       });
       return { prev };
     },
-    onError: (_err, _vars, ctx) => {
+    onError: (err, _vars, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(taskQueryKey, ctx.prev);
+      toast({ message: err?.response?.data?.error || 'Failed to update task status.', type: 'error' });
     },
     onSettled: invalidateTasks,
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => api.delete(`/tasks/${id}`),
-    onSuccess: invalidateTasks,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: taskQueryKey });
+      const prev = queryClient.getQueryData(taskQueryKey);
+      queryClient.setQueryData(taskQueryKey, (old) => {
+        if (!old?.pages) return old;
+        return { ...old, pages: old.pages.map(page => ({ ...page, tasks: page.tasks.filter(t => t._id !== id) })) };
+      });
+      return { prev };
+    },
+    onError: (err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(taskQueryKey, ctx.prev);
+      toast({ message: err?.response?.data?.error || 'Failed to delete task.', type: 'error' });
+    },
+    onSettled: invalidateTasks,
   });
 
 
