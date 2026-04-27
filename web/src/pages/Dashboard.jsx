@@ -707,7 +707,7 @@ export default function Dashboard() {
             </div>
           </Section>
 
-          <Section label="Applications" to="/applications" count={appsDashboard?.total || undefined}>
+          <Section label="Applications" to="/applications">
             {/* Pipeline pills */}
             {Object.keys(pipeline).length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
