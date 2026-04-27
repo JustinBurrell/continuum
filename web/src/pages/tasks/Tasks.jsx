@@ -98,7 +98,9 @@ export default function Tasks() {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const isLoading = sharedTab ? sharedLoading : ownLoading;
+  // Hold skeleton until every page is fetched — partial board (e.g. only completed tasks)
+  // is worse UX than a skeleton when tasks span multiple pages
+  const isLoading = sharedTab ? sharedLoading : (ownLoading || isFetchingNextPage);
   const allTasks = sharedTab
     ? (sharedData?.tasks || [])
     : (ownData?.pages.flatMap(p => p.tasks) ?? []);
