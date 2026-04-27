@@ -443,6 +443,7 @@ exports.updateParticipantStatus = async (req, res) => {
 
     await task.save();
     emitTaskUpdate(task, req.user._id);
+    await invalidateSharedTasksCache(task);
 
     res.status(200).json({ success: true, task });
 };

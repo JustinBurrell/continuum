@@ -197,6 +197,7 @@ exports.addContact = async (req, res) => {
     }
 
     const newContact = application.contacts[application.contacts.length - 1];
+    await invalidatePattern(`applications:${req.user._id.toString()}`).catch(() => {});
     res.status(201).json({ success: true, contact: newContact, application });
 };
 
@@ -227,6 +228,7 @@ exports.addReminder = async (req, res) => {
     }
 
     const newReminder = application.followUpReminders[application.followUpReminders.length - 1];
+    await invalidatePattern(`applications:${req.user._id.toString()}`).catch(() => {});
     res.status(201).json({ success: true, reminder: newReminder, application });
 };
 
@@ -253,6 +255,7 @@ exports.deleteContact = async (req, res) => {
     if (!application) {
         return res.status(404).json({ success: false, error: 'Application not found' });
     }
+    await invalidatePattern(`applications:${req.user._id.toString()}`).catch(() => {});
     res.status(200).json({ success: true, application });
 };
 
@@ -268,6 +271,7 @@ exports.deleteReminder = async (req, res) => {
     if (!application) {
         return res.status(404).json({ success: false, error: 'Application not found' });
     }
+    await invalidatePattern(`applications:${req.user._id.toString()}`).catch(() => {});
     res.status(200).json({ success: true, application });
 };
 
