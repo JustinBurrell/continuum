@@ -21,8 +21,8 @@ backend/
   middleware/        Auth guard, rate limiter, file upload handlers
   services/          Groq AI, activity, share, email, push services
   lib/
-    socket.js        Socket.io server — JWT auth, user:id rooms, getIO()
-    cache.js         Redis helpers — getOrSet / invalidate, no-op fallback
+    socket.js        Socket.io server — JWT auth (reads decoded.userId), user:id rooms, getIO()
+    cache.js         Redis helpers — getOrSet / invalidate / invalidatePattern, no-op fallback
     swagger.js       OpenAPI spec — swagger-jsdoc config, served at /api-docs
   tests/
     jest/            Integration test suites (Jest + Supertest + mongodb-memory-server)
@@ -58,6 +58,31 @@ backend/
 | `/api/waitlist`       | Mobile waitlist email capture (public, no auth)      |
 
 All responses follow `{ success: boolean, data? }` or `{ success: false, error: string }`.
+
+---
+
+## Redis caching
+
+`lib/cache.js` exposes `getOrSet(key, ttlSeconds, fetchFn)`, `invalidate(...keys)`, and `invalidatePattern(prefix)`. If `REDIS_URL` is not set, all operations are no-ops — cache misses fall through to MongoDB.
+
+Hot list endpoints are cached per user. `invalidatePattern` (SCAN-based) wipes all search/filter/page variants in a single call on every mutation.
+
+| Endpoint | Cache key prefix | TTL | Cross-user invalidation |
+|---|---|---|---|
+| `GET /conversations` | `conversations:{userId}` | 30s | sendMessage also invalidates recipient's key |
+| `GET /friends` | `friends:{userId}` | 60s | Both sides invalidated on all friend mutations |
+| `GET /notes` | `notes:{userId}` | 60s | updateNote/deleteNote invalidates sharedWith users; shareNote invalidates all friends |
+| `GET /tasks` | `tasks:{userId}` | 30s | All participants' tasks + calendar keys invalidated |
+| `GET /calendar` | `calendar:{userId}` | 30s | Same mutations as tasks |
+| `GET /activity` | `activity:{userId}:first` | 5min | notifyActivityAudience invalidates all visibleTo users |
+| `GET /flashcard-sets` | `flashcardSets:{userId}` | 60s | deleteSet/shareSet invalidates sharedWith users |
+| `GET /applications` | `applications:{userId}` | 120s | Actor only (private data) |
+
+---
+
+## Socket.io rooms
+
+Every client joins `user:{userId}` (where `userId` comes from `decoded.userId` in the JWT) on connection. Controllers emit to `user:{targetUserId}` after writes. The `@socket.io/redis-adapter` routes events across all backend instances.
 
 ---
 
