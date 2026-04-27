@@ -11,6 +11,7 @@ import Skeleton from '@/components/ui/Skeleton';
 import ApplicationsSkeleton from '@/components/skeletons/ApplicationsSkeleton';
 import { useAuth } from '@/context/AuthContext';
 import { formatDate } from '@/lib/utils';
+import { useToast } from '@/components/ui/Toast';
 
 const STAGES = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
 
@@ -50,6 +51,7 @@ function StageBadge({ stage }) {
 
 export default function ApplicationsList() {
   const { user } = useAuth();
+  const toast = useToast();
   const [view, setView] = useState('list');
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState('all');
@@ -65,7 +67,7 @@ export default function ApplicationsList() {
           ...(stageFilter !== 'all' && { status: stageFilter }),
         },
       }).then(r => r.data),
-    keepPreviousData: true,
+    placeholderData: (prev) => prev,
   });
 
   const invalidateApps = () => {
@@ -85,7 +87,21 @@ export default function ApplicationsList() {
 
   const updateStageMutation = useMutation({
     mutationFn: ({ id, status }) => api.put(`/applications/${id}`, { status }),
-    onSuccess: invalidateApps,
+    onMutate: async ({ id, status }) => {
+      const qKey = ['applications', { search, status: stageFilter }];
+      await queryClient.cancelQueries({ queryKey: qKey });
+      const prev = queryClient.getQueryData(qKey);
+      queryClient.setQueryData(qKey, (old) => {
+        if (!old) return old;
+        return { ...old, applications: (old.applications || []).map(a => a._id === id ? { ...a, status } : a) };
+      });
+      return { prev };
+    },
+    onError: (err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['applications', { search, status: stageFilter }], ctx.prev);
+      toast({ message: err?.response?.data?.error || 'Failed to update application stage.', type: 'error' });
+    },
+    onSettled: invalidateApps,
   });
 
   const apps = data?.applications || data?.data || [];

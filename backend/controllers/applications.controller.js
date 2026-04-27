@@ -1,5 +1,7 @@
+const mongoose = require('mongoose');
 const Application = require('../models/Application');
 const posthog = require('../lib/posthog');
+const { getOrSet, invalidatePattern } = require('../lib/cache');
 
 // ============================================================
 // APPLICATIONS CONTROLLER
@@ -49,6 +51,8 @@ exports.createApplication = async (req, res) => {
         resumeUsed: resumeUsed || null,
     });
 
+    await invalidatePattern(`applications:${req.user._id.toString()}`).catch(() => {});
+
     res.status(201).json({ success: true, application });
 };
 
@@ -76,8 +80,12 @@ exports.getApplications = async (req, res) => {
         ];
     }
 
-    const applications = await Application.find(filter)
-        .sort({ createdAt: -1 });
+    const cacheKey = `applications:${req.user._id.toString()}:${search || ''}:${status || ''}`;
+    const fetchApps = () => Application.find(filter).sort({ createdAt: -1 });
+
+    const applications = search
+        ? await fetchApps()
+        : await getOrSet(cacheKey, 120, fetchApps);
 
     res.status(200).json({ success: true, applications });
 };
@@ -125,6 +133,8 @@ exports.updateApplication = async (req, res) => {
         return res.status(404).json({ success: false, error: 'Application not found' });
     }
 
+    await invalidatePattern(`applications:${req.user._id.toString()}`).catch(() => {});
+
     res.status(200).json({ success: true, application });
 };
 
@@ -134,8 +144,10 @@ exports.updateApplication = async (req, res) => {
 // Response: { total, pipeline: { draft, applied, interview, offer, rejected, withdrawn } }
 // ----------------------------------------
 exports.getDashboard = async (req, res) => {
+    // Explicitly cast to ObjectId — aggregate $match does not auto-cast types
+    const userId = new mongoose.Types.ObjectId(req.user._id.toString());
     const counts = await Application.aggregate([
-        { $match: { userId: req.user._id, deletedAt: null } },
+        { $match: { userId, deletedAt: null } },
         { $group: { _id: '$status', count: { $sum: 1 } } },
     ]);
 
@@ -272,5 +284,6 @@ exports.deleteApplication = async (req, res) => {
         return res.status(403).json({ success: false, error: 'Access denied' });
     }
     await Application.deleteOne({ _id: req.params.id });
+    await invalidatePattern(`applications:${req.user._id.toString()}`).catch(() => {});
     res.status(200).json({ success: true, message: 'Application deleted' });
 };

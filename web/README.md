@@ -74,9 +74,37 @@ web/src/
 
 ## State management
 
-- **Server state** is handled by React Query. Each resource (notes, tasks, applications, etc.) has a dedicated query and mutation set. Cache invalidation is colocated with the mutation that causes it.
+- **Server state** is handled by React Query. Each resource has a dedicated query/mutation set. Cache invalidation is colocated with the mutation.
 - **Auth state** lives in `AuthContext` and is initialized from `localStorage` on mount.
-- **Form state** is local to each form component via React Hook Form. No global form state.
+- **Form state** is local to each form via React Hook Form. No global form state.
+
+### React Query config (`lib/queryClient.js`)
+
+| Option | Value | Reason |
+|--------|-------|--------|
+| `staleTime` | 30s | Data is fresh for 30s after fetch — avoids redundant background refetches within a single interaction |
+| `gcTime` | 30min | Data survives a full browsing session in memory — return visits are always instant, no skeleton shown |
+| `retry` | ≤2, skip 401/403/429 | Transient errors retry; auth/rate-limit errors surface immediately |
+
+### Real-time (Socket.io + React Query)
+
+`AuthContext.jsx` connects a Socket.io client on login and registers event handlers. Each handler either writes directly into the React Query cache (for instant display) or calls `invalidateQueries` (for background refetch of the affected resource). Events covered: `new_message`, `friend_request`, `friend_accepted`, `task_updated/created/deleted`, `note_updated/shared/deleted`, `comment_added`, `flashcard_shared/set_deleted`, `activity_updated`, `study:session-complete`.
+
+New messages use direct `setQueryData` (no round-trip) so they appear in ~0ms.
+
+### Viewport-based prefetching
+
+Three files in `lib/` and `hooks/` implement Instagram-style prefetching:
+
+- **`lib/prefetchQueue.js`** — module-level singleton queue. Runs one prefetch at a time via `requestIdleCallback` so prefetching never competes with scroll or animation frames. Duplicate keys are discarded.
+- **`hooks/usePrefetchOnView.js`** — `IntersectionObserver` hook. Enqueues a prefetch when an element enters the viewport. `queryKey` must be memoized at the call site.
+- **`hooks/usePrefetchOnIntent.js`** — hover-intent hook with 150ms delay. Returns `onMouseEnter/onMouseLeave` handlers.
+
+Applied to: `Sidebar.jsx` (nav links, 150ms delay), `MessagesLayout.jsx` (each conversation row prefetches its messages when visible), `Conversation.jsx` (feed-forward: prefetches the next conversation's messages).
+
+### Optimistic updates
+
+All user-triggered mutations update the React Query cache immediately via `onMutate`, roll back on `onError`, and show a toast so the user is never left confused by a silent state change. Covered: note delete, task status/delete, flashcard set delete, application stage update, all friend mutations (accept, decline, cancel, remove, send).
 
 ---
 

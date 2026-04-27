@@ -408,7 +408,7 @@ function AppItem({ app }) {
 /* ────────────────────────────────────────
    Section Header
    ──────────────────────────────────────── */
-function Section({ label, to, children }) {
+function Section({ label, to, children, count }) {
   return (
     <div>
       <div
@@ -419,17 +419,32 @@ function Section({ label, to, children }) {
           marginBottom: 12,
         }}
       >
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.12em',
-            color: '#9CA3AF',
-          }}
-        >
-          {label}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
+              color: '#9CA3AF',
+            }}
+          >
+            {label}
+          </span>
+          {count != null && (
+            <span style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: '#6b21a8',
+              background: 'rgba(107,33,168,0.08)',
+              borderRadius: 20,
+              padding: '1px 8px',
+              lineHeight: 1.5,
+            }}>
+              {count}
+            </span>
+          )}
+        </div>
         {to && (
           <Link
             to={to}
@@ -479,7 +494,6 @@ export default function Dashboard() {
   const { data: notesData, isLoading: notesLoading } = useQuery({
     queryKey: ['notes', { limit: 3 }],
     queryFn: () => api.get('/notes', { params: { limit: 3 } }).then(r => r.data),
-    staleTime: 0,
   });
 
   // Fetch the top open tasks for the Priority Tasks display list (todo only, first 10)

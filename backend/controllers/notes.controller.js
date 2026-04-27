@@ -1,6 +1,6 @@
 const Note = require('../models/Note');
 const { getIO } = require('../lib/socket');
-const { getOrSet, invalidate } = require('../lib/cache');
+const { getOrSet, invalidate, invalidatePattern } = require('../lib/cache');
 const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
 const Friendship = require('../models/Friendship');
@@ -197,6 +197,7 @@ exports.createNote = async (req, res) => {
     });
 
     posthog.capture(req.user, 'note_created', { platform: 'web', source: getNoteSource(note) });
+    await invalidatePattern(`notes:${req.user._id.toString()}`).catch(() => {});
 
     res.status(201).json({ success: true, note });
 };
@@ -234,24 +235,23 @@ exports.getNotes = async (req, res) => {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const [notes, total] = await Promise.all([
-        Note.find(filter)
-            .sort({ isPinned: -1, lastViewedAt: -1, createdAt: -1 }) // pinned first, then most recently viewed/created
-            .skip(skip)
-            .limit(Number(limit)),
-        Note.countDocuments(filter),
-    ]);
+    const cacheKey = `notes:${req.user._id.toString()}:${search || ''}:${type || ''}:${page}:${limit}`;
+    const fetchNotes = async () => {
+        const [notes, total] = await Promise.all([
+            Note.find(filter)
+                .sort({ isPinned: -1, lastViewedAt: -1, createdAt: -1 })
+                .skip(skip)
+                .limit(Number(limit)),
+            Note.countDocuments(filter),
+        ]);
+        return { notes, pagination: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) } };
+    };
 
-    res.status(200).json({
-        success: true,
-        notes,
-        pagination: {
-            total,
-            page: Number(page),
-            limit: Number(limit),
-            pages: Math.ceil(total / Number(limit)),
-        },
-    });
+    const result = search
+        ? await fetchNotes()
+        : await getOrSet(cacheKey, 60, fetchNotes);
+
+    res.status(200).json({ success: true, ...result });
 };
 
 // ----------------------------------------
@@ -333,6 +333,9 @@ exports.updateNote = async (req, res) => {
         });
     } catch (_) {}
 
+    const affectedNoteIds = [req.user._id.toString(), ...(note.sharedWith || []).map(id => id.toString())];
+    await Promise.all(affectedNoteIds.map(id => invalidatePattern(`notes:${id}`))).catch(() => {});
+
     res.status(200).json({ success: true, note });
 };
 
@@ -361,6 +364,9 @@ exports.deleteNote = async (req, res) => {
             io.to(`user:${uid}`).emit('note_deleted', { noteId });
         });
     } catch (_) {}
+
+    const deletedAffectedIds = [req.user._id.toString(), ...(note.sharedWith || []).map(id => id.toString())];
+    await Promise.all(deletedAffectedIds.map(id => invalidatePattern(`notes:${id}`))).catch(() => {});
 
     res.status(200).json({ success: true, message: 'Note deleted' });
 };
@@ -710,17 +716,24 @@ exports.shareNote = async (req, res) => {
             metadata: { noteTitle: note.title },
             shareAll: true,
         }).catch(() => {});
-        // Invalidate shared-notes cache for all friends
+        // Invalidate shared-notes and notes cache for all friends
         Friendship.find({
             $or: [{ user1: req.user._id }, { user2: req.user._id }],
             status: 'accepted',
             deletedAt: null,
-        }).then(friendships => {
-            const keys = friendships.map(f => {
+        }).then(async friendships => {
+            const invalidateKeys = friendships.map(f => {
                 const fid = f.user1.toString() === req.user._id.toString() ? f.user2 : f.user1;
                 return `shared-notes:${fid}`;
             });
-            invalidate(...keys).catch(() => {});
+            invalidate(...invalidateKeys).catch(() => {});
+            const friendIds = friendships.map(f =>
+                f.user1.toString() === req.user._id.toString() ? f.user2.toString() : f.user1.toString()
+            );
+            await Promise.all([
+                invalidatePattern(`notes:${req.user._id.toString()}`),
+                ...friendIds.map(id => invalidatePattern(`notes:${id}`)),
+            ]).catch(() => {});
         }).catch(() => {});
     } else if (visibility === 'specific' && sharedWith?.length > 0) {
         createShareActivities({
@@ -738,6 +751,10 @@ exports.shareNote = async (req, res) => {
         // Notify shared users in real-time + bust their caches
         const keys = sharedWith.map(uid => `shared-notes:${uid}`);
         invalidate(...keys).catch(() => {});
+        await Promise.all([
+            invalidatePattern(`notes:${req.user._id.toString()}`),
+            ...sharedWith.map(uid => invalidatePattern(`notes:${uid.toString()}`)),
+        ]).catch(() => {});
         try {
             const io = getIO();
             sharedWith.forEach(uid => io.to(`user:${uid}`).emit('note_shared', { noteId: note._id.toString() }));

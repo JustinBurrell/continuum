@@ -90,23 +90,25 @@ const pagedFilter = cursorTs
 
 ---
 
-### 2. Redis Caching with Fail-Open Design
+### 2. Redis Caching — Fail-Open + Full Cross-User Invalidation
 
-**What I built:** `getOrSet(key, ttlSeconds, fetchFn)` — check cache, miss → call fetchFn, store, return. `invalidate(...keys)` clears on mutations.
+**What I built:** `getOrSet(key, ttlSeconds, fetchFn)` — check cache, miss → call fetchFn, store, return. `invalidatePattern(prefix)` wipes all search/filter/page variants for a user in one SCAN call on every mutation.
 
 **Why it matters:**
-- If Redis goes down, the app keeps working. Cache misses fall through to MongoDB. No cascade failure.
-- Invalidation on every write prevents stale reads without complex TTL math.
-- Cache keys are scoped per user and per cursor page, so one user's data never bleeds into another's.
+- Fail-open: if Redis goes down, cache misses fall through to MongoDB. No cascade failure.
+- `invalidatePattern` invalidates ALL affected users on every write — not just the actor. On a social platform this matters: if user A shares a note with user B, user B's `notes:` cache is wiped immediately so they see the shared note on next load. Without cross-user invalidation, user B would see stale data until TTL expires.
+- Scoped per user: one user's cache never bleeds into another's.
 
-**Cache keys:**
-- `user:{id}` — 5 min TTL, invalidated on profile update
-- `activity:{userId}:{cursor}:{limit}` — 5 min TTL, invalidated on any activity write
-- `shared-notes:{userId}` — 60s TTL
-- `shared-sets:{userId}` — 60s TTL
-- `shared-tasks:{userId}` — 60s TTL
+**Cache keys (expanded to all hot list endpoints):**
+- `conversations:{userId}` — 30s TTL. sendMessage invalidates both sender and recipient.
+- `friends:{userId}` — 60s TTL. All friend mutations invalidate both sides.
+- `notes:{userId}` — 60s TTL. shareNote(friends) invalidates all accepted friends.
+- `tasks:{userId}` / `calendar:{userId}` — 30s TTL. All participant caches wiped on task mutations.
+- `flashcardSets:{userId}` — 60s TTL. shareSet invalidates all recipients.
+- `activity:{userId}:first` — 5min TTL. `notifyActivityAudience` wipes all users in the `visibleTo` array.
+- `applications:{userId}` — 120s TTL. Actor only (private data).
 
-**Local dev:** If `REDIS_URL` is not set, all cache operations are no-ops. Never blocks development.
+**Local dev:** If `REDIS_URL` is not set, all operations are no-ops. Never blocks development.
 
 ---
 
@@ -161,7 +163,42 @@ if (process.env.REDIS_URL) {
 
 ---
 
-### 6. Four-Tier Rate Limiting
+### 6. Diagnosing Real-Time Failures with Playwright
+
+**What happened:** After building the real-time messaging layer (Socket.io + React Query invalidation), messages weren't appearing in real-time for recipients. Users had to reload. The symptom was clear but the cause wasn't obvious from code review alone.
+
+**How I diagnosed it:** Wrote a Playwright script with two browser sessions. One session (Justin) had a DOM mutation observer attached to the message thread. The other sent a message via raw API call using the second user's token (obtained via a `fetch` login call). Zero mutations fired on Justin's session — the socket event never arrived.
+
+Traced the path: backend emits to `user:${otherParticipantId}`. Socket.io middleware puts the user in `user:${socket.userId}`. Found the mismatch: the JWT payload uses `{ userId: "..." }` but the socket middleware read `decoded.id` — always `undefined`. Every user was joining `user:undefined`. All socket events were silently discarded.
+
+**Fix:** One line: `socket.userId = decoded.userId`. Restores real-time delivery for every feature — messages, friend requests, task updates, note shares, activity, comments.
+
+**Why it matters in interviews:** Shows systematic debugging. Didn't guess — instrumented the actual system to confirm the failure mode before touching code. Playwright as a diagnostic tool, not just a test runner.
+
+---
+
+### 7. Instagram-Style UX: Viewport Prefetching + Optimistic Updates
+
+**What I built:** Three-layer approach to making the app feel instant:
+
+**Layer 1 — Viewport prefetching (Instagram approach):**
+Instagram's engineering blog describes prefetching based on what's *visible*, not what's hovered, using `requestIdleCallback` so prefetches don't compete with scroll/animation frames.
+
+Built a `prefetchQueue.js` singleton that runs one prefetch at a time. Each conversation row in the messages sidebar uses `IntersectionObserver` — when a conversation enters the viewport, its messages are queued for prefetch at idle priority. By the time the user clicks, the data is already in the React Query cache. Zero loading spinner.
+
+Also built `usePrefetchOnIntent` (hover with 150ms delay) for nav links, and feed-forward prefetching in `Conversation.jsx` — when you open a conversation, the next one in the inbox is silently prefetched.
+
+**Layer 2 — Optimistic updates:**
+Every user-triggered mutation updates the React Query cache immediately via `onMutate` before the server responds. Rollback via `onError` with a toast so the user is never left confused by a silent state change. Covered: accept/decline/cancel/remove friend, note delete, task status/delete, flashcard set delete, application stage update.
+
+**Layer 3 — Stale-while-revalidate:**
+`gcTime: 30min` keeps the React Query cache alive for a full session. Return visits to any page are always instant (data shows from cache while background refetch runs silently). Fixed two `staleTime: 0` overrides that were forcing a server round-trip on every component mount. Added `placeholderData: (prev) => prev` to all filtered list queries so changing a search term never blanks the list.
+
+**Why it matters:** These are the same patterns Instagram, TikTok, and Twitter use. The user never sees a loading state they don't have to see.
+
+---
+
+### 9. Four-Tier Rate Limiting
 
 **What I built:**
 - **Global:** 300 req/15 min per IP (all `/api/*`)
@@ -178,7 +215,7 @@ if (process.env.REDIS_URL) {
 
 ---
 
-### 7. Encrypted Google OAuth Tokens at Rest
+### 10. Encrypted Google OAuth Tokens at Rest
 
 **What I built:** Google access/refresh tokens encrypted with AES-256-GCM before storage on User document. Key stored in `GOOGLE_TOKEN_ENCRYPTION_KEY` env var (separate from DB credentials).
 
@@ -189,7 +226,7 @@ if (process.env.REDIS_URL) {
 
 ---
 
-### 8. Denormalization for Performance
+### 11. Denormalization for Performance
 
 **Pattern:** Frequently-accessed data is cached on parent documents to avoid N+1 queries.
 
@@ -202,7 +239,7 @@ if (process.env.REDIS_URL) {
 
 ---
 
-### 9. Polymorphic Comments with Threading
+### 12. Polymorphic Comments with Threading
 
 **What I built:** Single Comment collection with `targetType` (note/flashcardSet/task) + `targetId`. Compound index on `(targetId, targetType, createdAt)`. Threading via `parentId`. Likes stored as array of user IDs on the comment.
 
@@ -213,7 +250,7 @@ if (process.env.REDIS_URL) {
 
 ---
 
-### 10. 30-Day Account Deletion Grace Period
+### 13. 30-Day Account Deletion Grace Period
 
 **What I built:** `DELETE /api/auth/me` sets `pendingDeletion: true` and `scheduledDeletionAt: now + 30 days`. Logging in during grace period restores the account. Hard deletion (cascade to all data + Cloudinary) runs lazily when `scheduledDeletionAt` passes.
 

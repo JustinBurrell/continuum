@@ -3,6 +3,7 @@ const Message = require('../models/Message');
 const Friendship = require('../models/Friendship');
 const { getIO } = require('../lib/socket');
 const posthog = require('../lib/posthog');
+const { getOrSet, invalidatePattern } = require('../lib/cache');
 
 // ============================================================
 // CONVERSATIONS CONTROLLER
@@ -50,6 +51,10 @@ exports.startConversation = async (req, res) => {
     }).populate('participants', 'username firstName lastName avatarUrl roles');
 
     if (existing) {
+        await Promise.all([
+            invalidatePattern(`conversations:${userId.toString()}`),
+            invalidatePattern(`conversations:${participantId}`),
+        ]).catch(() => {});
         return res.status(200).json({ success: true, conversation: existing });
     }
 
@@ -63,6 +68,11 @@ exports.startConversation = async (req, res) => {
     });
 
     await conversation.populate('participants', 'username firstName lastName avatarUrl roles');
+
+    await Promise.all([
+        invalidatePattern(`conversations:${userId.toString()}`),
+        invalidatePattern(`conversations:${participantId}`),
+    ]).catch(() => {});
 
     res.status(201).json({ success: true, conversation });
 };
@@ -88,19 +98,24 @@ exports.getConversations = async (req, res) => {
         filter.$and = [{ participants: { $in: matchingIds } }];
     }
 
-    const conversations = await Conversation.find(filter)
-        .populate('participants', 'username firstName lastName avatarUrl roles')
-        .sort({ 'lastMessage.sentAt': -1, createdAt: -1 });
+    const fetchConversations = async () => {
+        const convs = await Conversation.find(filter)
+            .populate('participants', 'username firstName lastName avatarUrl roles')
+            .sort({ 'lastMessage.sentAt': -1, createdAt: -1 });
+        return convs.map(conv => {
+            const raw = conv.toObject();
+            const entry = raw.unreadCounts?.find(u => u.userId?.toString() === userId.toString());
+            raw.unreadCount = entry?.count ?? 0;
+            return raw;
+        });
+    };
 
-    // Pluck the current user's unread count from the array and expose as a scalar
-    const serialized = conversations.map(conv => {
-        const raw = conv.toObject();
-        const entry = raw.unreadCounts?.find(u => u.userId?.toString() === userId.toString());
-        raw.unreadCount = entry?.count ?? 0;
-        return raw;
-    });
+    // Search queries bypass cache (dynamic); non-search uses 30s cache per user
+    const conversations = search
+        ? await fetchConversations()
+        : await getOrSet(`conversations:${userId.toString()}`, 30, fetchConversations);
 
-    res.status(200).json({ success: true, conversations: serialized });
+    res.status(200).json({ success: true, conversations });
 };
 
 // ----------------------------------------
@@ -128,6 +143,8 @@ exports.deleteConversation = async (req, res) => {
         conversation.deletedFor.push(userId);
         await conversation.save();
     }
+
+    await invalidatePattern(`conversations:${userId.toString()}`).catch(() => {});
 
     res.status(200).json({ success: true });
 };
@@ -205,6 +222,11 @@ exports.sendMessage = async (req, res) => {
             });
         } catch (_) {}
     }
+
+    await Promise.all([
+        invalidatePattern(`conversations:${userId.toString()}`),
+        otherParticipantId ? invalidatePattern(`conversations:${otherParticipantId.toString()}`) : Promise.resolve(),
+    ]).catch(() => {});
 
     res.status(201).json({ success: true, message });
 };

@@ -6,7 +6,7 @@ const posthog = require('../lib/posthog');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { getIO } = require('../lib/socket');
 const { sendShareMessage } = require('../services/share.service');
-const { getOrSet, invalidate } = require('../lib/cache');
+const { getOrSet, invalidate, invalidatePattern } = require('../lib/cache');
 
 // ============================================================
 // FLASHCARD SETS CONTROLLER
@@ -80,6 +80,8 @@ exports.createSet = async (req, res) => {
         isAIGenerated: false,
     });
 
+    await invalidatePattern(`flashcardSets:${req.user._id.toString()}`).catch(() => {});
+
     res.status(201).json({ success: true, set });
 };
 
@@ -95,21 +97,20 @@ exports.getSets = async (req, res) => {
     if (search) filter.title = { $regex: search, $options: 'i' };
 
     const skip = (Number(page) - 1) * Number(limit);
-    const [sets, total] = await Promise.all([
-        FlashcardSet.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
-        FlashcardSet.countDocuments(filter),
-    ]);
+    const cacheKey = `flashcardSets:${req.user._id.toString()}:${search || ''}:${page}:${limit}`;
+    const fetchSets = async () => {
+        const [sets, total] = await Promise.all([
+            FlashcardSet.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+            FlashcardSet.countDocuments(filter),
+        ]);
+        return { sets, pagination: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) } };
+    };
 
-    res.status(200).json({
-        success: true,
-        sets,
-        pagination: {
-            total,
-            page: Number(page),
-            limit: Number(limit),
-            pages: Math.ceil(total / Number(limit)),
-        },
-    });
+    const result = search
+        ? await fetchSets()
+        : await getOrSet(cacheKey, 60, fetchSets);
+
+    res.status(200).json({ success: true, ...result });
 };
 
 // ----------------------------------------
@@ -182,6 +183,9 @@ exports.deleteSet = async (req, res) => {
             io.to(`user:${uid}`).emit('flashcard_set_deleted', { setId });
         });
     } catch (_) {}
+
+    const deletedSetIds = [req.user._id.toString(), ...(set.sharedWith || []).map(id => id.toString())];
+    await Promise.all(deletedSetIds.map(id => invalidatePattern(`flashcardSets:${id}`))).catch(() => {});
 
     res.status(200).json({ success: true, message: 'Flashcard set deleted' });
 };
@@ -565,16 +569,26 @@ exports.shareSet = async (req, res) => {
                 deletedAt: null,
             });
             const cacheKeys = [];
+            const friendIds = [];
             friendships.forEach(f => {
                 const friendId = f.user1.toString() === req.user._id.toString() ? f.user2 : f.user1;
                 io.to(`user:${friendId}`).emit('flashcard_shared', { setId: set._id.toString() });
                 cacheKeys.push(`shared-sets:${friendId}`);
+                friendIds.push(friendId.toString());
             });
             invalidate(...cacheKeys).catch(() => {});
+            await Promise.all([
+                invalidatePattern(`flashcardSets:${req.user._id.toString()}`),
+                ...friendIds.map(id => invalidatePattern(`flashcardSets:${id}`)),
+            ]).catch(() => {});
         } catch (_) {}
     } else if (visibility === 'specific' && sharedWith?.length > 0) {
         // Already emitted socket above — just bust their caches
         invalidate(...sharedWith.map(uid => `shared-sets:${uid}`)).catch(() => {});
+        await Promise.all([
+            invalidatePattern(`flashcardSets:${req.user._id.toString()}`),
+            ...sharedWith.map(uid => invalidatePattern(`flashcardSets:${uid.toString()}`)),
+        ]).catch(() => {});
     }
 
     if (visibility === 'private' && existing.visibility !== 'private') {

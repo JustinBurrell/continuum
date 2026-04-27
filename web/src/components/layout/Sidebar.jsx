@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, BookOpen, CheckSquare, Calendar,
@@ -9,17 +10,18 @@ import AppAvatar from '@/components/ui/AppAvatar';
 import queryClient from '@/lib/queryClient';
 import api from '@/lib/api';
 
-// Prefetch map — each nav item fires this on hover so data is warm before the click.
-// staleTime matches the per-query overrides used on each page.
+// Prefetch map — fires after 150ms hover so fast mouse movements don't trigger requests.
+// Query keys must match the initial keys used by each page on first mount.
 const prefetchMap = {
-  '/notes':        () => queryClient.prefetchInfiniteQuery({ queryKey: ['notes', { search: '', type: 'all' }], queryFn: ({ pageParam }) => api.get('/notes', { params: { page: pageParam, limit: 20 } }).then(r => r.data), initialPageParam: 1, getNextPageParam: (lastPage) => { const p = lastPage?.pagination; return p && p.page < p.pages ? p.page + 1 : undefined; }, staleTime: 60_000 }),
-  '/flashcards':   () => queryClient.prefetchQuery({ queryKey: ['flashcard-sets'], queryFn: () => api.get('/flashcard-sets').then(r => r.data), staleTime: 120_000 }),
-  '/tasks':        () => queryClient.prefetchQuery({ queryKey: ['tasks'], queryFn: () => api.get('/tasks').then(r => r.data), staleTime: 30_000 }),
+  '/notes':        () => queryClient.prefetchInfiniteQuery({ queryKey: ['notes', { search: '', type: '' }], queryFn: ({ pageParam = 1 }) => api.get('/notes', { params: { page: pageParam, limit: 20 } }).then(r => r.data), initialPageParam: 1, getNextPageParam: (last) => { const p = last?.pagination; return p && p.page < p.pages ? p.page + 1 : undefined; }, staleTime: 60_000 }),
+  '/flashcards':   () => queryClient.prefetchInfiniteQuery({ queryKey: ['flashcard-sets', ''], queryFn: ({ pageParam = 1 }) => api.get('/flashcard-sets', { params: { page: pageParam, limit: 20 } }).then(r => r.data), initialPageParam: 1, getNextPageParam: (last) => { const p = last?.pagination; return p && p.page < p.pages ? p.page + 1 : undefined; }, staleTime: 120_000 }),
+  '/tasks':        () => queryClient.prefetchInfiniteQuery({ queryKey: ['tasks', 'mine', ''], queryFn: ({ pageParam = 1 }) => api.get('/tasks', { params: { page: pageParam, limit: 100 } }).then(r => r.data), initialPageParam: 1, getNextPageParam: (last) => { const p = last?.pagination; return p && p.page < p.pages ? p.page + 1 : undefined; }, staleTime: 30_000 }),
   '/friends':      () => queryClient.prefetchQuery({ queryKey: ['friends', ''], queryFn: () => api.get('/friends').then(r => r.data), staleTime: 120_000 }),
-  '/applications': () => queryClient.prefetchQuery({ queryKey: ['applications'], queryFn: () => api.get('/applications').then(r => r.data), staleTime: 60_000 }),
+  '/applications': () => queryClient.prefetchQuery({ queryKey: ['applications', { search: '', status: '' }], queryFn: () => api.get('/applications').then(r => r.data), staleTime: 120_000 }),
   '/resumes':      () => queryClient.prefetchQuery({ queryKey: ['resumes', ''], queryFn: () => api.get('/resumes').then(r => r.data), staleTime: 300_000 }),
-  '/activity':     () => queryClient.prefetchQuery({ queryKey: ['activity'], queryFn: () => api.get('/activity').then(r => r.data), staleTime: 30_000 }),
-  '/messages':     () => queryClient.prefetchQuery({ queryKey: ['conversations'], queryFn: () => api.get('/conversations').then(r => r.data), staleTime: 15_000 }),
+  '/activity':     () => queryClient.prefetchInfiniteQuery({ queryKey: ['activity', { actSearch: '' }], queryFn: ({ pageParam }) => api.get('/activity', { params: pageParam ? { cursor: pageParam } : {} }).then(r => r.data), initialPageParam: null, getNextPageParam: (last) => last?.nextCursor ?? null, staleTime: 60_000 }),
+  '/messages':     () => queryClient.prefetchQuery({ queryKey: ['conversations'], queryFn: () => api.get('/conversations').then(r => r.data), staleTime: 30_000 }),
+  '/calendar':     () => queryClient.prefetchQuery({ queryKey: ['calendar'], queryFn: () => api.get('/calendar').then(r => r.data), staleTime: 30_000 }),
 };
 
 const navGroups = [
@@ -54,6 +56,7 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.name || user?.username;
+  const prefetchTimer = useRef(null);
 
   return (
     <aside
@@ -105,12 +108,14 @@ export default function Sidebar() {
                       if (!e.currentTarget.getAttribute('data-active')) {
                         e.currentTarget.style.background = 'rgba(107,33,168,0.08)';
                       }
-                      prefetchMap[to]?.();
+                      clearTimeout(prefetchTimer.current);
+                      prefetchTimer.current = setTimeout(() => prefetchMap[to]?.(), 150);
                     }}
                     onMouseLeave={e => {
                       if (!e.currentTarget.getAttribute('data-active')) {
                         e.currentTarget.style.background = 'transparent';
                       }
+                      clearTimeout(prefetchTimer.current);
                     }}
                   >
                     {({ isActive }) => (

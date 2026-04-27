@@ -3,7 +3,7 @@ const Friendship = require('../models/Friendship');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { sendShareMessage } = require('../services/share.service');
 const { getIO } = require('../lib/socket');
-const { getOrSet, invalidate } = require('../lib/cache');
+const { getOrSet, invalidate, invalidatePattern } = require('../lib/cache');
 const posthog = require('../lib/posthog');
 
 // Emit an event to all task participants/owner except the actor
@@ -27,14 +27,23 @@ function emitTaskUpdate(task, actorId) {
     emitToTaskAudience('task_updated', task, actorId);
 }
 
-// Bust the shared-tasks cache for every participant on a task
-function invalidateSharedTasksCache(task) {
-    if (!task.participants?.length) return;
-    const keys = task.participants.map(p => {
-        const uid = p.userId ? p.userId.toString() : p.toString();
-        return `shared-tasks:${uid}`;
-    });
-    invalidate(...keys).catch(() => {});
+// Bust all task/calendar caches for the owner + every participant on a task
+async function invalidateSharedTasksCache(task) {
+    const participantIds = (task.participants || []).map(p =>
+        p.userId ? p.userId.toString() : p.toString()
+    );
+    const ownerId = task.userId?.toString();
+    const all = [...new Set([ownerId, ...participantIds].filter(Boolean))];
+
+    // Legacy shared-tasks keys
+    if (participantIds.length) {
+        invalidate(...participantIds.map(uid => `shared-tasks:${uid}`)).catch(() => {});
+    }
+    // Invalidate list + calendar caches for all affected users
+    await Promise.all([
+        ...all.map(uid => invalidatePattern(`tasks:${uid}`)),
+        ...all.map(uid => invalidatePattern(`calendar:${uid}`)),
+    ]).catch(() => {});
 }
 
 // ============================================================
@@ -126,7 +135,13 @@ exports.createTask = async (req, res) => {
 
         // Notify participants in real-time — task just appeared in their shared list
         emitToTaskAudience('task_created', task, req.user._id);
-        invalidateSharedTasksCache(task);
+        await invalidateSharedTasksCache(task);
+    } else {
+        // Non-shared task — only invalidate owner's caches
+        await Promise.all([
+            invalidatePattern(`tasks:${req.user._id.toString()}`),
+            invalidatePattern(`calendar:${req.user._id.toString()}`),
+        ]).catch(() => {});
     }
 
     res.status(201).json({ success: true, task });
@@ -158,21 +173,22 @@ exports.getTasks = async (req, res) => {
     }
 
     const skip = (Number(page) - 1) * Number(limit);
-    const [tasks, total] = await Promise.all([
-        Task.find(filter).sort({ dueDate: 1 }).skip(skip).limit(Number(limit)),
-        Task.countDocuments(filter),
-    ]);
+    const cacheKey = `tasks:${req.user._id.toString()}:mine:${search || ''}:${status || ''}:${page}:${limit}`;
+    const fetchTasks = async () => {
+        const [tasks, total] = await Promise.all([
+            Task.find(filter).sort({ dueDate: 1 }).skip(skip).limit(Number(limit)),
+            Task.countDocuments(filter),
+        ]);
+        return { tasks, pagination: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) } };
+    };
 
-    res.status(200).json({
-        success: true,
-        tasks,
-        pagination: {
-            total,
-            page: Number(page),
-            limit: Number(limit),
-            pages: Math.ceil(total / Number(limit)),
-        },
-    });
+    // Bypass cache when filtering by date range, type, or priority (too many variants)
+    const bypassCache = !!(search || startDate || endDate || type || priority);
+    const result = bypassCache
+        ? await fetchTasks()
+        : await getOrSet(cacheKey, 30, fetchTasks);
+
+    res.status(200).json({ success: true, ...result });
 };
 
 // ----------------------------------------

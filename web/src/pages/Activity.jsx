@@ -40,6 +40,7 @@ export default function Activity() {
       }).then(r => r.data),
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 60_000,
+    placeholderData: (prev) => prev,
   });
 
   const activities = data?.pages.flatMap(p => p.feed) ?? [];

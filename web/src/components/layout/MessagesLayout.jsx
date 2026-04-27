@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Search, MessageCircle } from 'lucide-react';
@@ -11,9 +11,72 @@ import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
 import { formatRelative, truncate } from '@/lib/utils';
 import Conversation from '@/pages/messages/Conversation';
+import { usePrefetchOnView } from '@/hooks/usePrefetchOnView';
 
 function getName(p) {
   return [p?.firstName, p?.lastName].filter(Boolean).join(' ') || p?.username || 'Unknown';
+}
+
+function ConversationRow({ conv, user, isActive, onClick }) {
+  const other = conv.participants?.find(p => p._id !== user?._id);
+  const lastMsg = conv.lastMessage;
+  const isLastMine = lastMsg?.senderId === user?._id;
+  const hasUnread = !isActive && (conv.unreadCount || 0) > 0;
+
+  // Stable memoized key so usePrefetchOnView doesn't reinstall the observer
+  const msgQueryKey = useMemo(() => ['messages', conv._id, ''], [conv._id]);
+  const msgRef = usePrefetchOnView(
+    msgQueryKey,
+    () => api.get(`/conversations/${conv._id}/messages`).then(r => r.data)
+  );
+
+  return (
+    <div
+      ref={msgRef}
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        height: 72,
+        padding: '0 16px',
+        cursor: 'pointer',
+        background: isActive ? 'rgba(107,33,168,0.08)' : 'transparent',
+        borderLeft: isActive ? '3px solid #6b21a8' : '3px solid transparent',
+        borderBottom: '1px solid #E5E7EB',
+        transition: 'background 0.15s',
+        boxSizing: 'border-box',
+      }}
+      onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F8F9FA'; }}
+      onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+    >
+      <AppAvatar name={getName(other)} src={other?.avatarUrl} size="md" />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+          <p style={{ fontSize: 14, fontWeight: hasUnread ? 700 : 600, color: hasUnread ? '#111827' : '#374151', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {getName(other)}
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: 8 }}>
+            {lastMsg?.sentAt && (
+              <span style={{ fontSize: 11, color: hasUnread ? '#6b21a8' : '#9CA3AF', fontWeight: hasUnread ? 600 : 400 }}>{formatRelative(lastMsg.sentAt)}</span>
+            )}
+            {hasUnread && (
+              <div style={{ minWidth: 18, height: 18, borderRadius: 9, background: '#6b21a8', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', flexShrink: 0 }}>
+                {conv.unreadCount > 99 ? '99+' : conv.unreadCount}
+              </div>
+            )}
+          </div>
+        </div>
+        {lastMsg ? (
+          <p style={{ fontSize: 12, color: hasUnread ? '#4B5563' : '#9CA3AF', fontWeight: hasUnread ? 500 : 400, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {isLastMine ? 'You: ' : ''}{previewText(lastMsg.content)}
+          </p>
+        ) : (
+          <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0, fontStyle: 'italic' }}>No messages yet</p>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function previewText(content) {
@@ -137,18 +200,16 @@ export default function MessagesLayout() {
             </div>
           ) : (
             filteredConversations.map(conv => {
-              const other = conv.participants?.find(p => p._id !== user?._id);
-              const lastMsg = conv.lastMessage;
-              const isLastMine = lastMsg?.senderId === user?._id;
               const isActive = activeConversationId === conv._id;
               const hasUnread = !isActive && (conv.unreadCount || 0) > 0;
-
               return (
-                <div
+                <ConversationRow
                   key={conv._id}
+                  conv={conv}
+                  user={user}
+                  isActive={isActive}
                   onClick={() => {
                     setActiveConversationId(conv._id);
-                    // Optimistically clear unread badge on open
                     if (hasUnread) {
                       queryClient.setQueryData(['conversations'], old => {
                         if (!old) return old;
@@ -161,54 +222,7 @@ export default function MessagesLayout() {
                       });
                     }
                   }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    height: 72,
-                    padding: '0 16px',
-                    cursor: 'pointer',
-                    background: isActive ? 'rgba(107,33,168,0.08)' : 'transparent',
-                    borderLeft: isActive ? '3px solid #6b21a8' : '3px solid transparent',
-                    borderBottom: '1px solid #E5E7EB',
-                    transition: 'background 0.15s',
-                    boxSizing: 'border-box',
-                  }}
-                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#F8F9FA'; }}
-                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <AppAvatar name={getName(other)} src={other?.avatarUrl} size="md" />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                      <p style={{ fontSize: 14, fontWeight: hasUnread ? 700 : 600, color: hasUnread ? '#111827' : '#374151', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {getName(other)}
-                      </p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: 8 }}>
-                        {lastMsg?.sentAt && (
-                          <span style={{ fontSize: 11, color: hasUnread ? '#6b21a8' : '#9CA3AF', fontWeight: hasUnread ? 600 : 400 }}>{formatRelative(lastMsg.sentAt)}</span>
-                        )}
-                        {hasUnread && (
-                          <div style={{
-                            minWidth: 18, height: 18, borderRadius: 9,
-                            background: '#6b21a8', color: '#fff',
-                            fontSize: 10, fontWeight: 700,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            padding: '0 5px', flexShrink: 0,
-                          }}>
-                            {conv.unreadCount > 99 ? '99+' : conv.unreadCount}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {lastMsg ? (
-                      <p style={{ fontSize: 12, color: hasUnread ? '#4B5563' : '#9CA3AF', fontWeight: hasUnread ? 500 : 400, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {isLastMine ? 'You: ' : ''}{previewText(lastMsg.content)}
-                      </p>
-                    ) : (
-                      <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0, fontStyle: 'italic' }}>No messages yet</p>
-                    )}
-                  </div>
-                </div>
+                />
               );
             })
           )}

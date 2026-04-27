@@ -71,6 +71,20 @@ export default function Conversation({ conversationId }) {
 
   const msgQueryKey = ['messages', conversationId, msgSearch];
 
+  // Feed-forward prefetch: when the user is reading a conversation, silently
+  // prefetch the next one in the inbox so clicking it is instant.
+  useEffect(() => {
+    const conversations = convData?.conversations || [];
+    const idx = conversations.findIndex(c => c._id === conversationId);
+    const next = conversations[idx + 1];
+    if (!next) return;
+    const nextKey = ['messages', next._id, ''];
+    queryClient.prefetchQuery({
+      queryKey: nextKey,
+      queryFn: () => api.get(`/conversations/${next._id}/messages`).then(r => r.data),
+    });
+  }, [conversationId, convData]);
+
   const deleteMessageMutation = useMutation({
     mutationFn: (messageId) => api.delete(`/messages/${messageId}`),
     onMutate: async (messageId) => {

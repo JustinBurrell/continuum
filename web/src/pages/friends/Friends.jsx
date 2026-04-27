@@ -12,6 +12,7 @@ import Skeleton from '@/components/ui/Skeleton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import FriendsSkeleton from '@/components/skeletons/FriendsSkeleton';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
+import { useToast } from '@/components/ui/Toast';
 
 export default function Friends() {
   const [tab, setTab] = useState('friends');
@@ -20,27 +21,32 @@ export default function Friends() {
   const [removeConfirm, setRemoveConfirm] = useState(null); // { id, name }
   const navigate = useNavigate();
   const { user } = useAuth();
+  const toast = useToast();
 
   const { data: friendsData, isLoading: friendsLoading } = useQuery({
     queryKey: ['friends', friendsSearch],
     queryFn: () => api.get('/friends', { params: friendsSearch ? { search: friendsSearch } : {} }).then(r => r.data),
     staleTime: 120_000,
+    placeholderData: (prev) => prev,
   });
 
   const { data: requestsData, isLoading: requestsLoading } = useQuery({
     queryKey: ['friend-requests'],
     queryFn: () => api.get('/friends?status=pending').then(r => r.data),
+    placeholderData: (prev) => prev,
   });
 
   const { data: sentData, isLoading: sentLoading } = useQuery({
     queryKey: ['friend-requests-sent'],
     queryFn: () => api.get('/friends?status=sent').then(r => r.data),
+    placeholderData: (prev) => prev,
   });
 
   const { data: searchData } = useQuery({
     queryKey: ['user-search', searchQ],
     queryFn: () => api.get('/users/search', { params: { q: searchQ } }).then(r => r.data),
     enabled: searchQ.length >= 2,
+    placeholderData: (prev) => prev,
   });
 
   const invalidateFriends = () => {
@@ -55,26 +61,79 @@ export default function Friends() {
       posthog.capture('friend_request_sent', { platform: 'web' });
       invalidateFriends();
     },
+    onError: (err) => toast({ message: err?.response?.data?.error || 'Could not send friend request.', type: 'error' }),
   });
 
   const acceptMutation = useMutation({
     mutationFn: (id) => api.put(`/friends/request/${id}`, { action: 'accept' }),
-    onSuccess: invalidateFriends,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['friend-requests'] });
+      const prev = queryClient.getQueryData(['friend-requests']);
+      queryClient.setQueryData(['friend-requests'], (old) => old
+        ? { ...old, friends: (old.friends || []).filter(f => f._id !== id) }
+        : old
+      );
+      return { prev };
+    },
+    onError: (err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['friend-requests'], ctx.prev);
+      toast({ message: err?.response?.data?.error || 'Could not accept request.', type: 'error' });
+    },
+    onSettled: invalidateFriends,
   });
 
   const declineMutation = useMutation({
     mutationFn: (id) => api.put(`/friends/request/${id}`, { action: 'reject' }),
-    onSuccess: invalidateFriends,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['friend-requests'] });
+      const prev = queryClient.getQueryData(['friend-requests']);
+      queryClient.setQueryData(['friend-requests'], (old) => old
+        ? { ...old, friends: (old.friends || []).filter(f => f._id !== id) }
+        : old
+      );
+      return { prev };
+    },
+    onError: (err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['friend-requests'], ctx.prev);
+      toast({ message: err?.response?.data?.error || 'Could not decline request.', type: 'error' });
+    },
+    onSettled: invalidateFriends,
   });
 
   const removeMutation = useMutation({
     mutationFn: (id) => api.delete(`/friends/${id}`),
-    onSuccess: invalidateFriends,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['friends', friendsSearch] });
+      const prev = queryClient.getQueryData(['friends', friendsSearch]);
+      queryClient.setQueryData(['friends', friendsSearch], (old) => old
+        ? { ...old, friends: (old.friends || []).filter(f => f._id !== id) }
+        : old
+      );
+      return { prev };
+    },
+    onError: (err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['friends', friendsSearch], ctx.prev);
+      toast({ message: err?.response?.data?.error || 'Could not remove friend.', type: 'error' });
+    },
+    onSettled: invalidateFriends,
   });
 
   const cancelMutation = useMutation({
     mutationFn: (id) => api.delete('/friends/request/' + id),
-    onSuccess: invalidateFriends,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['friend-requests-sent'] });
+      const prev = queryClient.getQueryData(['friend-requests-sent']);
+      queryClient.setQueryData(['friend-requests-sent'], (old) => old
+        ? { ...old, friends: (old.friends || []).filter(f => f._id !== id) }
+        : old
+      );
+      return { prev };
+    },
+    onError: (err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['friend-requests-sent'], ctx.prev);
+      toast({ message: err?.response?.data?.error || 'Could not cancel request.', type: 'error' });
+    },
+    onSettled: invalidateFriends,
   });
 
   const startDMMutation = useMutation({

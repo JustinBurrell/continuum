@@ -2,6 +2,7 @@ const Friendship = require('../models/Friendship');
 const User = require('../models/User');
 const { getIO } = require('../lib/socket');
 const posthog = require('../lib/posthog');
+const { getOrSet, invalidatePattern } = require('../lib/cache');
 
 // ============================================================
 // FRIENDS CONTROLLER
@@ -75,6 +76,11 @@ exports.sendRequest = async (req, res) => {
     // Notify recipient in real-time
     try { getIO().to(`user:${recipientId}`).emit('friend_request', { friendship }); } catch (_) {}
 
+    await Promise.all([
+        invalidatePattern(`friends:${req.user._id.toString()}`),
+        invalidatePattern(`friends:${recipientId}`),
+    ]).catch(() => {});
+
     res.status(201).json({ success: true, friendship });
 };
 
@@ -119,6 +125,11 @@ exports.respondToRequest = async (req, res) => {
         try { getIO().to(`user:${friendship.requestedBy}`).emit('friend_accepted', { friendship }); } catch (_) {}
     }
 
+    await Promise.all([
+        invalidatePattern(`friends:${req.user._id.toString()}`),
+        invalidatePattern(`friends:${friendship.requestedBy.toString()}`),
+    ]).catch(() => {});
+
     res.status(200).json({ success: true, friendship });
 };
 
@@ -162,10 +173,15 @@ exports.getFriends = async (req, res) => {
         }
     }
 
-    const friendships = await Friendship.find(filter)
+    const cacheKey = `friends:${userId.toString()}:${status || 'accepted'}:${search || ''}`;
+    const fetchFriends = () => Friendship.find(filter)
         .populate('user1', 'username firstName lastName avatarUrl roles')
         .populate('user2', 'username firstName lastName avatarUrl roles')
         .sort({ updatedAt: -1 });
+
+    const friendships = search
+        ? await fetchFriends()
+        : await getOrSet(cacheKey, 60, fetchFriends);
 
     res.status(200).json({ success: true, friends: friendships });
 };
@@ -194,6 +210,14 @@ exports.removeFriend = async (req, res) => {
 
     posthog.capture(req.user, 'friend_removed', { friendshipId: friendship._id.toString() });
 
+    const otherId = friendship.user1.toString() === userId
+        ? friendship.user2.toString()
+        : friendship.user1.toString();
+    await Promise.all([
+        invalidatePattern(`friends:${userId}`),
+        invalidatePattern(`friends:${otherId}`),
+    ]).catch(() => {});
+
     res.status(200).json({ success: true, message: 'Friend removed' });
 };
 
@@ -220,6 +244,14 @@ exports.cancelRequest = async (req, res) => {
 
     friendship.deletedAt = new Date();
     await friendship.save();
+
+    const cancelOtherId = friendship.user1.toString() === userId.toString()
+        ? friendship.user2.toString()
+        : friendship.user1.toString();
+    await Promise.all([
+        invalidatePattern(`friends:${userId.toString()}`),
+        invalidatePattern(`friends:${cancelOtherId}`),
+    ]).catch(() => {});
 
     res.status(200).json({ success: true, message: 'Friend request cancelled' });
 };
