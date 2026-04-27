@@ -25,22 +25,26 @@ export default function Friends() {
     queryKey: ['friends', friendsSearch],
     queryFn: () => api.get('/friends', { params: friendsSearch ? { search: friendsSearch } : {} }).then(r => r.data),
     staleTime: 120_000,
+    placeholderData: (prev) => prev,
   });
 
   const { data: requestsData, isLoading: requestsLoading } = useQuery({
     queryKey: ['friend-requests'],
     queryFn: () => api.get('/friends?status=pending').then(r => r.data),
+    placeholderData: (prev) => prev,
   });
 
   const { data: sentData, isLoading: sentLoading } = useQuery({
     queryKey: ['friend-requests-sent'],
     queryFn: () => api.get('/friends?status=sent').then(r => r.data),
+    placeholderData: (prev) => prev,
   });
 
   const { data: searchData } = useQuery({
     queryKey: ['user-search', searchQ],
     queryFn: () => api.get('/users/search', { params: { q: searchQ } }).then(r => r.data),
     enabled: searchQ.length >= 2,
+    placeholderData: (prev) => prev,
   });
 
   const invalidateFriends = () => {

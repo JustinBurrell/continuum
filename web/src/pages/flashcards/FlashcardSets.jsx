@@ -40,6 +40,7 @@ export default function FlashcardSets() {
       return p && p.page < p.pages ? p.page + 1 : undefined;
     },
     staleTime: 120_000,
+    placeholderData: (prev) => prev,
     enabled: !sharedTab,
   });
 
@@ -48,6 +49,7 @@ export default function FlashcardSets() {
     queryFn: () =>
       api.get('/flashcard-sets/shared', { params: search ? { search } : {} }).then(r => r.data),
     staleTime: 120_000,
+    placeholderData: (prev) => prev,
     enabled: sharedTab,
   });
 

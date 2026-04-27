@@ -65,7 +65,7 @@ export default function ApplicationsList() {
           ...(stageFilter !== 'all' && { status: stageFilter }),
         },
       }).then(r => r.data),
-    keepPreviousData: true,
+    placeholderData: (prev) => prev,
   });
 
   const invalidateApps = () => {

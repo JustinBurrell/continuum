@@ -77,6 +77,7 @@ export default function Tasks() {
       const p = lastPage?.pagination;
       return p && p.page < p.pages ? p.page + 1 : undefined;
     },
+    placeholderData: (prev) => prev,
     enabled: !sharedTab,
   });
 
@@ -85,6 +86,7 @@ export default function Tasks() {
     queryKey: ['tasks', 'shared', search],
     queryFn: () =>
       api.get('/tasks/shared', { params: search ? { search } : {} }).then(r => r.data),
+    placeholderData: (prev) => prev,
     enabled: sharedTab,
   });
 

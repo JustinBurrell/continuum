@@ -60,6 +60,7 @@ export default function NotesList() {
       return p && p.page < p.pages ? p.page + 1 : undefined;
     },
     staleTime: 60_000,
+    placeholderData: (prev) => prev,
     enabled: !sharedTab,
   });
 
@@ -71,6 +72,7 @@ export default function NotesList() {
         params: { ...(sharedSearch && { search: sharedSearch }) },
       }).then(r => r.data),
     staleTime: 60_000,
+    placeholderData: (prev) => prev,
     enabled: sharedTab,
   });
 
