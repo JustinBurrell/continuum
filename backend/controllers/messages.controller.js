@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
+const { invalidatePattern } = require('../lib/cache');
 
 // ============================================================
 // MESSAGES CONTROLLER
@@ -59,6 +60,8 @@ exports.markAsRead = async (req, res) => {
         unreadEntry.count = 0;
         await conversation.save();
     }
+
+    await invalidatePattern(`conversations:${userId.toString()}`).catch(() => {});
 
     res.status(200).json({ success: true, message });
 };

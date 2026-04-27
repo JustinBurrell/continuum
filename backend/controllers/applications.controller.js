@@ -1,5 +1,6 @@
 const Application = require('../models/Application');
 const posthog = require('../lib/posthog');
+const { getOrSet, invalidatePattern } = require('../lib/cache');
 
 // ============================================================
 // APPLICATIONS CONTROLLER
@@ -49,6 +50,8 @@ exports.createApplication = async (req, res) => {
         resumeUsed: resumeUsed || null,
     });
 
+    await invalidatePattern(`applications:${req.user._id.toString()}`).catch(() => {});
+
     res.status(201).json({ success: true, application });
 };
 
@@ -76,8 +79,12 @@ exports.getApplications = async (req, res) => {
         ];
     }
 
-    const applications = await Application.find(filter)
-        .sort({ createdAt: -1 });
+    const cacheKey = `applications:${req.user._id.toString()}:${search || ''}:${status || ''}`;
+    const fetchApps = () => Application.find(filter).sort({ createdAt: -1 });
+
+    const applications = search
+        ? await fetchApps()
+        : await getOrSet(cacheKey, 120, fetchApps);
 
     res.status(200).json({ success: true, applications });
 };
@@ -124,6 +131,8 @@ exports.updateApplication = async (req, res) => {
     if (!application) {
         return res.status(404).json({ success: false, error: 'Application not found' });
     }
+
+    await invalidatePattern(`applications:${req.user._id.toString()}`).catch(() => {});
 
     res.status(200).json({ success: true, application });
 };
@@ -272,5 +281,6 @@ exports.deleteApplication = async (req, res) => {
         return res.status(403).json({ success: false, error: 'Access denied' });
     }
     await Application.deleteOne({ _id: req.params.id });
+    await invalidatePattern(`applications:${req.user._id.toString()}`).catch(() => {});
     res.status(200).json({ success: true, message: 'Application deleted' });
 };

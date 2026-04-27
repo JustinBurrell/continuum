@@ -1,4 +1,5 @@
 const Task = require('../models/Task');
+const { getOrSet } = require('../lib/cache');
 
 // ============================================================
 // CALENDAR CONTROLLER
@@ -47,41 +48,25 @@ exports.getCalendar = async (req, res) => {
 
     const userId = req.user._id;
     const now = new Date();
+    const cacheKey = `calendar:${userId.toString()}:${fromDate.toISOString().split('T')[0]}:${toDate.toISOString().split('T')[0]}`;
 
-    // Owned tasks in date range
-    const ownedTasks = await Task.find({
-        userId,
-        deletedAt: null,
-        dueDate: { $gte: fromDate, $lte: toDate },
-    }).sort({ dueDate: 1 });
+    const fetchCalendar = async () => {
+        const [ownedTasks, participantTasks, overdue] = await Promise.all([
+            Task.find({ userId, deletedAt: null, dueDate: { $gte: fromDate, $lte: toDate } }).sort({ dueDate: 1 }),
+            Task.find({ isShared: true, 'participants.userId': userId, userId: { $ne: userId }, deletedAt: null, dueDate: { $gte: fromDate, $lte: toDate } }).sort({ dueDate: 1 }),
+            Task.find({ $or: [{ userId }, { isShared: true, 'participants.userId': userId }], deletedAt: null, status: { $ne: 'completed' }, dueDate: { $lt: new Date() } }).sort({ dueDate: 1 }),
+        ]);
 
-    // Shared tasks user is a participant in (exclude owned to avoid duplication)
-    const participantTasks = await Task.find({
-        isShared: true,
-        'participants.userId': userId,
-        userId: { $ne: userId },
-        deletedAt: null,
-        dueDate: { $gte: fromDate, $lte: toDate },
-    }).sort({ dueDate: 1 });
+        const days = {};
+        for (const task of [...ownedTasks, ...participantTasks]) {
+            const dateKey = task.dueDate.toISOString().split('T')[0];
+            if (!days[dateKey]) days[dateKey] = [];
+            days[dateKey].push(task);
+        }
+        return { days, overdue };
+    };
 
-    // Group all in-range tasks by YYYY-MM-DD
-    const days = {};
-    for (const task of [...ownedTasks, ...participantTasks]) {
-        const dateKey = task.dueDate.toISOString().split('T')[0];
-        if (!days[dateKey]) days[dateKey] = [];
-        days[dateKey].push(task);
-    }
-
-    // Overdue: past due, not completed, not deleted — owned + participated
-    const overdue = await Task.find({
-        $or: [
-            { userId },
-            { isShared: true, 'participants.userId': userId },
-        ],
-        deletedAt: null,
-        status: { $ne: 'completed' },
-        dueDate: { $lt: now },
-    }).sort({ dueDate: 1 });
+    const { days, overdue } = await getOrSet(cacheKey, 30, fetchCalendar);
 
     res.status(200).json({
         success: true,
