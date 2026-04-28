@@ -106,9 +106,11 @@ export default function Tasks() {
     : (ownData?.pages.flatMap(p => p.tasks) ?? []);
 
   const invalidateTasks = () => {
-    queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    queryClient.invalidateQueries({ queryKey: ['calendar'] });
-    queryClient.invalidateQueries({ queryKey: ['activity'] });
+    queryClient.invalidateQueries({ queryKey: ['tasks'], refetchType: 'all' });
+    queryClient.invalidateQueries({ queryKey: ['tasks-count'], refetchType: 'all' });
+    queryClient.invalidateQueries({ queryKey: ['tasks-dashboard-display'], refetchType: 'all' });
+    queryClient.invalidateQueries({ queryKey: ['calendar'], refetchType: 'all' });
+    queryClient.invalidateQueries({ queryKey: ['activity'], refetchType: 'all' });
   };
 
   const createMutation = useMutation({
@@ -132,6 +134,8 @@ export default function Tasks() {
         });
       }
       queryClient.invalidateQueries({ queryKey: ['tasks'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['tasks-count'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['tasks-dashboard-display'], refetchType: 'all' });
       queryClient.invalidateQueries({ queryKey: ['calendar'], refetchType: 'all' });
       queryClient.invalidateQueries({ queryKey: ['activity'], refetchType: 'all' });
       setShowCreate(false);
