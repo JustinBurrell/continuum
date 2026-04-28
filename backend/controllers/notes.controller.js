@@ -1,6 +1,6 @@
 const Note = require('../models/Note');
 const { getIO } = require('../lib/socket');
-const { getOrSet, invalidate, invalidatePattern } = require('../lib/cache');
+const { invalidate, invalidatePattern } = require('../lib/cache');
 const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
 const Friendship = require('../models/Friendship');
@@ -249,9 +249,7 @@ exports.getNotes = async (req, res) => {
         return { notes, pagination: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) } };
     };
 
-    const result = search
-        ? await fetchNotes()
-        : await getOrSet(cacheKey, 60, fetchNotes);
+    const result = await fetchNotes();
 
     res.status(200).json({ success: true, ...result });
 };
@@ -829,9 +827,7 @@ exports.getSharedNotes = async (req, res) => {
         return { notes };
     };
 
-    const result = !search
-        ? await getOrSet(`shared-notes:${userId}`, 60, fetchNotes)
-        : await fetchNotes();
+    const result = await fetchNotes();
 
     res.status(200).json({ success: true, ...result });
 };

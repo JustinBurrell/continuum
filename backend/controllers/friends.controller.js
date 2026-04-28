@@ -2,7 +2,7 @@ const Friendship = require('../models/Friendship');
 const User = require('../models/User');
 const { getIO } = require('../lib/socket');
 const posthog = require('../lib/posthog');
-const { getOrSet, invalidatePattern } = require('../lib/cache');
+const { invalidatePattern } = require('../lib/cache');
 
 // ============================================================
 // FRIENDS CONTROLLER
@@ -179,9 +179,7 @@ exports.getFriends = async (req, res) => {
         .populate('user2', 'username firstName lastName avatarUrl roles')
         .sort({ updatedAt: -1 });
 
-    const friendships = search
-        ? await fetchFriends()
-        : await getOrSet(cacheKey, 60, fetchFriends);
+    const friendships = await fetchFriends();
 
     res.status(200).json({ success: true, friends: friendships });
 };

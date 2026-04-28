@@ -6,7 +6,7 @@ const posthog = require('../lib/posthog');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { getIO } = require('../lib/socket');
 const { sendShareMessage } = require('../services/share.service');
-const { getOrSet, invalidate, invalidatePattern } = require('../lib/cache');
+const { invalidate, invalidatePattern } = require('../lib/cache');
 
 // ============================================================
 // FLASHCARD SETS CONTROLLER
@@ -106,9 +106,7 @@ exports.getSets = async (req, res) => {
         return { sets, pagination: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) } };
     };
 
-    const result = search
-        ? await fetchSets()
-        : await getOrSet(cacheKey, 60, fetchSets);
+    const result = await fetchSets();
 
     res.status(200).json({ success: true, ...result });
 };
@@ -650,9 +648,7 @@ exports.getSharedSets = async (req, res) => {
         return { sets };
     };
 
-    const result = !search
-        ? await getOrSet(`shared-sets:${userId}`, 60, fetchSets)
-        : await fetchSets();
+    const result = await fetchSets();
 
     res.status(200).json({ success: true, ...result });
 };

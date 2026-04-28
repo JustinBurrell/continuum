@@ -3,7 +3,7 @@ const Message = require('../models/Message');
 const Friendship = require('../models/Friendship');
 const { getIO } = require('../lib/socket');
 const posthog = require('../lib/posthog');
-const { getOrSet, invalidatePattern } = require('../lib/cache');
+const { invalidatePattern } = require('../lib/cache');
 
 // ============================================================
 // CONVERSATIONS CONTROLLER
@@ -111,9 +111,7 @@ exports.getConversations = async (req, res) => {
     };
 
     // Search queries bypass cache (dynamic); non-search uses 30s cache per user
-    const conversations = search
-        ? await fetchConversations()
-        : await getOrSet(`conversations:${userId.toString()}`, 30, fetchConversations);
+    const conversations = await fetchConversations();
 
     res.status(200).json({ success: true, conversations });
 };

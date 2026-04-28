@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Application = require('../models/Application');
 const posthog = require('../lib/posthog');
-const { getOrSet, invalidatePattern } = require('../lib/cache');
+const { invalidatePattern } = require('../lib/cache');
 
 // ============================================================
 // APPLICATIONS CONTROLLER
@@ -83,9 +83,7 @@ exports.getApplications = async (req, res) => {
     const cacheKey = `applications:${req.user._id.toString()}:${search || ''}:${status || ''}`;
     const fetchApps = () => Application.find(filter).sort({ createdAt: -1 });
 
-    const applications = search
-        ? await fetchApps()
-        : await getOrSet(cacheKey, 120, fetchApps);
+    const applications = await fetchApps();
 
     res.status(200).json({ success: true, applications });
 };
