@@ -106,5 +106,7 @@ exports.deleteMessage = async (req, res) => {
         await message.save();
     }
 
+    await invalidatePattern(`conversations:${userId.toString()}`).catch(() => {});
+
     res.status(200).json({ success: true });
 };

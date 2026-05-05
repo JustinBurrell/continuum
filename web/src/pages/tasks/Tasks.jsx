@@ -106,16 +106,38 @@ export default function Tasks() {
     : (ownData?.pages.flatMap(p => p.tasks) ?? []);
 
   const invalidateTasks = () => {
-    queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    queryClient.invalidateQueries({ queryKey: ['calendar'] });
-    queryClient.invalidateQueries({ queryKey: ['activity'] });
+    queryClient.invalidateQueries({ queryKey: ['tasks'], refetchType: 'all' });
+    queryClient.invalidateQueries({ queryKey: ['tasks-count'], refetchType: 'all' });
+    queryClient.invalidateQueries({ queryKey: ['tasks-dashboard-display'], refetchType: 'all' });
+    queryClient.invalidateQueries({ queryKey: ['calendar'], refetchType: 'all' });
+    queryClient.invalidateQueries({ queryKey: ['activity'], refetchType: 'all' });
   };
 
   const createMutation = useMutation({
     mutationFn: (payload) => api.post('/tasks', payload),
-    onSuccess: () => {
+    onSuccess: (data) => {
       posthog.capture('task_created', { platform: 'web' });
-      invalidateTasks();
+      const task = data?.task;
+      if (task) {
+        queryClient.setQueryData(['tasks', 'mine', search], (old) => {
+          if (!old?.pages?.length) return old;
+          return {
+            ...old,
+            pages: [{
+              ...old.pages[0],
+              tasks: [task, ...old.pages[0].tasks],
+              pagination: old.pages[0].pagination
+                ? { ...old.pages[0].pagination, total: old.pages[0].pagination.total + 1 }
+                : old.pages[0].pagination,
+            }, ...old.pages.slice(1)],
+          };
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['tasks'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['tasks-count'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['tasks-dashboard-display'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['calendar'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['activity'], refetchType: 'all' });
       setShowCreate(false);
       setForm(emptyForm);
     },

@@ -41,7 +41,6 @@ export default function FlashcardSets() {
       const p = lastPage?.pagination;
       return p && p.page < p.pages ? p.page + 1 : undefined;
     },
-    staleTime: 120_000,
     placeholderData: (prev) => prev,
     enabled: !sharedTab,
   });
@@ -50,7 +49,6 @@ export default function FlashcardSets() {
     queryKey: ['flashcard-sets-shared', search],
     queryFn: () =>
       api.get('/flashcard-sets/shared', { params: search ? { search } : {} }).then(r => r.data),
-    staleTime: 120_000,
     placeholderData: (prev) => prev,
     enabled: sharedTab,
   });
@@ -59,8 +57,24 @@ export default function FlashcardSets() {
 
   const createMutation = useMutation({
     mutationFn: (payload) => api.post('/flashcard-sets', payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
+    onSuccess: (data) => {
+      const set = data?.set;
+      if (set) {
+        queryClient.setQueryData(['flashcard-sets', search], (old) => {
+          if (!old?.pages?.length) return old;
+          return {
+            ...old,
+            pages: [{
+              ...old.pages[0],
+              sets: [set, ...old.pages[0].sets],
+              pagination: old.pages[0].pagination
+                ? { ...old.pages[0].pagination, total: old.pages[0].pagination.total + 1 }
+                : old.pages[0].pagination,
+            }, ...old.pages.slice(1)],
+          };
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['flashcard-sets'], refetchType: 'all' });
       setShowCreate(false);
       setNewSet({ title: '', description: '', subject: '' });
     },

@@ -6,7 +6,7 @@ const posthog = require('../lib/posthog');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { getIO } = require('../lib/socket');
 const { sendShareMessage } = require('../services/share.service');
-const { getOrSet, invalidate, invalidatePattern } = require('../lib/cache');
+const { invalidate, invalidatePattern } = require('../lib/cache');
 
 // ============================================================
 // FLASHCARD SETS CONTROLLER
@@ -106,9 +106,7 @@ exports.getSets = async (req, res) => {
         return { sets, pagination: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) } };
     };
 
-    const result = search
-        ? await fetchSets()
-        : await getOrSet(cacheKey, 60, fetchSets);
+    const result = await fetchSets();
 
     res.status(200).json({ success: true, ...result });
 };
@@ -257,6 +255,8 @@ exports.duplicateSet = async (req, res) => {
         options: { sort: { order: 1 } },
     });
 
+    await invalidatePattern(`flashcardSets:${req.user._id.toString()}`).catch(() => {});
+
     res.status(201).json({ success: true, set: populatedCopy });
 };
 
@@ -290,6 +290,8 @@ exports.updateSet = async (req, res) => {
     if (!set) {
         return res.status(404).json({ success: false, error: 'Flashcard set not found' });
     }
+
+    await invalidatePattern(`flashcardSets:${req.user._id.toString()}`).catch(() => {});
 
     res.status(200).json({ success: true, set });
 };
@@ -328,6 +330,8 @@ exports.addCard = async (req, res) => {
     // Increment totalCards on the set
     await FlashcardSet.findByIdAndUpdate(set._id, { $inc: { totalCards: 1 } });
 
+    await invalidatePattern(`flashcardSets:${req.user._id.toString()}`).catch(() => {});
+
     res.status(201).json({ success: true, card });
 };
 
@@ -363,6 +367,8 @@ exports.updateCard = async (req, res) => {
     if (!card) {
         return res.status(404).json({ success: false, error: 'Flashcard not found' });
     }
+
+    await invalidatePattern(`flashcardSets:${req.user._id.toString()}`).catch(() => {});
 
     res.status(200).json({ success: true, card });
 };
@@ -642,9 +648,7 @@ exports.getSharedSets = async (req, res) => {
         return { sets };
     };
 
-    const result = !search
-        ? await getOrSet(`shared-sets:${userId}`, 60, fetchSets)
-        : await fetchSets();
+    const result = await fetchSets();
 
     res.status(200).json({ success: true, ...result });
 };
@@ -677,6 +681,8 @@ exports.deleteCard = async (req, res) => {
 
     // Keep totalCards accurate
     await FlashcardSet.findByIdAndUpdate(set._id, { $inc: { totalCards: -1 } });
+
+    await invalidatePattern(`flashcardSets:${req.user._id.toString()}`).catch(() => {});
 
     res.status(200).json({ success: true, message: 'Flashcard deleted' });
 };

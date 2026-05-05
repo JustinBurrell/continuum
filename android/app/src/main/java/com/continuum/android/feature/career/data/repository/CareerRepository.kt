@@ -59,7 +59,9 @@ class CareerRepository @Inject constructor(
     )
 
     suspend fun createApplication(company: String, position: String, status: String, jobUrl: String?): Result<Application> = runCatching {
-        api.createApplication(CreateApplicationRequestDto(company, position, status, jobUrl)).application.toDomain()
+        val app = api.createApplication(CreateApplicationRequestDto(company, position, status, jobUrl)).application
+        appDao.insert(app.toDomain().toEntity())
+        app.toDomain()
     }
 
     suspend fun updateApplication(id: String, status: String?, notes: String?): Result<Application> = runCatching {

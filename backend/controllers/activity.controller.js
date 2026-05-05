@@ -1,5 +1,4 @@
 const Activity = require('../models/Activity');
-const { getOrSet } = require('../lib/cache');
 
 // ============================================================
 // ACTIVITY CONTROLLER
@@ -99,7 +98,7 @@ exports.getActivityFeed = async (req, res) => {
     // Cache each cursor page for 5 minutes — pages are stable (new items always land above the cursor)
     // total is always fresh (not cached) so it never goes stale after a seed re-run or new activity
     const [result, total] = await Promise.all([
-        useCache ? getOrSet(cacheKey, 300, fetchFeed) : fetchFeed(),
+        fetchFeed(),
         Activity.countDocuments(countFilter),
     ]);
 

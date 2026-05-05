@@ -1,6 +1,6 @@
 const Note = require('../models/Note');
 const { getIO } = require('../lib/socket');
-const { getOrSet, invalidate, invalidatePattern } = require('../lib/cache');
+const { invalidate, invalidatePattern } = require('../lib/cache');
 const FlashcardSet = require('../models/FlashcardSet');
 const Flashcard = require('../models/Flashcard');
 const Friendship = require('../models/Friendship');
@@ -141,6 +141,8 @@ exports.uploadNote = async (req, res) => {
 
     posthog.capture(req.user, 'note_created', { platform: 'web', source: getNoteSource(note) });
 
+    await invalidatePattern(`notes:${req.user._id.toString()}`).catch(() => {});
+
     res.status(201).json({ success: true, note });
 };
 
@@ -247,9 +249,7 @@ exports.getNotes = async (req, res) => {
         return { notes, pagination: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / Number(limit)) } };
     };
 
-    const result = search
-        ? await fetchNotes()
-        : await getOrSet(cacheKey, 60, fetchNotes);
+    const result = await fetchNotes();
 
     res.status(200).json({ success: true, ...result });
 };
@@ -432,8 +432,9 @@ exports.importNote = async (req, res) => {
     });
 
     posthog.capture(req.user, 'note_created', { platform: 'web', source: getNoteSource(note) });
-
     posthog.capture(req.user, 'google_doc_imported', { noteId: note._id.toString() });
+
+    await invalidatePattern(`notes:${req.user._id.toString()}`).catch(() => {});
 
     res.status(201).json({ success: true, note });
 };
@@ -486,6 +487,9 @@ exports.refreshNote = async (req, res) => {
         { content, pdfUrl: cloudinaryResult.secure_url, pdfPublicId: cloudinaryResult.public_id, lastSyncedAt: new Date() },
         { new: true }
     );
+
+    const refreshAffectedIds = [req.user._id.toString(), ...(note.sharedWith || []).map(id => id.toString())];
+    await Promise.all(refreshAffectedIds.map(id => invalidatePattern(`notes:${id}`))).catch(() => {});
 
     res.status(200).json({ success: true, note: updatedNote });
 };
@@ -823,9 +827,7 @@ exports.getSharedNotes = async (req, res) => {
         return { notes };
     };
 
-    const result = !search
-        ? await getOrSet(`shared-notes:${userId}`, 60, fetchNotes)
-        : await fetchNotes();
+    const result = await fetchNotes();
 
     res.status(200).json({ success: true, ...result });
 };

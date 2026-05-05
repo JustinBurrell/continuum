@@ -59,7 +59,7 @@ export default function NoteDetail() {
   const deleteMutation = useMutation({
     mutationFn: () => api.delete(`/notes/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      queryClient.invalidateQueries({ queryKey: ['notes'], refetchType: 'all' });
       navigate('/notes');
     },
   });

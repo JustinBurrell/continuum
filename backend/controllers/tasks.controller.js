@@ -3,7 +3,7 @@ const Friendship = require('../models/Friendship');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { sendShareMessage } = require('../services/share.service');
 const { getIO } = require('../lib/socket');
-const { getOrSet, invalidate, invalidatePattern } = require('../lib/cache');
+const { invalidate, invalidatePattern } = require('../lib/cache');
 const posthog = require('../lib/posthog');
 
 // Emit an event to all task participants/owner except the actor
@@ -183,10 +183,7 @@ exports.getTasks = async (req, res) => {
     };
 
     // Bypass cache when filtering by date range, type, or priority (too many variants)
-    const bypassCache = !!(search || startDate || endDate || type || priority);
-    const result = bypassCache
-        ? await fetchTasks()
-        : await getOrSet(cacheKey, 30, fetchTasks);
+    const result = await fetchTasks();
 
     res.status(200).json({ success: true, ...result });
 };
@@ -331,9 +328,7 @@ exports.getSharedTasks = async (req, res) => {
         return { tasks };
     };
 
-    const result = !search
-        ? await getOrSet(`shared-tasks:${userId}`, 60, fetchTasks)
-        : await fetchTasks();
+    const result = await fetchTasks();
 
     res.status(200).json({ success: true, ...result });
 };
@@ -443,6 +438,7 @@ exports.updateParticipantStatus = async (req, res) => {
 
     await task.save();
     emitTaskUpdate(task, req.user._id);
+    await invalidateSharedTasksCache(task);
 
     res.status(200).json({ success: true, task });
 };

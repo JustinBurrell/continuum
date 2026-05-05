@@ -1,5 +1,4 @@
 const Task = require('../models/Task');
-const { getOrSet } = require('../lib/cache');
 
 // ============================================================
 // CALENDAR CONTROLLER
@@ -66,7 +65,7 @@ exports.getCalendar = async (req, res) => {
         return { days, overdue };
     };
 
-    const { days, overdue } = await getOrSet(cacheKey, 30, fetchCalendar);
+    const { days, overdue } = await fetchCalendar();
 
     res.status(200).json({
         success: true,

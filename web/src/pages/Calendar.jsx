@@ -494,8 +494,10 @@ export default function Calendar() {
         open={!!viewingTaskId}
         onClose={() => setViewingTaskId(null)}
         onUpdated={() => {
-          queryClient.invalidateQueries({ queryKey: ['tasks'] });
-          queryClient.invalidateQueries({ queryKey: ['calendar'] });
+          queryClient.invalidateQueries({ queryKey: ['tasks'], refetchType: 'all' });
+          queryClient.invalidateQueries({ queryKey: ['tasks-count'], refetchType: 'all' });
+          queryClient.invalidateQueries({ queryKey: ['tasks-dashboard-display'], refetchType: 'all' });
+          queryClient.invalidateQueries({ queryKey: ['calendar'], refetchType: 'all' });
         }}
       />
     </div>
