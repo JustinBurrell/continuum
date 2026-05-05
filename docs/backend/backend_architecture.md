@@ -69,7 +69,7 @@ backend/
 │   ├── sync.routes.js            # /api/sync (stretch)
 │   └── activity.routes.js        # /api/activity (stretch)
 ├── lib/
-│   ├── cache.js                  # getOrSet / invalidate / invalidatePattern — Redis read-through cache with fail-open
+│   ├── cache.js                  # invalidate / invalidatePattern — Redis client (JWT revocation + AI rate limiting only)
 │   ├── socket.js                 # Socket.io init + getIO() singleton
 │   ├── posthog.js                # PostHog server-side capture wrapper (skips demo/seed users)
 │   └── logger.js                 # Pino logger
@@ -421,11 +421,70 @@ npm install cloudinary multer
 
 ---
 
+## Redis
+
+Redis is used for two things only — JWT revocation and per-user AI rate limiting. It is **not** used for list/CRUD caching (removed — MongoDB is fast enough at this scale and caching was causing stale data bugs).
+
+### What Redis does
+
+| Purpose | Key pattern | TTL |
+|---------|-------------|-----|
+| Revoked JWT sessions | `revoked_session:{sessionId}` | Matches JWT expiry |
+| AI rate limiting | `ai:{type}:{userId}:{date}` | 24 hours |
+
+If Redis is unavailable, both fail open — the app continues to work, rate limiting is just skipped.
+
+### Running Redis locally
+
+Redis is required locally if you want AI rate limiting to work. Without it the app still runs — rate limits are just not enforced.
+
+**Check if Redis is installed:**
+```bash
+redis-server --version
+```
+
+**Install via Homebrew (Mac):**
+```bash
+brew install redis
+```
+
+**Start Redis (runs in the background, survives restarts):**
+```bash
+brew services start redis
+```
+
+**Verify it's up:**
+```bash
+redis-cli ping   # should print: PONG
+```
+
+**Stop Redis:**
+```bash
+brew services stop redis
+```
+
+**Then set in `backend/.env`:**
+```
+REDIS_URL=redis://localhost:6379
+```
+
+**Check status anytime:**
+```bash
+brew services info redis
+```
+
+### Production
+
+Redis is provisioned as an add-on in Railway/Render. The platform injects `REDIS_URL` automatically — no manual configuration needed.
+
+---
+
 ## Third-Party Services Summary
 
 | Service | Purpose | Env Vars | When Needed |
 |---------|---------|----------|-------------|
 | MongoDB Atlas | Database | `MONGODB_URI` | Session 1 (ready) |
+| Redis | JWT revocation + AI rate limiting | `REDIS_URL` | Optional locally; required in prod |
 | Cloudinary | Resume PDF storage | `CLOUDINARY_*` | Session 2 (DB-8) / Session 5 (API-16) |
 | Google OAuth | Authentication + Drive/Docs linking | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Session 3 (API-2) |
 | Google Drive API | Note import | Uses Google OAuth tokens | Session 3 (API-5) |
