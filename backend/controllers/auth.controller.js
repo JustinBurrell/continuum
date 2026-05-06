@@ -599,6 +599,14 @@ exports.updateProfile = async (req, res) => {
         }
     }
 
+    if (req.body.onboardingGoal !== undefined) {
+        const validGoals = ['study_smarter', 'track_job_search', 'manage_coursework', 'collaborate', 'not_sure'];
+        if (!validGoals.includes(req.body.onboardingGoal)) {
+            return res.status(400).json({ success: false, error: 'Invalid onboardingGoal value' });
+        }
+        updates.onboardingGoal = req.body.onboardingGoal;
+    }
+
     // Avatar upload — if a file was attached, upload to Cloudinary and set avatarUrl
     if (req.file) {
         const userId = req.user._id.toString();
@@ -949,4 +957,75 @@ exports.restoreAccount = async (req, res) => {
     // Re-fetch the clean user object to return
     const restored = await User.findById(req.user._id);
     res.status(200).json({ success: true, user: restored });
+};
+
+// ----------------------------------------
+// POST /api/auth/me/onboarding/complete
+// Purpose: Mark the profile setup portion of onboarding as done
+// Idempotent — safe to call if already true
+// ----------------------------------------
+exports.completeOnboarding = async (req, res) => {
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: { onboardingCompleted: true } },
+        { new: true }
+    );
+    res.status(200).json({ success: true, user });
+};
+
+// ----------------------------------------
+// POST /api/auth/me/tour/complete
+// Purpose: Mark the feature tour as done
+// Idempotent — safe to call if already true
+// ----------------------------------------
+exports.completeTour = async (req, res) => {
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: { tourCompleted: true } },
+        { new: true }
+    );
+    res.status(200).json({ success: true, user });
+};
+
+// ----------------------------------------
+// PATCH /api/auth/me/tour/reset
+// Purpose: Allow the user to replay the feature tour from Profile settings
+// Sets tourCompleted: false so the tour re-opens on the next dashboard visit
+// ----------------------------------------
+exports.resetTour = async (req, res) => {
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: { tourCompleted: false } },
+        { new: true }
+    );
+    res.status(200).json({ success: true, user });
+};
+
+// ----------------------------------------
+// PATCH /api/auth/me/onboarding/checklist
+// Purpose: Mark individual checklist items as completed (one-way ratchet)
+// Body: { noteCreated?, flashcardsGenerated?, taskAdded?, friendConnected?, dismissed? }
+// Only fields with value === true are written — false values are silently ignored
+// so a completed item can never be un-checked by a stale request body.
+// ----------------------------------------
+exports.updateOnboardingChecklist = async (req, res) => {
+    const allowed = ['noteCreated', 'flashcardsGenerated', 'taskAdded', 'friendConnected', 'dismissed'];
+    const setFields = {};
+
+    for (const field of allowed) {
+        if (req.body[field] === true) {
+            setFields[`onboardingChecklist.${field}`] = true;
+        }
+    }
+
+    if (Object.keys(setFields).length === 0) {
+        return res.status(400).json({ success: false, error: 'No valid checklist fields provided' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: setFields },
+        { new: true }
+    );
+    res.status(200).json({ success: true, user });
 };
