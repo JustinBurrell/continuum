@@ -7,6 +7,7 @@ import { marked } from 'marked';
 import { ArrowLeft, Save, X } from 'lucide-react';
 import api from '@/lib/api';
 import queryClient from '@/lib/queryClient';
+import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import NoteToolbar from './NoteToolbar';
@@ -20,6 +21,7 @@ export default function NoteEditor() {
   const navigate = useNavigate();
   const isEdit = Boolean(id);
   const toast = useToast();
+  const { user, updateUser } = useAuth();
 
   const [form, setForm] = useState({
     title: '',
@@ -97,6 +99,12 @@ export default function NoteEditor() {
       }
       // Background invalidation for eventual consistency
       queryClient.invalidateQueries({ queryKey: ['notes'] });
+      // Mark "create a note" checklist item on first new note save
+      if (!isEdit && !user?.onboardingChecklist?.noteCreated) {
+        api.patch('/auth/me/onboarding/checklist', { noteCreated: true })
+          .then(r => updateUser({ onboardingChecklist: r.data.user?.onboardingChecklist }))
+          .catch(() => {});
+      }
       navigate(noteId ? '/notes/view' : '/notes', noteId ? { state: { id: noteId } } : undefined);
     },
     onError: (err) => {

@@ -20,7 +20,7 @@ export default function Friends() {
   const [friendsSearch, setFriendsSearch] = useState('');
   const [removeConfirm, setRemoveConfirm] = useState(null); // { id, name }
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const toast = useToast();
 
   const { data: friendsData, isLoading: friendsLoading } = useQuery({
@@ -74,6 +74,13 @@ export default function Friends() {
         : old
       );
       return { prev };
+    },
+    onSuccess: () => {
+      if (!user?.onboardingChecklist?.friendConnected) {
+        api.patch('/auth/me/onboarding/checklist', { friendConnected: true })
+          .then(r => updateUser({ onboardingChecklist: r.data.user?.onboardingChecklist }))
+          .catch(() => {});
+      }
     },
     onError: (err, _id, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(['friend-requests'], ctx.prev);
