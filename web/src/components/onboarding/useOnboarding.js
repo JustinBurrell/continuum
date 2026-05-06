@@ -4,26 +4,21 @@ import api from '@/lib/api';
 import { posthog } from '@/lib/posthog';
 import { getOrderedTourSteps } from './tourConfig';
 
-// Build the flat step list for this user.
-// isReplay = true → skip all profile setup steps, go straight to tour.
 function computeSteps(user, isReplay) {
   const steps = [];
 
   if (!isReplay) {
     steps.push({ kind: 'profile', key: 'welcome' });
     steps.push({ kind: 'profile', key: 'goal' });
-    // Name/username step only for Google OAuth users — their username is auto-generated
-    // and needs confirmation. Email/password users explicitly chose their name at signup.
+    // Name step only for Google OAuth — their username is auto-generated
     if (user?.googleId) {
       steps.push({ kind: 'profile', key: 'name' });
     }
     steps.push({ kind: 'profile', key: 'photo-bio' });
     steps.push({ kind: 'profile', key: 'social-links' });
-    // Skip notifications if the browser has already granted permission
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
       steps.push({ kind: 'profile', key: 'notifications' });
     }
-    // Skip Google Drive if the user has already linked their Google account
     if (!user?.googleId) {
       steps.push({ kind: 'profile', key: 'google-drive' });
     }
@@ -35,7 +30,6 @@ function computeSteps(user, isReplay) {
   });
 
   steps.push({ kind: 'done' });
-
   return steps;
 }
 
@@ -43,7 +37,6 @@ export function useOnboarding(isReplay) {
   const { user, updateUser } = useAuth();
   const steps = useMemo(
     () => computeSteps(user, isReplay),
-    // Recompute only when goal or googleId changes (not on every render)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [user?.googleId, user?.onboardingGoal, isReplay]
   );
@@ -53,72 +46,100 @@ export function useOnboarding(isReplay) {
   const [stepsSkipped, setStepsSkipped] = useState(0);
 
   const currentStep = steps[Math.min(currentIndex, steps.length - 1)];
-  // Total visible steps (exclude the invisible 'done' sentinel)
-  const totalSteps = steps.length - 1;
+  const totalSteps = steps.length - 1; // exclude 'done' sentinel
   const stepNumber = currentIndex + 1;
 
-  // Fire POST /api/auth/me/onboarding/complete exactly once,
-  // at the moment the user transitions from the last profile step to the first tour step.
-  const maybeCompleteOnboarding = useCallback(async (fromIndex) => {
-    if (isReplay || user?.onboardingCompleted) return;
-    const nextStep = steps[fromIndex + 1];
-    const currentStep = steps[fromIndex]; // local — not the outer currentStep
-    if (currentStep?.kind === 'profile' && nextStep?.kind === 'tour') {
-      posthog.capture('onboarding_completed', {
-        platform: 'web',
-        steps_completed: stepsCompleted,
-        steps_skipped: stepsSkipped,
-        completed_via: 'finish',
-      });
-      try {
-        await api.post('/auth/me/onboarding/complete');
-        updateUser({ onboardingCompleted: true });
-      } catch (_) { /* non-blocking */ }
-    }
-  }, [isReplay, user?.onboardingCompleted, steps, updateUser]);
-
-  const advance = useCallback(async (stepName) => {
+  // Synchronous advance — state update happens immediately.
+  // API calls and analytics are fire-and-forget so they cannot block navigation.
+  const advance = useCallback((stepName) => {
+    // Profile step analytics
     if (currentStep?.kind === 'profile') {
-      posthog.capture('onboarding_step_completed', {
-        platform: 'web',
-        step_name: stepName ?? currentStep.key,
-        step_index: currentIndex,
-      });
+      try {
+        posthog.capture('onboarding_step_completed', {
+          platform: 'web',
+          step_name: stepName ?? currentStep.key,
+          step_index: currentIndex,
+        });
+      } catch (_) {}
     }
-    await maybeCompleteOnboarding(currentIndex);
+
+    // Fire onboarding/complete once at the profile→tour boundary
+    const nextStep = steps[currentIndex + 1];
+    if (
+      !isReplay &&
+      !user?.onboardingCompleted &&
+      currentStep?.kind === 'profile' &&
+      nextStep?.kind === 'tour'
+    ) {
+      try {
+        posthog.capture('onboarding_completed', {
+          platform: 'web',
+          steps_completed: stepsCompleted + 1,
+          steps_skipped: stepsSkipped,
+          completed_via: 'finish',
+        });
+      } catch (_) {}
+      api.post('/auth/me/onboarding/complete')
+        .then(() => updateUser({ onboardingCompleted: true }))
+        .catch(() => {});
+    }
+
     setStepsCompleted(c => c + 1);
     setCurrentIndex(i => Math.min(i + 1, steps.length - 1));
-  }, [currentIndex, currentStep, maybeCompleteOnboarding, steps.length]);
+  }, [currentIndex, currentStep, steps, isReplay, user?.onboardingCompleted, updateUser, stepsCompleted, stepsSkipped]);
 
-  const skip = useCallback(async (stepName) => {
+  const skip = useCallback((stepName) => {
     if (currentStep?.kind === 'profile') {
-      posthog.capture('onboarding_step_skipped', {
-        platform: 'web',
-        step_name: stepName ?? currentStep.key,
-        step_index: currentIndex,
-      });
+      try {
+        posthog.capture('onboarding_step_skipped', {
+          platform: 'web',
+          step_name: stepName ?? currentStep.key,
+          step_index: currentIndex,
+        });
+      } catch (_) {}
     }
-    await maybeCompleteOnboarding(currentIndex);
+
+    const nextStep = steps[currentIndex + 1];
+    if (
+      !isReplay &&
+      !user?.onboardingCompleted &&
+      currentStep?.kind === 'profile' &&
+      nextStep?.kind === 'tour'
+    ) {
+      try {
+        posthog.capture('onboarding_completed', {
+          platform: 'web',
+          steps_completed: stepsCompleted,
+          steps_skipped: stepsSkipped + 1,
+          completed_via: 'finish',
+        });
+      } catch (_) {}
+      api.post('/auth/me/onboarding/complete')
+        .then(() => updateUser({ onboardingCompleted: true }))
+        .catch(() => {});
+    }
+
     setStepsSkipped(s => s + 1);
     setCurrentIndex(i => Math.min(i + 1, steps.length - 1));
-  }, [currentIndex, currentStep, maybeCompleteOnboarding, steps.length]);
+  }, [currentIndex, currentStep, steps, isReplay, user?.onboardingCompleted, updateUser, stepsCompleted, stepsSkipped]);
 
   const completeTour = useCallback(async () => {
     try {
       await api.post('/auth/me/tour/complete');
       updateUser({ tourCompleted: true });
-    } catch (_) { /* non-blocking */ }
+    } catch (_) {}
   }, [updateUser]);
 
-  // X button — fires both completion endpoints regardless of current step
   const exitAll = useCallback(async () => {
     if (!isReplay && !user?.onboardingCompleted) {
-      posthog.capture('onboarding_completed', {
-        platform: 'web',
-        steps_completed: stepsCompleted,
-        steps_skipped: stepsSkipped,
-        completed_via: 'x_button',
-      });
+      try {
+        posthog.capture('onboarding_completed', {
+          platform: 'web',
+          steps_completed: stepsCompleted,
+          steps_skipped: stepsSkipped,
+          completed_via: 'x_button',
+        });
+      } catch (_) {}
       try { await api.post('/auth/me/onboarding/complete'); } catch (_) {}
       updateUser({ onboardingCompleted: true });
     }

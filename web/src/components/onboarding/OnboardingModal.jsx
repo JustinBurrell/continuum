@@ -62,13 +62,15 @@ export default function OnboardingModal({ isReplay, onClose }) {
   useEffect(() => {
     if (currentStep?.kind === 'tour' && currentStep?.tourIndex === 0 && !tourStartedRef.current) {
       tourStartedRef.current = true;
-      const tourOrder = getOrderedTourSteps(user?.onboardingGoal ?? 'not_sure').map(s => s.id);
-      posthog.capture('tour_started', {
-        platform: 'web',
-        goal: user?.onboardingGoal ?? 'not_sure',
-        tour_order: tourOrder,
-        is_replay: isReplay,
-      });
+      try {
+        const tourOrder = getOrderedTourSteps(user?.onboardingGoal ?? 'not_sure').map(s => s.id);
+        posthog.capture('tour_started', {
+          platform: 'web',
+          goal: user?.onboardingGoal ?? 'not_sure',
+          tour_order: tourOrder,
+          is_replay: isReplay,
+        });
+      } catch (_) {}
     }
   }, [currentStep?.kind, currentStep?.tourIndex]);
 
@@ -78,33 +80,37 @@ export default function OnboardingModal({ isReplay, onClose }) {
   };
 
   const handleTourComplete = async () => {
-    posthog.capture('tour_completed', {
-      platform: 'web',
-      goal: user?.onboardingGoal ?? 'not_sure',
-      is_replay: isReplay,
-      steps_seen: totalSteps, // saw all steps
-    });
+    try {
+      posthog.capture('tour_completed', {
+        platform: 'web',
+        goal: user?.onboardingGoal ?? 'not_sure',
+        is_replay: isReplay,
+        steps_seen: totalSteps,
+      });
+    } catch (_) {}
     await completeTour();
     onClose?.();
   };
 
   const handleSkipTour = async () => {
-    posthog.capture('tour_completed', {
-      platform: 'web',
-      goal: user?.onboardingGoal ?? 'not_sure',
-      is_replay: isReplay,
-      steps_seen: currentStep?.tourIndex != null ? currentStep.tourIndex + 1 : 0,
-    });
+    try {
+      posthog.capture('tour_completed', {
+        platform: 'web',
+        goal: user?.onboardingGoal ?? 'not_sure',
+        is_replay: isReplay,
+        steps_seen: currentStep?.tourIndex != null ? currentStep.tourIndex + 1 : 0,
+      });
+    } catch (_) {}
     await completeTour();
     onClose?.();
   };
 
-  const handleAdvance = async (stepName) => {
-    await advance(stepName);
+  const handleAdvance = (stepName) => {
+    advance(stepName);
   };
 
-  const handleSkip = async (stepName) => {
-    await skip(stepName);
+  const handleSkip = (stepName) => {
+    skip(stepName);
   };
 
   const renderStep = () => {

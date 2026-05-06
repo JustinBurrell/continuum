@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { posthog } from '@/lib/posthog';
 
@@ -21,7 +22,6 @@ function useSidebarHighlight(target) {
       z-index: 9999;
     `;
 
-    // Inject keyframes once
     if (!document.getElementById('ob-pulse-kf')) {
       const style = document.createElement('style');
       style.id = 'ob-pulse-kf';
@@ -38,35 +38,42 @@ function useSidebarHighlight(target) {
     el.appendChild(ring);
     el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 
-    return () => {
-      ring.remove();
-    };
+    return () => ring.remove();
   }, [target]);
 }
 
 export default function TourStep({ config, tourIndex, isReplay, onNext, onSkipTour }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
   useSidebarHighlight(config.sidebarTarget);
 
-  // Fire tour_step_viewed once per step mount (parent keys by tourIndex)
+  // Navigate to the section's page and fire analytics on mount
   useEffect(() => {
-    posthog.capture('tour_step_viewed', {
-      platform: 'web',
-      section_name: config.sectionName,
-      step_index: tourIndex,
-      goal: user?.onboardingGoal ?? 'not_sure',
-    });
+    if (config.route) {
+      navigate(config.route);
+    }
+    try {
+      posthog.capture('tour_step_viewed', {
+        platform: 'web',
+        section_name: config.sectionName,
+        step_index: tourIndex,
+        goal: user?.onboardingGoal ?? 'not_sure',
+      });
+    } catch (_) {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSkipTour = () => {
-    posthog.capture('tour_step_skipped', {
-      platform: 'web',
-      section_name: config.sectionName,
-      step_index: tourIndex,
-      goal: user?.onboardingGoal ?? 'not_sure',
-      steps_seen: tourIndex + 1,
-    });
+    try {
+      posthog.capture('tour_step_skipped', {
+        platform: 'web',
+        section_name: config.sectionName,
+        step_index: tourIndex,
+        goal: user?.onboardingGoal ?? 'not_sure',
+        steps_seen: tourIndex + 1,
+      });
+    } catch (_) {}
     onSkipTour();
   };
 
@@ -99,22 +106,9 @@ export default function TourStep({ config, tourIndex, isReplay, onNext, onSkipTo
         {config.heading}
       </h2>
 
-      <p style={{ color: '#6B7280', fontSize: '0.875rem', margin: '0 0 16px', lineHeight: 1.6 }}>
+      <p style={{ color: '#6B7280', fontSize: '0.875rem', margin: '0 0 28px', lineHeight: 1.6 }}>
         {config.description}
       </p>
-
-      {/* Tip box */}
-      <div style={{
-        background: 'rgba(107,33,168,0.05)',
-        border: '1px solid #e5d3f0',
-        borderRadius: 8,
-        padding: '10px 14px',
-        marginBottom: 24,
-      }}>
-        <p style={{ fontSize: '0.8125rem', color: '#4b2d6e', margin: 0, lineHeight: 1.55 }}>
-          <strong>Tip:</strong> {config.tip}
-        </p>
-      </div>
 
       <button
         onClick={onNext}
