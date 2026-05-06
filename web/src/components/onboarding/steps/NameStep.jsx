@@ -1,8 +1,27 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,30}$/;
+
+// check states: idle | checking | available | taken | invalid
+function UsernameHint({ state }) {
+  if (state === 'checking') return (
+    <p style={{ fontSize: '0.75rem', color: '#9CA3AF', margin: '4px 0 0' }}>Checking availability…</p>
+  );
+  if (state === 'available') return (
+    <p style={{ fontSize: '0.75rem', color: '#059669', margin: '4px 0 0' }}>✓ Username is available</p>
+  );
+  if (state === 'taken') return (
+    <p style={{ fontSize: '0.75rem', color: '#dc2626', margin: '4px 0 0' }}>Username is already taken</p>
+  );
+  if (state === 'invalid') return (
+    <p style={{ fontSize: '0.75rem', color: '#dc2626', margin: '4px 0 0' }}>3–30 characters: letters, numbers, and underscores only</p>
+  );
+  return (
+    <p style={{ fontSize: '0.75rem', color: '#9CA3AF', margin: '4px 0 0' }}>Letters, numbers, and underscores only. 3–30 characters.</p>
+  );
+}
 
 function Field({ label, value, onChange, placeholder, error }) {
   return (
@@ -15,15 +34,10 @@ function Field({ label, value, onChange, placeholder, error }) {
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         style={{
-          width: '100%',
-          padding: '9px 12px',
+          width: '100%', padding: '9px 12px',
           border: `1px solid ${error ? '#dc2626' : '#e5d3f0'}`,
-          borderRadius: 8,
-          fontSize: '0.9rem',
-          color: '#111827',
-          background: '#fff',
-          outline: 'none',
-          boxSizing: 'border-box',
+          borderRadius: 8, fontSize: '0.9rem', color: '#111827',
+          background: '#fff', outline: 'none', boxSizing: 'border-box',
           transition: 'border-color 0.15s',
         }}
         onFocus={e => { if (!error) e.target.style.borderColor = '#6b21a8'; }}
@@ -39,24 +53,54 @@ export default function NameStep({ onContinue, onSkip }) {
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
   const [lastName, setLastName]   = useState(user?.lastName ?? '');
   const [username, setUsername]   = useState(user?.username ?? '');
-  const [errors, setErrors] = useState({});
+  const [nameErrors, setNameErrors] = useState({});
+  const [usernameCheck, setUsernameCheck] = useState('idle');
   const [loading, setLoading] = useState(false);
+  // Track the username that was already saved so we skip the call on submit
+  const savedUsernameRef = useRef(user?.username ?? '');
+  const debounceRef = useRef(null);
+
+  const checkUsername = async (value) => {
+    const trimmed = value.trim();
+    if (trimmed === savedUsernameRef.current) { setUsernameCheck('idle'); return; }
+    if (!USERNAME_REGEX.test(trimmed)) { setUsernameCheck('invalid'); return; }
+
+    setUsernameCheck('checking');
+    try {
+      await api.patch('/auth/me/username', { username: trimmed });
+      updateUser({ username: trimmed });
+      savedUsernameRef.current = trimmed;
+      setUsernameCheck('available');
+    } catch (e) {
+      setUsernameCheck(e?.response?.status === 409 ? 'taken' : 'idle');
+    }
+  };
+
+  const handleUsernameChange = (value) => {
+    setUsername(value);
+    setUsernameCheck('idle');
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => checkUsername(value), 600);
+  };
+
+  const handleUsernameBlur = () => {
+    clearTimeout(debounceRef.current);
+    checkUsername(username);
+  };
 
   const validate = () => {
     const e = {};
     if (!firstName.trim()) e.firstName = 'First name is required.';
     if (!lastName.trim())  e.lastName  = 'Last name is required.';
-    if (!username.trim()) {
-      e.username = 'Username is required.';
-    } else if (!USERNAME_REGEX.test(username)) {
-      e.username = 'Username must be 3–30 characters: letters, numbers, and underscores only.';
-    }
-    setErrors(e);
+    setNameErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleContinue = async () => {
     if (!validate()) return;
+    if (usernameCheck === 'taken' || usernameCheck === 'invalid') return;
+    if (usernameCheck === 'checking') return; // wait for the in-flight check
+
     setLoading(true);
     try {
       const profileUpdates = {};
@@ -68,27 +112,36 @@ export default function NameStep({ onContinue, onSkip }) {
         updateUser(profileUpdates);
       }
 
-      if (username !== user?.username) {
+      // Username was already saved by the availability check if it changed
+      if (username !== savedUsernameRef.current) {
         try {
           await api.patch('/auth/me/username', { username });
           updateUser({ username });
+          savedUsernameRef.current = username;
         } catch (e) {
           if (e?.response?.status === 409) {
-            setErrors(prev => ({ ...prev, username: 'That username is already taken.' }));
+            setUsernameCheck('taken');
             setLoading(false);
             return;
           }
-          // Other username errors — still advance
         }
       }
 
       onContinue();
     } catch (_) {
-      onContinue(); // profile update failure is non-blocking
+      onContinue();
     } finally {
       setLoading(false);
     }
   };
+
+  const usernameBorderColor = usernameCheck === 'taken' || usernameCheck === 'invalid'
+    ? '#dc2626'
+    : usernameCheck === 'available'
+      ? '#059669'
+      : '#e5d3f0';
+
+  const canSave = usernameCheck !== 'taken' && usernameCheck !== 'invalid' && usernameCheck !== 'checking' && !loading;
 
   return (
     <div>
@@ -102,62 +155,56 @@ export default function NameStep({ onContinue, onSkip }) {
       <Field
         label="First name"
         value={firstName}
-        onChange={v => { setFirstName(v); setErrors(p => ({ ...p, firstName: null })); }}
+        onChange={v => { setFirstName(v); setNameErrors(p => ({ ...p, firstName: null })); }}
         placeholder="First name"
-        error={errors.firstName}
+        error={nameErrors.firstName}
       />
       <Field
         label="Last name"
         value={lastName}
-        onChange={v => { setLastName(v); setErrors(p => ({ ...p, lastName: null })); }}
+        onChange={v => { setLastName(v); setNameErrors(p => ({ ...p, lastName: null })); }}
         placeholder="Last name"
-        error={errors.lastName}
+        error={nameErrors.lastName}
       />
 
-      <div style={{ marginBottom: 14 }}>
+      <div style={{ marginBottom: 20 }}>
         <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#374151', marginBottom: 4 }}>
           Username
         </label>
         <input
           value={username}
-          onChange={e => { setUsername(e.target.value); setErrors(p => ({ ...p, username: null })); }}
+          onChange={e => handleUsernameChange(e.target.value)}
+          onBlur={handleUsernameBlur}
           placeholder="username"
           style={{
-            width: '100%',
-            padding: '9px 12px',
-            border: `1px solid ${errors.username ? '#dc2626' : '#e5d3f0'}`,
-            borderRadius: 8,
-            fontSize: '0.9rem',
-            color: '#111827',
-            background: '#fff',
-            outline: 'none',
-            boxSizing: 'border-box',
+            width: '100%', padding: '9px 12px',
+            border: `1px solid ${usernameBorderColor}`,
+            borderRadius: 8, fontSize: '0.9rem', color: '#111827',
+            background: '#fff', outline: 'none', boxSizing: 'border-box',
             transition: 'border-color 0.15s',
           }}
-          onFocus={e => { if (!errors.username) e.target.style.borderColor = '#6b21a8'; }}
-          onBlur={e => { if (!errors.username) e.target.style.borderColor = '#e5d3f0'; }}
+          onFocus={e => { if (usernameCheck === 'idle') e.target.style.borderColor = '#6b21a8'; }}
         />
-        {errors.username
-          ? <p style={{ color: '#dc2626', fontSize: '0.8rem', margin: '4px 0 0' }}>{errors.username}</p>
-          : <p style={{ color: '#9CA3AF', fontSize: '0.75rem', margin: '4px 0 0' }}>Letters, numbers, and underscores only. 3–30 characters.</p>
-        }
+        <UsernameHint state={usernameCheck} />
       </div>
 
       <button
+        type="button"
         onClick={handleContinue}
-        disabled={loading}
+        disabled={!canSave}
         style={{
           width: '100%', padding: '11px 0', background: '#6b21a8', color: '#fff',
           border: 'none', borderRadius: 8, fontSize: '0.9375rem', fontWeight: 600,
-          cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
+          cursor: canSave ? 'pointer' : 'not-allowed', opacity: canSave ? 1 : 0.7,
           marginBottom: 10, transition: 'background 0.15s',
         }}
-        onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#581c87'; }}
-        onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#6b21a8'; }}
+        onMouseEnter={e => { if (canSave) e.currentTarget.style.background = '#581c87'; }}
+        onMouseLeave={e => { if (canSave) e.currentTarget.style.background = '#6b21a8'; }}
       >
-        {loading ? 'Saving…' : 'Save & Continue'}
+        {loading ? 'Saving…' : usernameCheck === 'checking' ? 'Checking username…' : 'Save & Continue'}
       </button>
       <button
+        type="button"
         onClick={onSkip}
         style={{ background: 'none', border: 'none', color: '#a087b0', fontSize: '0.875rem', cursor: 'pointer', width: '100%' }}
       >
