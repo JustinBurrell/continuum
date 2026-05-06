@@ -636,4 +636,14 @@ router.post('/mobile/refresh', authLimiter, mobileAuthController.mobileRefresh);
  */
 router.post('/google/mobile', authLimiter, mobileAuthController.googleMobileLogin);
 
+// ============================================================
+// ONBOARDING ROUTES
+// Purpose: Track completion of the new-user onboarding flow and feature tour
+// ============================================================
+
+router.post('/me/onboarding/complete', authMiddleware, authController.completeOnboarding);
+router.post('/me/tour/complete', authMiddleware, authController.completeTour);
+router.patch('/me/tour/reset', authMiddleware, authController.resetTour);
+router.patch('/me/onboarding/checklist', authMiddleware, authController.updateOnboardingChecklist);
+
 module.exports = router;
