@@ -11,7 +11,11 @@ function computeSteps(user, isReplay) {
   if (!isReplay) {
     steps.push({ kind: 'profile', key: 'welcome' });
     steps.push({ kind: 'profile', key: 'goal' });
-    steps.push({ kind: 'profile', key: 'name' });
+    // Name/username step only for Google OAuth users — their username is auto-generated
+    // and needs confirmation. Email/password users explicitly chose their name at signup.
+    if (user?.googleId) {
+      steps.push({ kind: 'profile', key: 'name' });
+    }
     steps.push({ kind: 'profile', key: 'photo-bio' });
     steps.push({ kind: 'profile', key: 'social-links' });
     // Skip notifications if the browser has already granted permission
