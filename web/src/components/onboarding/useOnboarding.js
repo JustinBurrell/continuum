@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
+import { posthog } from '@/lib/posthog';
 import { getOrderedTourSteps } from './tourConfig';
 
 // Build the flat step list for this user.
@@ -61,8 +62,14 @@ export function useOnboarding(isReplay) {
   const maybeCompleteOnboarding = useCallback(async (fromIndex) => {
     if (isReplay || user?.onboardingCompleted) return;
     const nextStep = steps[fromIndex + 1];
-    const currentStep = steps[fromIndex];
+    const currentStep = steps[fromIndex]; // local — not the outer currentStep
     if (currentStep?.kind === 'profile' && nextStep?.kind === 'tour') {
+      posthog.capture('onboarding_completed', {
+        platform: 'web',
+        steps_completed: stepsCompleted,
+        steps_skipped: stepsSkipped,
+        completed_via: 'finish',
+      });
       try {
         await api.post('/auth/me/onboarding/complete');
         updateUser({ onboardingCompleted: true });
@@ -71,16 +78,30 @@ export function useOnboarding(isReplay) {
   }, [isReplay, user?.onboardingCompleted, steps, updateUser]);
 
   const advance = useCallback(async (stepName) => {
+    if (currentStep?.kind === 'profile') {
+      posthog.capture('onboarding_step_completed', {
+        platform: 'web',
+        step_name: stepName ?? currentStep.key,
+        step_index: currentIndex,
+      });
+    }
     await maybeCompleteOnboarding(currentIndex);
     setStepsCompleted(c => c + 1);
     setCurrentIndex(i => Math.min(i + 1, steps.length - 1));
-  }, [currentIndex, maybeCompleteOnboarding, steps.length]);
+  }, [currentIndex, currentStep, maybeCompleteOnboarding, steps.length]);
 
   const skip = useCallback(async (stepName) => {
+    if (currentStep?.kind === 'profile') {
+      posthog.capture('onboarding_step_skipped', {
+        platform: 'web',
+        step_name: stepName ?? currentStep.key,
+        step_index: currentIndex,
+      });
+    }
     await maybeCompleteOnboarding(currentIndex);
     setStepsSkipped(s => s + 1);
     setCurrentIndex(i => Math.min(i + 1, steps.length - 1));
-  }, [currentIndex, maybeCompleteOnboarding, steps.length]);
+  }, [currentIndex, currentStep, maybeCompleteOnboarding, steps.length]);
 
   const completeTour = useCallback(async () => {
     try {
@@ -92,11 +113,17 @@ export function useOnboarding(isReplay) {
   // X button — fires both completion endpoints regardless of current step
   const exitAll = useCallback(async () => {
     if (!isReplay && !user?.onboardingCompleted) {
+      posthog.capture('onboarding_completed', {
+        platform: 'web',
+        steps_completed: stepsCompleted,
+        steps_skipped: stepsSkipped,
+        completed_via: 'x_button',
+      });
       try { await api.post('/auth/me/onboarding/complete'); } catch (_) {}
       updateUser({ onboardingCompleted: true });
     }
     await completeTour();
-  }, [isReplay, user?.onboardingCompleted, updateUser, completeTour]);
+  }, [isReplay, user?.onboardingCompleted, updateUser, completeTour, stepsCompleted, stepsSkipped]);
 
   return {
     currentStep,

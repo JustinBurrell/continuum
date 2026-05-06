@@ -42,6 +42,8 @@ export default function AuthCallback() {
             username: user.username,
             name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.username,
             created_at: user.createdAt,
+            onboardingGoal: user.onboardingGoal ?? null,
+            tourCompleted: user.tourCompleted ?? false,
           });
           posthog.capture('user_logged_in', { platform: 'web', method: 'google' });
         }

@@ -140,6 +140,8 @@ export function AuthProvider({ children }) {
             username: u.username,
             name: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.username,
             created_at: u.createdAt,
+            onboardingGoal: u.onboardingGoal ?? null,
+            tourCompleted: u.tourCompleted ?? false,
           });
         }
         // Reconnect socket on page refresh if already logged in

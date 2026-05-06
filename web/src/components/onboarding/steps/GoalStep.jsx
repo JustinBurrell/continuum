@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { posthog } from '@/lib/posthog';
 
 const GOALS = [
   { value: 'study_smarter',    label: 'Study smarter',       sub: 'Notes, flashcards, AI summaries' },
@@ -23,6 +24,8 @@ export default function GoalStep({ onContinue, onSkip }) {
     try {
       const res = await api.patch('/auth/me/profile', { onboardingGoal: selected });
       updateUser({ onboardingGoal: selected });
+      posthog.capture('onboarding_goal_selected', { platform: 'web', goal: selected });
+      posthog.identify(undefined, { onboardingGoal: selected });
       onContinue();
     } catch (e) {
       setError('Something went wrong. Please try again.');

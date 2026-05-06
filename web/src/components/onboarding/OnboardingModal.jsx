@@ -1,5 +1,8 @@
+import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { posthog } from '@/lib/posthog';
+import { getOrderedTourSteps } from './tourConfig';
 import { useOnboarding } from './useOnboarding';
 
 // Step components — imported lazily to keep the initial bundle lighter
@@ -26,6 +29,7 @@ const PROFILE_STEP_COMPONENTS = {
 // isReplay: true when opened from "Replay tour" / "Finish setup" in Profile
 // onClose: called after all API calls complete so the parent can clear forceOnboardingOpen
 export default function OnboardingModal({ isReplay, onClose }) {
+  const { user } = useAuth();
   const {
     currentStep,
     currentIndex,
@@ -40,17 +44,57 @@ export default function OnboardingModal({ isReplay, onClose }) {
     isDone,
   } = useOnboarding(isReplay);
 
+  const tourStartedRef = useRef(false);
+
+  // Fire onboarding_started once on fresh onboarding mount (not replay)
+  useEffect(() => {
+    if (!isReplay && user && !user.onboardingCompleted) {
+      posthog.capture('onboarding_started', {
+        platform: 'web',
+        signup_method: user.googleId ? 'google' : 'email',
+      });
+    }
+    // On replay, tour_started fires when the first tour step renders (below)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fire tour_started the first time the user enters the tour phase
+  useEffect(() => {
+    if (currentStep?.kind === 'tour' && currentStep?.tourIndex === 0 && !tourStartedRef.current) {
+      tourStartedRef.current = true;
+      const tourOrder = getOrderedTourSteps(user?.onboardingGoal ?? 'not_sure').map(s => s.id);
+      posthog.capture('tour_started', {
+        platform: 'web',
+        goal: user?.onboardingGoal ?? 'not_sure',
+        tour_order: tourOrder,
+        is_replay: isReplay,
+      });
+    }
+  }, [currentStep?.kind, currentStep?.tourIndex]);
+
   const handleExit = async () => {
     await exitAll();
     onClose?.();
   };
 
   const handleTourComplete = async () => {
+    posthog.capture('tour_completed', {
+      platform: 'web',
+      goal: user?.onboardingGoal ?? 'not_sure',
+      is_replay: isReplay,
+      steps_seen: totalSteps, // saw all steps
+    });
     await completeTour();
     onClose?.();
   };
 
   const handleSkipTour = async () => {
+    posthog.capture('tour_completed', {
+      platform: 'web',
+      goal: user?.onboardingGoal ?? 'not_sure',
+      is_replay: isReplay,
+      steps_seen: currentStep?.tourIndex != null ? currentStep.tourIndex + 1 : 0,
+    });
     await completeTour();
     onClose?.();
   };

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, forwardRef } from 'react';
+import { posthog } from '@/lib/posthog';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
@@ -1085,6 +1086,10 @@ export default function Profile() {
               variant="outline"
               style={{ flexShrink: 0 }}
               onClick={async () => {
+                posthog.capture('tour_replayed', {
+                  platform: 'web',
+                  goal: user?.onboardingGoal ?? 'not_sure',
+                });
                 try {
                   await api.patch('/auth/me/tour/reset');
                   updateUser({ tourCompleted: false });

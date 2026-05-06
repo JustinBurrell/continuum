@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { posthog } from '@/lib/posthog';
 
 // Renders a pulsing purple ring around the sidebar nav element
 // identified by data-nav-id="<target>" while this tour step is active.
@@ -43,7 +45,30 @@ function useSidebarHighlight(target) {
 }
 
 export default function TourStep({ config, tourIndex, isReplay, onNext, onSkipTour }) {
+  const { user } = useAuth();
   useSidebarHighlight(config.sidebarTarget);
+
+  // Fire tour_step_viewed once per step mount (parent keys by tourIndex)
+  useEffect(() => {
+    posthog.capture('tour_step_viewed', {
+      platform: 'web',
+      section_name: config.sectionName,
+      step_index: tourIndex,
+      goal: user?.onboardingGoal ?? 'not_sure',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSkipTour = () => {
+    posthog.capture('tour_step_skipped', {
+      platform: 'web',
+      section_name: config.sectionName,
+      step_index: tourIndex,
+      goal: user?.onboardingGoal ?? 'not_sure',
+      steps_seen: tourIndex + 1,
+    });
+    onSkipTour();
+  };
 
   return (
     <div>
@@ -105,7 +130,7 @@ export default function TourStep({ config, tourIndex, isReplay, onNext, onSkipTo
       </button>
 
       <button
-        onClick={onSkipTour}
+        onClick={handleSkipTour}
         style={{ background: 'none', border: 'none', color: '#a087b0', fontSize: '0.875rem', cursor: 'pointer', width: '100%' }}
       >
         Skip tour
