@@ -118,6 +118,7 @@ function registerSocketEvents(socket) {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [forceOnboardingOpen, setForceOnboardingOpen] = useState(false);
 
   // Hydrate user from stored token on mount
   useEffect(() => {
@@ -218,7 +219,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, googleLogin, updateUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, googleLogin, updateUser, forceOnboardingOpen, setForceOnboardingOpen }}>
       {children}
     </AuthContext.Provider>
   );

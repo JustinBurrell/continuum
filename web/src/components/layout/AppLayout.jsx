@@ -5,9 +5,10 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import Sidebar from './Sidebar';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import OnboardingModal from '@/components/onboarding/OnboardingModal';
 
 export default function AppLayout() {
-  const { user, isLoading, logout } = useAuth();
+  const { user, isLoading, logout, forceOnboardingOpen, setForceOnboardingOpen } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
@@ -46,6 +47,10 @@ export default function AppLayout() {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  // isReplay: modal opened explicitly from Profile (user already completed onboarding)
+  const isReplay = forceOnboardingOpen && !!user?.onboardingCompleted;
+  const showOnboarding = !!user && (!user.onboardingCompleted || !user.tourCompleted || forceOnboardingOpen);
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg)' }}>
@@ -141,6 +146,13 @@ export default function AppLayout() {
           </ErrorBoundary>
         </div>
       </main>
+
+      {showOnboarding && (
+        <OnboardingModal
+          isReplay={isReplay}
+          onClose={() => setForceOnboardingOpen(false)}
+        />
+      )}
     </div>
   );
 }
