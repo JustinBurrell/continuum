@@ -1,0 +1,122 @@
+import { useState, useRef } from 'react';
+import api from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import AppAvatar from '@/components/ui/AppAvatar';
+
+export default function PhotoBioStep({ onContinue, onSkip }) {
+  const { user, updateUser } = useAuth();
+  const [bio, setBio] = useState(user?.bio ?? '');
+  const [preview, setPreview] = useState(user?.avatarUrl ?? null);
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
+  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.username;
+
+  const handleFileChange = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+  };
+
+  const handleContinue = async () => {
+    setLoading(true);
+    try {
+      const form = new FormData();
+      if (file) form.append('avatar', file);
+      if (bio !== (user?.bio ?? '')) form.append('bio', bio);
+
+      if (form.has('avatar') || form.has('bio')) {
+        const res = await api.patch('/auth/me/profile', form, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        updateUser({ bio: res.data.user.bio, avatarUrl: res.data.user.avatarUrl });
+      }
+      onContinue();
+    } catch (_) {
+      onContinue();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.375rem', fontWeight: 600, color: '#1a1a2e', margin: '0 0 6px', lineHeight: 1.3 }}>
+        Make it yours
+      </h2>
+      <p style={{ color: '#6B7280', fontSize: '0.875rem', margin: '0 0 20px' }}>
+        Add a photo and a short bio so friends can find you.
+      </p>
+
+      {/* Avatar picker */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            width: 72, height: 72, borderRadius: '50%', border: '2px dashed #e5d3f0',
+            background: '#f9f5ff', cursor: 'pointer', overflow: 'hidden', padding: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}
+        >
+          {preview
+            ? <img src={preview} alt="Avatar preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <AppAvatar name={fullName} size="lg" />
+          }
+        </button>
+        <div>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            style={{ background: 'none', border: '1px solid #e5d3f0', borderRadius: 6, padding: '6px 14px', fontSize: '0.8125rem', color: '#6b21a8', cursor: 'pointer', fontWeight: 500 }}
+          >
+            {preview && preview !== user?.avatarUrl ? 'Change photo' : 'Upload photo'}
+          </button>
+          <p style={{ color: '#9CA3AF', fontSize: '0.75rem', margin: '4px 0 0' }}>JPG, PNG — max 5MB</p>
+        </div>
+        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+      </div>
+
+      {/* Bio */}
+      <div style={{ marginBottom: 20 }}>
+        <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#374151', marginBottom: 4 }}>
+          Bio
+          <span style={{ color: '#9CA3AF', fontWeight: 400, marginLeft: 4 }}>({160 - bio.length} left)</span>
+        </label>
+        <textarea
+          value={bio}
+          onChange={e => setBio(e.target.value.slice(0, 160))}
+          placeholder="A sentence or two about yourself…"
+          rows={3}
+          style={{
+            width: '100%', padding: '9px 12px', border: '1px solid #e5d3f0', borderRadius: 8,
+            fontSize: '0.9rem', color: '#111827', background: '#fff', outline: 'none',
+            resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box', transition: 'border-color 0.15s',
+          }}
+          onFocus={e => e.target.style.borderColor = '#6b21a8'}
+          onBlur={e => e.target.style.borderColor = '#e5d3f0'}
+        />
+      </div>
+
+      <button
+        onClick={handleContinue}
+        disabled={loading}
+        style={{
+          width: '100%', padding: '11px 0', background: '#6b21a8', color: '#fff',
+          border: 'none', borderRadius: 8, fontSize: '0.9375rem', fontWeight: 600,
+          cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
+          marginBottom: 10, transition: 'background 0.15s',
+        }}
+        onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#581c87'; }}
+        onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#6b21a8'; }}
+      >
+        {loading ? 'Saving…' : 'Save & Continue'}
+      </button>
+      <button
+        onClick={onSkip}
+        style={{ background: 'none', border: 'none', color: '#a087b0', fontSize: '0.875rem', cursor: 'pointer', width: '100%' }}
+      >
+        Skip
+      </button>
+    </div>
+  );
+}
