@@ -2,7 +2,9 @@ import { useState } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
-function Field({ label, value, onChange, placeholder }) {
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,30}$/;
+
+function Field({ label, value, onChange, placeholder, error }) {
   return (
     <div style={{ marginBottom: 14 }}>
       <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#374151', marginBottom: 4 }}>
@@ -15,7 +17,7 @@ function Field({ label, value, onChange, placeholder }) {
         style={{
           width: '100%',
           padding: '9px 12px',
-          border: '1px solid #e5d3f0',
+          border: `1px solid ${error ? '#dc2626' : '#e5d3f0'}`,
           borderRadius: 8,
           fontSize: '0.9rem',
           color: '#111827',
@@ -24,9 +26,10 @@ function Field({ label, value, onChange, placeholder }) {
           boxSizing: 'border-box',
           transition: 'border-color 0.15s',
         }}
-        onFocus={e => e.target.style.borderColor = '#6b21a8'}
-        onBlur={e => e.target.style.borderColor = '#e5d3f0'}
+        onFocus={e => { if (!error) e.target.style.borderColor = '#6b21a8'; }}
+        onBlur={e => { if (!error) e.target.style.borderColor = '#e5d3f0'; }}
       />
+      {error && <p style={{ color: '#dc2626', fontSize: '0.8rem', margin: '4px 0 0' }}>{error}</p>}
     </div>
   );
 }
@@ -36,16 +39,29 @@ export default function NameStep({ onContinue, onSkip }) {
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
   const [lastName, setLastName]   = useState(user?.lastName ?? '');
   const [username, setUsername]   = useState(user?.username ?? '');
-  const [usernameError, setUsernameError] = useState(null);
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
+  const validate = () => {
+    const e = {};
+    if (!firstName.trim()) e.firstName = 'First name is required.';
+    if (!lastName.trim())  e.lastName  = 'Last name is required.';
+    if (!username.trim()) {
+      e.username = 'Username is required.';
+    } else if (!USERNAME_REGEX.test(username)) {
+      e.username = 'Username must be 3–30 characters: letters, numbers, and underscores only.';
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
   const handleContinue = async () => {
+    if (!validate()) return;
     setLoading(true);
-    setUsernameError(null);
     try {
       const profileUpdates = {};
-      if (firstName !== user?.firstName) profileUpdates.firstName = firstName;
-      if (lastName  !== user?.lastName)  profileUpdates.lastName  = lastName;
+      if (firstName.trim() !== user?.firstName) profileUpdates.firstName = firstName.trim();
+      if (lastName.trim()  !== user?.lastName)  profileUpdates.lastName  = lastName.trim();
 
       if (Object.keys(profileUpdates).length > 0) {
         await api.patch('/auth/me/profile', profileUpdates);
@@ -58,18 +74,17 @@ export default function NameStep({ onContinue, onSkip }) {
           updateUser({ username });
         } catch (e) {
           if (e?.response?.status === 409) {
-            setUsernameError('That username is already taken. Choose a different one or skip.');
+            setErrors(prev => ({ ...prev, username: 'That username is already taken.' }));
             setLoading(false);
             return;
           }
-          throw e;
+          // Other username errors — still advance
         }
       }
 
       onContinue();
     } catch (_) {
-      // Profile update failure is non-blocking — still advance
-      onContinue();
+      onContinue(); // profile update failure is non-blocking
     } finally {
       setLoading(false);
     }
@@ -81,11 +96,23 @@ export default function NameStep({ onContinue, onSkip }) {
         Confirm your name and username
       </h2>
       <p style={{ color: '#6B7280', fontSize: '0.875rem', margin: '0 0 20px' }}>
-        This is how others will find you on Continuum.
+        This is how others will see you on Continuum. You can change these any time from your profile.
       </p>
 
-      <Field label="First name" value={firstName} onChange={setFirstName} placeholder="First name" />
-      <Field label="Last name"  value={lastName}  onChange={setLastName}  placeholder="Last name" />
+      <Field
+        label="First name"
+        value={firstName}
+        onChange={v => { setFirstName(v); setErrors(p => ({ ...p, firstName: null })); }}
+        placeholder="First name"
+        error={errors.firstName}
+      />
+      <Field
+        label="Last name"
+        value={lastName}
+        onChange={v => { setLastName(v); setErrors(p => ({ ...p, lastName: null })); }}
+        placeholder="Last name"
+        error={errors.lastName}
+      />
 
       <div style={{ marginBottom: 14 }}>
         <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#374151', marginBottom: 4 }}>
@@ -93,12 +120,12 @@ export default function NameStep({ onContinue, onSkip }) {
         </label>
         <input
           value={username}
-          onChange={e => { setUsername(e.target.value); setUsernameError(null); }}
+          onChange={e => { setUsername(e.target.value); setErrors(p => ({ ...p, username: null })); }}
           placeholder="username"
           style={{
             width: '100%',
             padding: '9px 12px',
-            border: `1px solid ${usernameError ? '#dc2626' : '#e5d3f0'}`,
+            border: `1px solid ${errors.username ? '#dc2626' : '#e5d3f0'}`,
             borderRadius: 8,
             fontSize: '0.9rem',
             color: '#111827',
@@ -107,12 +134,13 @@ export default function NameStep({ onContinue, onSkip }) {
             boxSizing: 'border-box',
             transition: 'border-color 0.15s',
           }}
-          onFocus={e => { if (!usernameError) e.target.style.borderColor = '#6b21a8'; }}
-          onBlur={e => { if (!usernameError) e.target.style.borderColor = '#e5d3f0'; }}
+          onFocus={e => { if (!errors.username) e.target.style.borderColor = '#6b21a8'; }}
+          onBlur={e => { if (!errors.username) e.target.style.borderColor = '#e5d3f0'; }}
         />
-        {usernameError && (
-          <p style={{ color: '#dc2626', fontSize: '0.8rem', margin: '4px 0 0' }}>{usernameError}</p>
-        )}
+        {errors.username
+          ? <p style={{ color: '#dc2626', fontSize: '0.8rem', margin: '4px 0 0' }}>{errors.username}</p>
+          : <p style={{ color: '#9CA3AF', fontSize: '0.75rem', margin: '4px 0 0' }}>Letters, numbers, and underscores only. 3–30 characters.</p>
+        }
       </div>
 
       <button

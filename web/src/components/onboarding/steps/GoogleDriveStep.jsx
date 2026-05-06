@@ -37,13 +37,17 @@ export default function GoogleDriveStep({ onContinue, onSkip }) {
     <div>
       <div style={{ fontSize: 40, marginBottom: 16 }}>🔗</div>
       <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.375rem', fontWeight: 600, color: '#1a1a2e', margin: '0 0 6px', lineHeight: 1.3 }}>
-        Connect Google Drive
+        Connect your Google account
       </h2>
-      <p style={{ color: '#6B7280', fontSize: '0.875rem', margin: '0 0 24px', lineHeight: 1.5 }}>
-        Link your Google account to sign in faster and import notes directly from Google Docs.
+      <p style={{ color: '#6B7280', fontSize: '0.875rem', margin: '0 0 16px', lineHeight: 1.5 }}>
+        Linking Google lets you sign in without a password and unlocks Google Drive — so you can import your Google Docs directly into Continuum as notes.
+      </p>
+      <p style={{ color: '#9CA3AF', fontSize: '0.8125rem', margin: '0 0 24px', lineHeight: 1.5 }}>
+        You can also do this later from your Profile → Integrations.
       </p>
 
       <button
+        type="button"
         onClick={handleConnect}
         disabled={linking}
         style={{
@@ -58,6 +62,7 @@ export default function GoogleDriveStep({ onContinue, onSkip }) {
         {linking ? 'Waiting for Google…' : 'Connect Google'}
       </button>
       <button
+        type="button"
         onClick={onSkip}
         style={{ background: 'none', border: 'none', color: '#a087b0', fontSize: '0.875rem', cursor: 'pointer', width: '100%' }}
       >
