@@ -51,7 +51,7 @@ const emptyForm = {
 
 export default function Tasks() {
   const location = useLocation();
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const [deleteConfirm, setDeleteConfirm] = useState(null); // task id to delete
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -140,11 +140,6 @@ export default function Tasks() {
       queryClient.invalidateQueries({ queryKey: ['activity'], refetchType: 'all' });
       setShowCreate(false);
       setForm(emptyForm);
-      if (!user?.onboardingChecklist?.taskAdded) {
-        api.patch('/auth/me/onboarding/checklist', { taskAdded: true })
-          .then(r => updateUser({ onboardingChecklist: r.data.user?.onboardingChecklist }))
-          .catch(() => {});
-      }
     },
   });
 

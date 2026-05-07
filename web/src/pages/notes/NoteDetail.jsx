@@ -25,7 +25,7 @@ export default function NoteDetail() {
   const id = state?.id;
   const commentId = state?.commentId;
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const [aiSummary, setAiSummary] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
 
@@ -81,11 +81,6 @@ export default function NoteDetail() {
       setFlashcardSetId(setId);
       setFlashcardMsg('Flashcard set created!');
       queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
-      if (!user?.onboardingChecklist?.flashcardsGenerated) {
-        api.patch('/auth/me/onboarding/checklist', { flashcardsGenerated: true })
-          .then(r => updateUser({ onboardingChecklist: r.data.user?.onboardingChecklist }))
-          .catch(() => {});
-      }
     },
     onError: (err) => {
       setFlashcardMsg(err.response?.data?.error || 'Failed to generate flashcards.');

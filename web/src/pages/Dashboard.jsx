@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { FileText, CheckSquare, Briefcase, Activity, ArrowRight, Clock, BookOpen } from 'lucide-react';
@@ -483,98 +482,10 @@ const PIPELINE_BADGE = {
 };
 
 /* ════════════════════════════════════════
-   ONBOARDING CHECKLIST WIDGET
-   ════════════════════════════════════════ */
-
-const CHECKLIST_ITEMS = [
-  { key: 'noteCreated',         label: 'Create your first note',            to: '/notes' },
-  { key: 'flashcardsGenerated', label: 'Generate flashcards from a note',   to: '/flashcards' },
-  { key: 'taskAdded',           label: 'Add a task to your board',          to: '/tasks' },
-  { key: 'friendConnected',     label: 'Connect with a friend',             to: '/friends' },
-];
-
-function OnboardingChecklist({ user, updateUser }) {
-  const [dismissed, setDismissed] = useState(false);
-  const checklist = user?.onboardingChecklist ?? {};
-  const allDone = CHECKLIST_ITEMS.every(item => checklist[item.key]);
-
-  const dismiss = async () => {
-    setDismissed(true);
-    try {
-      const res = await api.patch('/auth/me/onboarding/checklist', { dismissed: true });
-      updateUser({ onboardingChecklist: res.data.user?.onboardingChecklist });
-    } catch (_) {}
-  };
-
-  if (dismissed) return null;
-
-  // Auto-dismiss after a short delay when all items are checked
-  if (allDone) {
-    setTimeout(dismiss, 1200);
-  }
-
-  return (
-    <div style={{
-      background: '#fff',
-      border: '1px solid #e5d3f0',
-      borderRadius: 16,
-      padding: '18px 20px',
-      marginBottom: 28,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <p style={{ fontWeight: 700, fontSize: 14, color: '#111827', margin: 0 }}>
-          {allDone ? '🎉 You\'re all set!' : 'Get started'}
-        </p>
-        <button
-          onClick={dismiss}
-          style={{ background: 'none', border: 'none', fontSize: 12, color: '#a087b0', cursor: 'pointer', padding: 0 }}
-        >
-          Dismiss
-        </button>
-      </div>
-
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {CHECKLIST_ITEMS.map(({ key, label, to }) => {
-          const done = !!checklist[key];
-          return (
-            <li key={key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-                background: done ? '#6b21a8' : 'transparent',
-                border: `2px solid ${done ? '#6b21a8' : '#e5d3f0'}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.2s',
-              }}>
-                {done && (
-                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                    <path d="M1 4L3.5 6.5L9 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </div>
-              <Link
-                to={to}
-                style={{
-                  fontSize: 13,
-                  color: done ? '#9CA3AF' : '#111827',
-                  textDecoration: done ? 'line-through' : 'none',
-                  fontWeight: done ? 400 : 500,
-                }}
-              >
-                {label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
-
-/* ════════════════════════════════════════
    DASHBOARD
    ════════════════════════════════════════ */
 export default function Dashboard() {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   // Use server-side lastViewedActivityAt from the authenticated user — device-consistent
@@ -679,11 +590,6 @@ export default function Dashboard() {
         <StatCard icon={Briefcase}   label="Applications"    value={appsDashboard?.total || apps.length} to="/applications" />
         <StatCard icon={Activity}    label="New Activity"    value={activityTotal}                  to="/activity" />
       </div>
-
-      {/* Onboarding checklist widget */}
-      {user && !user.onboardingChecklist?.dismissed && (
-        <OnboardingChecklist user={user} updateUser={updateUser} />
-      )}
 
       {/* 2-col grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 28 }}>
