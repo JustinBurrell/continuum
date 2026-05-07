@@ -99,7 +99,6 @@ fun NameStep(
                 debounceJob?.cancel()
                 debounceJob = scope.launch { delay(600); checkUsername(v) }
             },
-            onValueChangeFinished = { /* handled in onValueChange */ },
             label = { Text("Username") },
             isError = usernameCheck == UsernameCheckState.TAKEN || usernameCheck == UsernameCheckState.INVALID,
             supportingText = {

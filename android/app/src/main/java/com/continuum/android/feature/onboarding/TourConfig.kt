@@ -30,7 +30,7 @@ private val ALL_SECTIONS = listOf(
 private val SECTION_ORDER_BY_GOAL = mapOf(
     "study_smarter"    to listOf("notes","flashcards","tasks","calendar","applications","resumes","messages","friends","activity","profile"),
     "track_job_search" to listOf("applications","resumes","tasks","notes","flashcards","calendar","messages","friends","activity","profile"),
-    "manage_coursework"to listOf("tasks","calendar","notes","flashcards","applications","resumes","messages","friends","activity","profile"),
+    "manage_coursework" to listOf("tasks","calendar","notes","flashcards","applications","resumes","messages","friends","activity","profile"),
     "collaborate"      to listOf("messages","friends","activity","notes","flashcards","tasks","calendar","applications","resumes","profile"),
     "not_sure"         to listOf("notes","flashcards","tasks","calendar","applications","resumes","messages","friends","activity","profile"),
 )
