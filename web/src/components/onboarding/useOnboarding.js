@@ -16,9 +16,6 @@ function computeSteps(user, isReplay) {
     }
     steps.push({ kind: 'profile', key: 'photo-bio' });
     steps.push({ kind: 'profile', key: 'social-links' });
-    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
-      steps.push({ kind: 'profile', key: 'notifications' });
-    }
     if (!user?.googleId) {
       steps.push({ kind: 'profile', key: 'google-drive' });
     }

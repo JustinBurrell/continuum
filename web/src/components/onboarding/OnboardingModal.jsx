@@ -11,7 +11,6 @@ import GoalStep from './steps/GoalStep';
 import NameStep from './steps/NameStep';
 import PhotoBioStep from './steps/PhotoBioStep';
 import SocialLinksStep from './steps/SocialLinksStep';
-import NotificationsStep from './steps/NotificationsStep';
 import GoogleDriveStep from './steps/GoogleDriveStep';
 import TourStep from './steps/TourStep';
 import DoneSlide from './steps/DoneSlide';
@@ -22,7 +21,6 @@ const PROFILE_STEP_COMPONENTS = {
   name: NameStep,
   'photo-bio': PhotoBioStep,
   'social-links': SocialLinksStep,
-  notifications: NotificationsStep,
   'google-drive': GoogleDriveStep,
 };
 
