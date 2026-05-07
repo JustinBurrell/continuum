@@ -3,6 +3,8 @@ package com.continuum.android.feature.dashboard.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.continuum.android.core.data.DataRefreshNotifier
+import com.continuum.android.core.data.OnboardingEvent
+import com.continuum.android.core.data.OnboardingTrigger
 import com.continuum.android.feature.career.data.remote.CareerApiService
 import com.continuum.android.feature.career.domain.Application
 import com.continuum.android.feature.flashcards.data.repository.FlashcardsRepository
@@ -36,7 +38,9 @@ data class DashboardUiState(
     val openTaskCount: Int = 0,
     val openApplicationCount: Int = 0,
     val newActivityCount: Int = 0,
-    val error: String? = null
+    val error: String? = null,
+    val showOnboardingSheet: Boolean = false,
+    val onboardingIsReplay: Boolean = false,
 )
 
 @HiltViewModel
@@ -47,7 +51,8 @@ class DashboardViewModel @Inject constructor(
     private val careerApi: CareerApiService,
     private val socialApi: SocialApiService,
     private val profileRepository: ProfileRepository,
-    private val dataRefreshNotifier: DataRefreshNotifier
+    private val dataRefreshNotifier: DataRefreshNotifier,
+    private val onboardingTrigger: OnboardingTrigger,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DashboardUiState())
@@ -56,6 +61,12 @@ class DashboardViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             dataRefreshNotifier.refreshEvents.collect { load() }
+        }
+        viewModelScope.launch {
+            onboardingTrigger.events.collect { event ->
+                val isReplay = event is OnboardingEvent.Replay
+                _state.update { it.copy(showOnboardingSheet = true, onboardingIsReplay = isReplay) }
+            }
         }
     }
 
@@ -100,6 +111,12 @@ class DashboardViewModel @Inject constructor(
                 // returns so both run in parallel with the heavier notes/tasks/sets flows.
                 val profile = profileDeferred.await().getOrNull()
                 val firstName = profile?.firstName?.ifBlank { "there" } ?: "there"
+                val showSheet = profile != null &&
+                        (!profile.onboardingCompleted || !profile.tourCompleted)
+                val isReplay = profile?.onboardingCompleted == true && !profile.tourCompleted
+                if (showSheet) {
+                    _state.update { it.copy(showOnboardingSheet = true, onboardingIsReplay = isReplay) }
+                }
                 val activityDeferred = async { socialApi.getActivity(since = profile?.lastViewedActivityAt) }
 
                 notesDeferred.await()
@@ -185,4 +202,12 @@ class DashboardViewModel @Inject constructor(
     }
 
     fun refresh() = load()
+
+    fun dismissOnboardingSheet() {
+        _state.update { it.copy(showOnboardingSheet = false, onboardingIsReplay = false) }
+    }
+
+    fun openOnboardingSheet(isReplay: Boolean = false) {
+        _state.update { it.copy(showOnboardingSheet = true, onboardingIsReplay = isReplay) }
+    }
 }

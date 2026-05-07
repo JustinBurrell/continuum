@@ -39,7 +39,10 @@ class ProfileRepository @Inject constructor(
             pushNotifications = dto.settings?.pushNotifications ?: true,
             createdAt = dto.createdAt,
             roles = dto.roles,
-            lastViewedActivityAt = dto.lastViewedActivityAt
+            lastViewedActivityAt = dto.lastViewedActivityAt,
+            onboardingCompleted = dto.onboardingCompleted ?: false,
+            tourCompleted = dto.tourCompleted ?: false,
+            onboardingGoal = dto.onboardingGoal
         )
     }
 
@@ -126,5 +129,21 @@ class ProfileRepository @Inject constructor(
     suspend fun unlinkGoogle(): Result<Unit> = runCatching {
         api.unlinkGoogle()
         Unit
+    }
+
+    suspend fun completeOnboarding(): Result<Profile> = runCatching {
+        api.completeOnboarding().resolve().toDomain()
+    }
+
+    suspend fun completeTour(): Result<Profile> = runCatching {
+        api.completeTour().resolve().toDomain()
+    }
+
+    suspend fun resetTour(): Result<Profile> = runCatching {
+        api.resetTour().resolve().toDomain()
+    }
+
+    suspend fun updateOnboardingGoal(goal: String): Result<Profile> = runCatching {
+        api.updateProfile(UpdateProfileRequestDto(onboardingGoal = goal)).resolve().toDomain()
     }
 }

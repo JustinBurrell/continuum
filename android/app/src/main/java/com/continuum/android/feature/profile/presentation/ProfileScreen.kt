@@ -52,6 +52,7 @@ fun ProfileScreen(
     onResumes: () -> Unit = {},
     onTerms: () -> Unit = {},
     onPrivacy: () -> Unit = {},
+    onFinishSetup: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -119,6 +120,32 @@ fun ProfileScreen(
                                 enabled = !state.restoreLoading && !profile.isDemo
                             ) {
                                 Text(if (state.restoreLoading) "Restoring…" else "Restore", color = ErrorRed)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Finish setup banner
+            if (!profile.onboardingCompleted && !profile.isDemo) {
+                item {
+                    Surface(
+                        color = PurpleTint,
+                        shape = RoundedCornerShape(12.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, BrandPurple.copy(alpha = 0.3f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Complete your profile setup", style = MaterialTheme.typography.labelMedium, color = BrandPurple)
+                                Text("A few quick steps to get you fully set up.", style = MaterialTheme.typography.bodySmall, color = BrandPurple.copy(alpha = 0.8f))
+                            }
+                            TextButton(onClick = { viewModel.finishSetup(onFinishSetup) }) {
+                                Text("Finish setup", color = BrandPurple)
                             }
                         }
                     }

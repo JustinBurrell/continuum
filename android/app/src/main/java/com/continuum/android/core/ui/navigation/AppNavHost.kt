@@ -31,6 +31,7 @@ import com.continuum.android.core.data.local.LogoutReason
 import com.continuum.android.core.ui.components.DemoBanner
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalNetworkMonitor
+import com.continuum.android.core.ui.LocalProfileRepository
 import com.continuum.android.core.ui.LocalScrollToTopNotifier
 import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.feature.auth.presentation.*
@@ -431,6 +432,7 @@ private fun NavGraph(
         navigation(route = NavRoutes.Dashboard.ROOT, startDestination = NavRoutes.Dashboard.SCREEN) {
             composable(NavRoutes.Dashboard.SCREEN) {
                 val networkMonitor = LocalNetworkMonitor.current
+                val profileRepository = LocalProfileRepository.current
                 DashboardScreen(
                     onNotesClick = {
                         navController.navigate(NavRoutes.Notes.ROOT) {
@@ -462,7 +464,8 @@ private fun NavGraph(
                     onFlashcardSetClick = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) },
                     onApplicationClick = { appId -> navController.navigate(NavRoutes.Career.applicationDetail(appId)) },
                     onTaskClick = { taskId -> navController.navigate(NavRoutes.Tasks.detail(taskId)) },
-                    networkMonitor = networkMonitor
+                    networkMonitor = networkMonitor,
+                    profileRepository = profileRepository,
                 )
             }
         }
@@ -810,14 +813,26 @@ private fun NavGraph(
                     onTasks = { navController.navigate(NavRoutes.Tasks.ROOT) },
                     onResumes = { navController.navigate(NavRoutes.Career.RESUMES_LIST) },
                     onTerms = { navController.navigate(NavRoutes.Auth.TERMS) },
-                    onPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) }
+                    onPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) },
+                    onFinishSetup = {
+                        navController.navigate(NavRoutes.Dashboard.ROOT) {
+                            launchSingleTop = true; restoreState = true
+                        }
+                    },
                 )
             }
             composable(NavRoutes.Profile.EDIT) {
                 EditProfileScreen(onNavigateBack = { navController.popBackStack() })
             }
             composable(NavRoutes.Profile.SETTINGS) {
-                SettingsScreen(onNavigateBack = { navController.popBackStack() })
+                SettingsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onReplayTour = {
+                        navController.navigate(NavRoutes.Dashboard.ROOT) {
+                            launchSingleTop = true; restoreState = true
+                        }
+                    },
+                )
             }
         }
     }

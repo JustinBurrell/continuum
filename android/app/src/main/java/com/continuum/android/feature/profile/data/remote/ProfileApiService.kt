@@ -47,4 +47,13 @@ interface ProfileApiService {
 
     @DELETE("auth/me/google/link")
     suspend fun unlinkGoogle(): SimpleMessageDto
+
+    @POST("auth/me/onboarding/complete")
+    suspend fun completeOnboarding(): ProfileResponseDto
+
+    @POST("auth/me/tour/complete")
+    suspend fun completeTour(): ProfileResponseDto
+
+    @PATCH("auth/me/tour/reset")
+    suspend fun resetTour(): ProfileResponseDto
 }

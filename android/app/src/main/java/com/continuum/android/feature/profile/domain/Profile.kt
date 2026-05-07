@@ -20,7 +20,10 @@ data class Profile(
     val pushNotifications: Boolean,
     val createdAt: String,
     val roles: List<String> = emptyList(),
-    val lastViewedActivityAt: String? = null
+    val lastViewedActivityAt: String? = null,
+    val onboardingCompleted: Boolean = false,
+    val tourCompleted: Boolean = false,
+    val onboardingGoal: String? = null
 ) {
     val fullName: String get() = "$firstName $lastName".trim().ifEmpty { username }
     val initials: String get() = buildString {
