@@ -63,9 +63,11 @@ class DashboardViewModel @Inject constructor(
             dataRefreshNotifier.refreshEvents.collect { load() }
         }
         viewModelScope.launch {
-            onboardingTrigger.events.collect { event ->
+            onboardingTrigger.pendingEvent.collect { event ->
+                if (event == null) return@collect
                 val isReplay = event is OnboardingEvent.Replay
                 _state.update { it.copy(showOnboardingSheet = true, onboardingIsReplay = isReplay) }
+                onboardingTrigger.consume()
             }
         }
     }
