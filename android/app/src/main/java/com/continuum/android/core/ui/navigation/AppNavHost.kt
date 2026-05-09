@@ -37,6 +37,7 @@ import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.feature.auth.presentation.*
 import com.continuum.android.feature.career.presentation.*
 import com.continuum.android.feature.dashboard.presentation.DashboardScreen
+import com.continuum.android.feature.onboarding.presentation.OnboardingScreen
 import com.continuum.android.feature.flashcards.presentation.*
 import com.continuum.android.feature.messaging.presentation.*
 import com.continuum.android.feature.notes.presentation.*
@@ -58,6 +59,11 @@ object NavRoutes {
         const val VERIFY_EMAIL = "auth/verify-email"
         const val PRIVACY = "auth/privacy"
         const val TERMS = "auth/terms"
+    }
+
+    object Onboarding {
+        const val ROOT = "onboarding"
+        const val SCREEN = "onboarding/main"
     }
 
     object Dashboard {
@@ -211,7 +217,9 @@ fun AppNavHost(
     val windowWidthDp = LocalConfiguration.current.screenWidthDp.dp
     val isExpandedScreen = windowWidthDp >= 840.dp
 
-    val isMainScreen = currentRoute != null && !currentRoute.startsWith(NavRoutes.Auth.ROOT)
+    val isMainScreen = currentRoute != null &&
+            !currentRoute.startsWith(NavRoutes.Auth.ROOT) &&
+            !currentRoute.startsWith(NavRoutes.Onboarding.ROOT)
     val showMainNav = isMainScreen
 
     val startDestination = if (isAuthenticated) NavRoutes.Dashboard.ROOT else NavRoutes.Auth.ROOT
@@ -370,7 +378,7 @@ private fun NavGraph(
             composable(route = NavRoutes.Auth.REGISTER) {
                 RegisterScreen(
                     onRegisterSuccess = {
-                        navController.navigate(NavRoutes.Dashboard.ROOT) {
+                        navController.navigate(NavRoutes.Onboarding.ROOT) {
                             popUpTo(NavRoutes.Auth.ROOT) { inclusive = true }
                         }
                     },
@@ -428,6 +436,33 @@ private fun NavGraph(
             }
         }
 
+        // ---- Onboarding graph ----
+        navigation(route = NavRoutes.Onboarding.ROOT, startDestination = NavRoutes.Onboarding.SCREEN) {
+            composable(NavRoutes.Onboarding.SCREEN) {
+                val profileRepository = LocalProfileRepository.current
+                OnboardingScreen(
+                    onFinished = {
+                        navController.navigate(NavRoutes.Dashboard.ROOT) {
+                            popUpTo(NavRoutes.Onboarding.ROOT) { inclusive = true }
+                        }
+                    },
+                    onNavigateToSection = { sectionKey ->
+                        val route = when (sectionKey) {
+                            "notes"        -> NavRoutes.Notes.ROOT
+                            "tasks"        -> NavRoutes.Tasks.ROOT
+                            "applications" -> NavRoutes.Career.ROOT
+                            "friends"      -> NavRoutes.Social.FRIENDS_LIST
+                            else           -> NavRoutes.Dashboard.ROOT
+                        }
+                        navController.navigate(route) {
+                            popUpTo(NavRoutes.Onboarding.ROOT) { inclusive = true }
+                        }
+                    },
+                    profileRepository = profileRepository,
+                )
+            }
+        }
+
         // ---- Dashboard graph ----
         navigation(route = NavRoutes.Dashboard.ROOT, startDestination = NavRoutes.Dashboard.SCREEN) {
             composable(NavRoutes.Dashboard.SCREEN) {
@@ -466,6 +501,9 @@ private fun NavGraph(
                     onTaskClick = { taskId -> navController.navigate(NavRoutes.Tasks.detail(taskId)) },
                     networkMonitor = networkMonitor,
                     profileRepository = profileRepository,
+                    onNavigateToOnboarding = {
+                        navController.navigate(NavRoutes.Onboarding.ROOT) { launchSingleTop = true }
+                    },
                 )
             }
         }
@@ -815,9 +853,7 @@ private fun NavGraph(
                     onTerms = { navController.navigate(NavRoutes.Auth.TERMS) },
                     onPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) },
                     onFinishSetup = {
-                        navController.navigate(NavRoutes.Dashboard.ROOT) {
-                            launchSingleTop = true; restoreState = true
-                        }
+                        navController.navigate(NavRoutes.Onboarding.ROOT) { launchSingleTop = true }
                     },
                 )
             }
@@ -828,9 +864,7 @@ private fun NavGraph(
                 SettingsScreen(
                     onNavigateBack = { navController.popBackStack() },
                     onReplayTour = {
-                        navController.navigate(NavRoutes.Dashboard.ROOT) {
-                            launchSingleTop = true; restoreState = true
-                        }
+                        navController.navigate(NavRoutes.Onboarding.ROOT) { launchSingleTop = true }
                     },
                 )
             }

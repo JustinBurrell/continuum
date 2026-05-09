@@ -1,0 +1,276 @@
+package com.continuum.android.feature.onboarding.presentation
+
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.continuum.android.core.ui.theme.*
+import com.continuum.android.feature.onboarding.presentation.steps.*
+import com.continuum.android.feature.profile.data.repository.ProfileRepository
+
+// 5 profile steps (always) + 1 activation = 6 display steps for fresh onboarding
+private const val PROFILE_STEP_COUNT = 5
+
+@Composable
+fun OnboardingScreen(
+    onFinished: () -> Unit,
+    onNavigateToSection: (sectionKey: String) -> Unit,
+    profileRepository: ProfileRepository,
+    apiBaseUrl: String = "",
+    viewModel: OnboardingViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    // Goal is needed to show the right ActivationStep config; update when GoalStep saves one.
+    var currentGoal by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        currentGoal = profileRepository.getProfile().getOrNull()?.onboardingGoal
+    }
+
+    val showActivation = !state.isReplay && state.isTourPhase
+    val totalDisplaySteps = when {
+        state.isReplay -> state.totalSteps
+        else -> PROFILE_STEP_COUNT + 1
+    }
+    val displayStepNumber = when {
+        state.isReplay -> state.stepNumber
+        showActivation || state.isDone -> PROFILE_STEP_COUNT + 1
+        else -> minOf(state.stepNumber, PROFILE_STEP_COUNT)
+    }
+    val progress = displayStepNumber.toFloat() / totalDisplaySteps.toFloat()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .systemBarsPadding()
+    ) {
+        // ── Hero section (40%) ──────────────────────────────────────────
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.40f)
+                .background(Brush.verticalGradient(listOf(DeepPurple, BrandPurple))),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (state.isLoading) {
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(36.dp))
+            } else {
+                HeroContent(state = state, showActivation = showActivation)
+            }
+        }
+
+        // ── Content section (60%) ───────────────────────────────────────
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.60f)
+                .background(PageBackground)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 20.dp)
+                .imePadding()
+        ) {
+            if (!state.isLoading) {
+                // Progress header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = if (showActivation || state.isDone) "Almost done"
+                               else "Step $displayStepNumber of $totalDisplaySteps",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextMuted,
+                    )
+                    TextButton(
+                        onClick = { viewModel.exitAll { onFinished() } },
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                    ) {
+                        Text("Skip setup", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = BrandPurple,
+                    trackColor = BrandPurple.copy(alpha = 0.15f),
+                )
+                Spacer(Modifier.height(24.dp))
+
+                // Step content
+                AnimatedContent(
+                    targetState = state.currentIndex,
+                    transitionSpec = {
+                        slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                    },
+                    label = "OnboardingStep",
+                ) { index ->
+                    val step = state.steps.getOrNull(index) ?: return@AnimatedContent
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        when (step) {
+                            is OnboardingStep.ProfileStep -> ProfileStepContent(
+                                key = step.key,
+                                state = state,
+                                profileRepository = profileRepository,
+                                apiBaseUrl = apiBaseUrl,
+                                onAdvance = { viewModel.advance() },
+                                onSkip = { viewModel.skip() },
+                                onGoalSaved = { goal ->
+                                    viewModel.onGoalSaved(goal)
+                                    currentGoal = goal
+                                },
+                            )
+                            is OnboardingStep.TourStep -> if (state.isReplay) {
+                                TourStepContent(
+                                    config = step.config,
+                                    onNext = { viewModel.advance() },
+                                    onSkipTour = { viewModel.completeTour { onFinished() } },
+                                )
+                            } else {
+                                ActivationStep(
+                                    goal = currentGoal,
+                                    onGo = { sectionKey ->
+                                        viewModel.completeTour { onNavigateToSection(sectionKey) }
+                                    },
+                                    onSkip = { viewModel.completeTour { onFinished() } },
+                                )
+                            }
+                            is OnboardingStep.Done -> DoneSlide(
+                                isReplay = state.isReplay,
+                                onFinish = { viewModel.completeTour { onFinished() } },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeroContent(state: OnboardingUiState, showActivation: Boolean) {
+    val currentStep = state.currentStep
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(24.dp),
+    ) {
+        when {
+            showActivation || state.isDone -> {
+                HeroIconCircle(Icons.Default.Star)
+                Spacer(Modifier.height(16.dp))
+                Text("One last thing.", fontFamily = FrauncesFamily, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Color.White)
+            }
+            currentStep is OnboardingStep.TourStep -> {
+                // Replay: show section name as hero text
+                Text(
+                    currentStep.config.sectionName,
+                    fontFamily = FrauncesFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 28.sp,
+                    color = Color.White,
+                )
+            }
+            currentStep is OnboardingStep.ProfileStep -> {
+                val icon = profileStepIcon(currentStep.key)
+                HeroIconCircle(icon)
+                Spacer(Modifier.height(16.dp))
+                Text(profileStepHeadline(currentStep.key), fontFamily = FrauncesFamily, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Color.White)
+            }
+            else -> HeroIconCircle(Icons.Default.AccountCircle)
+        }
+    }
+}
+
+@Composable
+private fun HeroIconCircle(icon: ImageVector) {
+    Box(
+        modifier = Modifier
+            .size(80.dp)
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 0.15f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(40.dp))
+    }
+}
+
+private fun profileStepIcon(key: String): ImageVector = when (key) {
+    "welcome"      -> Icons.Default.Person
+    "goal"         -> Icons.Default.CheckCircle
+    "name"         -> Icons.Default.Edit
+    "photo-bio"    -> Icons.Default.AddAPhoto
+    "social-links" -> Icons.Default.Share
+    "google-drive" -> Icons.Default.Cloud
+    else           -> Icons.Default.AccountCircle
+}
+
+private fun profileStepHeadline(key: String): String = when (key) {
+    "welcome"      -> "You're in."
+    "goal"         -> "What matters to you?"
+    "name"         -> "Make it yours."
+    "photo-bio"    -> "Put a face to it."
+    "social-links" -> "Connect your world."
+    "google-drive" -> "Bring your content."
+    else           -> ""
+}
+
+@Composable
+private fun ProfileStepContent(
+    key: String,
+    state: OnboardingUiState,
+    profileRepository: ProfileRepository,
+    apiBaseUrl: String,
+    onAdvance: () -> Unit,
+    onSkip: () -> Unit,
+    onGoalSaved: (String) -> Unit,
+) {
+    when (key) {
+        "welcome" -> WelcomeStep(onContinue = onAdvance)
+        "goal"    -> GoalStep(
+            profileRepository = profileRepository,
+            onContinue = { goal ->
+                if (goal != null) onGoalSaved(goal)
+                onAdvance()
+            },
+            onSkip = onSkip,
+        )
+        "name", "photo-bio", "social-links", "google-drive" -> {
+            var loadedProfile by remember { mutableStateOf<com.continuum.android.feature.profile.domain.Profile?>(null) }
+            LaunchedEffect(key) {
+                loadedProfile = profileRepository.getProfile().getOrNull()
+            }
+            loadedProfile?.let { p ->
+                when (key) {
+                    "name" -> NameStep(profile = p, profileRepository = profileRepository, onContinue = onAdvance, onSkip = onSkip)
+                    "photo-bio" -> PhotoBioStep(profile = p, profileRepository = profileRepository, onContinue = onAdvance, onSkip = onSkip)
+                    "social-links" -> SocialLinksStep(profile = p, profileRepository = profileRepository, onContinue = onAdvance, onSkip = onSkip)
+                    "google-drive" -> GoogleDriveStep(profile = p, profileRepository = profileRepository, apiBaseUrl = apiBaseUrl, onContinue = onAdvance, onSkip = onSkip)
+                }
+            } ?: Box(Modifier.fillMaxWidth().height(120.dp), Alignment.Center) {
+                CircularProgressIndicator(color = BrandPurple)
+            }
+        }
+    }
+}

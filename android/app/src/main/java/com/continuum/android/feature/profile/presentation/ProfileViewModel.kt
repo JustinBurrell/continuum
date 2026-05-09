@@ -2,7 +2,6 @@ package com.continuum.android.feature.profile.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.continuum.android.core.data.OnboardingTrigger
 import com.continuum.android.core.data.ProfileUpdateNotifier
 import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
@@ -35,7 +34,6 @@ class ProfileViewModel @Inject constructor(
     private val repository: ProfileRepository,
     private val tokenManager: TokenManager,
     private val profileUpdateNotifier: ProfileUpdateNotifier,
-    private val onboardingTrigger: OnboardingTrigger,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileUiState())
@@ -207,16 +205,14 @@ class ProfileViewModel @Inject constructor(
 
     fun clearMessage() = _state.update { it.copy(successMessage = null, error = null) }
 
-    fun finishSetup(onNavigateToDashboard: () -> Unit) {
-        onboardingTrigger.resume()
-        onNavigateToDashboard()
+    fun finishSetup(onNavigateToOnboarding: () -> Unit) {
+        onNavigateToOnboarding()
     }
 
-    fun replayTour(onNavigateToDashboard: () -> Unit) {
+    fun replayTour(onNavigateToOnboarding: () -> Unit) {
         viewModelScope.launch {
             runCatching { repository.resetTour() }
-            onboardingTrigger.replay()
-            onNavigateToDashboard()
+            onNavigateToOnboarding()
         }
     }
 }

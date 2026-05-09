@@ -3,8 +3,6 @@ package com.continuum.android.feature.dashboard.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.continuum.android.core.data.DataRefreshNotifier
-import com.continuum.android.core.data.OnboardingEvent
-import com.continuum.android.core.data.OnboardingTrigger
 import com.continuum.android.feature.career.data.remote.CareerApiService
 import com.continuum.android.feature.career.domain.Application
 import com.continuum.android.feature.flashcards.data.repository.FlashcardsRepository
@@ -18,8 +16,10 @@ import com.continuum.android.feature.tasks.data.repository.TasksRepository
 import com.continuum.android.feature.tasks.domain.Task
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -39,8 +39,6 @@ data class DashboardUiState(
     val openApplicationCount: Int = 0,
     val newActivityCount: Int = 0,
     val error: String? = null,
-    val showOnboardingSheet: Boolean = false,
-    val onboardingIsReplay: Boolean = false,
 )
 
 @HiltViewModel
@@ -52,23 +50,19 @@ class DashboardViewModel @Inject constructor(
     private val socialApi: SocialApiService,
     private val profileRepository: ProfileRepository,
     private val dataRefreshNotifier: DataRefreshNotifier,
-    private val onboardingTrigger: OnboardingTrigger,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DashboardUiState())
     val state: StateFlow<DashboardUiState> = _state.asStateFlow()
 
+    // One-shot navigation event emitted when the profile signals onboarding is incomplete.
+    // DashboardScreen collects this and calls onNavigateToOnboarding.
+    private val _navigateToOnboarding = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val navigateToOnboarding = _navigateToOnboarding.asSharedFlow()
+
     init {
         viewModelScope.launch {
             dataRefreshNotifier.refreshEvents.collect { load() }
-        }
-        viewModelScope.launch {
-            onboardingTrigger.pendingEvent.collect { event ->
-                if (event == null) return@collect
-                val isReplay = event is OnboardingEvent.Replay
-                _state.update { it.copy(showOnboardingSheet = true, onboardingIsReplay = isReplay) }
-                onboardingTrigger.consume()
-            }
         }
     }
 
@@ -113,11 +107,10 @@ class DashboardViewModel @Inject constructor(
                 // returns so both run in parallel with the heavier notes/tasks/sets flows.
                 val profile = profileDeferred.await().getOrNull()
                 val firstName = profile?.firstName?.ifBlank { "there" } ?: "there"
-                val showSheet = profile != null &&
+                val needsOnboarding = profile != null &&
                         (!profile.onboardingCompleted || !profile.tourCompleted)
-                val isReplay = profile?.onboardingCompleted == true && !profile.tourCompleted
-                if (showSheet) {
-                    _state.update { it.copy(showOnboardingSheet = true, onboardingIsReplay = isReplay) }
+                if (needsOnboarding) {
+                    _navigateToOnboarding.tryEmit(Unit)
                 }
                 val activityDeferred = async { socialApi.getActivity(since = profile?.lastViewedActivityAt) }
 
@@ -204,12 +197,4 @@ class DashboardViewModel @Inject constructor(
     }
 
     fun refresh() = load()
-
-    fun dismissOnboardingSheet() {
-        _state.update { it.copy(showOnboardingSheet = false, onboardingIsReplay = false) }
-    }
-
-    fun openOnboardingSheet(isReplay: Boolean = false) {
-        _state.update { it.copy(showOnboardingSheet = true, onboardingIsReplay = isReplay) }
-    }
 }
