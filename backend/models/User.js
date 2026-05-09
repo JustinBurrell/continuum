@@ -217,15 +217,11 @@ const userSchema = new mongoose.Schema({
 
     /**
      * Onboarding
-     * Purpose: Track progress through the new-user onboarding flow (profile setup + feature tour)
-     *          and the persistent dashboard checklist widget.
      * Fields:
      *   onboardingCompleted — true once the user finishes (or skips) all profile setup steps
      *   tourCompleted       — true once the user finishes (or skips) the feature tour; reset to
-     *                         false when the user replays the tour from Profile settings
-     *   onboardingGoal      — the goal the user selected on step P1, used to personalize tour order
-     *   onboardingChecklist — 4 action items + a dismissed flag for the dashboard widget;
-     *                         individual fields are one-way ratchets (false → true only)
+     *                         false when the user replays from Profile
+     *   onboardingGoal      — the goal selected on the goal step; personalises tour order
      */
     onboardingCompleted: {
         type: Boolean,
@@ -239,13 +235,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['study_smarter', 'track_job_search', 'manage_coursework', 'collaborate', 'not_sure'],
         default: null,
-    },
-    onboardingChecklist: {
-        noteCreated: { type: Boolean, default: false },
-        flashcardsGenerated: { type: Boolean, default: false },
-        taskAdded: { type: Boolean, default: false },
-        friendConnected: { type: Boolean, default: false },
-        dismissed: { type: Boolean, default: false },
     },
 }, {
     timestamps: true, // auto-creates createdAt and updatedAt on every document

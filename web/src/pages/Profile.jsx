@@ -701,32 +701,6 @@ export default function Profile() {
             </div>
           )}
 
-          {/* Finish setup banner */}
-          {me && !me.onboardingCompleted && (
-            <div style={{
-              background: 'rgba(107,33,168,0.05)',
-              border: '1px solid #e5d3f0',
-              borderRadius: 12,
-              padding: '12px 16px',
-              marginBottom: 16,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-              flexWrap: 'wrap',
-            }}>
-              <p style={{ fontSize: 13, color: '#4b2d6e', margin: 0 }}>
-                You haven't finished setting up your account yet.
-              </p>
-              <Button
-                size="sm"
-                onClick={() => setForceOnboardingOpen(true)}
-                style={{ flexShrink: 0 }}
-              >
-                Finish setup
-              </Button>
-            </div>
-          )}
 
           {/* Profile header card */}
           <div style={card}>
@@ -843,6 +817,31 @@ export default function Profile() {
       {/* ─── PROFILE TAB ─── */}
       {activeTab === 'profile' && (
         <div>
+          {/* Feature tour */}
+          <div style={{ ...card, marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Feature tour</p>
+              <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>
+                Replay the guided tour of Continuum any time.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              style={{ flexShrink: 0 }}
+              onClick={async () => {
+                try {
+                  posthog.capture('tour_replayed', { platform: 'web', goal: user?.onboardingGoal ?? 'not_sure' });
+                  await api.patch('/auth/me/tour/reset');
+                  updateUser({ tourCompleted: false });
+                } catch (_) {}
+                setForceOnboardingOpen(true);
+              }}
+            >
+              Replay tour
+            </Button>
+          </div>
+
           {/* Avatar */}
           <div style={card}>
             <p style={sectionLabel}>Photo</p>
@@ -1073,33 +1072,6 @@ export default function Profile() {
       {/* ─── NOTIFICATIONS TAB ─── */}
       {activeTab === 'notifications' && (
         <div>
-          {/* Replay onboarding tour */}
-          <div style={{ ...card, marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Feature tour</p>
-              <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>
-                Replay the guided tour of Continuum any time.
-              </p>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              style={{ flexShrink: 0 }}
-              onClick={async () => {
-                posthog.capture('tour_replayed', {
-                  platform: 'web',
-                  goal: user?.onboardingGoal ?? 'not_sure',
-                });
-                try {
-                  await api.patch('/auth/me/tour/reset');
-                  updateUser({ tourCompleted: false });
-                } catch (_) {}
-                setForceOnboardingOpen(true);
-              }}
-            >
-              Replay tour
-            </Button>
-          </div>
 
           <div style={card}>
             <p style={sectionLabel}>Email & push</p>

@@ -644,6 +644,5 @@ router.post('/google/mobile', authLimiter, mobileAuthController.googleMobileLogi
 router.post('/me/onboarding/complete', authMiddleware, authController.completeOnboarding);
 router.post('/me/tour/complete', authMiddleware, authController.completeTour);
 router.patch('/me/tour/reset', authMiddleware, authController.resetTour);
-router.patch('/me/onboarding/checklist', authMiddleware, authController.updateOnboardingChecklist);
 
 module.exports = router;

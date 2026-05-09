@@ -852,9 +852,6 @@ private fun NavGraph(
                     onResumes = { navController.navigate(NavRoutes.Career.RESUMES_LIST) },
                     onTerms = { navController.navigate(NavRoutes.Auth.TERMS) },
                     onPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) },
-                    onFinishSetup = {
-                        navController.navigate(NavRoutes.Onboarding.ROOT) { launchSingleTop = true }
-                    },
                 )
             }
             composable(NavRoutes.Profile.EDIT) {

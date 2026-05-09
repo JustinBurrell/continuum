@@ -1001,31 +1001,3 @@ exports.resetTour = async (req, res) => {
     res.status(200).json({ success: true, user });
 };
 
-// ----------------------------------------
-// PATCH /api/auth/me/onboarding/checklist
-// Purpose: Mark individual checklist items as completed (one-way ratchet)
-// Body: { noteCreated?, flashcardsGenerated?, taskAdded?, friendConnected?, dismissed? }
-// Only fields with value === true are written — false values are silently ignored
-// so a completed item can never be un-checked by a stale request body.
-// ----------------------------------------
-exports.updateOnboardingChecklist = async (req, res) => {
-    const allowed = ['noteCreated', 'flashcardsGenerated', 'taskAdded', 'friendConnected', 'dismissed'];
-    const setFields = {};
-
-    for (const field of allowed) {
-        if (req.body[field] === true) {
-            setFields[`onboardingChecklist.${field}`] = true;
-        }
-    }
-
-    if (Object.keys(setFields).length === 0) {
-        return res.status(400).json({ success: false, error: 'No valid checklist fields provided' });
-    }
-
-    const user = await User.findByIdAndUpdate(
-        req.user._id,
-        { $set: setFields },
-        { new: true }
-    );
-    res.status(200).json({ success: true, user });
-};

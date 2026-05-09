@@ -205,10 +205,6 @@ class ProfileViewModel @Inject constructor(
 
     fun clearMessage() = _state.update { it.copy(successMessage = null, error = null) }
 
-    fun finishSetup(onNavigateToOnboarding: () -> Unit) {
-        onNavigateToOnboarding()
-    }
-
     fun replayTour(onNavigateToOnboarding: () -> Unit) {
         viewModelScope.launch {
             runCatching { repository.resetTour() }
