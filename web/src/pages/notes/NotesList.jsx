@@ -315,6 +315,7 @@ export default function NotesList() {
                 cursor: 'pointer',
                 border: 'none',
               }}
+              data-tour-highlight="notes-new"
             >
               <Plus size={15} /> New note
             </button>

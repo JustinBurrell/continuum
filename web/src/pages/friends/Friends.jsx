@@ -456,6 +456,7 @@ export default function Friends() {
               placeholder="Search users by name or username..."
               value={searchQ}
               onChange={e => setSearchQ(e.target.value)}
+              data-tour-highlight="friends-search"
             />
           </div>
 

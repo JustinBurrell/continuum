@@ -244,7 +244,7 @@ export default function Tasks() {
           <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{allTasks.length} tasks</p>
         </div>
         {!user?.isDemo && (
-          <Button onClick={() => setShowCreate(true)}>
+          <Button onClick={() => setShowCreate(true)} data-tour-highlight="tasks-new">
             <Plus size={16} /> New task
           </Button>
         )}

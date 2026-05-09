@@ -3,43 +3,65 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { posthog } from '@/lib/posthog';
 
-// Renders a pulsing purple ring around the sidebar nav element
-// identified by data-nav-id="<target>" while this tour step is active.
+function injectPulseKeyframes() {
+  if (document.getElementById('ob-pulse-kf')) return;
+  const style = document.createElement('style');
+  style.id = 'ob-pulse-kf';
+  style.textContent = `
+    @keyframes onboardingPulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(107,33,168,0.35); }
+      50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(107,33,168,0); }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function attachRing(el, radiusPx = 8) {
+  injectPulseKeyframes();
+  const ring = document.createElement('div');
+  ring.style.cssText = `
+    position: absolute;
+    inset: -3px;
+    border-radius: ${radiusPx}px;
+    border: 2px solid #6b21a8;
+    pointer-events: none;
+    animation: onboardingPulse 1.4s ease-in-out infinite;
+    z-index: 9999;
+  `;
+  el.style.position = 'relative';
+  el.appendChild(ring);
+  return ring;
+}
+
+// Pulsing ring on the sidebar nav element (data-nav-id)
 function useSidebarHighlight(target) {
   useEffect(() => {
     if (!target) return;
     const el = document.querySelector(`[data-nav-id="${target}"]`);
     if (!el) return;
-
-    const ring = document.createElement('div');
-    ring.style.cssText = `
-      position: absolute;
-      inset: -3px;
-      border-radius: 8px;
-      border: 2px solid #6b21a8;
-      pointer-events: none;
-      animation: onboardingPulse 1.4s ease-in-out infinite;
-      z-index: 9999;
-    `;
-
-    if (!document.getElementById('ob-pulse-kf')) {
-      const style = document.createElement('style');
-      style.id = 'ob-pulse-kf';
-      style.textContent = `
-        @keyframes onboardingPulse {
-          0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(107,33,168,0.35); }
-          50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(107,33,168,0); }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    el.style.position = 'relative';
-    el.appendChild(ring);
+    const ring = attachRing(el, 8);
     el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-
     return () => ring.remove();
   }, [target]);
+}
+
+// Pulsing ring on the page's primary CTA element (data-tour-highlight)
+// Delayed 400ms so the navigated page has time to mount its buttons.
+function usePageHighlight(pageTarget) {
+  useEffect(() => {
+    if (!pageTarget) return;
+    let ring;
+    const timer = setTimeout(() => {
+      const el = document.querySelector(`[data-tour-highlight="${pageTarget}"]`);
+      if (!el) return;
+      ring = attachRing(el, 6);
+      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 400);
+    return () => {
+      clearTimeout(timer);
+      ring?.remove();
+    };
+  }, [pageTarget]);
 }
 
 export default function TourStep({ config, tourIndex, isReplay, onNext, onSkipTour }) {
@@ -47,6 +69,7 @@ export default function TourStep({ config, tourIndex, isReplay, onNext, onSkipTo
   const navigate = useNavigate();
 
   useSidebarHighlight(config.sidebarTarget);
+  usePageHighlight(config.pageTarget);
 
   // Navigate to the section's page and fire analytics on mount
   useEffect(() => {

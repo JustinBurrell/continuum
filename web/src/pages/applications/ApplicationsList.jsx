@@ -158,7 +158,7 @@ export default function ApplicationsList() {
             </button>
           ))}
           {!user?.isDemo && (
-            <Button onClick={() => setShowCreate(true)}>
+            <Button onClick={() => setShowCreate(true)} data-tour-highlight="applications-new">
               <Plus size={16} /> Add application
             </Button>
           )}

@@ -1,13 +1,17 @@
 // Tour step definitions. Dashboard is always index 0 (step 1).
 // Sections 1-10 are reordered based on the user's onboarding goal.
 
+// pageTarget: data-tour-highlight attribute value on the primary CTA of each section.
+// TourStep adds a pulsing purple ring to this element in addition to the sidebar highlight.
+
 const DASHBOARD_STEP = {
   id: 'dashboard',
   sectionName: 'Dashboard',
   heading: 'Welcome to your dashboard',
-  description: 'Your home base. See your study streak, recent activity, and quick links to everything.',
+  description: 'Your home base. See your recent activity, stats, and quick links to everything.',
   sidebarTarget: 'dashboard',
   route: '/dashboard',
+  pageTarget: null,
 };
 
 const ALL_SECTIONS = [
@@ -18,6 +22,7 @@ const ALL_SECTIONS = [
     description: 'Rich-text notes you can tag, search, and share with friends.',
     sidebarTarget: 'notes',
     route: '/notes',
+    pageTarget: 'notes-new',
   },
   {
     id: 'flashcards',
@@ -26,6 +31,7 @@ const ALL_SECTIONS = [
     description: 'Build flashcard sets and study with spaced repetition to retain what you learn.',
     sidebarTarget: 'flashcards',
     route: '/flashcards',
+    pageTarget: 'flashcards-new',
   },
   {
     id: 'tasks',
@@ -34,6 +40,7 @@ const ALL_SECTIONS = [
     description: 'A kanban board for tracking your work across custom columns.',
     sidebarTarget: 'tasks',
     route: '/tasks',
+    pageTarget: 'tasks-new',
   },
   {
     id: 'calendar',
@@ -42,6 +49,7 @@ const ALL_SECTIONS = [
     description: 'A unified view of all your tasks that have due dates.',
     sidebarTarget: 'calendar',
     route: '/calendar',
+    pageTarget: null,
   },
   {
     id: 'applications',
@@ -50,6 +58,7 @@ const ALL_SECTIONS = [
     description: 'Track every job application through a built-in pipeline.',
     sidebarTarget: 'applications',
     route: '/applications',
+    pageTarget: 'applications-new',
   },
   {
     id: 'resumes',
@@ -58,6 +67,7 @@ const ALL_SECTIONS = [
     description: 'Upload and manage versions of your resume in one place.',
     sidebarTarget: 'resumes',
     route: '/resumes',
+    pageTarget: 'resumes-upload',
   },
   {
     id: 'messages',
@@ -66,6 +76,7 @@ const ALL_SECTIONS = [
     description: 'Direct messages with your friends on Continuum.',
     sidebarTarget: 'messages',
     route: '/messages',
+    pageTarget: 'messages-new',
   },
   {
     id: 'friends',
@@ -74,6 +85,7 @@ const ALL_SECTIONS = [
     description: 'Find and connect with other Continuum users.',
     sidebarTarget: 'friends',
     route: '/friends',
+    pageTarget: 'friends-search',
   },
   {
     id: 'activity',
@@ -82,6 +94,7 @@ const ALL_SECTIONS = [
     description: 'See what your friends have been studying and working on.',
     sidebarTarget: 'activity',
     route: '/activity',
+    pageTarget: null,
   },
   {
     id: 'profile',
@@ -90,6 +103,7 @@ const ALL_SECTIONS = [
     description: 'Your public page, account settings, and social links.',
     sidebarTarget: 'profile',
     route: '/profile',
+    pageTarget: 'profile-edit',
   },
 ];
 

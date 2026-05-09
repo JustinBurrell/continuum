@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { posthog } from '@/lib/posthog';
 import { getOrderedTourSteps } from './tourConfig';
@@ -28,6 +29,7 @@ const PROFILE_STEP_COMPONENTS = {
 // onClose: called after all API calls complete so the parent can clear forceOnboardingOpen
 export default function OnboardingModal({ isReplay, onClose }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const {
     currentStep,
     currentIndex,
@@ -88,6 +90,7 @@ export default function OnboardingModal({ isReplay, onClose }) {
     } catch (_) {}
     await completeTour();
     onClose?.();
+    navigate('/profile');
   };
 
   const handleSkipTour = async () => {
@@ -144,82 +147,45 @@ export default function OnboardingModal({ isReplay, onClose }) {
     return null;
   };
 
+  // Floating bottom-right card — page stays fully visible behind it
   return (
-    // Backdrop — non-dismissable
     <div
       style={{
         position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.4)',
+        bottom: 24,
+        right: 24,
         zIndex: 200,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '16px',
+        width: 320,
+        background: '#fff',
+        borderRadius: '1rem',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.14), 0 1px 4px rgba(0,0,0,0.06)',
+        border: '1px solid #f0e6fb',
+        overflow: 'hidden',
       }}
     >
-      {/* Modal card */}
-      <div
-        style={{
-          background: '#fef7ff',
-          borderRadius: '1rem',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
-          width: '100%',
-          maxWidth: 480,
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Header row: progress + X button */}
-        <div
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 0' }}>
+        <span style={{ fontSize: 11, fontWeight: 500, color: '#a087b0', letterSpacing: '0.02em' }}>
+          {isDone ? '' : `Step ${stepNumber} of ${totalSteps}`}
+        </span>
+        <button
+          onClick={handleExit}
+          aria-label="Close tour"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px 20px 0',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 24, height: 24, borderRadius: 6, border: '1px solid #e5d3f0',
+            background: 'transparent', cursor: 'pointer', color: '#a087b0', transition: 'background 0.15s',
           }}
+          onMouseEnter={e => e.currentTarget.style.background = '#f3e8ff'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          <span
-            style={{
-              fontSize: 12,
-              fontWeight: 500,
-              color: '#a087b0',
-              letterSpacing: '0.02em',
-            }}
-          >
-            {isDone ? '' : `Step ${stepNumber} of ${totalSteps}`}
-          </span>
-          <button
-            onClick={handleExit}
-            aria-label="Skip onboarding"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 28,
-              height: 28,
-              borderRadius: 6,
-              border: '1px solid #e5d3f0',
-              background: 'transparent',
-              cursor: 'pointer',
-              color: '#a087b0',
-              transition: 'background 0.15s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#f3e8ff'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <X size={14} />
-          </button>
-        </div>
+          <X size={12} />
+        </button>
+      </div>
 
-        {/* Step content — keyed by index so the slide-in animation fires on each change */}
-        <div
-          key={currentIndex}
-          className="onboarding-step-enter"
-          style={{ padding: '20px 28px 28px' }}
-        >
-          {renderStep()}
-        </div>
+      {/* Step content */}
+      <div key={currentIndex} className="onboarding-step-enter" style={{ padding: '14px 16px 18px' }}>
+        {renderStep()}
       </div>
     </div>
   );

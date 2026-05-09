@@ -95,7 +95,7 @@ export default function Resumes() {
               className="hidden"
               onChange={e => handleUpload(e.target.files[0])}
             />
-            <Button onClick={() => fileInputRef.current?.click()} loading={uploading}>
+            <Button onClick={() => fileInputRef.current?.click()} loading={uploading} data-tour-highlight="resumes-upload">
               <Plus size={16} /> Upload resume
             </Button>
           </div>

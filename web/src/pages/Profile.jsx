@@ -723,7 +723,7 @@ export default function Profile() {
                 {me?.bio && <p style={{ fontSize: 13, color: '#374151', marginTop: 8, marginBottom: 0 }}>{me.bio}</p>}
                 <SocialLinks user={me} style={{ marginTop: 8 }} />
               </div>
-              <Button size="sm" variant="outline" onClick={() => setActiveTab('profile')}>
+              <Button size="sm" variant="outline" onClick={() => setActiveTab('profile')} data-tour-highlight="profile-edit">
                 <Edit3 size={13} /> Edit
               </Button>
             </div>

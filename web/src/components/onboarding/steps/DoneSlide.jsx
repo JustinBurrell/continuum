@@ -20,7 +20,7 @@ export default function DoneSlide({ isReplay, onFinish }) {
         onMouseEnter={e => e.currentTarget.style.background = '#581c87'}
         onMouseLeave={e => e.currentTarget.style.background = '#6b21a8'}
       >
-        Go to Dashboard
+        Go to Profile
       </button>
     </div>
   );
