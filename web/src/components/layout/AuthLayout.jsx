@@ -13,7 +13,10 @@ export default function AuthLayout() {
   }
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    // Logged-in users who haven't finished onboarding go to /onboarding;
+    // fully-completed users skip straight to the dashboard.
+    const destination = (user.onboardingCompleted && user.tourCompleted) ? '/dashboard' : '/onboarding';
+    return <Navigate to={destination} replace />;
   }
 
   return <Outlet />;

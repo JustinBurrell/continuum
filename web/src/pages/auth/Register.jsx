@@ -103,7 +103,7 @@ export default function Register() {
         email: data.email,
         password: data.password,
       });
-      navigate('/dashboard');
+      navigate('/onboarding');
     } catch (err) {
       setError(friendlyError(err, 'Registration failed. Please try again.'));
     }

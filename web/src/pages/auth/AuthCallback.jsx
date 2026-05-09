@@ -47,7 +47,9 @@ export default function AuthCallback() {
           });
           posthog.capture('user_logged_in', { platform: 'web', method: 'google' });
         }
-        navigate('/dashboard');
+        // New users go to onboarding; returning users who already finished go straight to dashboard
+        const destination = (user.onboardingCompleted && user.tourCompleted) ? '/dashboard' : '/onboarding';
+        navigate(destination);
       })
       .catch(() => {
         localStorage.removeItem('token');
