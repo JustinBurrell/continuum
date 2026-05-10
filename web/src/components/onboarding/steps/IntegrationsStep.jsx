@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { posthog } from '@/lib/posthog';
 
 function IntegrationCard({ icon, name, description, connected, onConnect, connecting }) {
   return (
@@ -49,6 +50,16 @@ export default function IntegrationsStep({ onContinue, onSkip }) {
 
   const isGoogleConnected = !!user?.googleId;
 
+  useEffect(() => {
+    try {
+      posthog.capture('integrations_step_viewed', {
+        platform: 'web',
+        google_already_connected: isGoogleConnected,
+      });
+    } catch (_) {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleConnectGoogle = () => {
     setLinking(true);
     const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5001';
@@ -63,6 +74,13 @@ export default function IntegrationsStep({ onContinue, onSkip }) {
           const updated = res.data.user || res.data.data;
           if (updated.googleId) {
             updateUser({ googleId: updated.googleId });
+            try {
+              posthog.capture('integration_connected', {
+                platform: 'web',
+                integration: 'google_drive',
+                connected_during: 'onboarding',
+              });
+            } catch (_) {}
             onContinue();
           }
         } catch (_) {}
@@ -92,7 +110,18 @@ export default function IntegrationsStep({ onContinue, onSkip }) {
 
       <button
         type="button"
-        onClick={onContinue}
+        onClick={() => {
+          if (!isGoogleConnected) {
+            try {
+              posthog.capture('integration_step_skipped', {
+                platform: 'web',
+                integration: 'google_drive',
+                via: 'continue',
+              });
+            } catch (_) {}
+          }
+          onContinue();
+        }}
         style={{
           width: '100%', padding: '11px 0', background: '#6b21a8', color: '#fff',
           border: 'none', borderRadius: 8, fontSize: '0.9375rem', fontWeight: 600,
@@ -105,7 +134,16 @@ export default function IntegrationsStep({ onContinue, onSkip }) {
       </button>
       <button
         type="button"
-        onClick={onSkip}
+        onClick={() => {
+          try {
+            posthog.capture('integration_step_skipped', {
+              platform: 'web',
+              integration: 'google_drive',
+              via: 'skip',
+            });
+          } catch (_) {}
+          onSkip();
+        }}
         style={{ background: 'none', border: 'none', color: '#a087b0', fontSize: '0.875rem', cursor: 'pointer', width: '100%' }}
       >
         Skip for now

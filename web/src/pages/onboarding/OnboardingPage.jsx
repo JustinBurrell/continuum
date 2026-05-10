@@ -129,6 +129,19 @@ export default function OnboardingPage() {
     } catch (_) {}
   }, [user]);
 
+  // Fire activation_step_viewed once when the activation screen first appears
+  const activationViewedRef = useRef(false);
+  useEffect(() => {
+    if (!showActivation || activationViewedRef.current || !user) return;
+    activationViewedRef.current = true;
+    try {
+      posthog.capture('activation_step_viewed', {
+        platform: 'web',
+        goal: user?.onboardingGoal ?? 'not_sure',
+      });
+    } catch (_) {}
+  }, [showActivation, user]);
+
   // --- Guards (after all hooks) ---
   if (isLoading) {
     return (
