@@ -235,6 +235,7 @@ export default function Profile() {
   const [verifySent, setVerifySent] = useState(false);
   const [newPasswordValue, setNewPasswordValue] = useState('');
   const [cropFile, setCropFile] = useState(null);
+  const [cropSrc, setCropSrc] = useState(null);                  // URL for editing existing uploaded avatar
   const [originalFile, setOriginalFile] = useState(null);       // raw pick — kept for re-crop
   const [pendingCroppedFile, setPendingCroppedFile] = useState(null); // cropped, not yet uploaded
   const [localPreview, setLocalPreview] = useState(null);       // blob URL for preview before upload
@@ -756,30 +757,44 @@ export default function Profile() {
               <div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 2px' }}>{fullName}</p>
                 <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>JPG or PNG, max 5 MB</p>
-                {originalFile && (
-                  <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-                    <button
-                      onClick={() => setCropFile(originalFile)}
-                      style={{ fontSize: 12, color: '#6b21a8', background: 'none', border: '1px solid #e5d3f0', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
-                    >
-                      Adjust crop
-                    </button>
-                    <button
-                      onClick={() => {
-                        avatarMutation.mutate(pendingCroppedFile);
-                        setLocalPreview(null);
-                        setPendingCroppedFile(null);
-                        setOriginalFile(null);
-                      }}
-                      disabled={!pendingCroppedFile || avatarMutation.isPending}
-                      style={{ fontSize: 12, color: '#fff', background: '#6b21a8', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: pendingCroppedFile ? 'pointer' : 'not-allowed', opacity: pendingCroppedFile ? 1 : 0.5 }}
-                    >
-                      {avatarMutation.isPending ? 'Saving…' : 'Save photo'}
-                    </button>
+                {!user?.isDemo && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                    {/* Edit crop on existing avatar — shown when no new file is pending */}
+                    {!originalFile && (me?.avatarUrl || localPreview) && (
+                      <button
+                        onClick={() => setCropSrc(localPreview ?? me.avatarUrl)}
+                        style={{ fontSize: 12, color: '#6b21a8', background: 'none', border: '1px solid #e5d3f0', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
+                      >
+                        Edit crop
+                      </button>
+                    )}
+                    {/* Adjust crop on a freshly picked file */}
+                    {originalFile && (
+                      <button
+                        onClick={() => setCropFile(originalFile)}
+                        style={{ fontSize: 12, color: '#6b21a8', background: 'none', border: '1px solid #e5d3f0', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
+                      >
+                        Adjust crop
+                      </button>
+                    )}
+                    {/* Save button — only shown when there is a pending cropped file to upload */}
+                    {pendingCroppedFile && (
+                      <button
+                        onClick={() => {
+                          avatarMutation.mutate(pendingCroppedFile);
+                          setLocalPreview(null);
+                          setPendingCroppedFile(null);
+                          setOriginalFile(null);
+                        }}
+                        disabled={avatarMutation.isPending}
+                        style={{ fontSize: 12, color: '#fff', background: '#6b21a8', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', opacity: avatarMutation.isPending ? 0.6 : 1 }}
+                      >
+                        {avatarMutation.isPending ? 'Saving…' : 'Save photo'}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
-              {avatarMutation.isPending && !originalFile && <span style={{ fontSize: 12, color: '#9CA3AF' }}>Uploading…</span>}
             </div>
           </div>
 
@@ -1182,15 +1197,17 @@ export default function Profile() {
         </div>
       )}
 
-      {cropFile && (
+      {(cropFile || cropSrc) && (
         <AvatarCropModal
-          file={cropFile}
+          file={cropFile ?? undefined}
+          src={cropSrc ?? undefined}
           onSave={(croppedFile) => {
             setCropFile(null);
+            setCropSrc(null);
             setPendingCroppedFile(croppedFile);
             setLocalPreview(URL.createObjectURL(croppedFile));
           }}
-          onClose={() => setCropFile(null)}
+          onClose={() => { setCropFile(null); setCropSrc(null); }}
         />
       )}
 
