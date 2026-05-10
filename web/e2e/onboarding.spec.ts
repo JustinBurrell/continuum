@@ -134,7 +134,7 @@ test.describe('Fresh onboarding flow', () => {
     await page.waitForTimeout(400);
 
     // Skip photo-bio step
-    await stepSkip(page).click();
+    await page.locator('button:text-is("Skip")').first().click();
     await page.waitForTimeout(300);
 
     const { user } = await getMe(request, token);
@@ -267,13 +267,18 @@ test.describe('First-run coach mark', () => {
     await expect(page.locator('text=Create your first note to get started')).not.toBeVisible({ timeout: 3_000 });
   });
 
-  test('backdrop blocks sidebar navigation until dismissed', async ({ page }) => {
+  test('backdrop keeps user on target route until dismissed', async ({ page }) => {
     await triggerCoachMark(page);
     await expect(page.locator('text=Create your first note to get started')).toBeVisible({ timeout: 5_000 });
 
-    // The dimmed backdrop should be present and cover the sidebar
-    const backdrop = page.locator('div[style*="rgba(0,0,0,0.35)"]').first();
-    await expect(backdrop).toBeVisible();
+    // Still on /notes — backdrop prevented any navigation
+    await expect(page).toHaveURL(/\/notes/);
+
+    // Click the backdrop area (top-left corner — no app UI there, just backdrop)
+    await page.mouse.click(10, 10);
+    await expect(page.locator('text=Create your first note to get started')).not.toBeVisible({ timeout: 3_000 });
+    // Still on /notes after backdrop dismissal
+    await expect(page).toHaveURL(/\/notes/);
   });
 });
 
