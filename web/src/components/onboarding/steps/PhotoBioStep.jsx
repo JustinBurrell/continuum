@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import AppAvatar from '@/components/ui/AppAvatar';
+import AvatarCropModal from '@/components/ui/AvatarCropModal';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -11,6 +12,7 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
   const [bio, setBio] = useState(user?.bio ?? '');
   const [preview, setPreview] = useState(user?.avatarUrl ?? null);
   const [file, setFile] = useState(null);
+  const [cropFile, setCropFile] = useState(null);
   const [fileError, setFileError] = useState(null);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
@@ -19,21 +21,19 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
   const handleFileChange = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
+    e.target.value = '';
 
     if (!ACCEPTED_TYPES.includes(f.type)) {
       setFileError('Only JPG, PNG, WebP, and GIF files are accepted.');
-      e.target.value = '';
       return;
     }
     if (f.size > MAX_FILE_SIZE) {
       setFileError('File is too large. Maximum size is 5 MB.');
-      e.target.value = '';
       return;
     }
 
     setFileError(null);
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
+    setCropFile(f); // open crop modal instead of immediately setting
   };
 
   const handleContinue = async () => {
@@ -152,6 +152,18 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
       >
         Skip
       </button>
+
+      {cropFile && (
+        <AvatarCropModal
+          file={cropFile}
+          onSave={(croppedFile) => {
+            setCropFile(null);
+            setFile(croppedFile);
+            setPreview(URL.createObjectURL(croppedFile));
+          }}
+          onClose={() => setCropFile(null)}
+        />
+      )}
     </div>
   );
 }
