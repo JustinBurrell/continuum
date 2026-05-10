@@ -120,6 +120,10 @@ export function useOnboarding(isReplay) {
     setCurrentIndex(i => Math.min(i + 1, steps.length - 1));
   }, [currentIndex, currentStep, steps, isReplay, user?.onboardingCompleted, updateUser, stepsCompleted, stepsSkipped]);
 
+  const goBack = useCallback(() => {
+    setCurrentIndex(i => Math.max(0, i - 1));
+  }, []);
+
   const completeTour = useCallback(async () => {
     try {
       await api.post('/auth/me/tour/complete');
@@ -152,6 +156,7 @@ export function useOnboarding(isReplay) {
     stepsSkipped,
     advance,
     skip,
+    goBack,
     exitAll,
     completeTour,
     isProfilePhase: currentStep?.kind === 'profile',

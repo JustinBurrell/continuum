@@ -111,6 +111,7 @@ export default function OnboardingPage() {
     currentIndex,
     advance,
     skip,
+    goBack,
     exitAll,
     completeTour,
   } = useOnboarding(isReplay);
@@ -229,11 +230,11 @@ export default function OnboardingPage() {
         <div style={{ position: 'absolute', top: -80, right: -80, width: 280, height: 280, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
         <div style={{ position: 'absolute', bottom: -60, left: -60, width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
 
-        {/* Wordmark */}
+        {/* Wordmark — left-aligned (alignSelf prevents flex-column stretch) */}
         <img
           src="/wordmark.svg"
           alt="Continuum"
-          style={{ height: 28, filter: 'brightness(0) invert(1)', opacity: 0.9, position: 'relative', zIndex: 1 }}
+          style={{ height: 28, filter: 'brightness(0) invert(1)', opacity: 0.9, position: 'relative', zIndex: 1, alignSelf: 'flex-start' }}
         />
 
         {/* Step illustration */}
@@ -278,9 +279,21 @@ export default function OnboardingPage() {
           {/* Progress header */}
           <div style={{ marginBottom: 28 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: '#a087b0', letterSpacing: '0.02em' }}>
-                {showActivation ? 'Almost done' : `Step ${displayStepNumber} of ${totalDisplaySteps}`}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {/* Back button — shown on profile steps after the first one */}
+                {currentIndex > 0 && currentStep?.kind === 'profile' && (
+                  <button
+                    onClick={goBack}
+                    aria-label="Go back"
+                    style={{ fontSize: 12, color: '#a087b0', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', lineHeight: 1, display: 'flex', alignItems: 'center', gap: 4 }}
+                  >
+                    ← Back
+                  </button>
+                )}
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#a087b0', letterSpacing: '0.02em' }}>
+                  {showActivation ? 'Almost done' : `Step ${displayStepNumber} of ${totalDisplaySteps}`}
+                </span>
+              </div>
               <button
                 onClick={handleExit}
                 style={{ fontSize: 12, color: '#a087b0', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', lineHeight: 1 }}

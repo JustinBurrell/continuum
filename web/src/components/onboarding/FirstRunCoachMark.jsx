@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
-// Maps the section key stored in sessionStorage to the data-tour-highlight value
-// and the tooltip label shown above the highlighted element.
 const SECTION_MAP = {
   notes:        { target: 'notes-new',        label: 'Create your first note to get started' },
   tasks:        { target: 'tasks-new',         label: 'Add your first task to get started' },
@@ -18,11 +16,19 @@ export function signalFirstRun(sectionKey) {
 
 export default function FirstRunCoachMark() {
   const location = useLocation();
-  const [config, setConfig] = useState(null); // { target, label }
+  const [config, setConfig] = useState(null);
   const [rect, setRect] = useState(null);
   const dismissed = useRef(false);
+  const targetElRef = useRef(null);
 
-  // When the route changes, check sessionStorage and try to find the target element
+  const computeRect = () => {
+    const el = targetElRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+  };
+
+  // When route changes, look for the target element and begin tracking it
   useEffect(() => {
     if (dismissed.current) return;
     const section = sessionStorage.getItem(STORAGE_KEY);
@@ -30,22 +36,45 @@ export default function FirstRunCoachMark() {
     const cfg = SECTION_MAP[section];
     if (!cfg) { sessionStorage.removeItem(STORAGE_KEY); return; }
 
-    // Delay so the navigated page mounts its buttons
     const timer = setTimeout(() => {
       const el = document.querySelector(`[data-tour-highlight="${cfg.target}"]`);
       if (!el) return;
+      targetElRef.current = el;
+
+      // Elevate the target above the backdrop so it stays clickable
+      el.style.position = 'relative';
+      el.style.zIndex = '10001';
+
       const r = el.getBoundingClientRect();
       setConfig(cfg);
-      // Use viewport-relative coords so position: fixed works correctly
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
-    }, 500);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
+  // Track scroll and resize so the ring stays on the element
+  useEffect(() => {
+    if (!config) return;
+    window.addEventListener('scroll', computeRect, { passive: true, capture: true });
+    window.addEventListener('resize', computeRect, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', computeRect, { capture: true });
+      window.removeEventListener('resize', computeRect);
+    };
+  }, [config]);
+
   const dismiss = () => {
     dismissed.current = true;
     sessionStorage.removeItem(STORAGE_KEY);
+
+    // Restore target element z-index
+    if (targetElRef.current) {
+      targetElRef.current.style.position = '';
+      targetElRef.current.style.zIndex = '';
+      targetElRef.current = null;
+    }
+
     setConfig(null);
     setRect(null);
   };
@@ -54,7 +83,18 @@ export default function FirstRunCoachMark() {
 
   return (
     <>
-      {/* Pulsing ring overlay on the target element */}
+      {/* Dimmed backdrop — blocks all clicks (including sidebar nav) except the target */}
+      <div
+        style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(0,0,0,0.35)',
+          zIndex: 9995,
+          cursor: 'default',
+        }}
+        onClick={dismiss}
+      />
+
+      {/* Pulsing ring on target — sits above backdrop, pointer-events none so clicks reach target */}
       <div
         style={{
           position: 'fixed',
@@ -66,7 +106,7 @@ export default function FirstRunCoachMark() {
           border: '2px solid #6b21a8',
           pointerEvents: 'none',
           animation: 'onboardingPulse 1.4s ease-in-out infinite',
-          zIndex: 9998,
+          zIndex: 10002,
         }}
       />
 
@@ -84,11 +124,12 @@ export default function FirstRunCoachMark() {
           padding: '6px 12px',
           borderRadius: 8,
           whiteSpace: 'nowrap',
-          zIndex: 9999,
+          zIndex: 10002,
           boxShadow: '0 4px 12px rgba(59,7,100,0.3)',
           display: 'flex',
           alignItems: 'center',
           gap: 10,
+          pointerEvents: 'all',
         }}
       >
         {config.label}
@@ -96,16 +137,14 @@ export default function FirstRunCoachMark() {
           onClick={dismiss}
           style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: 11, padding: 0, lineHeight: 1 }}
         >
-          Skip
+          Dismiss
         </button>
-        {/* Caret pointing down */}
         <div style={{
           position: 'absolute',
           bottom: -5,
           left: '50%',
           transform: 'translateX(-50%)',
-          width: 0,
-          height: 0,
+          width: 0, height: 0,
           borderLeft: '5px solid transparent',
           borderRight: '5px solid transparent',
           borderTop: '5px solid #3B0764',

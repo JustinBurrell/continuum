@@ -4,11 +4,13 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function SocialLinksStep({ onContinue, onSkip }) {
   const { user, updateUser } = useAuth();
-  const [linkedinUrl, setLinkedinUrl]       = useState(user?.linkedinUrl ?? '');
+  const [linkedinUrl, setLinkedinUrl]         = useState(user?.linkedinUrl ?? '');
   const [instagramHandle, setInstagramHandle] = useState(user?.instagramHandle ?? '');
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const handleContinue = async () => {
+    setErrors({});
     setLoading(true);
     try {
       const body = {};
@@ -20,18 +22,28 @@ export default function SocialLinksStep({ onContinue, onSkip }) {
         updateUser({ linkedinUrl: res.data.user.linkedinUrl, instagramHandle: res.data.user.instagramHandle });
       }
       onContinue();
-    } catch (_) {
-      onContinue();
+    } catch (e) {
+      const msg = e?.response?.data?.error ?? '';
+      if (msg.toLowerCase().includes('linkedin')) {
+        setErrors({ linkedin: msg });
+      } else if (msg.toLowerCase().includes('instagram')) {
+        setErrors({ instagram: msg });
+      } else if (msg) {
+        setErrors({ general: msg });
+      } else {
+        onContinue(); // network hiccup — don't block the user
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const inputStyle = {
-    width: '100%', padding: '9px 12px', border: '1px solid #e5d3f0', borderRadius: 8,
-    fontSize: '0.9rem', color: '#111827', background: '#fff', outline: 'none',
+  const inputStyle = (hasError) => ({
+    width: '100%', padding: '9px 12px',
+    border: `1px solid ${hasError ? '#dc2626' : '#e5d3f0'}`,
+    borderRadius: 8, fontSize: '0.9rem', color: '#111827', background: '#fff', outline: 'none',
     boxSizing: 'border-box', transition: 'border-color 0.15s',
-  };
+  });
 
   return (
     <div>
@@ -48,12 +60,14 @@ export default function SocialLinksStep({ onContinue, onSkip }) {
         </label>
         <input
           value={linkedinUrl}
-          onChange={e => setLinkedinUrl(e.target.value)}
+          onChange={e => { setLinkedinUrl(e.target.value); setErrors(p => ({ ...p, linkedin: null })); }}
           placeholder="https://linkedin.com/in/yourname"
-          style={inputStyle}
-          onFocus={e => e.target.style.borderColor = '#6b21a8'}
-          onBlur={e => e.target.style.borderColor = '#e5d3f0'}
+          style={inputStyle(!!errors.linkedin)}
+          onFocus={e => { if (!errors.linkedin) e.target.style.borderColor = '#6b21a8'; }}
+          onBlur={e => { if (!errors.linkedin) e.target.style.borderColor = '#e5d3f0'; }}
         />
+        {errors.linkedin && <p style={{ color: '#dc2626', fontSize: '0.75rem', margin: '4px 0 0' }}>{errors.linkedin}</p>}
+        {!errors.linkedin && <p style={{ color: '#9CA3AF', fontSize: '0.75rem', margin: '4px 0 0' }}>e.g. https://linkedin.com/in/yourname</p>}
       </div>
 
       <div style={{ marginBottom: 20 }}>
@@ -62,13 +76,17 @@ export default function SocialLinksStep({ onContinue, onSkip }) {
         </label>
         <input
           value={instagramHandle}
-          onChange={e => setInstagramHandle(e.target.value)}
+          onChange={e => { setInstagramHandle(e.target.value); setErrors(p => ({ ...p, instagram: null })); }}
           placeholder="yourhandle (without @)"
-          style={inputStyle}
-          onFocus={e => e.target.style.borderColor = '#6b21a8'}
-          onBlur={e => e.target.style.borderColor = '#e5d3f0'}
+          style={inputStyle(!!errors.instagram)}
+          onFocus={e => { if (!errors.instagram) e.target.style.borderColor = '#6b21a8'; }}
+          onBlur={e => { if (!errors.instagram) e.target.style.borderColor = '#e5d3f0'; }}
         />
+        {errors.instagram && <p style={{ color: '#dc2626', fontSize: '0.75rem', margin: '4px 0 0' }}>{errors.instagram}</p>}
+        {!errors.instagram && <p style={{ color: '#9CA3AF', fontSize: '0.75rem', margin: '4px 0 0' }}>Letters, numbers, periods, underscores — no @</p>}
       </div>
+
+      {errors.general && <p style={{ color: '#dc2626', fontSize: '0.8125rem', marginBottom: 12 }}>{errors.general}</p>}
 
       <button
         onClick={handleContinue}
