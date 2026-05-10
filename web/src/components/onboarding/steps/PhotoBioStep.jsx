@@ -66,7 +66,7 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
   return (
     <div>
       <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.375rem', fontWeight: 600, color: '#1a1a2e', margin: '0 0 6px', lineHeight: 1.3 }}>
-        Make it yours
+        Put a face to it.
       </h2>
       <p style={{ color: '#6B7280', fontSize: '0.875rem', margin: '0 0 20px' }}>
         Add a photo and a short bio so friends can find you.
@@ -125,7 +125,7 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
       <div style={{ marginBottom: 20 }}>
         <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, color: '#374151', marginBottom: 4 }}>
           Bio
-          <span style={{ color: bio.length >= 150 ? '#f59e0b' : '#9CA3AF', fontWeight: 400, marginLeft: 4 }}>
+          <span style={{ color: bio.length >= 160 ? '#dc2626' : bio.length >= 150 ? '#f59e0b' : '#9CA3AF', fontWeight: 400, marginLeft: 4 }}>
             ({160 - bio.length} left)
           </span>
         </label>

@@ -8,8 +8,7 @@ import WelcomeStep from '@/components/onboarding/steps/WelcomeStep';
 import GoalStep from '@/components/onboarding/steps/GoalStep';
 import NameStep from '@/components/onboarding/steps/NameStep';
 import PhotoBioStep from '@/components/onboarding/steps/PhotoBioStep';
-import SocialLinksStep from '@/components/onboarding/steps/SocialLinksStep';
-import GoogleDriveStep from '@/components/onboarding/steps/GoogleDriveStep';
+import IntegrationsStep from '@/components/onboarding/steps/IntegrationsStep';
 import ActivationStep from '@/components/onboarding/steps/ActivationStep';
 
 const PROFILE_STEP_COMPONENTS = {
@@ -17,8 +16,7 @@ const PROFILE_STEP_COMPONENTS = {
   goal: GoalStep,
   name: NameStep,
   'photo-bio': PhotoBioStep,
-  'social-links': SocialLinksStep,
-  'google-drive': GoogleDriveStep,
+  'integrations': IntegrationsStep,
 };
 
 // Left-panel illustration content keyed by profile step
@@ -43,15 +41,10 @@ const LEFT_PANEL = {
     headline: "Put a face to it.",
     body: "A photo and bio help friends find and connect with you.",
   },
-  'social-links': {
+  'integrations': {
     icon: '🔗',
-    headline: "Connect your world.",
-    body: "Add your social profiles so your network can find you here.",
-  },
-  'google-drive': {
-    icon: '📁',
-    headline: "Bring your content.",
-    body: "Link Google Drive to import your Docs directly as notes in one click.",
+    headline: "Connect your tools.",
+    body: "Link Google Drive to import your Docs directly into Continuum as notes.",
   },
   activation: {
     icon: '🚀',
@@ -94,9 +87,9 @@ const GOAL_ACTIVATION = {
   },
 };
 
-// Profile steps are always exactly 5 (email: welcome+goal+photo-bio+social+drive; google: welcome+goal+name+photo-bio+social).
-// Activation is displayed as the final (+1) step, making the total 6.
-const TOTAL_PROFILE_STEPS = 5;
+// Email: welcome+goal+photo-bio+integrations = 4 profile steps
+// Google: welcome+goal+name+photo-bio+integrations = 5 profile steps
+// Activation is +1, so display total is profileSteps+1.
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
@@ -120,10 +113,11 @@ export default function OnboardingPage() {
   const showActivation = currentStep?.kind === 'tour' || currentStep?.kind === 'done';
 
   // Display step counting — only profile steps + 1 activation
-  const totalDisplaySteps = isReplay ? 1 : TOTAL_PROFILE_STEPS + 1;
+  const profileStepCount = user?.googleId ? 5 : 4; // Google adds the name step
+  const totalDisplaySteps = isReplay ? 1 : profileStepCount + 1;
   const displayStepNumber = showActivation
     ? totalDisplaySteps
-    : Math.min(currentIndex + 1, TOTAL_PROFILE_STEPS);
+    : Math.min(currentIndex + 1, profileStepCount);
   const progress = displayStepNumber / totalDisplaySteps;
 
   const pageViewedRef = useRef(false);
@@ -256,21 +250,6 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        {/* Progress dots */}
-        <div style={{ display: 'flex', gap: 6, justifyContent: 'center', position: 'relative', zIndex: 1 }}>
-          {Array.from({ length: totalDisplaySteps }).map((_, i) => (
-            <div
-              key={i}
-              style={{
-                width: i < displayStepNumber ? 20 : 6,
-                height: 6,
-                borderRadius: 3,
-                background: i < displayStepNumber ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.2)',
-                transition: 'width 0.3s ease, background 0.3s ease',
-              }}
-            />
-          ))}
-        </div>
       </div>
 
       {/* ── Right panel ────────────────────────────────────────────── */}

@@ -65,7 +65,7 @@ fun OnboardingScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.40f)
+                .weight(0.30f)
                 .background(Brush.verticalGradient(listOf(DeepPurple, BrandPurple))),
             contentAlignment = Alignment.Center,
         ) {
@@ -217,8 +217,7 @@ private fun profileStepEmoji(key: String): String = when (key) {
     "goal"         -> "🎯"
     "name"         -> "✏️"
     "photo-bio"    -> "📷"
-    "social-links" -> "🔗"
-    "google-drive" -> "📁"
+    "integrations" -> "🔗"
     else           -> "✨"
 }
 
@@ -227,8 +226,7 @@ private fun profileStepHeadline(key: String): String = when (key) {
     "goal"         -> "What matters to you?"
     "name"         -> "Make it yours."
     "photo-bio"    -> "Put a face to it."
-    "social-links" -> "Connect your world."
-    "google-drive" -> "Bring your content."
+    "integrations" -> "Connect your tools."
     else           -> ""
 }
 
@@ -252,17 +250,16 @@ private fun ProfileStepContent(
             },
             onSkip = onSkip,
         )
-        "name", "photo-bio", "social-links", "google-drive" -> {
+        "name", "photo-bio", "integrations" -> {
             var loadedProfile by remember { mutableStateOf<com.continuum.android.feature.profile.domain.Profile?>(null) }
             LaunchedEffect(key) {
                 loadedProfile = profileRepository.getProfile().getOrNull()
             }
             loadedProfile?.let { p ->
                 when (key) {
-                    "name" -> NameStep(profile = p, profileRepository = profileRepository, onContinue = onAdvance, onSkip = onSkip)
-                    "photo-bio" -> PhotoBioStep(profile = p, profileRepository = profileRepository, onContinue = onAdvance, onSkip = onSkip)
-                    "social-links" -> SocialLinksStep(profile = p, profileRepository = profileRepository, onContinue = onAdvance, onSkip = onSkip)
-                    "google-drive" -> GoogleDriveStep(profile = p, profileRepository = profileRepository, apiBaseUrl = apiBaseUrl, onContinue = onAdvance, onSkip = onSkip)
+                    "name"         -> NameStep(profile = p, profileRepository = profileRepository, onContinue = onAdvance, onSkip = onSkip)
+                    "photo-bio"    -> PhotoBioStep(profile = p, profileRepository = profileRepository, onContinue = onAdvance, onSkip = onSkip)
+                    "integrations" -> IntegrationsStep(profile = p, profileRepository = profileRepository, apiBaseUrl = apiBaseUrl, onContinue = onAdvance, onSkip = onSkip)
                 }
             } ?: Box(Modifier.fillMaxWidth().height(120.dp), Alignment.Center) {
                 CircularProgressIndicator(color = BrandPurple)

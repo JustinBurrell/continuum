@@ -74,11 +74,7 @@ class OnboardingViewModel @Inject constructor(
                 steps += OnboardingStep.ProfileStep("name")
             }
             steps += OnboardingStep.ProfileStep("photo-bio")
-            steps += OnboardingStep.ProfileStep("social-links")
-            // Google Drive step only for non-Google users
-            if (profile?.isGoogleLinked != true) {
-                steps += OnboardingStep.ProfileStep("google-drive")
-            }
+            steps += OnboardingStep.ProfileStep("integrations")
         }
         getOrderedTourSteps(profile?.onboardingGoal).forEachIndexed { index, config ->
             steps += OnboardingStep.TourStep(config, index)

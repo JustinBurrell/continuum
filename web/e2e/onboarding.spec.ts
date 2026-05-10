@@ -38,14 +38,14 @@ async function skipUntilVisible(
 ) {
   for (let i = 0; i < maxSkips; i++) {
     const target = page.locator(`text=${heading}`);
-    if (await target.isVisible({ timeout: 600 }).catch(() => false)) break;
+    if (await target.isVisible({ timeout: 1_200 }).catch(() => false)) break;
     const btn = page.locator([
       'button:has-text("Save & Continue")',
       'button:text-is("Skip")',
       'button:text-is("Skip for now")',
     ].join(', ')).first();
     if (await btn.isVisible({ timeout: 800 }).catch(() => false)) await btn.click();
-    await page.waitForTimeout(350);
+    await page.waitForTimeout(500);
   }
 }
 
@@ -158,45 +158,38 @@ test.describe('Fresh onboarding flow', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Input validation (server-side errors surfaced in UI)
+// Integrations step
 // ---------------------------------------------------------------------------
 
-test.describe('Social links validation', () => {
-  async function reachSocialLinksStep(page: import('@playwright/test').Page) {
+test.describe('Integrations step', () => {
+  async function reachIntegrationsStep(page: import('@playwright/test').Page) {
     await registerAndStartOnboarding(page);
-    await page.click('button:has-text("Let\'s go")');           // welcome → goal
-    await page.click('button:has-text("Continue")');             // goal (no selection) → next
-    await skipUntilVisible(page, 'Add your social links');
-    await expect(page.locator('text=Add your social links')).toBeVisible({ timeout: 5_000 });
+    // Step through explicitly so each step is fully rendered before advancing
+    await page.click('button:has-text("Let\'s go")');
+    await expect(page.locator('text=What brought you to Continuum?')).toBeVisible({ timeout: 3_000 });
+    await page.click('button:has-text("Continue")');
+    // Wait for photo-bio step — unique element is the bio textarea
+    await expect(page.locator('textarea')).toBeVisible({ timeout: 3_000 });
+    await page.locator('button:text-is("Skip")').first().click();
+    // Wait for the Google Drive card — unique to the integrations step content
+    await expect(page.locator('text=Import Google Docs directly as notes')).toBeVisible({ timeout: 5_000 });
   }
 
-  test('invalid LinkedIn URL shows server error without advancing', async ({ page }) => {
-    await reachSocialLinksStep(page);
-    await page.fill('input[placeholder*="linkedin.com"]', 'not-a-linkedin-url');
-    await page.click('button:has-text("Save & Continue")');
-    await expect(page.locator('text=Invalid LinkedIn URL')).toBeVisible({ timeout: 5_000 });
-    await expect(page.locator('text=Add your social links')).toBeVisible();
+  test('integrations step shows Google Drive card', async ({ page }) => {
+    await reachIntegrationsStep(page);
+    await expect(page.getByText('Google Drive', { exact: true })).toBeVisible();
   });
 
-  test('invalid Instagram handle shows server error without advancing', async ({ page }) => {
-    await reachSocialLinksStep(page);
-    await page.fill('input[placeholder*="yourhandle"]', 'bad handle with spaces!');
-    await page.click('button:has-text("Save & Continue")');
-    await expect(page.locator('text=Invalid Instagram handle')).toBeVisible({ timeout: 5_000 });
-    await expect(page.locator('text=Add your social links')).toBeVisible();
+  test('skipping integrations advances to activation', async ({ page }) => {
+    await reachIntegrationsStep(page);
+    await page.locator('button:text-is("Skip for now")').click();
+    await expect(page.locator('text=Almost done')).toBeVisible({ timeout: 5_000 });
   });
 
-  test('valid LinkedIn URL advances to next step', async ({ page }) => {
-    await reachSocialLinksStep(page);
-    await page.fill('input[placeholder*="linkedin.com"]', 'https://linkedin.com/in/testuser');
-    await page.click('button:has-text("Save & Continue")');
-    await expect(page.locator('text=Add your social links')).not.toBeVisible({ timeout: 5_000 });
-  });
-
-  test('empty social fields advance without error', async ({ page }) => {
-    await reachSocialLinksStep(page);
-    await page.click('button:has-text("Save & Continue")');
-    await expect(page.locator('text=Add your social links')).not.toBeVisible({ timeout: 5_000 });
+  test('continuing integrations advances to activation', async ({ page }) => {
+    await reachIntegrationsStep(page);
+    await page.getByRole('button', { name: /Save & Continue|^Continue$/ }).click();
+    await expect(page.locator('text=Almost done')).toBeVisible({ timeout: 5_000 });
   });
 });
 

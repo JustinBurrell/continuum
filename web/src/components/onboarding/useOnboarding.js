@@ -15,10 +15,7 @@ function computeSteps(user, isReplay) {
       steps.push({ kind: 'profile', key: 'name' });
     }
     steps.push({ kind: 'profile', key: 'photo-bio' });
-    steps.push({ kind: 'profile', key: 'social-links' });
-    if (!user?.googleId) {
-      steps.push({ kind: 'profile', key: 'google-drive' });
-    }
+    steps.push({ kind: 'profile', key: 'integrations' });
   }
 
   const tourSteps = getOrderedTourSteps(user?.onboardingGoal ?? 'not_sure');

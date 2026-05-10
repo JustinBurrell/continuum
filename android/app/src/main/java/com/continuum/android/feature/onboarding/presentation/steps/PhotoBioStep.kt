@@ -63,7 +63,7 @@ fun PhotoBioStep(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            "Make it yours",
+            "Put a face to it.",
             style = MaterialTheme.typography.headlineSmall,
             color = TextPrimary,
             fontFamily = FrauncesFamily,
@@ -122,7 +122,7 @@ fun PhotoBioStep(
             supportingText = {
                 Text(
                     "${160 - bio.length} left",
-                    color = if (bio.length >= 150) WarningAmber else TextMuted,
+                    color = when { bio.length >= 160 -> ErrorRed; bio.length >= 150 -> WarningAmber; else -> TextMuted },
                 )
             },
             maxLines = 4,
