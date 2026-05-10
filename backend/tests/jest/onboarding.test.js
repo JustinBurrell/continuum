@@ -5,8 +5,10 @@
  *   POST  /api/auth/me/onboarding/complete
  *   POST  /api/auth/me/tour/complete
  *   PATCH /api/auth/me/tour/reset
- *   PATCH /api/auth/me/onboarding/checklist
  *   PATCH /api/auth/me/profile (onboardingGoal field)
+ *
+ * Note: /api/auth/me/onboarding/checklist was removed — onboardingChecklist
+ * is no longer part of the schema (replaced by the activation step flow).
  */
 
 const request = require('supertest');
@@ -172,73 +174,3 @@ describe('PATCH /api/auth/me/profile — onboardingGoal', () => {
   });
 });
 
-// ─── PATCH /api/auth/me/onboarding/checklist ─────────────────────────────────
-
-describe('PATCH /api/auth/me/onboarding/checklist', () => {
-  it('sets noteCreated to true when passed as true', async () => {
-    const { token } = await registerAndLogin();
-
-    const res = await request(app)
-      .patch('/api/auth/me/onboarding/checklist')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ noteCreated: true });
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body.user.onboardingChecklist.noteCreated).toBe(true);
-    // Other fields remain false
-    expect(res.body.user.onboardingChecklist.taskAdded).toBe(false);
-  });
-
-  it('does not reverse a completed item when false is sent', async () => {
-    const { token } = await registerAndLogin();
-
-    // First mark it done
-    await request(app)
-      .patch('/api/auth/me/onboarding/checklist')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ noteCreated: true });
-
-    // Then try to un-check it (should be silently ignored)
-    const res = await request(app)
-      .patch('/api/auth/me/onboarding/checklist')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ noteCreated: false });
-
-    expect(res.statusCode).toBe(400); // no valid true fields = 400
-  });
-
-  it('only updates the fields that are true in the body', async () => {
-    const { token } = await registerAndLogin();
-
-    const res = await request(app)
-      .patch('/api/auth/me/onboarding/checklist')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ noteCreated: true, taskAdded: true });
-
-    expect(res.body.user.onboardingChecklist.noteCreated).toBe(true);
-    expect(res.body.user.onboardingChecklist.taskAdded).toBe(true);
-    expect(res.body.user.onboardingChecklist.flashcardsGenerated).toBe(false);
-    expect(res.body.user.onboardingChecklist.friendConnected).toBe(false);
-    expect(res.body.user.onboardingChecklist.dismissed).toBe(false);
-  });
-
-  it('ignores unknown fields', async () => {
-    const { token } = await registerAndLogin();
-
-    const res = await request(app)
-      .patch('/api/auth/me/onboarding/checklist')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ noteCreated: true, hackerField: true });
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body.user.onboardingChecklist).not.toHaveProperty('hackerField');
-  });
-
-  it('returns 401 without a valid token', async () => {
-    const res = await request(app)
-      .patch('/api/auth/me/onboarding/checklist')
-      .send({ noteCreated: true });
-
-    expect(res.statusCode).toBe(401);
-  });
-});
