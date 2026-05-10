@@ -1,6 +1,9 @@
 package com.continuum.android.feature.onboarding.presentation
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -9,6 +12,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,11 +66,11 @@ fun OnboardingScreen(
             .fillMaxSize()
             .systemBarsPadding()
     ) {
-        // ── Hero section (40%) ──────────────────────────────────────────
+        // ── Hero section (25%) ──────────────────────────────────────────
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.30f)
+                .weight(0.25f)
                 .background(Brush.verticalGradient(listOf(DeepPurple, BrandPurple))),
             contentAlignment = Alignment.Center,
         ) {
@@ -76,13 +81,20 @@ fun OnboardingScreen(
             }
         }
 
-        // ── Content section (60%) ───────────────────────────────────────
-        Column(
+        // ── Content section (75%) ───────────────────────────────────────
+        val scrollState = rememberScrollState()
+        val showScrollHint by remember { derivedStateOf { scrollState.canScrollForward } }
+
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.60f)
-                .background(PageBackground)
-                .verticalScroll(rememberScrollState())
+                .weight(0.75f)
+                .background(PageBackground),
+        ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 24.dp, vertical = 20.dp)
                 .imePadding()
         ) {
@@ -176,6 +188,32 @@ fun OnboardingScreen(
                 }
             }
         }
+
+        // Scroll hint — fade + chevron when more content is below
+        AnimatedVisibility(
+            visible = showScrollHint,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(
+                        Brush.verticalGradient(listOf(Color.Transparent, PageBackground))
+                    ),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowDown,
+                    contentDescription = "Scroll for more",
+                    tint = TextMuted,
+                    modifier = Modifier.padding(bottom = 6.dp).size(20.dp),
+                )
+            }
+        }
+        } // end content Box
     }
 }
 
