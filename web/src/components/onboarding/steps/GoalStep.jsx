@@ -12,8 +12,9 @@ const GOALS = [
 ];
 
 export default function GoalStep({ onContinue, onSkip }) {
-  const { updateUser } = useAuth();
-  const [selected, setSelected] = useState(null);
+  const { user, updateUser } = useAuth();
+  // Pre-select a previously saved goal if the user is returning to onboarding
+  const [selected, setSelected] = useState(user?.onboardingGoal ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 

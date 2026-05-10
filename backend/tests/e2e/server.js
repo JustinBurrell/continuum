@@ -8,6 +8,7 @@ process.env.FRONTEND_URL = 'http://localhost:5173';
 process.env.GOOGLE_CLIENT_ID = 'e2e-test-google-client-id';
 process.env.GOOGLE_CLIENT_SECRET = 'e2e-test-google-client-secret';
 process.env.RESEND_API_KEY = 'e2e-test-resend-key';
+process.env.RESEND_DISABLED = 'true'; // prevent real email sends during E2E
 process.env.GROQ_API_KEY = 'e2e-test-groq-key';
 process.env.CLOUDINARY_CLOUD_NAME = 'e2e-test-cloud';
 process.env.CLOUDINARY_API_KEY = 'e2e-test-cloudinary-key';

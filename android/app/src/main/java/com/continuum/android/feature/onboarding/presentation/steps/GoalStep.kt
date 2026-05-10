@@ -34,6 +34,12 @@ fun GoalStep(
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
+    // Pre-select previously saved goal if user is returning to onboarding
+    LaunchedEffect(Unit) {
+        val savedGoal = profileRepository.getProfile().getOrNull()?.onboardingGoal
+        if (selected == null && savedGoal != null) selected = savedGoal
+    }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             "What brought you to Continuum?",

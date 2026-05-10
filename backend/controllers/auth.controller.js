@@ -14,6 +14,11 @@ const { invalidate, setKey } = require('../lib/cache');
 const { hardDeleteUser } = require('../services/account.service');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+// In E2E / test environments, short-circuit all email sends so no real emails are sent
+// and no Resend quota is consumed regardless of which backend is running.
+if (process.env.RESEND_DISABLED === 'true') {
+    resend.emails.send = async () => ({ data: { id: 'e2e-noop' }, error: null });
+}
 const posthog = require('../lib/posthog');
 
 function emailTemplate(content) {
