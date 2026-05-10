@@ -10,12 +10,12 @@ function computeSteps(user, isReplay) {
   if (!isReplay) {
     steps.push({ kind: 'profile', key: 'welcome' });
     steps.push({ kind: 'profile', key: 'goal' });
+    steps.push({ kind: 'profile', key: 'integrations' });
     // Name step only for Google OAuth — their username is auto-generated
     if (user?.googleId) {
       steps.push({ kind: 'profile', key: 'name' });
     }
     steps.push({ kind: 'profile', key: 'photo-bio' });
-    steps.push({ kind: 'profile', key: 'integrations' });
   }
 
   const tourSteps = getOrderedTourSteps(user?.onboardingGoal ?? 'not_sure');
@@ -125,6 +125,10 @@ export function useOnboarding(isReplay) {
     try {
       await api.post('/auth/me/tour/complete');
       updateUser({ tourCompleted: true });
+      // Distinct from onboarding_completed (profile boundary) — this is full completion
+      try {
+        posthog.capture('onboarding_fully_completed', { platform: 'web' });
+      } catch (_) {}
     } catch (_) {}
   }, [updateUser]);
 

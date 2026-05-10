@@ -142,8 +142,8 @@ test.describe('Fresh onboarding flow', () => {
     await page.click('button:has-text("Continue")');
     await page.waitForTimeout(400);
 
-    // Skip photo-bio step
-    await page.locator('button:text-is("Skip")').first().click();
+    // Skip integrations step (now comes right after goal)
+    await page.locator('button:text-is("Skip for now")').click();
     await page.waitForTimeout(300);
 
     const { user } = await getMe(request, token);
@@ -164,14 +164,10 @@ test.describe('Fresh onboarding flow', () => {
 test.describe('Integrations step', () => {
   async function reachIntegrationsStep(page: import('@playwright/test').Page) {
     await registerAndStartOnboarding(page);
-    // Step through explicitly so each step is fully rendered before advancing
+    // Integrations now comes right after goal (step 3 for email users)
     await page.click('button:has-text("Let\'s go")');
     await expect(page.locator('text=What brought you to Continuum?')).toBeVisible({ timeout: 3_000 });
     await page.click('button:has-text("Continue")');
-    // Wait for photo-bio step — unique element is the bio textarea
-    await expect(page.locator('textarea')).toBeVisible({ timeout: 3_000 });
-    await page.locator('button:text-is("Skip")').first().click();
-    // Wait for the Google Drive card — unique to the integrations step content
     await expect(page.locator('text=Import Google Docs directly as notes')).toBeVisible({ timeout: 5_000 });
   }
 
@@ -180,16 +176,16 @@ test.describe('Integrations step', () => {
     await expect(page.getByText('Google Drive', { exact: true })).toBeVisible();
   });
 
-  test('skipping integrations advances to activation', async ({ page }) => {
+  test('skipping integrations advances to photo-bio', async ({ page }) => {
     await reachIntegrationsStep(page);
     await page.locator('button:text-is("Skip for now")').click();
-    await expect(page.locator('text=Almost done')).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('textarea')).toBeVisible({ timeout: 4_000 }); // bio textarea = photo-bio step
   });
 
-  test('continuing integrations advances to activation', async ({ page }) => {
+  test('continuing integrations advances to photo-bio', async ({ page }) => {
     await reachIntegrationsStep(page);
     await page.getByRole('button', { name: /Save & Continue|^Continue$/ }).click();
-    await expect(page.locator('text=Almost done')).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('textarea')).toBeVisible({ timeout: 4_000 });
   });
 });
 

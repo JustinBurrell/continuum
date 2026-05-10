@@ -69,12 +69,12 @@ class OnboardingViewModel @Inject constructor(
         if (!isReplay) {
             steps += OnboardingStep.ProfileStep("welcome")
             steps += OnboardingStep.ProfileStep("goal")
+            steps += OnboardingStep.ProfileStep("integrations")
             // Name step only for Google-linked users (auto-generated username)
             if (profile?.isGoogleLinked == true) {
                 steps += OnboardingStep.ProfileStep("name")
             }
             steps += OnboardingStep.ProfileStep("photo-bio")
-            steps += OnboardingStep.ProfileStep("integrations")
         }
         getOrderedTourSteps(profile?.onboardingGoal).forEachIndexed { index, config ->
             steps += OnboardingStep.TourStep(config, index)
