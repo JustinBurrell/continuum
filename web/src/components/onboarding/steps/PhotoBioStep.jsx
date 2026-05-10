@@ -12,6 +12,7 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
   const [bio, setBio] = useState(user?.bio ?? '');
   const [preview, setPreview] = useState(user?.avatarUrl ?? null);
   const [file, setFile] = useState(null);
+  const [originalFile, setOriginalFile] = useState(null); // raw picked file — kept for re-crop
   const [cropFile, setCropFile] = useState(null);
   const [fileError, setFileError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -33,7 +34,8 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
     }
 
     setFileError(null);
-    setCropFile(f); // open crop modal instead of immediately setting
+    setOriginalFile(f);
+    setCropFile(f);
   };
 
   const handleContinue = async () => {
@@ -71,7 +73,8 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
         <button
           type="button"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => originalFile ? setCropFile(originalFile) : fileInputRef.current?.click()}
+          title={originalFile ? 'Adjust crop' : 'Upload photo'}
           style={{
             width: 72, height: 72, borderRadius: '50%',
             border: `2px dashed ${fileError ? '#dc2626' : '#e5d3f0'}`,
@@ -92,9 +95,18 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
           >
             {file ? 'Change photo' : 'Upload photo'}
           </button>
+          {originalFile && (
+            <button
+              type="button"
+              onClick={() => setCropFile(originalFile)}
+              style={{ background: 'none', border: 'none', color: '#6b21a8', fontSize: '0.75rem', cursor: 'pointer', padding: '4px 0', display: 'block', textDecoration: 'underline' }}
+            >
+              Adjust crop
+            </button>
+          )}
           {fileError
             ? <p style={{ color: '#dc2626', fontSize: '0.75rem', margin: '4px 0 0' }}>{fileError}</p>
-            : <p style={{ color: '#9CA3AF', fontSize: '0.75rem', margin: '4px 0 0' }}>JPG, PNG, WebP — max 5 MB</p>
+            : !originalFile && <p style={{ color: '#9CA3AF', fontSize: '0.75rem', margin: '4px 0 0' }}>JPG, PNG, WebP — max 5 MB</p>
           }
         </div>
         <input
@@ -160,6 +172,7 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
             setCropFile(null);
             setFile(croppedFile);
             setPreview(URL.createObjectURL(croppedFile));
+            // originalFile is kept so the user can re-crop any time
           }}
           onClose={() => setCropFile(null)}
         />

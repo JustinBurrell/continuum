@@ -235,6 +235,9 @@ export default function Profile() {
   const [verifySent, setVerifySent] = useState(false);
   const [newPasswordValue, setNewPasswordValue] = useState('');
   const [cropFile, setCropFile] = useState(null);
+  const [originalFile, setOriginalFile] = useState(null);       // raw pick — kept for re-crop
+  const [pendingCroppedFile, setPendingCroppedFile] = useState(null); // cropped, not yet uploaded
+  const [localPreview, setLocalPreview] = useState(null);       // blob URL for preview before upload
   const navigate = useNavigate();
 
   const { data } = useQuery({
@@ -730,7 +733,7 @@ export default function Profile() {
             <p style={sectionLabel}>Photo</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ position: 'relative', flexShrink: 0 }}>
-                <AppAvatar name={fullName} src={me?.avatarUrl} size="xl" />
+                <AppAvatar name={fullName} src={localPreview ?? me?.avatarUrl} size="xl" />
                 {!user?.isDemo && (
                   <>
                     <button
@@ -746,15 +749,37 @@ export default function Profile() {
                       <Camera size={12} style={{ color: '#fff' }} />
                     </button>
                     <input ref={avatarInputRef} type="file" accept="image/*" className="hidden"
-                      onChange={e => { const f = e.target.files[0]; if (f) { setCropFile(f); e.target.value = ''; } }} />
+                      onChange={e => { const f = e.target.files[0]; if (f) { setOriginalFile(f); setCropFile(f); e.target.value = ''; } }} />
                   </>
                 )}
               </div>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 2px' }}>{fullName}</p>
                 <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>JPG or PNG, max 5 MB</p>
+                {originalFile && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => setCropFile(originalFile)}
+                      style={{ fontSize: 12, color: '#6b21a8', background: 'none', border: '1px solid #e5d3f0', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
+                    >
+                      Adjust crop
+                    </button>
+                    <button
+                      onClick={() => {
+                        avatarMutation.mutate(pendingCroppedFile);
+                        setLocalPreview(null);
+                        setPendingCroppedFile(null);
+                        setOriginalFile(null);
+                      }}
+                      disabled={!pendingCroppedFile || avatarMutation.isPending}
+                      style={{ fontSize: 12, color: '#fff', background: '#6b21a8', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: pendingCroppedFile ? 'pointer' : 'not-allowed', opacity: pendingCroppedFile ? 1 : 0.5 }}
+                    >
+                      {avatarMutation.isPending ? 'Saving…' : 'Save photo'}
+                    </button>
+                  </div>
+                )}
               </div>
-              {avatarMutation.isPending && <span style={{ fontSize: 12, color: '#9CA3AF' }}>Uploading…</span>}
+              {avatarMutation.isPending && !originalFile && <span style={{ fontSize: 12, color: '#9CA3AF' }}>Uploading…</span>}
             </div>
           </div>
 
@@ -1162,7 +1187,8 @@ export default function Profile() {
           file={cropFile}
           onSave={(croppedFile) => {
             setCropFile(null);
-            avatarMutation.mutate(croppedFile);
+            setPendingCroppedFile(croppedFile);
+            setLocalPreview(URL.createObjectURL(croppedFile));
           }}
           onClose={() => setCropFile(null)}
         />
