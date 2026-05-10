@@ -271,7 +271,7 @@ test.describe('First-run coach mark', () => {
   test('coach mark disappears after clicking Dismiss', async ({ page }) => {
     await triggerCoachMark(page);
     await expect(page.locator('text=Create your first note to get started')).toBeVisible({ timeout: 5_000 });
-    await page.getByRole('button', { name: 'Dismiss' }).click();
+    await page.getByRole('button', { name: 'Got it' }).click();
     await expect(page.locator('text=Create your first note to get started')).not.toBeVisible({ timeout: 3_000 });
   });
 
