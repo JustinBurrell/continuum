@@ -985,6 +985,7 @@ exports.completeOnboarding = async (req, res) => {
         { $set: { onboardingCompleted: true } },
         { new: true }
     );
+    invalidate(`user:${req.user._id}`).catch(() => {});
     res.status(200).json({ success: true, user });
 };
 
@@ -999,6 +1000,7 @@ exports.completeTour = async (req, res) => {
         { $set: { tourCompleted: true } },
         { new: true }
     );
+    invalidate(`user:${req.user._id}`).catch(() => {});
     res.status(200).json({ success: true, user });
 };
 
@@ -1013,6 +1015,7 @@ exports.resetTour = async (req, res) => {
         { $set: { tourCompleted: false } },
         { new: true }
     );
+    invalidate(`user:${req.user._id}`).catch(() => {});
     res.status(200).json({ success: true, user });
 };
 
