@@ -10,11 +10,11 @@
  * Usage: node backend/scripts/migrate-remove-onboarding-checklist.js
  */
 
-require('dotenv').config();
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 const mongoose = require('mongoose');
 
 async function run() {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
 
     const result = await mongoose.connection.collection('users').updateMany(
