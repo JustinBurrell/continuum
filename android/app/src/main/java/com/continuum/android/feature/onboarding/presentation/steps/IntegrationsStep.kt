@@ -29,7 +29,9 @@ fun IntegrationsStep(
     onSkip: () -> Unit,
 ) {
     var linking by remember { mutableStateOf(false) }
-    val isGoogleConnected = profile.isGoogleLinked
+    // Local state so the card updates immediately after OAuth without waiting
+    // for the parent to refetch the profile
+    var isGoogleConnected by remember { mutableStateOf(profile.isGoogleLinked) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -99,7 +101,11 @@ fun IntegrationsStep(
                                 delay(1_000)
                                 val refreshed = profileRepository.getProfile().getOrNull()
                                 linking = false
-                                if (refreshed?.isGoogleLinked == true) onContinue()
+                                if (refreshed?.isGoogleLinked == true) {
+                                    isGoogleConnected = true
+                                    // Don't auto-advance — user manually clicks Continue
+                                    // so they can connect additional integrations first
+                                }
                             }
                         },
                         enabled = !linking,

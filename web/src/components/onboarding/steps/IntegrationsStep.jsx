@@ -81,7 +81,8 @@ export default function IntegrationsStep({ onContinue, onSkip }) {
                 connected_during: 'onboarding',
               });
             } catch (_) {}
-            onContinue();
+            // Don't auto-advance — user manually clicks Continue
+            // so they can connect additional integrations first
           }
         } catch (_) {}
       }
