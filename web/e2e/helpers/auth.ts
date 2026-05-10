@@ -12,8 +12,7 @@ function makeUser(overrides: Partial<{ firstName: string; lastName: string; emai
   };
 }
 
-export async function registerUser(page: Page, overrides: Parameters<typeof makeUser>[0] = {}) {
-  const user = makeUser(overrides);
+async function fillRegisterForm(page: Page, user: ReturnType<typeof makeUser>) {
   await page.goto('/register');
   await page.fill('input[name="firstName"]', user.firstName);
   await page.fill('input[name="lastName"]', user.lastName);
@@ -21,7 +20,23 @@ export async function registerUser(page: Page, overrides: Parameters<typeof make
   await page.fill('input[name="email"]', user.email);
   await page.fill('input[name="password"]', user.password);
   await page.click('button:has-text("Create account")');
-  await page.waitForURL('**/dashboard');
+}
+
+/** Register and immediately skip onboarding — lands on /dashboard. */
+export async function registerUser(page: Page, overrides: Parameters<typeof makeUser>[0] = {}) {
+  const user = makeUser(overrides);
+  await fillRegisterForm(page, user);
+  await page.waitForURL('**/onboarding', { timeout: 10_000 });
+  await page.click('button:has-text("Skip setup")');
+  await page.waitForURL('**/dashboard', { timeout: 8_000 });
+  return user;
+}
+
+/** Register and stay on the /onboarding page — for onboarding flow tests. */
+export async function registerAndStartOnboarding(page: Page, overrides: Parameters<typeof makeUser>[0] = {}) {
+  const user = makeUser(overrides);
+  await fillRegisterForm(page, user);
+  await page.waitForURL('**/onboarding', { timeout: 10_000 });
   return user;
 }
 
@@ -30,5 +45,5 @@ export async function loginUser(page: Page, email: string, password: string) {
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
   await page.click('button:has-text("Sign in")');
-  await page.waitForURL('**/dashboard');
+  await page.waitForURL('**/dashboard', { timeout: 10_000 });
 }

@@ -4,6 +4,7 @@ import androidx.compose.runtime.compositionLocalOf
 import com.continuum.android.core.data.ScrollToTopNotifier
 import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.core.network.NetworkMonitor
+import com.continuum.android.feature.profile.data.repository.ProfileRepository
 
 /**
  * CompositionLocals that provide singletons throughout the Compose tree
@@ -26,3 +27,7 @@ val LocalIsDemo = compositionLocalOf<Boolean> {
 
 /** Emits Unit when the user taps a bottom-nav tab they are already at the root of. */
 val LocalScrollToTopNotifier = compositionLocalOf<ScrollToTopNotifier?> { null }
+
+val LocalProfileRepository = compositionLocalOf<ProfileRepository> {
+    error("No ProfileRepository provided — wrap with CompositionLocalProvider")
+}

@@ -8,6 +8,7 @@ import MobileGate from '@/components/MobileGate';
 
 import AppLayout from '@/components/layout/AppLayout';
 import AuthLayout from '@/components/layout/AuthLayout';
+import OnboardingPage from '@/pages/onboarding/OnboardingPage';
 import TitleManager from '@/components/TitleManager';
 import ScrollToTop from '@/components/ScrollToTop';
 
@@ -70,6 +71,9 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/verify-email" element={<EmailVerified />} />
+
+            {/* Onboarding — authenticated, no AppLayout chrome */}
+            <Route path="/onboarding" element={<OnboardingPage />} />
 
             {/* App — authenticated */}
             <Route element={<AppLayout />}>

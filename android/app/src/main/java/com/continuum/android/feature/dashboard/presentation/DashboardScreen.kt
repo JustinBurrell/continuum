@@ -38,6 +38,7 @@ import com.continuum.android.feature.career.domain.Application
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
 import com.continuum.android.feature.notes.domain.Note
 import com.continuum.android.feature.social.domain.ActivityItem
+import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.feature.tasks.domain.Task
 import java.util.Calendar
 
@@ -61,6 +62,8 @@ fun DashboardScreen(
     onApplicationClick: (String) -> Unit,
     onTaskClick: (String) -> Unit,
     networkMonitor: NetworkMonitor,
+    profileRepository: ProfileRepository,
+    onNavigateToOnboarding: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -74,6 +77,9 @@ fun DashboardScreen(
     LaunchedEffect(Unit) { viewModel.load() }
     LaunchedEffect(scrollToTopCount) {
         if (scrollToTopCount > 0) listState.animateScrollToItem(0)
+    }
+    LaunchedEffect(Unit) {
+        viewModel.navigateToOnboarding.collect { onNavigateToOnboarding() }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {

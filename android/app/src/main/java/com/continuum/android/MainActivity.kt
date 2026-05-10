@@ -12,8 +12,10 @@ import androidx.navigation.compose.rememberNavController
 import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.LocalNetworkMonitor
+import com.continuum.android.core.ui.LocalProfileRepository
 import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.core.ui.navigation.AppNavHost
+import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.core.ui.theme.ContinuumTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -23,6 +25,7 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var tokenManager: TokenManager
     @Inject lateinit var networkMonitor: NetworkMonitor
+    @Inject lateinit var profileRepository: ProfileRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +36,8 @@ class MainActivity : ComponentActivity() {
             ContinuumTheme {
                 CompositionLocalProvider(
                     LocalNetworkMonitor provides networkMonitor,
-                    LocalTokenManager provides tokenManager
+                    LocalTokenManager provides tokenManager,
+                    LocalProfileRepository provides profileRepository,
                 ) {
                     val navController = rememberNavController()
                     AppNavHost(

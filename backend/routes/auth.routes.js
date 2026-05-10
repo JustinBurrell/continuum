@@ -243,7 +243,7 @@ router.get('/me', authMiddleware, authController.me);
  *         $ref: '#/components/responses/Unauthorized'
  */
 router.patch('/me/profile', authMiddleware, (req, res, next) => {
-    uploadImage.single('avatar')(req, res, (err) => {
+    uploadImage.fields([{ name: 'avatar', maxCount: 1 }, { name: 'avatarOriginal', maxCount: 1 }])(req, res, (err) => {
         if (err) return res.status(400).json({ success: false, error: err.message });
         next();
     });
@@ -635,5 +635,14 @@ router.post('/mobile/refresh', authLimiter, mobileAuthController.mobileRefresh);
  *         description: Too many requests (10 per 15 minutes)
  */
 router.post('/google/mobile', authLimiter, mobileAuthController.googleMobileLogin);
+
+// ============================================================
+// ONBOARDING ROUTES
+// Purpose: Track completion of the new-user onboarding flow and feature tour
+// ============================================================
+
+router.post('/me/onboarding/complete', authMiddleware, authController.completeOnboarding);
+router.post('/me/tour/complete', authMiddleware, authController.completeTour);
+router.patch('/me/tour/reset', authMiddleware, authController.resetTour);
 
 module.exports = router;

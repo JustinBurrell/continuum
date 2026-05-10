@@ -16,8 +16,10 @@ import com.continuum.android.feature.tasks.data.repository.TasksRepository
 import com.continuum.android.feature.tasks.domain.Task
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -36,7 +38,7 @@ data class DashboardUiState(
     val openTaskCount: Int = 0,
     val openApplicationCount: Int = 0,
     val newActivityCount: Int = 0,
-    val error: String? = null
+    val error: String? = null,
 )
 
 @HiltViewModel
@@ -47,11 +49,16 @@ class DashboardViewModel @Inject constructor(
     private val careerApi: CareerApiService,
     private val socialApi: SocialApiService,
     private val profileRepository: ProfileRepository,
-    private val dataRefreshNotifier: DataRefreshNotifier
+    private val dataRefreshNotifier: DataRefreshNotifier,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DashboardUiState())
     val state: StateFlow<DashboardUiState> = _state.asStateFlow()
+
+    // One-shot navigation event emitted when the profile signals onboarding is incomplete.
+    // DashboardScreen collects this and calls onNavigateToOnboarding.
+    private val _navigateToOnboarding = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val navigateToOnboarding = _navigateToOnboarding.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -100,6 +107,11 @@ class DashboardViewModel @Inject constructor(
                 // returns so both run in parallel with the heavier notes/tasks/sets flows.
                 val profile = profileDeferred.await().getOrNull()
                 val firstName = profile?.firstName?.ifBlank { "there" } ?: "there"
+                val needsOnboarding = profile != null &&
+                        (!profile.onboardingCompleted || !profile.tourCompleted)
+                if (needsOnboarding) {
+                    _navigateToOnboarding.tryEmit(Unit)
+                }
                 val activityDeferred = async { socialApi.getActivity(since = profile?.lastViewedActivityAt) }
 
                 notesDeferred.await()

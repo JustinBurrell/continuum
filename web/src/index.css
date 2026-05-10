@@ -293,6 +293,15 @@
   animation: fadeInUp 0.2s ease-out both;
 }
 
+/* ---- Onboarding modal step transition ---- */
+@keyframes onboardingSlideIn {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.onboarding-step-enter {
+  animation: onboardingSlideIn 0.25s ease-out both;
+}
+
 /* ---- Responsive layout ---- */
 /* Mobile header (hamburger bar) — hidden on desktop */
 .mobile-header {

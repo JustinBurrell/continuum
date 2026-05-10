@@ -146,6 +146,7 @@ export default function MessagesLayout() {
           <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Messages</h2>
           <button
             onClick={() => setShowNew(true)}
+            data-tour-highlight="messages-new"
             style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}

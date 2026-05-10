@@ -18,8 +18,33 @@ User fills out registration form
   → Generate RefreshToken (SHA-256 hash in DB, raw 80-char hex to client, 30d)
   → Return { token, refreshToken, user } (user without password field)
   → Frontend stores both tokens
-  → Redirect to Dashboard
-  → Google NOT linked — Drive/Docs features show "Connect Google" prompt
+  → Web: Redirect to /onboarding (dedicated full-page split-screen route)
+  → Android: Navigate to OnboardingScreen (full-screen, no bottom nav)
+  → Google NOT linked — google-drive step shown in profile phase
+  → User.onboardingCompleted = false, tourCompleted = false initially
+```
+
+### Flow A2: Onboarding Flow (post-registration)
+```
+User lands on /onboarding (web) or OnboardingScreen (Android)
+  → Profile phase (5 steps, always): welcome → goal → photo-bio → social-links → google-drive
+     (Google users: welcome → goal → name → photo-bio → social-links)
+  → At profile→activation boundary:
+     POST /api/auth/me/onboarding/complete → User.onboardingCompleted = true
+  → Activation step: single goal-personalized CTA
+     study_smarter → Open Notes
+     track_job_search → Open Applications
+     manage_coursework → Open Tasks
+     collaborate → Find Friends
+     not_sure → Go to Dashboard
+  → User taps CTA → POST /api/auth/me/tour/complete → User.tourCompleted = true
+  → Navigate to goal-relevant section (or dashboard)
+  → On "Skip setup": POST both /onboarding/complete + /tour/complete → Dashboard
+
+Replay (from Profile/Settings):
+  → Profile "Finish setup": navigate to onboarding flow (profile phase only if not completed)
+  → Settings "Replay tour": PATCH /api/auth/me/tour/reset → tourCompleted = false
+     → navigate to onboarding flow (skips profile phase, shows full 11-step tour)
 ```
 
 ### Flow B: Google OAuth Registration/Login
@@ -37,6 +62,8 @@ User clicks "Sign in with Google"
   → Sign JWT { userId }
   → Redirect to frontend: /auth/callback?token=<jwt>
   → Frontend stores token
+  → New user: Redirect to /onboarding (google-drive step skipped, name step shown)
+  → Returning user (onboardingCompleted && tourCompleted): Redirect to /dashboard
   → Google IS linked — all features available immediately
   Note: Google OAuth callback does not return a refresh token (redirect flow)
 ```

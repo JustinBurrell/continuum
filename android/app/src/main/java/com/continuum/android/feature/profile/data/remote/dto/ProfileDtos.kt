@@ -30,7 +30,10 @@ data class ProfileDto(
     val settings: ProfileSettingsDto? = null,
     val lastViewedActivityAt: String? = null,
     val createdAt: String = "",
-    val roles: List<String> = emptyList()
+    val roles: List<String> = emptyList(),
+    val onboardingCompleted: Boolean? = null,
+    val tourCompleted: Boolean? = null,
+    val onboardingGoal: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -45,7 +48,8 @@ data class UpdateProfileRequestDto(
     val firstName: String? = null,
     val lastName: String? = null,
     val username: String? = null,
-    val bio: String? = null
+    val bio: String? = null,
+    val onboardingGoal: String? = null
 )
 
 @JsonClass(generateAdapter = true)

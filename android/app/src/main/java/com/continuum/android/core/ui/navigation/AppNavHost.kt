@@ -1,9 +1,11 @@
 package com.continuum.android.core.ui.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import com.continuum.android.feature.onboarding.presentation.FirstRunCoachMark
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -31,11 +33,13 @@ import com.continuum.android.core.data.local.LogoutReason
 import com.continuum.android.core.ui.components.DemoBanner
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalNetworkMonitor
+import com.continuum.android.core.ui.LocalProfileRepository
 import com.continuum.android.core.ui.LocalScrollToTopNotifier
 import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.feature.auth.presentation.*
 import com.continuum.android.feature.career.presentation.*
 import com.continuum.android.feature.dashboard.presentation.DashboardScreen
+import com.continuum.android.feature.onboarding.presentation.OnboardingScreen
 import com.continuum.android.feature.flashcards.presentation.*
 import com.continuum.android.feature.messaging.presentation.*
 import com.continuum.android.feature.notes.presentation.*
@@ -57,6 +61,11 @@ object NavRoutes {
         const val VERIFY_EMAIL = "auth/verify-email"
         const val PRIVACY = "auth/privacy"
         const val TERMS = "auth/terms"
+    }
+
+    object Onboarding {
+        const val ROOT = "onboarding"
+        const val SCREEN = "onboarding/main"
     }
 
     object Dashboard {
@@ -210,7 +219,9 @@ fun AppNavHost(
     val windowWidthDp = LocalConfiguration.current.screenWidthDp.dp
     val isExpandedScreen = windowWidthDp >= 840.dp
 
-    val isMainScreen = currentRoute != null && !currentRoute.startsWith(NavRoutes.Auth.ROOT)
+    val isMainScreen = currentRoute != null &&
+            !currentRoute.startsWith(NavRoutes.Auth.ROOT) &&
+            !currentRoute.startsWith(NavRoutes.Onboarding.ROOT)
     val showMainNav = isMainScreen
 
     val startDestination = if (isAuthenticated) NavRoutes.Dashboard.ROOT else NavRoutes.Auth.ROOT
@@ -247,6 +258,7 @@ fun AppNavHost(
         LocalIsDemo provides navProfile.isDemo,
         LocalScrollToTopNotifier provides scrollToTopNotifier
     ) {
+        Box(modifier = Modifier.fillMaxSize()) {
         if (isExpandedScreen && showMainNav) {
             Row(modifier = Modifier.fillMaxSize()) {
                 ContinuumNavigationRail(
@@ -299,6 +311,11 @@ fun AppNavHost(
                 }
             }
         }
+        // First-run section feature card — shown after activation CTA navigation
+        if (isMainScreen) {
+            FirstRunCoachMark(navController = navController)
+        }
+        } // end Box
     }
 }
 
@@ -369,7 +386,7 @@ private fun NavGraph(
             composable(route = NavRoutes.Auth.REGISTER) {
                 RegisterScreen(
                     onRegisterSuccess = {
-                        navController.navigate(NavRoutes.Dashboard.ROOT) {
+                        navController.navigate(NavRoutes.Onboarding.ROOT) {
                             popUpTo(NavRoutes.Auth.ROOT) { inclusive = true }
                         }
                     },
@@ -427,10 +444,38 @@ private fun NavGraph(
             }
         }
 
+        // ---- Onboarding graph ----
+        navigation(route = NavRoutes.Onboarding.ROOT, startDestination = NavRoutes.Onboarding.SCREEN) {
+            composable(NavRoutes.Onboarding.SCREEN) {
+                val profileRepository = LocalProfileRepository.current
+                OnboardingScreen(
+                    onFinished = {
+                        navController.navigate(NavRoutes.Dashboard.ROOT) {
+                            popUpTo(NavRoutes.Onboarding.ROOT) { inclusive = true }
+                        }
+                    },
+                    onNavigateToSection = { sectionKey ->
+                        val route = when (sectionKey) {
+                            "notes"        -> NavRoutes.Notes.ROOT
+                            "tasks"        -> NavRoutes.Tasks.ROOT
+                            "applications" -> NavRoutes.Career.ROOT
+                            "friends"      -> NavRoutes.Social.FRIENDS_LIST
+                            else           -> NavRoutes.Dashboard.ROOT
+                        }
+                        navController.navigate(route) {
+                            popUpTo(NavRoutes.Onboarding.ROOT) { inclusive = true }
+                        }
+                    },
+                    profileRepository = profileRepository,
+                )
+            }
+        }
+
         // ---- Dashboard graph ----
         navigation(route = NavRoutes.Dashboard.ROOT, startDestination = NavRoutes.Dashboard.SCREEN) {
             composable(NavRoutes.Dashboard.SCREEN) {
                 val networkMonitor = LocalNetworkMonitor.current
+                val profileRepository = LocalProfileRepository.current
                 DashboardScreen(
                     onNotesClick = {
                         navController.navigate(NavRoutes.Notes.ROOT) {
@@ -462,7 +507,11 @@ private fun NavGraph(
                     onFlashcardSetClick = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) },
                     onApplicationClick = { appId -> navController.navigate(NavRoutes.Career.applicationDetail(appId)) },
                     onTaskClick = { taskId -> navController.navigate(NavRoutes.Tasks.detail(taskId)) },
-                    networkMonitor = networkMonitor
+                    networkMonitor = networkMonitor,
+                    profileRepository = profileRepository,
+                    onNavigateToOnboarding = {
+                        navController.navigate(NavRoutes.Onboarding.ROOT) { launchSingleTop = true }
+                    },
                 )
             }
         }
@@ -810,14 +859,19 @@ private fun NavGraph(
                     onTasks = { navController.navigate(NavRoutes.Tasks.ROOT) },
                     onResumes = { navController.navigate(NavRoutes.Career.RESUMES_LIST) },
                     onTerms = { navController.navigate(NavRoutes.Auth.TERMS) },
-                    onPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) }
+                    onPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) },
                 )
             }
             composable(NavRoutes.Profile.EDIT) {
                 EditProfileScreen(onNavigateBack = { navController.popBackStack() })
             }
             composable(NavRoutes.Profile.SETTINGS) {
-                SettingsScreen(onNavigateBack = { navController.popBackStack() })
+                SettingsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onReplayTour = {
+                        navController.navigate(NavRoutes.Onboarding.ROOT) { launchSingleTop = true }
+                    },
+                )
             }
         }
     }

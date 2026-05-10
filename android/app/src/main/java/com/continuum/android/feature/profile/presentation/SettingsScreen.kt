@@ -19,6 +19,7 @@ import com.continuum.android.core.ui.theme.*
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onReplayTour: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -127,6 +128,42 @@ fun SettingsScreen(
                     onCheckedChange = { if (!isDemo) pushNotifications = it },
                     switchesEnabled = !isDemo
                 )
+            }
+
+            item { Spacer(Modifier.height(16.dp)) }
+            item { SettingsSectionLabel("App") }
+            item {
+                var replayLoading by remember { mutableStateOf(false) }
+                Surface(
+                    color = White,
+                    shape = MaterialTheme.shapes.small,
+                    tonalElevation = 0.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(Icons.Default.Replay, contentDescription = null, tint = BrandPurple, modifier = Modifier.size(20.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Replay feature tour", style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
+                            Text("Walk through the app tour again any time.", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        }
+                        TextButton(
+                            onClick = {
+                                if (!replayLoading) {
+                                    replayLoading = true
+                                    viewModel.replayTour { onReplayTour(); replayLoading = false }
+                                }
+                            },
+                            enabled = !replayLoading && !isDemo,
+                        ) {
+                            Text(if (replayLoading) "Resetting…" else "Replay", color = BrandPurple)
+                        }
+                    }
+                }
             }
 
             item { Spacer(Modifier.height(16.dp)) }

@@ -140,6 +140,7 @@ export default function FlashcardSets() {
               cursor: 'pointer',
               border: 'none',
             }}
+            data-tour-highlight="flashcards-new"
           >
             <Plus size={15} /> New set
           </button>

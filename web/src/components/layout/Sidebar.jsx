@@ -91,6 +91,7 @@ export default function Sidebar() {
                   <NavLink
                     to={to}
                     end={to === '/dashboard'}
+                    data-nav-id={to.replace('/', '')}
                     style={({ isActive }) => ({
                       display: 'flex',
                       alignItems: 'center',
@@ -136,6 +137,7 @@ export default function Sidebar() {
       <div style={{ padding: 12, borderTop: '1px solid #E5E7EB' }}>
         <button
           onClick={() => navigate('/profile')}
+          data-nav-id="profile"
           className="w-full text-left transition-colors"
           style={{
             display: 'flex',

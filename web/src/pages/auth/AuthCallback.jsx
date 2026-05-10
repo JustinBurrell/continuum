@@ -42,10 +42,14 @@ export default function AuthCallback() {
             username: user.username,
             name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.username,
             created_at: user.createdAt,
+            onboardingGoal: user.onboardingGoal ?? null,
+            tourCompleted: user.tourCompleted ?? false,
           });
           posthog.capture('user_logged_in', { platform: 'web', method: 'google' });
         }
-        navigate('/dashboard');
+        // New users go to onboarding; returning users who already finished go straight to dashboard
+        const destination = (user.onboardingCompleted && user.tourCompleted) ? '/dashboard' : '/onboarding';
+        navigate(destination);
       })
       .catch(() => {
         localStorage.removeItem('token');

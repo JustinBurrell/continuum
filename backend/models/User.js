@@ -67,6 +67,9 @@ const userSchema = new mongoose.Schema({
     avatarUrl: {
         type: String,
     },
+    avatarOriginalUrl: {
+        type: String,
+    },
     bio: {
         type: String,
     },
@@ -213,6 +216,28 @@ const userSchema = new mongoose.Schema({
         type: [String],
         enum: ['admin', 'founder', 'team'],
         default: [],
+    },
+
+    /**
+     * Onboarding
+     * Fields:
+     *   onboardingCompleted — true once the user finishes (or skips) all profile setup steps
+     *   tourCompleted       — true once the user finishes (or skips) the feature tour; reset to
+     *                         false when the user replays from Profile
+     *   onboardingGoal      — the goal selected on the goal step; personalises tour order
+     */
+    onboardingCompleted: {
+        type: Boolean,
+        default: false,
+    },
+    tourCompleted: {
+        type: Boolean,
+        default: false,
+    },
+    onboardingGoal: {
+        type: String,
+        enum: ['study_smarter', 'track_job_search', 'manage_coursework', 'collaborate', 'not_sure'],
+        default: null,
     },
 }, {
     timestamps: true, // auto-creates createdAt and updatedAt on every document

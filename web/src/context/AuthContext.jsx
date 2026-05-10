@@ -118,6 +118,7 @@ function registerSocketEvents(socket) {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [forceOnboardingOpen, setForceOnboardingOpen] = useState(false);
 
   // Hydrate user from stored token on mount
   useEffect(() => {
@@ -139,6 +140,8 @@ export function AuthProvider({ children }) {
             username: u.username,
             name: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.username,
             created_at: u.createdAt,
+            onboardingGoal: u.onboardingGoal ?? null,
+            tourCompleted: u.tourCompleted ?? false,
           });
         }
         // Reconnect socket on page refresh if already logged in
@@ -218,7 +221,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, googleLogin, updateUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, googleLogin, updateUser, forceOnboardingOpen, setForceOnboardingOpen }}>
       {children}
     </AuthContext.Provider>
   );

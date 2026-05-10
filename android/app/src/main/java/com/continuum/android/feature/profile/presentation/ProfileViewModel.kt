@@ -33,7 +33,7 @@ data class ProfileUiState(
 class ProfileViewModel @Inject constructor(
     private val repository: ProfileRepository,
     private val tokenManager: TokenManager,
-    private val profileUpdateNotifier: ProfileUpdateNotifier
+    private val profileUpdateNotifier: ProfileUpdateNotifier,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileUiState())
@@ -204,4 +204,11 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun clearMessage() = _state.update { it.copy(successMessage = null, error = null) }
+
+    fun replayTour(onNavigateToOnboarding: () -> Unit) {
+        viewModelScope.launch {
+            runCatching { repository.resetTour() }
+            onNavigateToOnboarding()
+        }
+    }
 }

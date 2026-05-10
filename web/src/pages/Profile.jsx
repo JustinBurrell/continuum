@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, forwardRef } from 'react';
+import { posthog } from '@/lib/posthog';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
@@ -23,6 +24,7 @@ import PasswordRequirements from '@/components/ui/PasswordRequirements';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
 import SocialLinks from '@/components/ui/SocialLinks';
+import AvatarCropModal from '@/components/ui/AvatarCropModal';
 
 const card = {
   background: '#fff',
@@ -118,124 +120,6 @@ const PasswordInput = forwardRef(function PasswordInput({ label, error, required
 });
 
 
-function AvatarCropModal({ file, onSave, onClose }) {
-  const CROP_SIZE = 280;
-  const [imgSrc, setImgSrc] = useState(null);
-  const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [dragging, setDragging] = useState(false);
-  const dragStart = useRef(null);
-  const imgEl = useRef(new Image());
-  const containerRef = useRef(null);
-  const minScale = useRef(1);
-
-  useEffect(() => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const src = e.target.result;
-      const img = imgEl.current;
-      img.onload = () => {
-        // Scale to fill (cover) the crop area
-        const cover = Math.max(CROP_SIZE / img.naturalWidth, CROP_SIZE / img.naturalHeight);
-        minScale.current = cover;
-        setScale(cover);
-        setOffset({ x: 0, y: 0 });
-      };
-      img.src = src;
-      setImgSrc(src);
-    };
-    reader.readAsDataURL(file);
-  }, [file]);
-
-  // Non-passive wheel listener to allow preventDefault
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const onWheel = (e) => {
-      e.preventDefault();
-      setScale(s => Math.max(minScale.current, Math.min(5, s - e.deltaY * 0.003)));
-    };
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
-  }, [imgSrc]);
-
-  const handleMouseDown = (e) => {
-    setDragging(true);
-    dragStart.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
-  };
-  const handleMouseMove = (e) => {
-    if (!dragging) return;
-    setOffset({ x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y });
-  };
-  const handleMouseUp = () => setDragging(false);
-
-  const handleCrop = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = CROP_SIZE;
-    canvas.height = CROP_SIZE;
-    const ctx = canvas.getContext('2d');
-    const img = imgEl.current;
-    const imgW = img.naturalWidth * scale;
-    const imgH = img.naturalHeight * scale;
-    const drawX = (CROP_SIZE - imgW) / 2 + offset.x;
-    const drawY = (CROP_SIZE - imgH) / 2 + offset.y;
-    ctx.drawImage(img, drawX, drawY, imgW, imgH);
-    canvas.toBlob(blob => {
-      if (blob) onSave(new File([blob], 'avatar.png', { type: 'image/png' }));
-    }, 'image/png');
-  };
-
-  return createPortal(
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
-    }}>
-      <div style={{
-        background: '#fff', borderRadius: 20, padding: 24, width: 340,
-        boxShadow: '0 20px 60px rgba(107,33,168,0.25)',
-      }}>
-        <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 3px' }}>Adjust photo</h3>
-        <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 16px' }}>Drag to reposition · Scroll to zoom</p>
-        <div
-          ref={containerRef}
-          style={{
-            width: CROP_SIZE, height: CROP_SIZE, borderRadius: '50%',
-            overflow: 'hidden', position: 'relative',
-            cursor: dragging ? 'grabbing' : 'grab',
-            background: 'rgba(107,33,168,0.08)', margin: '0 auto 16px',
-            border: '3px solid #6b21a8', flexShrink: 0,
-          }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        >
-          {imgSrc && (
-            <img
-              src={imgSrc}
-              alt=""
-              draggable={false}
-              style={{
-                position: 'absolute',
-                top: '50%', left: '50%',
-                transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) scale(${scale})`,
-                transformOrigin: 'center',
-                maxWidth: 'none',
-                userSelect: 'none',
-                pointerEvents: 'none',
-              }}
-            />
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button variant="outline" style={{ flex: 1 }} onClick={onClose}>Cancel</Button>
-          <Button style={{ flex: 1 }} onClick={handleCrop}>Save photo</Button>
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
-}
 
 function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading }) {
   const [usernameInput, setUsernameInput] = useState('');
@@ -337,7 +221,7 @@ function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading 
 }
 
 export default function Profile() {
-  const { user, updateUser, logout } = useAuth();
+  const { user, updateUser, logout, setForceOnboardingOpen } = useAuth();
   const toast = useToast();
   const avatarInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState('overview');
@@ -351,6 +235,11 @@ export default function Profile() {
   const [verifySent, setVerifySent] = useState(false);
   const [newPasswordValue, setNewPasswordValue] = useState('');
   const [cropFile, setCropFile] = useState(null);
+  const [cropSrc, setCropSrc] = useState(null);                  // URL for editing existing uploaded avatar
+  const [originalFile, setOriginalFile] = useState(null);       // raw pick — kept for re-crop
+  const [pendingCroppedFile, setPendingCroppedFile] = useState(null); // cropped, not yet uploaded
+  const [pendingOriginalFile, setPendingOriginalFile] = useState(null); // original (full res) — uploaded alongside crop
+  const [localPreview, setLocalPreview] = useState(null);       // blob URL for preview before upload
   const navigate = useNavigate();
 
   const { data } = useQuery({
@@ -503,11 +392,12 @@ export default function Profile() {
     },
   });
 
-  // Avatar mutation
+  // Avatar mutation — sends the cropped display file and optionally the full-res original
   const avatarMutation = useMutation({
-    mutationFn: (file) => {
+    mutationFn: ({ cropped, original }) => {
       const fd = new FormData();
-      fd.append('avatar', file);
+      fd.append('avatar', cropped);
+      if (original) fd.append('avatarOriginal', original);
       return api.patch('/auth/me/profile', fd);
     },
     onSuccess: (res) => {
@@ -700,6 +590,7 @@ export default function Profile() {
             </div>
           )}
 
+
           {/* Profile header card */}
           <div style={card}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
@@ -721,7 +612,7 @@ export default function Profile() {
                 {me?.bio && <p style={{ fontSize: 13, color: '#374151', marginTop: 8, marginBottom: 0 }}>{me.bio}</p>}
                 <SocialLinks user={me} style={{ marginTop: 8 }} />
               </div>
-              <Button size="sm" variant="outline" onClick={() => setActiveTab('profile')}>
+              <Button size="sm" variant="outline" onClick={() => setActiveTab('profile')} data-tour-highlight="profile-edit">
                 <Edit3 size={13} /> Edit
               </Button>
             </div>
@@ -815,12 +706,37 @@ export default function Profile() {
       {/* ─── PROFILE TAB ─── */}
       {activeTab === 'profile' && (
         <div>
+          {/* Feature tour */}
+          <div style={{ ...card, marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Feature tour</p>
+              <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>
+                Replay the guided tour of Continuum any time.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              style={{ flexShrink: 0 }}
+              onClick={async () => {
+                try {
+                  posthog.capture('tour_replayed', { platform: 'web', goal: user?.onboardingGoal ?? 'not_sure' });
+                  await api.patch('/auth/me/tour/reset');
+                  updateUser({ tourCompleted: false });
+                } catch (_) {}
+                setForceOnboardingOpen(true);
+              }}
+            >
+              Replay tour
+            </Button>
+          </div>
+
           {/* Avatar */}
           <div style={card}>
             <p style={sectionLabel}>Photo</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ position: 'relative', flexShrink: 0 }}>
-                <AppAvatar name={fullName} src={me?.avatarUrl} size="xl" />
+                <AppAvatar name={fullName} src={localPreview ?? me?.avatarUrl} size="xl" />
                 {!user?.isDemo && (
                   <>
                     <button
@@ -836,15 +752,52 @@ export default function Profile() {
                       <Camera size={12} style={{ color: '#fff' }} />
                     </button>
                     <input ref={avatarInputRef} type="file" accept="image/*" className="hidden"
-                      onChange={e => { const f = e.target.files[0]; if (f) { setCropFile(f); e.target.value = ''; } }} />
+                      onChange={e => { const f = e.target.files[0]; if (f) { setOriginalFile(f); setCropFile(f); e.target.value = ''; } }} />
                   </>
                 )}
               </div>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 2px' }}>{fullName}</p>
                 <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>JPG or PNG, max 5 MB</p>
+                {!user?.isDemo && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                    {/* Edit crop on existing avatar — shown when no new file is pending */}
+                    {!originalFile && (me?.avatarUrl || localPreview) && (
+                      <button
+                        onClick={() => setCropSrc(me?.avatarOriginalUrl ?? me?.avatarUrl)}
+                        style={{ fontSize: 12, color: '#6b21a8', background: 'none', border: '1px solid #e5d3f0', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
+                      >
+                        Edit crop
+                      </button>
+                    )}
+                    {/* Adjust crop on a freshly picked file */}
+                    {originalFile && (
+                      <button
+                        onClick={() => setCropFile(originalFile)}
+                        style={{ fontSize: 12, color: '#6b21a8', background: 'none', border: '1px solid #e5d3f0', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
+                      >
+                        Adjust crop
+                      </button>
+                    )}
+                    {/* Save button — only shown when there is a pending cropped file to upload */}
+                    {pendingCroppedFile && (
+                      <button
+                        onClick={() => {
+                          avatarMutation.mutate({ cropped: pendingCroppedFile, original: pendingOriginalFile });
+                          setLocalPreview(null);
+                          setPendingCroppedFile(null);
+                          setPendingOriginalFile(null);
+                          setOriginalFile(null);
+                        }}
+                        disabled={avatarMutation.isPending}
+                        style={{ fontSize: 12, color: '#fff', background: '#6b21a8', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', opacity: avatarMutation.isPending ? 0.6 : 1 }}
+                      >
+                        {avatarMutation.isPending ? 'Saving…' : 'Save photo'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
-              {avatarMutation.isPending && <span style={{ fontSize: 12, color: '#9CA3AF' }}>Uploading…</span>}
             </div>
           </div>
 
@@ -1039,12 +992,90 @@ export default function Profile() {
               </Button>
             </form>
           </div>}
+
+          {/* Active sessions */}
+          {!user?.isDemo && (
+            <div style={card}>
+              <p style={sectionLabel}>Active sessions</p>
+              {sessionsLoading ? (
+                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>Loading sessions...</p>
+              ) : !sessionsData || sessionsData.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>No active sessions found.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {sessionsData.map((s) => (
+                    <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', background: s.isCurrent ? 'rgba(107,33,168,0.04)' : '#FFFFFF', borderRadius: 8, border: s.isCurrent ? '1px solid rgba(107,33,168,0.12)' : '1px solid transparent' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{s.deviceId || 'Unknown device'}</p>
+                          {s.isCurrent && (
+                            <span style={{ fontSize: 10, fontWeight: 600, color: '#6b21a8', background: '#E5E7EB', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                              This device
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
+                          Signed in {new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {s.lastUsedAt && (
+                            <> &middot; Last active {(() => {
+                              const diff = Date.now() - new Date(s.lastUsedAt).getTime();
+                              const mins = Math.floor(diff / 60000);
+                              if (mins < 1) return 'just now';
+                              if (mins < 60) return `${mins}m ago`;
+                              const hrs = Math.floor(mins / 60);
+                              if (hrs < 24) return `${hrs}h ago`;
+                              return `${Math.floor(hrs / 24)}d ago`;
+                            })()}</>
+                          )}
+                          {s.ipLocation && <> &middot; {s.ipLocation}</>}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => !s.isCurrent && revokeSessionMutation.mutate(s._id)}
+                        disabled={s.isCurrent || revokeSessionMutation.isPending}
+                        title={s.isCurrent ? 'Cannot remove your current session' : 'Revoke session'}
+                        style={{ background: 'none', border: 'none', cursor: s.isCurrent ? 'not-allowed' : 'pointer', color: s.isCurrent ? '#d1d5db' : '#dc2626', padding: 4, display: 'flex', alignItems: 'center', borderRadius: 6, flexShrink: 0 }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Danger zone */}
+          {!user?.isDemo && <div style={{ ...card, borderColor: '#fecaca', background: '#fff' }}>
+            <p style={{ ...sectionLabel, color: '#dc2626' }}>Danger zone</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Sign out of all devices</p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>Revokes all active sessions. You will need to log in again.</p>
+                </div>
+                <Button size="sm" variant="danger" loading={logoutAllLoading} onClick={handleLogoutAll}>
+                  <LogOut size={13} /> Sign out all
+                </Button>
+              </div>
+              <div style={{ borderTop: '1px solid #fecaca', paddingTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#dc2626', margin: 0 }}>Delete account</p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>Permanently deletes your account and all data. This cannot be undone.</p>
+                </div>
+                <Button size="sm" variant="danger" loading={deleteAccountLoading} onClick={handleDeleteAccount}>
+                  Delete account
+                </Button>
+              </div>
+            </div>
+          </div>}
         </div>
       )}
 
       {/* ─── NOTIFICATIONS TAB ─── */}
       {activeTab === 'notifications' && (
         <div>
+
           <div style={card}>
             <p style={sectionLabel}>Email & push</p>
             <form onSubmit={notifForm.handleSubmit(vals => notifMutation.mutate(vals))}>
@@ -1166,93 +1197,22 @@ export default function Profile() {
             )}
           </div>
 
-          {/* Active sessions */}
-          {!user?.isDemo && (
-            <div style={card}>
-              <p style={sectionLabel}>Active sessions</p>
-              {sessionsLoading ? (
-                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>Loading sessions...</p>
-              ) : !sessionsData || sessionsData.length === 0 ? (
-                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>No active sessions found.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {sessionsData.map((s) => (
-                    <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', background: s.isCurrent ? 'rgba(107,33,168,0.04)' : '#FFFFFF', borderRadius: 8, border: s.isCurrent ? '1px solid rgba(107,33,168,0.12)' : '1px solid transparent' }}>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                          <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{s.deviceId || 'Unknown device'}</p>
-                          {s.isCurrent && (
-                            <span style={{ fontSize: 10, fontWeight: 600, color: '#6b21a8', background: '#E5E7EB', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
-                              This device
-                            </span>
-                          )}
-                        </div>
-                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
-                          Signed in {new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                          {s.lastUsedAt && (
-                            <> &middot; Last active {(() => {
-                              const diff = Date.now() - new Date(s.lastUsedAt).getTime();
-                              const mins = Math.floor(diff / 60000);
-                              if (mins < 1) return 'just now';
-                              if (mins < 60) return `${mins}m ago`;
-                              const hrs = Math.floor(mins / 60);
-                              if (hrs < 24) return `${hrs}h ago`;
-                              return `${Math.floor(hrs / 24)}d ago`;
-                            })()}</>
-                          )}
-                          {s.ipLocation && <> &middot; {s.ipLocation}</>}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => !s.isCurrent && revokeSessionMutation.mutate(s._id)}
-                        disabled={s.isCurrent || revokeSessionMutation.isPending}
-                        title={s.isCurrent ? 'Cannot remove your current session' : 'Revoke session'}
-                        style={{ background: 'none', border: 'none', cursor: s.isCurrent ? 'not-allowed' : 'pointer', color: s.isCurrent ? '#d1d5db' : '#dc2626', padding: 4, display: 'flex', alignItems: 'center', borderRadius: 6, flexShrink: 0 }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Danger zone */}
-          {!user?.isDemo && <div style={{ ...card, borderColor: '#fecaca', background: '#fff' }}>
-            <p style={{ ...sectionLabel, color: '#dc2626' }}>Danger zone</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Sign out of all devices</p>
-                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>Revokes all active sessions. You will need to log in again.</p>
-                </div>
-                <Button size="sm" variant="danger" loading={logoutAllLoading} onClick={handleLogoutAll}>
-                  <LogOut size={13} /> Sign out all
-                </Button>
-              </div>
-              <div style={{ borderTop: '1px solid #fecaca', paddingTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#dc2626', margin: 0 }}>Delete account</p>
-                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>Permanently deletes your account and all data. This cannot be undone.</p>
-                </div>
-                <Button size="sm" variant="danger" loading={deleteAccountLoading} onClick={handleDeleteAccount}>
-                  Delete account
-                </Button>
-              </div>
-            </div>
-          </div>}
         </div>
       )}
 
-      {cropFile && (
+      {(cropFile || cropSrc) && (
         <AvatarCropModal
-          file={cropFile}
-          onSave={(croppedFile) => {
+          file={cropFile ?? undefined}
+          src={cropSrc ?? undefined}
+          onSave={({ cropped, original }) => {
             setCropFile(null);
-            avatarMutation.mutate(croppedFile);
+            setCropSrc(null);
+            setPendingCroppedFile(cropped);
+            setPendingOriginalFile(original ?? null);
+            setLocalPreview(URL.createObjectURL(cropped));
+            if (original) setOriginalFile(original); // keep for in-session re-crop
           }}
-          onClose={() => setCropFile(null)}
+          onClose={() => { setCropFile(null); setCropSrc(null); }}
         />
       )}
 

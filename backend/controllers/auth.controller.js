@@ -14,6 +14,11 @@ const { invalidate, setKey } = require('../lib/cache');
 const { hardDeleteUser } = require('../services/account.service');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+// In E2E / test environments, short-circuit all email sends so no real emails are sent
+// and no Resend quota is consumed regardless of which backend is running.
+if (process.env.RESEND_DISABLED === 'true') {
+    resend.emails.send = async () => ({ data: { id: 'e2e-noop' }, error: null });
+}
 const posthog = require('../lib/posthog');
 
 function emailTemplate(content) {
@@ -599,29 +604,52 @@ exports.updateProfile = async (req, res) => {
         }
     }
 
-    // Avatar upload — if a file was attached, upload to Cloudinary and set avatarUrl
-    if (req.file) {
+    if (req.body.onboardingGoal !== undefined) {
+        const validGoals = ['study_smarter', 'track_job_search', 'manage_coursework', 'collaborate', 'not_sure'];
+        if (!validGoals.includes(req.body.onboardingGoal)) {
+            return res.status(400).json({ success: false, error: 'Invalid onboardingGoal value' });
+        }
+        updates.onboardingGoal = req.body.onboardingGoal;
+    }
+
+    // Avatar upload — upload cropped display version and optionally the full-res original
+    const avatarFile = req.files?.avatar?.[0];
+    const avatarOriginalFile = req.files?.avatarOriginal?.[0];
+    if (avatarFile) {
         const userId = req.user._id.toString();
 
-        const uploadResult = await new Promise((resolve, reject) => {
+        const uploadCropped = new Promise((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream(
                 {
                     folder: `continuum/profiles/${userId}`,
                     public_id: 'avatar',
                     resource_type: 'image',
                     overwrite: true,
-                    // transformation: resize to 400x400 square, auto quality
                     transformation: [{ width: 400, height: 400, crop: 'fill', quality: 'auto' }],
                 },
-                (error, result) => {
-                    if (error) return reject(error);
-                    resolve(result);
-                }
+                (error, result) => { if (error) return reject(error); resolve(result); }
             );
-            stream.end(req.file.buffer);
+            stream.end(avatarFile.buffer);
         });
 
-        updates.avatarUrl = uploadResult.secure_url;
+        const uploadOriginal = avatarOriginalFile
+            ? new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: `continuum/profiles/${userId}`,
+                        public_id: 'avatar_original',
+                        resource_type: 'image',
+                        overwrite: true,
+                    },
+                    (error, result) => { if (error) return reject(error); resolve(result); }
+                );
+                stream.end(avatarOriginalFile.buffer);
+            })
+            : Promise.resolve(null);
+
+        const [croppedResult, originalResult] = await Promise.all([uploadCropped, uploadOriginal]);
+        updates.avatarUrl = croppedResult.secure_url;
+        if (originalResult) updates.avatarOriginalUrl = originalResult.secure_url;
     }
 
     if (Object.keys(updates).length === 0) {
@@ -950,3 +978,49 @@ exports.restoreAccount = async (req, res) => {
     const restored = await User.findById(req.user._id);
     res.status(200).json({ success: true, user: restored });
 };
+
+// ----------------------------------------
+// POST /api/auth/me/onboarding/complete
+// Purpose: Mark the profile setup portion of onboarding as done
+// Idempotent — safe to call if already true
+// ----------------------------------------
+exports.completeOnboarding = async (req, res) => {
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: { onboardingCompleted: true } },
+        { new: true }
+    );
+    invalidate(`user:${req.user._id}`).catch(() => {});
+    res.status(200).json({ success: true, user });
+};
+
+// ----------------------------------------
+// POST /api/auth/me/tour/complete
+// Purpose: Mark the feature tour as done
+// Idempotent — safe to call if already true
+// ----------------------------------------
+exports.completeTour = async (req, res) => {
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: { tourCompleted: true } },
+        { new: true }
+    );
+    invalidate(`user:${req.user._id}`).catch(() => {});
+    res.status(200).json({ success: true, user });
+};
+
+// ----------------------------------------
+// PATCH /api/auth/me/tour/reset
+// Purpose: Allow the user to replay the feature tour from Profile settings
+// Sets tourCompleted: false so the tour re-opens on the next dashboard visit
+// ----------------------------------------
+exports.resetTour = async (req, res) => {
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: { tourCompleted: false } },
+        { new: true }
+    );
+    invalidate(`user:${req.user._id}`).catch(() => {});
+    res.status(200).json({ success: true, user });
+};
+
