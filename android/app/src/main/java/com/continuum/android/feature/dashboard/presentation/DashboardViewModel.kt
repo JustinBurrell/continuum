@@ -107,8 +107,10 @@ class DashboardViewModel @Inject constructor(
                 // returns so both run in parallel with the heavier notes/tasks/sets flows.
                 val profile = profileDeferred.await().getOrNull()
                 val firstName = profile?.firstName?.ifBlank { "there" } ?: "there"
-                val needsOnboarding = profile != null &&
-                        (!profile.onboardingCompleted || !profile.tourCompleted)
+                // Only redirect to onboarding when profile setup is incomplete.
+                // tourCompleted=false alone means the replay tour overlay handles it — don't
+                // send the user back to OnboardingScreen.
+                val needsOnboarding = profile != null && !profile.onboardingCompleted
                 if (needsOnboarding) {
                     _navigateToOnboarding.tryEmit(Unit)
                 }

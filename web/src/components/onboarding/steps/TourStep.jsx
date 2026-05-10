@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { posthog } from '@/lib/posthog';
@@ -16,66 +17,42 @@ function injectPulseKeyframes() {
   document.head.appendChild(style);
 }
 
-function attachRing(el, radiusPx = 8) {
-  injectPulseKeyframes();
-  const ring = document.createElement('div');
-  ring.style.cssText = `
-    position: absolute;
-    inset: -3px;
-    border-radius: ${radiusPx}px;
-    border: 2px solid #6b21a8;
-    pointer-events: none;
-    animation: onboardingPulse 1.4s ease-in-out infinite;
-    z-index: 9999;
-  `;
-  el.style.position = 'relative';
-  el.appendChild(ring);
-  return ring;
-}
+// Returns the screen rect of the page CTA after a 400ms delay (page mount time).
+// Uses getBoundingClientRect so the ring is rendered via portal at the correct
+// viewport coordinates — unaffected by any transform on the element's ancestors.
+function usePageHighlightRect(pageTarget) {
+  const [ringRect, setRingRect] = useState(null);
 
-// Pulsing ring on the sidebar nav element (data-nav-id)
-function useSidebarHighlight(target) {
   useEffect(() => {
-    if (!target) return;
-    const el = document.querySelector(`[data-nav-id="${target}"]`);
-    if (!el) return;
-    const ring = attachRing(el, 8);
-    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    return () => ring.remove();
-  }, [target]);
-}
-
-// Pulsing ring on the page's primary CTA element (data-tour-highlight)
-// Delayed 400ms so the navigated page has time to mount its buttons.
-function usePageHighlight(pageTarget) {
-  useEffect(() => {
-    if (!pageTarget) return;
-    let ring;
+    if (!pageTarget) { setRingRect(null); return; }
+    let cancelled = false;
     const timer = setTimeout(() => {
+      if (cancelled) return;
       const el = document.querySelector(`[data-tour-highlight="${pageTarget}"]`);
       if (!el) return;
-      ring = attachRing(el, 6);
+      injectPulseKeyframes();
+      const r = el.getBoundingClientRect();
+      setRingRect({ top: r.top, left: r.left, width: r.width, height: r.height });
       el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }, 400);
+
     return () => {
+      cancelled = true;
       clearTimeout(timer);
-      ring?.remove();
+      setRingRect(null);
     };
   }, [pageTarget]);
+
+  return ringRect;
 }
 
-export default function TourStep({ config, tourIndex, isReplay, onNext, onSkipTour }) {
+export default function TourStep({ config, tourIndex, onNext, onBack, onSkipTour }) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const ringRect = usePageHighlightRect(config.pageTarget);
 
-  useSidebarHighlight(config.sidebarTarget);
-  usePageHighlight(config.pageTarget);
-
-  // Navigate to the section's page and fire analytics on mount
   useEffect(() => {
-    if (config.route) {
-      navigate(config.route);
-    }
+    if (config.route) navigate(config.route);
     try {
       posthog.capture('tour_step_viewed', {
         platform: 'web',
@@ -100,58 +77,120 @@ export default function TourStep({ config, tourIndex, isReplay, onNext, onSkipTo
     onSkipTour();
   };
 
-  return (
-    <div>
-      {/* Section badge */}
-      <p style={{
-        display: 'inline-block',
-        fontSize: '0.75rem',
-        fontWeight: 600,
-        letterSpacing: '0.06em',
-        textTransform: 'uppercase',
-        color: '#6b21a8',
-        background: 'rgba(107,33,168,0.08)',
-        padding: '3px 10px',
-        borderRadius: 20,
-        marginBottom: 14,
-      }}>
-        {config.sectionName}
-      </p>
-
-      <h2 style={{
-        fontFamily: 'Fraunces, Georgia, serif',
-        fontSize: '1.375rem',
-        fontWeight: 600,
-        color: '#1a1a2e',
-        margin: '0 0 8px',
-        lineHeight: 1.3,
-      }}>
-        {config.heading}
-      </h2>
-
-      <p style={{ color: '#6B7280', fontSize: '0.875rem', margin: '0 0 28px', lineHeight: 1.6 }}>
-        {config.description}
-      </p>
-
-      <button
-        onClick={onNext}
+  // Everything rendered via portal so it sits at document.body level — fully outside
+  // any transformed ancestor (e.g. the page-fade-in animation) that would otherwise
+  // confine position:fixed elements and break the backdrop coverage.
+  return createPortal(
+    <>
+      {/* Dimmed backdrop — blocks all page + sidebar interaction during the tour */}
+      <div
         style={{
-          width: '100%', padding: '11px 0', background: '#6b21a8', color: '#fff',
-          border: 'none', borderRadius: 8, fontSize: '0.9375rem', fontWeight: 600,
-          cursor: 'pointer', marginBottom: 10, transition: 'background 0.15s',
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.45)',
+          zIndex: 9995,
+          pointerEvents: 'all',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = '#581c87'}
-        onMouseLeave={e => e.currentTarget.style.background = '#6b21a8'}
-      >
-        Next
-      </button>
+      />
 
-      <button
-        onClick={handleSkipTour}
-        style={{ background: 'none', border: 'none', color: '#a087b0', fontSize: '0.875rem', cursor: 'pointer', width: '100%' }}
+      {/* Pulsing purple ring on the page CTA — positioned with screen coords so it
+          renders correctly above the backdrop regardless of any ancestor transform */}
+      {ringRect && (
+        <div
+          style={{
+            position: 'fixed',
+            top: ringRect.top - 4,
+            left: ringRect.left - 4,
+            width: ringRect.width + 8,
+            height: ringRect.height + 8,
+            borderRadius: 8,
+            border: '2px solid #6b21a8',
+            pointerEvents: 'none',
+            animation: 'onboardingPulse 1.4s ease-in-out infinite',
+            zIndex: 10001,
+          }}
+        />
+      )}
+
+      {/* Tour card */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 28,
+          right: 28,
+          zIndex: 10002,
+          width: 340,
+          background: '#fff',
+          borderRadius: 18,
+          boxShadow: '0 12px 40px rgba(0,0,0,0.18), 0 0 0 1px rgba(107,33,168,0.08)',
+          overflow: 'hidden',
+          pointerEvents: 'all',
+        }}
       >
-        Skip tour
-      </button>
-    </div>
+        {/* Purple header */}
+        <div style={{ background: '#3B0764', padding: '16px 18px 14px' }}>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            {config.sectionName}
+          </p>
+          <p style={{ margin: '5px 0 0', fontSize: 16, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>
+            {config.heading}
+          </p>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '14px 18px 18px' }}>
+          <p style={{ margin: '0 0 18px', fontSize: 14, color: '#4B5563', lineHeight: 1.6 }}>
+            {config.description}
+          </p>
+
+          <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+            {tourIndex > 0 && (
+              <button
+                onClick={onBack}
+                style={{
+                  flex: '0 0 auto',
+                  padding: '10px 16px',
+                  background: 'transparent',
+                  color: '#6b21a8',
+                  border: '1px solid #e5d3f0',
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                ← Back
+              </button>
+            )}
+            <button
+              onClick={onNext}
+              style={{
+                flex: 1,
+                padding: '10px 0',
+                background: '#6b21a8',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#581c87'}
+              onMouseLeave={e => e.currentTarget.style.background = '#6b21a8'}
+            >
+              Next
+            </button>
+          </div>
+
+          <button
+            onClick={handleSkipTour}
+            style={{ background: 'none', border: 'none', color: '#a087b0', fontSize: 13, cursor: 'pointer', width: '100%' }}
+          >
+            Skip tour
+          </button>
+        </div>
+      </div>
+    </>,
+    document.body,
   );
 }

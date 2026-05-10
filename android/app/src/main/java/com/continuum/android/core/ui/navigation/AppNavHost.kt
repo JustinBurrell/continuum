@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import com.continuum.android.feature.onboarding.presentation.FirstRunCoachMark
+import com.continuum.android.feature.onboarding.presentation.TourNavRoutes
+import com.continuum.android.feature.onboarding.presentation.TourOverlay
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -195,6 +197,18 @@ fun AppNavHost(
     val navProfile by navProfileViewModel.state.collectAsStateWithLifecycle()
 
     var remoteLogoutMessage by remember { mutableStateOf<String?>(null) }
+    // When true, TourOverlay is rendered over the current main screen.
+    var tourActive by remember { mutableStateOf(false) }
+
+    val onReplayTour: () -> Unit = {
+        if (!navProfile.isDemo) {
+            navController.navigate(NavRoutes.Dashboard.ROOT) {
+                launchSingleTop = true
+                restoreState = true
+            }
+            tourActive = true
+        }
+    }
 
     LaunchedEffect(Unit) {
         tokenManager.logoutEvent.collect { reason ->
@@ -276,6 +290,7 @@ fun AppNavHost(
                         navController = navController,
                         startDestination = startDestination,
                         onLogoClick = onLogoClick,
+                        onReplayTour = onReplayTour,
                         remoteLogoutMessage = remoteLogoutMessage,
                         onRemoteLogoutShown = { remoteLogoutMessage = null },
                         modifier = Modifier.weight(1f)
@@ -304,6 +319,7 @@ fun AppNavHost(
                         navController = navController,
                         startDestination = startDestination,
                         onLogoClick = onLogoClick,
+                        onReplayTour = onReplayTour,
                         remoteLogoutMessage = remoteLogoutMessage,
                         onRemoteLogoutShown = { remoteLogoutMessage = null },
                         modifier = Modifier.weight(1f)
@@ -312,8 +328,29 @@ fun AppNavHost(
             }
         }
         // First-run section feature card — shown after activation CTA navigation
-        if (isMainScreen) {
+        if (isMainScreen && !tourActive) {
             FirstRunCoachMark(navController = navController)
+        }
+
+        // Replay tour overlay — navigates through all sections with a bottom-right card
+        if (tourActive && isMainScreen) {
+            TourOverlay(
+                navController = navController,
+                navRoutes = TourNavRoutes(
+                    dashboard    = NavRoutes.Dashboard.ROOT,
+                    notes        = NavRoutes.Notes.ROOT,
+                    flashcards   = NavRoutes.Flashcards.ROOT,
+                    tasks        = NavRoutes.Tasks.ROOT,
+                    calendar     = NavRoutes.Calendar.ROOT,
+                    applications = NavRoutes.Career.ROOT,
+                    resumes      = NavRoutes.Career.RESUMES_LIST,
+                    messages     = NavRoutes.Social.CONVERSATIONS,
+                    friends      = NavRoutes.Social.FRIENDS_LIST,
+                    activity     = NavRoutes.Social.ACTIVITY_FEED,
+                    profile      = NavRoutes.Profile.ROOT,
+                ),
+                onComplete = { tourActive = false },
+            )
         }
         } // end Box
     }
@@ -328,6 +365,7 @@ private fun NavGraph(
     navController: NavHostController,
     startDestination: String,
     onLogoClick: () -> Unit,
+    onReplayTour: () -> Unit = {},
     remoteLogoutMessage: String? = null,
     onRemoteLogoutShown: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -868,9 +906,7 @@ private fun NavGraph(
             composable(NavRoutes.Profile.SETTINGS) {
                 SettingsScreen(
                     onNavigateBack = { navController.popBackStack() },
-                    onReplayTour = {
-                        navController.navigate(NavRoutes.Onboarding.ROOT) { launchSingleTop = true }
-                    },
+                    onReplayTour = onReplayTour,
                 )
             }
         }

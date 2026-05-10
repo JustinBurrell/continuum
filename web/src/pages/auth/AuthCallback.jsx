@@ -34,6 +34,14 @@ export default function AuthCallback() {
         const user = res.data.user || res.data.data;
         queryClient.invalidateQueries({ queryKey: ['me'] });
         updateUser(user);
+
+        // If we're in a popup/tab opened by window.open (e.g. Google Drive linking during onboarding),
+        // close this window — the opener's polling will detect closure and refresh the user.
+        if (window.opener && !window.opener.closed) {
+          window.close();
+          return;
+        }
+
         if (user.isDemo || user.isSeedUser) {
           posthog.opt_out_capturing();
         } else {

@@ -107,23 +107,15 @@ const ALL_SECTIONS = [
   },
 ];
 
-// Section IDs in the order they should appear for each goal.
-// All 10 sections appear for every goal — only the order changes.
-const SECTION_ORDER_BY_GOAL = {
-  study_smarter:    ['notes', 'flashcards', 'tasks', 'calendar', 'applications', 'resumes', 'messages', 'friends', 'activity', 'profile'],
-  track_job_search: ['applications', 'resumes', 'tasks', 'notes', 'flashcards', 'calendar', 'messages', 'friends', 'activity', 'profile'],
-  manage_coursework:['tasks', 'calendar', 'notes', 'flashcards', 'applications', 'resumes', 'messages', 'friends', 'activity', 'profile'],
-  collaborate:      ['messages', 'friends', 'activity', 'notes', 'flashcards', 'tasks', 'calendar', 'applications', 'resumes', 'profile'],
-  not_sure:         ['notes', 'flashcards', 'tasks', 'calendar', 'applications', 'resumes', 'messages', 'friends', 'activity', 'profile'],
-};
+// Fixed navbar order — same for every goal so the tour mirrors the sidebar.
+const NAVBAR_ORDER = ['notes', 'flashcards', 'tasks', 'calendar', 'applications', 'resumes', 'messages', 'friends', 'activity', 'profile'];
 
 const sectionMap = Object.fromEntries(ALL_SECTIONS.map(s => [s.id, s]));
 
-// Returns the full ordered list of 11 tour steps for the given goal.
-// Dashboard is always first; the remaining 10 sections are goal-ordered.
-export function getOrderedTourSteps(goal) {
-  const order = SECTION_ORDER_BY_GOAL[goal] ?? SECTION_ORDER_BY_GOAL.not_sure;
-  return [DASHBOARD_STEP, ...order.map(id => sectionMap[id])];
+// Returns the full ordered list of 11 tour steps (dashboard first, then navbar order).
+// The goal parameter is kept for API compatibility but no longer affects ordering.
+export function getOrderedTourSteps(_goal) {
+  return [DASHBOARD_STEP, ...NAVBAR_ORDER.map(id => sectionMap[id])];
 }
 
 // Returns the tour config for a single section by its id (e.g., 'notes', 'tasks').

@@ -26,7 +26,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | Frontend screens (Android) | 30+ |
 | Web UI components | 26 |
 | Android composables | 40+ (reusable + screen-level) |
-| Backend tests | 250 Jest + Supertest across 16 suites |
+| Backend tests | 272 Jest + Supertest across 18 suites |
 | Web E2E tests | Playwright — auth, notes, flashcards, tasks, career |
 | Android unit tests | MockK ViewModel tests — auth, notes, tasks, flashcards, career |
 | Backend controllers | 15 |
@@ -64,6 +64,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 - **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section), contacts and reminders per application, inline PDF resume viewer (iframe modal matching Android's in-app viewer)
 - **Auth** — email/password and Google OAuth (`drive.file` scope — non-sensitive, no CASA assessment required) with JWT + httpOnly refresh cookie rotation
 - **Dashboard** — accurate total counts pulled from paginated response metadata (not capped list lengths)
+- **Onboarding** — goal-personalized multi-step profile setup (web full-page, Android full-screen) → activation step with coach mark on the goal-relevant CTA; "Show me everything" goal opens the full 11-step feature tour instead. Replay tour available from Profile on both platforms. Web tour uses a React portal-rendered backdrop (bypasses CSS stacking context from `animation-fill-mode: both`) + pulsing purple ring via `getBoundingClientRect` screen coords. Android replay tour uses a `TourOverlay` composable (full-width bottom card, dimmed backdrop, back/next/skip) that navigates through each section in sidebar order while showing the real app UI behind it. Demo and seed accounts bypass all onboarding flows.
 
 ---
 
@@ -1580,4 +1581,4 @@ Each PR includes:
 
 This creates a paper trail. Six months from now, you can read a PR and understand exactly what problem it solved, what it changed, and how to verify it worked.
 
-*Last updated: April 24, 2026 (evening)*
+*Last updated: May 10, 2026*

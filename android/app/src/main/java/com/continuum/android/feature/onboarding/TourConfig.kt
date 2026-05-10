@@ -27,19 +27,14 @@ private val ALL_SECTIONS = listOf(
     TourStepConfig("profile",      "Profile",      "Your public page and settings",         "Your public page, account settings, and social links."),
 )
 
-private val SECTION_ORDER_BY_GOAL = mapOf(
-    "study_smarter"    to listOf("notes","flashcards","tasks","calendar","applications","resumes","messages","friends","activity","profile"),
-    "track_job_search" to listOf("applications","resumes","tasks","notes","flashcards","calendar","messages","friends","activity","profile"),
-    "manage_coursework" to listOf("tasks","calendar","notes","flashcards","applications","resumes","messages","friends","activity","profile"),
-    "collaborate"      to listOf("messages","friends","activity","notes","flashcards","tasks","calendar","applications","resumes","profile"),
-    "not_sure"         to listOf("notes","flashcards","tasks","calendar","applications","resumes","messages","friends","activity","profile"),
-)
+// Fixed navbar order — same for every goal so the tour mirrors the bottom nav.
+private val NAVBAR_ORDER = listOf("notes","flashcards","tasks","calendar","applications","resumes","messages","friends","activity","profile")
 
 private val sectionMap = ALL_SECTIONS.associateBy { it.id }
 
+// The goal parameter is kept for API compatibility but no longer affects ordering.
 fun getOrderedTourSteps(goal: String?): List<TourStepConfig> {
-    val order = SECTION_ORDER_BY_GOAL[goal] ?: SECTION_ORDER_BY_GOAL["not_sure"]!!
-    return listOf(DASHBOARD_STEP) + order.mapNotNull { sectionMap[it] }
+    return listOf(DASHBOARD_STEP) + NAVBAR_ORDER.mapNotNull { sectionMap[it] }
 }
 
 fun getSectionConfig(id: String): TourStepConfig? = sectionMap[id]

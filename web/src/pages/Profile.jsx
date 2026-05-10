@@ -706,7 +706,8 @@ export default function Profile() {
       {/* ─── PROFILE TAB ─── */}
       {activeTab === 'profile' && (
         <div>
-          {/* Feature tour */}
+          {/* Feature tour — hidden for demo and seed accounts */}
+          {!user?.isDemo && !user?.isSeedUser && (
           <div style={{ ...card, marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <div>
               <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Feature tour</p>
@@ -730,6 +731,7 @@ export default function Profile() {
               Replay tour
             </Button>
           </div>
+          )}
 
           {/* Avatar */}
           <div style={card}>
