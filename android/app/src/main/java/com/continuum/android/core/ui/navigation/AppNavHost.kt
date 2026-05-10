@@ -1,9 +1,11 @@
 package com.continuum.android.core.ui.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import com.continuum.android.feature.onboarding.presentation.FirstRunCoachMark
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -256,6 +258,7 @@ fun AppNavHost(
         LocalIsDemo provides navProfile.isDemo,
         LocalScrollToTopNotifier provides scrollToTopNotifier
     ) {
+        Box(modifier = Modifier.fillMaxSize()) {
         if (isExpandedScreen && showMainNav) {
             Row(modifier = Modifier.fillMaxSize()) {
                 ContinuumNavigationRail(
@@ -308,6 +311,11 @@ fun AppNavHost(
                 }
             }
         }
+        // First-run section feature card — shown after activation CTA navigation
+        if (isMainScreen) {
+            FirstRunCoachMark(navController = navController)
+        }
+        } // end Box
     }
 }
 

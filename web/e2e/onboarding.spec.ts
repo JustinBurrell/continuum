@@ -111,12 +111,13 @@ test.describe('Fresh onboarding flow', () => {
     await expect(page.locator('button:has-text("← Back")')).not.toBeVisible();
   });
 
-  test('back button is shown on the activation step', async ({ page }) => {
+  test('back button is NOT shown on the activation step', async ({ page }) => {
     await registerAndStartOnboarding(page);
     await page.click('button:has-text("Let\'s go")');
     await page.click('button:has-text("Continue")');
     await skipUntilVisible(page, 'Almost done', 8);
-    await expect(page.locator('button:has-text("← Back")')).toBeVisible({ timeout: 3_000 });
+    await expect(page.locator('text=Almost done')).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('button:has-text("← Back")')).not.toBeVisible();
   });
 
   test('goal selection is saved to the API', async ({ page, request }) => {

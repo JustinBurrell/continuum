@@ -41,3 +41,5 @@ fun getOrderedTourSteps(goal: String?): List<TourStepConfig> {
     val order = SECTION_ORDER_BY_GOAL[goal] ?: SECTION_ORDER_BY_GOAL["not_sure"]!!
     return listOf(DASHBOARD_STEP) + order.mapNotNull { sectionMap[it] }
 }
+
+fun getSectionConfig(id: String): TourStepConfig? = sectionMap[id]

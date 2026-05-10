@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.continuum.android.core.ui.components.ContinuumButton
 import com.continuum.android.core.ui.theme.*
+import com.continuum.android.feature.onboarding.presentation.signalFirstRun
 
 private data class ActivationConfig(
     val headline: String,
@@ -55,6 +57,7 @@ fun ActivationStep(
     onSkip: () -> Unit,
 ) {
     val config = GOAL_ACTIVATION[goal] ?: GOAL_ACTIVATION["not_sure"]!!
+    val context = LocalContext.current
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -72,7 +75,10 @@ fun ActivationStep(
         Spacer(Modifier.height(32.dp))
         ContinuumButton(
             text = config.cta,
-            onClick = { onGo(config.sectionKey) },
+            onClick = {
+                if (config.sectionKey != "dashboard") signalFirstRun(context, config.sectionKey)
+                onGo(config.sectionKey)
+            },
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(8.dp))
