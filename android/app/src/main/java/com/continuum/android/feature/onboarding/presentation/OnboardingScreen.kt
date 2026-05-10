@@ -1,9 +1,6 @@
 package com.continuum.android.feature.onboarding.presentation
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -190,14 +187,10 @@ fun OnboardingScreen(
         }
 
         // Scroll hint — fade + chevron when more content is below
-        AnimatedVisibility(
-            visible = showScrollHint,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter),
-        ) {
+        if (showScrollHint) {
             Box(
                 modifier = Modifier
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .height(56.dp)
                     .background(
