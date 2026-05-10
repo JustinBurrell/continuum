@@ -43,10 +43,10 @@ private val GOAL_ACTIVATION = mapOf(
         sectionKey = "friends",
     ),
     "not_sure" to ActivationConfig(
-        headline = "Explore Continuum",
-        body = "Your dashboard is the bird's-eye view of everything — notes, tasks, flashcards, and more.",
-        cta = "Go to Dashboard",
-        sectionKey = "dashboard",
+        headline = "See everything Continuum offers",
+        body = "Take a guided tour of every feature — notes, tasks, flashcards, career tools, social, and more.",
+        cta = "Start Feature Tour",
+        sectionKey = "feature_tour",
     ),
 )
 
@@ -76,7 +76,8 @@ fun ActivationStep(
         ContinuumButton(
             text = config.cta,
             onClick = {
-                if (config.sectionKey != "dashboard") signalFirstRun(context, config.sectionKey)
+                val isSection = config.sectionKey != "dashboard" && config.sectionKey != "feature_tour"
+                if (isSection) signalFirstRun(context, config.sectionKey)
                 onGo(config.sectionKey)
             },
             modifier = Modifier.fillMaxWidth(),

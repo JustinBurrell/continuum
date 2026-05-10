@@ -15,7 +15,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
@@ -193,6 +195,8 @@ fun AppNavHost(
     onSensitiveScreenExited: () -> Unit = {}
 ) {
     val tokenManager = LocalTokenManager.current
+    val profileRepository = LocalProfileRepository.current
+    val coroutineScope = rememberCoroutineScope()
     val navProfileViewModel: NavProfileViewModel = hiltViewModel()
     val navProfile by navProfileViewModel.state.collectAsStateWithLifecycle()
 
@@ -208,6 +212,13 @@ fun AppNavHost(
             }
             tourActive = true
         }
+    }
+
+    val onStartFeatureTour: () -> Unit = {
+        navController.navigate(NavRoutes.Dashboard.ROOT) {
+            popUpTo(NavRoutes.Onboarding.ROOT) { inclusive = true }
+        }
+        tourActive = true
     }
 
     LaunchedEffect(Unit) {
@@ -291,6 +302,7 @@ fun AppNavHost(
                         startDestination = startDestination,
                         onLogoClick = onLogoClick,
                         onReplayTour = onReplayTour,
+                        onStartFeatureTour = onStartFeatureTour,
                         remoteLogoutMessage = remoteLogoutMessage,
                         onRemoteLogoutShown = { remoteLogoutMessage = null },
                         modifier = Modifier.weight(1f)
@@ -320,6 +332,7 @@ fun AppNavHost(
                         startDestination = startDestination,
                         onLogoClick = onLogoClick,
                         onReplayTour = onReplayTour,
+                        onStartFeatureTour = onStartFeatureTour,
                         remoteLogoutMessage = remoteLogoutMessage,
                         onRemoteLogoutShown = { remoteLogoutMessage = null },
                         modifier = Modifier.weight(1f)
@@ -349,7 +362,10 @@ fun AppNavHost(
                     activity     = NavRoutes.Social.ACTIVITY_FEED,
                     profile      = NavRoutes.Profile.ROOT,
                 ),
-                onComplete = { tourActive = false },
+                onComplete = {
+                    tourActive = false
+                    coroutineScope.launch { runCatching { profileRepository.completeTour() } }
+                },
             )
         }
         } // end Box
@@ -366,6 +382,7 @@ private fun NavGraph(
     startDestination: String,
     onLogoClick: () -> Unit,
     onReplayTour: () -> Unit = {},
+    onStartFeatureTour: () -> Unit = {},
     remoteLogoutMessage: String? = null,
     onRemoteLogoutShown: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -493,15 +510,19 @@ private fun NavGraph(
                         }
                     },
                     onNavigateToSection = { sectionKey ->
-                        val route = when (sectionKey) {
-                            "notes"        -> NavRoutes.Notes.ROOT
-                            "tasks"        -> NavRoutes.Tasks.ROOT
-                            "applications" -> NavRoutes.Career.ROOT
-                            "friends"      -> NavRoutes.Social.FRIENDS_LIST
-                            else           -> NavRoutes.Dashboard.ROOT
-                        }
-                        navController.navigate(route) {
-                            popUpTo(NavRoutes.Onboarding.ROOT) { inclusive = true }
+                        if (sectionKey == "feature_tour") {
+                            onStartFeatureTour()
+                        } else {
+                            val route = when (sectionKey) {
+                                "notes"        -> NavRoutes.Notes.ROOT
+                                "tasks"        -> NavRoutes.Tasks.ROOT
+                                "applications" -> NavRoutes.Career.ROOT
+                                "friends"      -> NavRoutes.Social.FRIENDS_LIST
+                                else           -> NavRoutes.Dashboard.ROOT
+                            }
+                            navController.navigate(route) {
+                                popUpTo(NavRoutes.Onboarding.ROOT) { inclusive = true }
+                            }
                         }
                     },
                     profileRepository = profileRepository,

@@ -166,7 +166,13 @@ fun OnboardingScreen(
                             is OnboardingStep.TourStep -> ActivationStep(
                                 goal = currentGoal,
                                 onGo = { sectionKey ->
-                                    viewModel.completeTour { onNavigateToSection(sectionKey) }
+                                    if (sectionKey == "feature_tour") {
+                                        // not_sure goal: start the full TourOverlay — it completes
+                                        // the tour itself when the user finishes or skips.
+                                        onNavigateToSection(sectionKey)
+                                    } else {
+                                        viewModel.completeTour { onNavigateToSection(sectionKey) }
+                                    }
                                 },
                                 onSkip = { viewModel.completeTour { onFinished() } },
                             )
