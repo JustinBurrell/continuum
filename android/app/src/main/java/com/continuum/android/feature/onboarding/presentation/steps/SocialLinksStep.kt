@@ -39,7 +39,7 @@ fun SocialLinksStep(
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            "Both are optional — add them later from your Profile page any time.",
+            "Both are optional. Add them later from your Profile page any time.",
             style = MaterialTheme.typography.bodySmall,
             color = TextSecondary,
         )
@@ -71,7 +71,7 @@ fun SocialLinksStep(
             isError = instagramError != null,
             supportingText = {
                 Text(
-                    instagramError ?: "Letters, numbers, periods, underscores — no @",
+                    instagramError ?: "Letters, numbers, periods, underscores (no @)",
                     color = if (instagramError != null) ErrorRed else TextMuted,
                 )
             },

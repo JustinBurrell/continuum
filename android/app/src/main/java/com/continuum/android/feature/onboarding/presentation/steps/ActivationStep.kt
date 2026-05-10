@@ -20,7 +20,7 @@ private data class ActivationConfig(
 private val GOAL_ACTIVATION = mapOf(
     "study_smarter" to ActivationConfig(
         headline = "Create your first note",
-        body = "Rich-text notes with AI summaries — the fastest way to start studying smarter.",
+        body = "Rich-text notes with AI summaries, the fastest way to start studying smarter.",
         cta = "Open Notes",
         sectionKey = "notes",
     ),
@@ -44,7 +44,7 @@ private val GOAL_ACTIVATION = mapOf(
     ),
     "not_sure" to ActivationConfig(
         headline = "See everything Continuum offers",
-        body = "Take a guided tour of every feature — notes, tasks, flashcards, career tools, social, and more.",
+        body = "Take a guided tour of every feature: notes, tasks, flashcards, career tools, social, and more.",
         cta = "Start Feature Tour",
         sectionKey = "feature_tour",
     ),

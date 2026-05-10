@@ -105,7 +105,7 @@ fun PhotoBioStep(
                     Text(if (selectedUri != null) "Change photo" else "Upload photo", color = BrandPurple)
                 }
                 Text(
-                    fileError ?: "JPG, PNG, WebP — max 5 MB",
+                    fileError ?: "JPG, PNG, WebP (max 5 MB)",
                     style = MaterialTheme.typography.bodySmall,
                     color = if (fileError != null) ErrorRed else TextMuted,
                 )

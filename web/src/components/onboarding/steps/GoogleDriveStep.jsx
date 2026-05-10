@@ -40,7 +40,7 @@ export default function GoogleDriveStep({ onContinue, onSkip }) {
         Connect your Google account
       </h2>
       <p style={{ color: '#6B7280', fontSize: '0.875rem', margin: '0 0 16px', lineHeight: 1.5 }}>
-        Linking Google lets you sign in without a password and unlocks Google Drive — so you can import your Google Docs directly into Continuum as notes.
+        Linking Google lets you sign in without a password and import your Google Docs directly as notes.
       </p>
       <p style={{ color: '#9CA3AF', fontSize: '0.8125rem', margin: '0 0 24px', lineHeight: 1.5 }}>
         You can also do this later from your Profile → Integrations.

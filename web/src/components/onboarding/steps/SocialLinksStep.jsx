@@ -51,7 +51,7 @@ export default function SocialLinksStep({ onContinue, onSkip }) {
         Add your social links
       </h2>
       <p style={{ color: '#6B7280', fontSize: '0.875rem', margin: '0 0 20px' }}>
-        Both are optional — add them later from your Profile page any time.
+        Both are optional. Add them later from your Profile page any time.
       </p>
 
       <div style={{ marginBottom: 14 }}>
@@ -83,7 +83,7 @@ export default function SocialLinksStep({ onContinue, onSkip }) {
           onBlur={e => { if (!errors.instagram) e.target.style.borderColor = '#e5d3f0'; }}
         />
         {errors.instagram && <p style={{ color: '#dc2626', fontSize: '0.75rem', margin: '4px 0 0' }}>{errors.instagram}</p>}
-        {!errors.instagram && <p style={{ color: '#9CA3AF', fontSize: '0.75rem', margin: '4px 0 0' }}>Letters, numbers, periods, underscores — no @</p>}
+        {!errors.instagram && <p style={{ color: '#9CA3AF', fontSize: '0.75rem', margin: '4px 0 0' }}>Letters, numbers, periods, underscores (no @)</p>}
       </div>
 
       {errors.general && <p style={{ color: '#dc2626', fontSize: '0.8125rem', marginBottom: 12 }}>{errors.general}</p>}
