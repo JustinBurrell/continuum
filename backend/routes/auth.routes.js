@@ -243,7 +243,7 @@ router.get('/me', authMiddleware, authController.me);
  *         $ref: '#/components/responses/Unauthorized'
  */
 router.patch('/me/profile', authMiddleware, (req, res, next) => {
-    uploadImage.single('avatar')(req, res, (err) => {
+    uploadImage.fields([{ name: 'avatar', maxCount: 1 }, { name: 'avatarOriginal', maxCount: 1 }])(req, res, (err) => {
         if (err) return res.status(400).json({ success: false, error: err.message });
         next();
     });

@@ -238,6 +238,7 @@ export default function Profile() {
   const [cropSrc, setCropSrc] = useState(null);                  // URL for editing existing uploaded avatar
   const [originalFile, setOriginalFile] = useState(null);       // raw pick — kept for re-crop
   const [pendingCroppedFile, setPendingCroppedFile] = useState(null); // cropped, not yet uploaded
+  const [pendingOriginalFile, setPendingOriginalFile] = useState(null); // original (full res) — uploaded alongside crop
   const [localPreview, setLocalPreview] = useState(null);       // blob URL for preview before upload
   const navigate = useNavigate();
 
@@ -391,11 +392,12 @@ export default function Profile() {
     },
   });
 
-  // Avatar mutation
+  // Avatar mutation — sends the cropped display file and optionally the full-res original
   const avatarMutation = useMutation({
-    mutationFn: (file) => {
+    mutationFn: ({ cropped, original }) => {
       const fd = new FormData();
-      fd.append('avatar', file);
+      fd.append('avatar', cropped);
+      if (original) fd.append('avatarOriginal', original);
       return api.patch('/auth/me/profile', fd);
     },
     onSuccess: (res) => {
@@ -762,7 +764,7 @@ export default function Profile() {
                     {/* Edit crop on existing avatar — shown when no new file is pending */}
                     {!originalFile && (me?.avatarUrl || localPreview) && (
                       <button
-                        onClick={() => setCropSrc(localPreview ?? me.avatarUrl)}
+                        onClick={() => setCropSrc(me?.avatarOriginalUrl ?? me?.avatarUrl)}
                         style={{ fontSize: 12, color: '#6b21a8', background: 'none', border: '1px solid #e5d3f0', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
                       >
                         Edit crop
@@ -781,9 +783,10 @@ export default function Profile() {
                     {pendingCroppedFile && (
                       <button
                         onClick={() => {
-                          avatarMutation.mutate(pendingCroppedFile);
+                          avatarMutation.mutate({ cropped: pendingCroppedFile, original: pendingOriginalFile });
                           setLocalPreview(null);
                           setPendingCroppedFile(null);
+                          setPendingOriginalFile(null);
                           setOriginalFile(null);
                         }}
                         disabled={avatarMutation.isPending}
@@ -1201,11 +1204,13 @@ export default function Profile() {
         <AvatarCropModal
           file={cropFile ?? undefined}
           src={cropSrc ?? undefined}
-          onSave={(croppedFile) => {
+          onSave={({ cropped, original }) => {
             setCropFile(null);
             setCropSrc(null);
-            setPendingCroppedFile(croppedFile);
-            setLocalPreview(URL.createObjectURL(croppedFile));
+            setPendingCroppedFile(cropped);
+            setPendingOriginalFile(original ?? null);
+            setLocalPreview(URL.createObjectURL(cropped));
+            if (original) setOriginalFile(original); // keep for in-session re-crop
           }}
           onClose={() => { setCropFile(null); setCropSrc(null); }}
         />

@@ -67,6 +67,9 @@ const userSchema = new mongoose.Schema({
     avatarUrl: {
         type: String,
     },
+    avatarOriginalUrl: {
+        type: String,
+    },
     bio: {
         type: String,
     },

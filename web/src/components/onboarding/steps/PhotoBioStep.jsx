@@ -11,8 +11,8 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
   const { user, updateUser } = useAuth();
   const [bio, setBio] = useState(user?.bio ?? '');
   const [preview, setPreview] = useState(user?.avatarUrl ?? null);
-  const [file, setFile] = useState(null);
-  const [originalFile, setOriginalFile] = useState(null); // raw picked file — kept for re-crop
+  const [file, setFile] = useState(null);           // cropped display file
+  const [originalFile, setOriginalFile] = useState(null); // full-res original — kept for re-crop + upload
   const [cropFile, setCropFile] = useState(null);
   const [fileError, setFileError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -43,14 +43,17 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
     setLoading(true);
     try {
       const form = new FormData();
-      if (file) form.append('avatar', file);
+      if (file) {
+        form.append('avatar', file);
+        if (originalFile) form.append('avatarOriginal', originalFile);
+      }
       if (bio !== (user?.bio ?? '')) form.append('bio', bio);
 
       if (form.has('avatar') || form.has('bio')) {
         const res = await api.patch('/auth/me/profile', form, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        updateUser({ bio: res.data.user.bio, avatarUrl: res.data.user.avatarUrl });
+        updateUser({ bio: res.data.user.bio, avatarUrl: res.data.user.avatarUrl, avatarOriginalUrl: res.data.user.avatarOriginalUrl });
       }
       onContinue();
     } catch (_) {
@@ -168,11 +171,11 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
       {cropFile && (
         <AvatarCropModal
           file={cropFile}
-          onSave={(croppedFile) => {
+          onSave={({ cropped, original }) => {
             setCropFile(null);
-            setFile(croppedFile);
-            setPreview(URL.createObjectURL(croppedFile));
-            // originalFile is kept so the user can re-crop any time
+            setFile(cropped);
+            setPreview(URL.createObjectURL(cropped));
+            if (original) setOriginalFile(original); // preserve original for re-crop and upload
           }}
           onClose={() => setCropFile(null)}
         />

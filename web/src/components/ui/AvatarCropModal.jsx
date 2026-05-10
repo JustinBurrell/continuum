@@ -2,9 +2,12 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Button from './Button';
 
-// Accepts either `file` (File object) or `src` (URL string).
+const CROP_SIZE = 280;
+
+// Accepts either `file` (File object) or `src` (URL string — for editing an existing avatar).
+// onSave receives { cropped: File, original: File | null }
+//   - `original` is non-null only when a new `file` was picked (not when editing from a URL).
 export default function AvatarCropModal({ file, src, onSave, onClose }) {
-  const CROP_SIZE = 280;
   const [imgSrc, setImgSrc] = useState(null);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -12,44 +15,47 @@ export default function AvatarCropModal({ file, src, onSave, onClose }) {
   const [cropError, setCropError] = useState(false);
   const dragStart = useRef(null);
   const imgEl = useRef(null);
+  const originalFileRef = useRef(null); // the raw picked File — preserved for re-crop
   const containerRef = useRef(null);
   const minScale = useRef(1);
 
-  const initImage = (loadedSrc, img) => {
+  const initFromImage = (img, displaySrc) => {
     const cover = Math.max(CROP_SIZE / img.naturalWidth, CROP_SIZE / img.naturalHeight);
     minScale.current = cover;
     setScale(cover);
     setOffset({ x: 0, y: 0 });
-    setImgSrc(loadedSrc);
+    setImgSrc(displaySrc);
+    setCropError(false);
   };
 
   useEffect(() => {
     setCropError(false);
     if (file) {
+      originalFileRef.current = file;
       const reader = new FileReader();
       reader.onload = e => {
         const dataSrc = e.target.result;
         const img = new Image();
-        img.onload = () => { imgEl.current = img; initImage(dataSrc, img); };
+        img.onload = () => { imgEl.current = img; initFromImage(img, dataSrc); };
         img.src = dataSrc;
       };
       reader.readAsDataURL(file);
     } else if (src) {
+      originalFileRef.current = null;
       const img = new Image();
       img.crossOrigin = 'anonymous';
-      img.onload = () => { imgEl.current = img; initImage(src, img); };
+      img.onload = () => { imgEl.current = img; initFromImage(img, src); };
       img.onerror = () => {
-        // Retry without crossOrigin — image will be tainted but at least previews correctly.
-        // toBlob will surface the error at crop time.
+        // Retry without crossOrigin — preview will work but toBlob may throw.
         const fallback = new Image();
-        fallback.onload = () => { imgEl.current = fallback; initImage(src, fallback); };
+        fallback.onload = () => { imgEl.current = fallback; initFromImage(fallback, src); };
         fallback.src = src;
       };
       img.src = src;
     }
   }, [file, src]);
 
-  // Non-passive wheel listener to allow preventDefault
+  // Non-passive wheel listener so we can preventDefault
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -84,7 +90,10 @@ export default function AvatarCropModal({ file, src, onSave, onClose }) {
     try {
       ctx.drawImage(img, drawX, drawY, imgW, imgH);
       canvas.toBlob(blob => {
-        if (blob) onSave(new File([blob], 'avatar.png', { type: 'image/png' }));
+        if (blob) {
+          const cropped = new File([blob], 'avatar.png', { type: 'image/png' });
+          onSave({ cropped, original: originalFileRef.current });
+        }
       }, 'image/png');
     } catch {
       setCropError(true);
@@ -135,7 +144,7 @@ export default function AvatarCropModal({ file, src, onSave, onClose }) {
         </div>
         {cropError && (
           <p style={{ fontSize: 12, color: '#dc2626', textAlign: 'center', margin: '-8px 0 12px' }}>
-            Unable to crop this image. Upload a new photo to adjust.
+            Unable to save this crop. Try uploading a new photo instead.
           </p>
         )}
         <div style={{ display: 'flex', gap: 8 }}>

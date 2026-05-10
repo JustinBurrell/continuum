@@ -607,29 +607,44 @@ exports.updateProfile = async (req, res) => {
         updates.onboardingGoal = req.body.onboardingGoal;
     }
 
-    // Avatar upload — if a file was attached, upload to Cloudinary and set avatarUrl
-    if (req.file) {
+    // Avatar upload — upload cropped display version and optionally the full-res original
+    const avatarFile = req.files?.avatar?.[0];
+    const avatarOriginalFile = req.files?.avatarOriginal?.[0];
+    if (avatarFile) {
         const userId = req.user._id.toString();
 
-        const uploadResult = await new Promise((resolve, reject) => {
+        const uploadCropped = new Promise((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream(
                 {
                     folder: `continuum/profiles/${userId}`,
                     public_id: 'avatar',
                     resource_type: 'image',
                     overwrite: true,
-                    // transformation: resize to 400x400 square, auto quality
                     transformation: [{ width: 400, height: 400, crop: 'fill', quality: 'auto' }],
                 },
-                (error, result) => {
-                    if (error) return reject(error);
-                    resolve(result);
-                }
+                (error, result) => { if (error) return reject(error); resolve(result); }
             );
-            stream.end(req.file.buffer);
+            stream.end(avatarFile.buffer);
         });
 
-        updates.avatarUrl = uploadResult.secure_url;
+        const uploadOriginal = avatarOriginalFile
+            ? new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: `continuum/profiles/${userId}`,
+                        public_id: 'avatar_original',
+                        resource_type: 'image',
+                        overwrite: true,
+                    },
+                    (error, result) => { if (error) return reject(error); resolve(result); }
+                );
+                stream.end(avatarOriginalFile.buffer);
+            })
+            : Promise.resolve(null);
+
+        const [croppedResult, originalResult] = await Promise.all([uploadCropped, uploadOriginal]);
+        updates.avatarUrl = croppedResult.secure_url;
+        if (originalResult) updates.avatarOriginalUrl = originalResult.secure_url;
     }
 
     if (Object.keys(updates).length === 0) {
