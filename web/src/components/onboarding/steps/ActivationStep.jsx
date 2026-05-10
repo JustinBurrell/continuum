@@ -1,6 +1,8 @@
+import { signalFirstRun } from '@/components/onboarding/FirstRunCoachMark';
+
 // Replaces the 11-step feature tour for fresh onboarding.
 // Shows one goal-personalized "first action" CTA that sends the user
-// directly to the relevant section instead of walking through every feature.
+// directly to the relevant section with a coach mark on the primary action.
 export default function ActivationStep({ headline, body, cta, route, onGo, onSkip }) {
   return (
     <div>
@@ -21,7 +23,7 @@ export default function ActivationStep({ headline, body, cta, route, onGo, onSki
       </p>
 
       <button
-        onClick={() => onGo(route)}
+        onClick={() => { signalFirstRun(route.replace('/', '')); onGo(route); }}
         style={{
           display: 'block',
           width: '100%',

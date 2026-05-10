@@ -6,6 +6,7 @@ import { useToast } from '@/components/ui/Toast';
 import Sidebar from './Sidebar';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import OnboardingModal from '@/components/onboarding/OnboardingModal';
+import FirstRunCoachMark from '@/components/onboarding/FirstRunCoachMark';
 
 export default function AppLayout() {
   const { user, isLoading, logout, forceOnboardingOpen, setForceOnboardingOpen } = useAuth();
@@ -154,6 +155,8 @@ export default function AppLayout() {
           onClose={() => setForceOnboardingOpen(false)}
         />
       )}
+
+      <FirstRunCoachMark />
     </div>
   );
 }
