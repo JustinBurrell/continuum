@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -178,7 +175,7 @@ private fun HeroContent(state: OnboardingUiState, showActivation: Boolean) {
     ) {
         when {
             showActivation || state.isDone -> {
-                HeroIconCircle(Icons.Default.Star)
+                HeroEmojiCircle("🚀")
                 Spacer(Modifier.height(16.dp))
                 Text("One last thing.", fontFamily = FrauncesFamily, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Color.White)
             }
@@ -193,18 +190,17 @@ private fun HeroContent(state: OnboardingUiState, showActivation: Boolean) {
                 )
             }
             currentStep is OnboardingStep.ProfileStep -> {
-                val icon = profileStepIcon(currentStep.key)
-                HeroIconCircle(icon)
+                HeroEmojiCircle(profileStepEmoji(currentStep.key))
                 Spacer(Modifier.height(16.dp))
                 Text(profileStepHeadline(currentStep.key), fontFamily = FrauncesFamily, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Color.White)
             }
-            else -> HeroIconCircle(Icons.Default.AccountCircle)
+            else -> HeroEmojiCircle("✨")
         }
     }
 }
 
 @Composable
-private fun HeroIconCircle(icon: ImageVector) {
+private fun HeroEmojiCircle(emoji: String) {
     Box(
         modifier = Modifier
             .size(80.dp)
@@ -212,18 +208,18 @@ private fun HeroIconCircle(icon: ImageVector) {
             .background(Color.White.copy(alpha = 0.15f)),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(40.dp))
+        Text(emoji, fontSize = 36.sp)
     }
 }
 
-private fun profileStepIcon(key: String): ImageVector = when (key) {
-    "welcome"      -> Icons.Default.Person
-    "goal"         -> Icons.Default.CheckCircle
-    "name"         -> Icons.Default.Edit
-    "photo-bio"    -> Icons.Default.AddAPhoto
-    "social-links" -> Icons.Default.Share
-    "google-drive" -> Icons.Default.Cloud
-    else           -> Icons.Default.AccountCircle
+private fun profileStepEmoji(key: String): String = when (key) {
+    "welcome"      -> "👋"
+    "goal"         -> "🎯"
+    "name"         -> "✏️"
+    "photo-bio"    -> "📷"
+    "social-links" -> "🔗"
+    "google-drive" -> "📁"
+    else           -> "✨"
 }
 
 private fun profileStepHeadline(key: String): String = when (key) {
