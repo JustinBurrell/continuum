@@ -42,7 +42,7 @@ fun GoogleDriveStep(
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Linking Google lets you sign in without a password and unlocks Google Drive — so you can import your Google Docs directly into Continuum as notes.",
+            "Linking Google lets you sign in without a password and import your Google Docs directly as notes.",
             style = MaterialTheme.typography.bodyMedium,
             color = TextSecondary,
         )

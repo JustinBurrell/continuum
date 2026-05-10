@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { UserPlus, Search, Users, Check, X, UserMinus, MessageCircle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -17,6 +17,13 @@ import { useToast } from '@/components/ui/Toast';
 export default function Friends() {
   const [tab, setTab] = useState('friends');
   const [searchQ, setSearchQ] = useState('');
+
+  // If the coach mark is signalling 'friends', switch to the find tab so the
+  // search input (data-tour-highlight="friends-search") is in the DOM.
+  useEffect(() => {
+    const key = sessionStorage.getItem('continuum_first_run_section');
+    if (key === 'friends') setTab('find');
+  }, []);
   const [friendsSearch, setFriendsSearch] = useState('');
   const [removeConfirm, setRemoveConfirm] = useState(null); // { id, name }
   const navigate = useNavigate();

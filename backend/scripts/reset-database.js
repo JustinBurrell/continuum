@@ -36,7 +36,7 @@ const COLLECTIONS = [
   'refreshtokens',
   'oauthcodes',
   'syncqueues',
-  'waitlists',
+  // 'waitlists' intentionally excluded — these are kept across resets so users can be notified at launch
 ];
 
 async function confirm(question) {

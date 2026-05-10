@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import { getSectionConfig } from './tourConfig';
 
 const SECTION_MAP = {
@@ -20,6 +21,7 @@ export function signalFirstRun(sectionKey) {
 
 export default function FirstRunCoachMark() {
   const location = useLocation();
+  const { user } = useAuth();
   const [section, setSection] = useState(null);   // { target, cta, config }
   const [rect, setRect] = useState(null);
   const dismissed = useRef(false);
@@ -34,6 +36,7 @@ export default function FirstRunCoachMark() {
 
   useEffect(() => {
     if (dismissed.current) return;
+    if (user?.isDemo || user?.isSeedUser) return;
     const key = sessionStorage.getItem(STORAGE_KEY);
     if (!key) return;
     const map = SECTION_MAP[key];
@@ -43,11 +46,8 @@ export default function FirstRunCoachMark() {
       const el = document.querySelector(`[data-tour-highlight="${map.target}"]`);
       if (!el) return;
       targetElRef.current = el;
-
-      // Elevate target above the backdrop
-      el.style.position = 'relative';
-      el.style.zIndex = '10001';
-
+      // Ring is rendered via position:fixed using getBoundingClientRect coords so no
+      // z-index elevation on the element itself is needed (avoids stacking context issues).
       const r = el.getBoundingClientRect();
       setSection({ ...map, config: getSectionConfig(key) });
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
@@ -69,11 +69,7 @@ export default function FirstRunCoachMark() {
   const dismiss = () => {
     dismissed.current = true;
     sessionStorage.removeItem(STORAGE_KEY);
-    if (targetElRef.current) {
-      targetElRef.current.style.position = '';
-      targetElRef.current.style.zIndex = '';
-      targetElRef.current = null;
-    }
+    targetElRef.current = null;
     setSection(null);
     setRect(null);
   };

@@ -39,6 +39,7 @@ export default function OnboardingModal({ isReplay, onClose }) {
     stepsSkipped,
     advance,
     skip,
+    goBack,
     exitAll,
     completeTour,
     isDone,
@@ -135,6 +136,7 @@ export default function OnboardingModal({ isReplay, onClose }) {
           tourIndex={currentStep.tourIndex}
           isReplay={isReplay}
           onNext={() => handleAdvance('tour_' + currentStep.tourStep.id)}
+          onBack={goBack}
           onSkipTour={handleSkipTour}
         />
       );
@@ -147,7 +149,13 @@ export default function OnboardingModal({ isReplay, onClose }) {
     return null;
   };
 
-  // Floating bottom-right card — page stays fully visible behind it
+  // Tour steps render their own full-screen backdrop + card (see TourStep.jsx).
+  // Profile steps and the done slide use the floating bottom-right card container.
+  if (currentStep?.kind === 'tour') {
+    return <div key={currentIndex} className="onboarding-step-enter">{renderStep()}</div>;
+  }
+
+  // Floating bottom-right card for profile steps and done slide
   return (
     <div
       style={{

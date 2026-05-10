@@ -24,7 +24,7 @@ const LEFT_PANEL = {
   welcome: {
     icon: '👋',
     headline: "You're in.",
-    body: "Let's personalize Continuum for you — this takes less than 2 minutes.",
+    body: "Let's personalize Continuum for you. Less than 2 minutes.",
   },
   goal: {
     icon: '🎯',
@@ -57,7 +57,7 @@ const LEFT_PANEL = {
 const GOAL_ACTIVATION = {
   study_smarter: {
     headline: "Create your first note",
-    body: "Rich-text notes with AI summaries — the fastest way to start studying smarter.",
+    body: "Rich-text notes with AI summaries, the fastest way to start studying smarter.",
     cta: "Open Notes",
     route: '/notes',
   },
@@ -80,9 +80,9 @@ const GOAL_ACTIVATION = {
     route: '/friends',
   },
   not_sure: {
-    headline: "Explore Continuum",
-    body: "Your dashboard is the bird's-eye view of everything — notes, tasks, flashcards, and more.",
-    cta: "Go to Dashboard",
+    headline: "See everything Continuum offers",
+    body: "Take a guided tour of every feature: notes, tasks, flashcards, career tools, social, and more.",
+    cta: "Start Feature Tour",
     route: '/dashboard',
   },
 };
@@ -93,7 +93,7 @@ const GOAL_ACTIVATION = {
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, setForceOnboardingOpen } = useAuth();
 
   // isReplay = true when profile setup is already complete but tour isn't —
   // useOnboarding skips profile steps and goes straight to tour phase.
@@ -177,8 +177,16 @@ export default function OnboardingPage() {
         skipped: false,
       });
     } catch (_) {}
-    completeTour();
-    navigate(route);
+
+    if (goal === 'not_sure') {
+      // "Show me everything" — open the full guided feature tour after completing onboarding.
+      // completeTour() is intentionally NOT called here; the OnboardingModal DoneSlide calls it.
+      setForceOnboardingOpen(true);
+      navigate('/dashboard');
+    } else {
+      completeTour();
+      navigate(route);
+    }
   };
 
   const handleActivationSkip = () => {
@@ -211,6 +219,7 @@ export default function OnboardingPage() {
           route={act.route}
           onGo={handleActivationGo}
           onSkip={handleActivationSkip}
+          signalCoachMark={goal !== 'not_sure'}
         />
       );
     }

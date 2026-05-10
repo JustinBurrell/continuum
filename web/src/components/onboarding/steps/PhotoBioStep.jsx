@@ -109,7 +109,7 @@ export default function PhotoBioStep({ onContinue, onSkip }) {
           )}
           {fileError
             ? <p style={{ color: '#dc2626', fontSize: '0.75rem', margin: '4px 0 0' }}>{fileError}</p>
-            : !originalFile && <p style={{ color: '#9CA3AF', fontSize: '0.75rem', margin: '4px 0 0' }}>JPG, PNG, WebP — max 5 MB</p>
+            : !originalFile && <p style={{ color: '#9CA3AF', fontSize: '0.75rem', margin: '4px 0 0' }}>JPG, PNG, WebP (max 5 MB)</p>
           }
         </div>
         <input

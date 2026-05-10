@@ -161,21 +161,21 @@ fun OnboardingScreen(
                                     currentGoal = goal
                                 },
                             )
-                            is OnboardingStep.TourStep -> if (state.isReplay) {
-                                TourStepContent(
-                                    config = step.config,
-                                    onNext = { viewModel.advance() },
-                                    onSkipTour = { viewModel.completeTour { onFinished() } },
-                                )
-                            } else {
-                                ActivationStep(
-                                    goal = currentGoal,
-                                    onGo = { sectionKey ->
+                            // Replay tours now use TourOverlay in AppNavHost — OnboardingScreen
+                            // is only reached for fresh onboarding, so always show ActivationStep.
+                            is OnboardingStep.TourStep -> ActivationStep(
+                                goal = currentGoal,
+                                onGo = { sectionKey ->
+                                    if (sectionKey == "feature_tour") {
+                                        // not_sure goal: start the full TourOverlay — it completes
+                                        // the tour itself when the user finishes or skips.
+                                        onNavigateToSection(sectionKey)
+                                    } else {
                                         viewModel.completeTour { onNavigateToSection(sectionKey) }
-                                    },
-                                    onSkip = { viewModel.completeTour { onFinished() } },
-                                )
-                            }
+                                    }
+                                },
+                                onSkip = { viewModel.completeTour { onFinished() } },
+                            )
                             is OnboardingStep.Done -> DoneSlide(
                                 isReplay = state.isReplay,
                                 onFinish = { viewModel.completeTour { onFinished() } },
