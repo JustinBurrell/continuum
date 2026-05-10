@@ -280,8 +280,8 @@ export default function OnboardingPage() {
           <div style={{ marginBottom: 28 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {/* Back button — shown on profile steps after the first one */}
-                {currentIndex > 0 && currentStep?.kind === 'profile' && (
+                {/* Back button — shown on any step after the first */}
+                {currentIndex > 0 && (
                   <button
                     onClick={goBack}
                     aria-label="Go back"

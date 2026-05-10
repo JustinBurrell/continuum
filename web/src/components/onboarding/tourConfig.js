@@ -125,3 +125,8 @@ export function getOrderedTourSteps(goal) {
   const order = SECTION_ORDER_BY_GOAL[goal] ?? SECTION_ORDER_BY_GOAL.not_sure;
   return [DASHBOARD_STEP, ...order.map(id => sectionMap[id])];
 }
+
+// Returns the tour config for a single section by its id (e.g., 'notes', 'tasks').
+export function getSectionConfig(id) {
+  return sectionMap[id] ?? null;
+}
