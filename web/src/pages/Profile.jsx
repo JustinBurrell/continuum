@@ -1066,6 +1066,83 @@ export default function Profile() {
               </Button>
             </form>
           </div>}
+
+          {/* Active sessions */}
+          {!user?.isDemo && (
+            <div style={card}>
+              <p style={sectionLabel}>Active sessions</p>
+              {sessionsLoading ? (
+                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>Loading sessions...</p>
+              ) : !sessionsData || sessionsData.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>No active sessions found.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {sessionsData.map((s) => (
+                    <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', background: s.isCurrent ? 'rgba(107,33,168,0.04)' : '#FFFFFF', borderRadius: 8, border: s.isCurrent ? '1px solid rgba(107,33,168,0.12)' : '1px solid transparent' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{s.deviceId || 'Unknown device'}</p>
+                          {s.isCurrent && (
+                            <span style={{ fontSize: 10, fontWeight: 600, color: '#6b21a8', background: '#E5E7EB', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                              This device
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
+                          Signed in {new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {s.lastUsedAt && (
+                            <> &middot; Last active {(() => {
+                              const diff = Date.now() - new Date(s.lastUsedAt).getTime();
+                              const mins = Math.floor(diff / 60000);
+                              if (mins < 1) return 'just now';
+                              if (mins < 60) return `${mins}m ago`;
+                              const hrs = Math.floor(mins / 60);
+                              if (hrs < 24) return `${hrs}h ago`;
+                              return `${Math.floor(hrs / 24)}d ago`;
+                            })()}</>
+                          )}
+                          {s.ipLocation && <> &middot; {s.ipLocation}</>}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => !s.isCurrent && revokeSessionMutation.mutate(s._id)}
+                        disabled={s.isCurrent || revokeSessionMutation.isPending}
+                        title={s.isCurrent ? 'Cannot remove your current session' : 'Revoke session'}
+                        style={{ background: 'none', border: 'none', cursor: s.isCurrent ? 'not-allowed' : 'pointer', color: s.isCurrent ? '#d1d5db' : '#dc2626', padding: 4, display: 'flex', alignItems: 'center', borderRadius: 6, flexShrink: 0 }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Danger zone */}
+          {!user?.isDemo && <div style={{ ...card, borderColor: '#fecaca', background: '#fff' }}>
+            <p style={{ ...sectionLabel, color: '#dc2626' }}>Danger zone</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Sign out of all devices</p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>Revokes all active sessions. You will need to log in again.</p>
+                </div>
+                <Button size="sm" variant="danger" loading={logoutAllLoading} onClick={handleLogoutAll}>
+                  <LogOut size={13} /> Sign out all
+                </Button>
+              </div>
+              <div style={{ borderTop: '1px solid #fecaca', paddingTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#dc2626', margin: 0 }}>Delete account</p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>Permanently deletes your account and all data. This cannot be undone.</p>
+                </div>
+                <Button size="sm" variant="danger" loading={deleteAccountLoading} onClick={handleDeleteAccount}>
+                  Delete account
+                </Button>
+              </div>
+            </div>
+          </div>}
         </div>
       )}
 
@@ -1194,82 +1271,6 @@ export default function Profile() {
             )}
           </div>
 
-          {/* Active sessions */}
-          {!user?.isDemo && (
-            <div style={card}>
-              <p style={sectionLabel}>Active sessions</p>
-              {sessionsLoading ? (
-                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>Loading sessions...</p>
-              ) : !sessionsData || sessionsData.length === 0 ? (
-                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>No active sessions found.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {sessionsData.map((s) => (
-                    <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', background: s.isCurrent ? 'rgba(107,33,168,0.04)' : '#FFFFFF', borderRadius: 8, border: s.isCurrent ? '1px solid rgba(107,33,168,0.12)' : '1px solid transparent' }}>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                          <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{s.deviceId || 'Unknown device'}</p>
-                          {s.isCurrent && (
-                            <span style={{ fontSize: 10, fontWeight: 600, color: '#6b21a8', background: '#E5E7EB', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
-                              This device
-                            </span>
-                          )}
-                        </div>
-                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
-                          Signed in {new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                          {s.lastUsedAt && (
-                            <> &middot; Last active {(() => {
-                              const diff = Date.now() - new Date(s.lastUsedAt).getTime();
-                              const mins = Math.floor(diff / 60000);
-                              if (mins < 1) return 'just now';
-                              if (mins < 60) return `${mins}m ago`;
-                              const hrs = Math.floor(mins / 60);
-                              if (hrs < 24) return `${hrs}h ago`;
-                              return `${Math.floor(hrs / 24)}d ago`;
-                            })()}</>
-                          )}
-                          {s.ipLocation && <> &middot; {s.ipLocation}</>}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => !s.isCurrent && revokeSessionMutation.mutate(s._id)}
-                        disabled={s.isCurrent || revokeSessionMutation.isPending}
-                        title={s.isCurrent ? 'Cannot remove your current session' : 'Revoke session'}
-                        style={{ background: 'none', border: 'none', cursor: s.isCurrent ? 'not-allowed' : 'pointer', color: s.isCurrent ? '#d1d5db' : '#dc2626', padding: 4, display: 'flex', alignItems: 'center', borderRadius: 6, flexShrink: 0 }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Danger zone */}
-          {!user?.isDemo && <div style={{ ...card, borderColor: '#fecaca', background: '#fff' }}>
-            <p style={{ ...sectionLabel, color: '#dc2626' }}>Danger zone</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>Sign out of all devices</p>
-                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>Revokes all active sessions. You will need to log in again.</p>
-                </div>
-                <Button size="sm" variant="danger" loading={logoutAllLoading} onClick={handleLogoutAll}>
-                  <LogOut size={13} /> Sign out all
-                </Button>
-              </div>
-              <div style={{ borderTop: '1px solid #fecaca', paddingTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#dc2626', margin: 0 }}>Delete account</p>
-                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>Permanently deletes your account and all data. This cannot be undone.</p>
-                </div>
-                <Button size="sm" variant="danger" loading={deleteAccountLoading} onClick={handleDeleteAccount}>
-                  Delete account
-                </Button>
-              </div>
-            </div>
-          </div>}
         </div>
       )}
 
