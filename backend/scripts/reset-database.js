@@ -1,9 +1,9 @@
 // =============================================================================
-// reset-prod.js — Drop all user-generated collections for a clean launch
+// reset-database.js — Drop all user-generated collections for a clean launch
 // =============================================================================
 //
 // Usage:
-//   node backend/scripts/reset-prod.js
+//   node backend/scripts/reset-database.js
 //
 // Reads MONGODB_URI from backend/.env (same as the seed scripts).
 // To target prod: set MONGODB_URI in backend/.env to your Atlas prod URI.
