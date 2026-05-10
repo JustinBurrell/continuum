@@ -3,6 +3,10 @@ import { registerUser, registerAndStartOnboarding } from './helpers/auth';
 
 const API = 'http://localhost:5001/api';
 
+async function getToken(page: import('@playwright/test').Page): Promise<string> {
+  return page.evaluate(() => localStorage.getItem('token') ?? '');
+}
+
 async function getMe(request: APIRequestContext, token: string) {
   const res = await request.get(`${API}/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -10,34 +14,37 @@ async function getMe(request: APIRequestContext, token: string) {
   return res.json();
 }
 
-async function getToken(page: import('@playwright/test').Page): Promise<string> {
-  return page.evaluate(() => localStorage.getItem('token') ?? '');
+// Make API calls from the browser context so the same session/token flow is used
+async function completeOnboardingViaBrowser(page: import('@playwright/test').Page) {
+  await page.evaluate(async (apiBase) => {
+    const token = localStorage.getItem('token');
+    await fetch(`${apiBase}/api/auth/me/onboarding/complete`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    await fetch(`${apiBase}/api/auth/me/tour/complete`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }, 'http://localhost:5001');
 }
 
-async function completeOnboardingViaAPI(request: APIRequestContext, token: string) {
-  await request.post(`${API}/auth/me/onboarding/complete`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  await request.post(`${API}/auth/me/tour/complete`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-}
-
-// "Skip" step button — exact match so we don't accidentally hit "Skip setup"
-const stepSkip = (page: import('@playwright/test').Page) =>
-  page.getByRole('button', { name: /^Skip$/ }).first();
-
-// Skip steps until a heading is visible, up to `maxSkips` attempts
+// Skip steps until a heading is visible, up to `maxSkips` attempts.
+// Handles: "Skip" (most steps), "Skip for now" (Google Drive step), "Save & Continue"
 async function skipUntilVisible(
   page: import('@playwright/test').Page,
   heading: string,
-  maxSkips = 6,
+  maxSkips = 8,
 ) {
   for (let i = 0; i < maxSkips; i++) {
     const target = page.locator(`text=${heading}`);
     if (await target.isVisible({ timeout: 600 }).catch(() => false)) break;
-    const btn = page.locator('button:has-text("Save & Continue")').or(stepSkip(page)).first();
-    if (await btn.isVisible({ timeout: 600 }).catch(() => false)) await btn.click();
+    const btn = page.locator([
+      'button:has-text("Save & Continue")',
+      'button:text-is("Skip")',
+      'button:text-is("Skip for now")',
+    ].join(', ')).first();
+    if (await btn.isVisible({ timeout: 800 }).catch(() => false)) await btn.click();
     await page.waitForTimeout(350);
   }
 }
@@ -52,14 +59,13 @@ test.describe('Route guards', () => {
     await expect(page).toHaveURL(/\/login/, { timeout: 5_000 });
   });
 
-  test('fully-completed user visiting /onboarding is redirected to /dashboard', async ({ page, request }) => {
+  test('fully-completed user visiting /onboarding is redirected to /dashboard', async ({ page }) => {
     await registerAndStartOnboarding(page);
-    const token = await getToken(page);
 
-    // Use API directly to mark both flags — avoids any UI race
-    await completeOnboardingViaAPI(request, token);
+    // Set both flags via browser fetch (same session context, invalidates cache)
+    await completeOnboardingViaBrowser(page);
 
-    // Full page reload → AuthContext re-fetches user → guard fires
+    // Full page reload → AuthContext re-fetches user with fresh flags → guard redirects
     await page.goto('/onboarding');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 8_000 });
