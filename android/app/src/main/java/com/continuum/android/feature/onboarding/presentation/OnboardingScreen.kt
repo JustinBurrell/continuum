@@ -93,12 +93,26 @@ fun OnboardingScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = if (showActivation || state.isDone) "Almost done"
-                               else "Step $displayStepNumber of $totalDisplaySteps",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextMuted,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        // Back button — profile steps only, after the first step
+                        if (state.currentIndex > 0 && state.isProfilePhase) {
+                            TextButton(
+                                onClick = { viewModel.goBack() },
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                            ) {
+                                Text("← Back", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                            }
+                        }
+                        Text(
+                            text = if (showActivation || state.isDone) "Almost done"
+                                   else "Step $displayStepNumber of $totalDisplaySteps",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextMuted,
+                        )
+                    }
                     TextButton(
                         onClick = { viewModel.exitAll { onFinished() } },
                         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),

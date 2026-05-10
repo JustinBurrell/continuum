@@ -121,6 +121,10 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
+    fun goBack() {
+        _state.update { it.copy(currentIndex = maxOf(0, it.currentIndex - 1)) }
+    }
+
     fun completeTour(onDone: () -> Unit) {
         viewModelScope.launch {
             runCatching { profileRepository.completeTour() }

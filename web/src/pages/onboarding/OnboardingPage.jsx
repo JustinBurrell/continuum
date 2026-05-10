@@ -44,7 +44,7 @@ const LEFT_PANEL = {
   'integrations': {
     icon: '🔗',
     headline: "Connect your tools.",
-    body: "Link Google Drive to import your Docs directly into Continuum as notes.",
+    body: "Connect the apps you already use to get more out of Continuum.",
   },
   activation: {
     icon: '🚀',
