@@ -17,6 +17,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.rememberAsyncImagePainter
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 
@@ -40,7 +43,14 @@ fun ForgotPasswordScreen(
         IconButton(onClick = onNavigateBack) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextPrimary)
         }
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(16.dp))
+        Image(
+            painter = rememberAsyncImagePainter("file:///android_asset/ic_logo_lockup.svg"),
+            contentDescription = "Continuum",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.width(220.dp).height(56.dp).align(Alignment.CenterHorizontally)
+        )
+        Spacer(Modifier.height(16.dp))
 
         if (sent) {
             Column(

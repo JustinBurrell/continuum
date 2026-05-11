@@ -155,6 +155,9 @@ private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: (
                         maxLines = 1,
                         modifier = Modifier.clickable(onClick = onUserClick)
                     )
+                    if (item.actorRoles.isNotEmpty()) {
+                        VerifiedRoleBadges(roles = item.actorRoles, expanded = false)
+                    }
                     val actionText = item.displayText.removePrefix(item.actorName).trim()
                     if (actionText.isNotBlank()) {
                         Text(

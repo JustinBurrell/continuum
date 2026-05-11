@@ -145,7 +145,9 @@ private fun CommentItem(
                     color = if (onUserClick != null) BrandPurple else TextPrimary,
                     modifier = if (onUserClick != null) Modifier.clickable(onClick = onUserClick) else Modifier
                 )
-                Spacer(Modifier.width(Spacing.sm))
+                if (comment.authorRoles.isNotEmpty()) {
+                    VerifiedRoleBadges(roles = comment.authorRoles, expanded = false)
+                }
                 Text(comment.createdAt.toDisplayDate(), style = MaterialTheme.typography.labelSmall, color = TextMuted)
             }
             Text(comment.content, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
