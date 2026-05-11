@@ -5,6 +5,8 @@
 **Backend:** `https://api.usecontinuum.dev` (Swagger at `/api-docs`)  
 **Goal:** 1:1 feature parity with the Android build, installable on your iPhone via free Xcode signing (no $99 Apple Developer account required for personal device)
 
+> **Out of scope for this build:** PostHog and Sentry are intentionally excluded. They will be added to both Android and iOS simultaneously once iOS reaches feature parity — not as part of this initial build.
+
 ---
 
 ## Git Workflow
@@ -19,8 +21,8 @@ git checkout main && git pull origin main
 git checkout -b feat/ios-app
 
 # Commit after every step — one commit per file/step as listed in each phase
-git add ios/Podfile
-git commit -m "chore: add iOS Podfile with core dependencies"
+git add ios/  # after adding SPM packages via Xcode, commit the updated Package.resolved
+git commit -m "chore: add SPM package dependencies"
 
 git add ios/Core/UI/Theme/Colors.swift
 git commit -m "feat: add design system colors matching Android Color.kt"
@@ -42,7 +44,6 @@ Before starting, confirm you have:
 
 - Mac with Xcode 15+ installed
 - iPhone connected via USB (for free signing / direct install)
-- CocoaPods installed: `sudo gem install cocoapods`
 - The Continuum repo cloned locally
 - Font files available: `fraunces_bold.ttf`, `fraunces_black.ttf`, `plus_jakarta_sans_regular.ttf`, `plus_jakarta_sans_medium.ttf`, `plus_jakarta_sans_semibold.ttf`, `plus_jakarta_sans_bold.ttf` (extract from `/android/app/src/main/res/font/`)
 - SVG assets: `ic_logo_symbol.svg`, `ic_logo_lockup.svg` are in `/android/app/src/main/assets/`. `ic_linkedin.xml`, `ic_instagram.xml` (convert to PDF or PNG for iOS)
@@ -64,36 +65,20 @@ Before starting, confirm you have:
 4. Save to `/ios/` in your repo root
 5. Delete the default `ContentView.swift` — you will replace it
 
-### Step 0.2 — Create the Podfile
+### Step 0.2 — Add Swift Package dependencies
 
-Create `/ios/Podfile`:
+Use Swift Package Manager (SPM) — no CocoaPods or Podfile needed. In Xcode: **File → Add Package Dependencies**, then add each URL below:
 
-```ruby
-platform :ios, '17.0'
-use_frameworks!
+| Package | URL | Replaces |
+|---------|-----|---------|
+| Socket.IO-Client-Swift | `https://github.com/socketio/socket.io-client-swift` | `io.socket:socket.io-client` (Android) |
+| SDWebImageSwiftUI | `https://github.com/SDWebImage/SDWebImageSwiftUI` | `io.coil-kt.coil3` (Android image loading) |
+| SDWebImageSVGCoder | `https://github.com/SDWebImage/SDWebImageSVGCoder` | `coil3-svg` / `SvgDecoder.Factory()` |
+| lottie-ios | `https://github.com/airbnb/lottie-spm` | Lottie Android — same library, Apple version. // TODO: confirm which screens use Lottie before adding — check Android source for LottieAnimation usage |
+| RichTextKit | `https://github.com/danielsaidi/RichTextKit` | `com.mohamedrejeb.richeditor` (rich text editing) |
+| GoogleSignIn | `https://github.com/google/GoogleSignIn-iOS` | `CredentialManager` + `GetGoogleIdOption` (Android) |
 
-target 'Continuum' do
-  # Replaces io.socket:socket.io-client (Android)
-  pod 'Socket.IO-Client-Swift', '~> 16.1'
-  
-  # Replaces io.coil-kt.coil3 (Android image loading)
-  pod 'SDWebImageSwiftUI'
-  
-  # SVG support for SDWebImage — replaces Coil3 SvgDecoder.Factory() in ContinuumApp.kt
-  pod 'SDWebImageSVGCoder'
-  
-  # Replaces Lottie Android — same library, Apple version
-  pod 'lottie-ios', '~> 4.4'
-  
-  # Replaces com.mohamedrejeb.richeditor (rich text editing)
-  pod 'RichTextKit', '~> 1.0'
-  
-  # Replaces CredentialManager + GetGoogleIdOption (Android)
-  pod 'GoogleSignIn', '~> 7.0'
-end
-```
-
-Run `pod install` from `/ios/`, then open `Continuum.xcworkspace` (not `.xcodeproj`) for all subsequent work.
+For each package, select the default branch or latest version tag and add it to the **Continuum** target. Xcode resolves all transitive dependencies automatically — no separate install step, no `.xcworkspace` distinction.
 
 ### Step 0.3 — Add fonts to Xcode
 
@@ -601,10 +586,12 @@ extension String {
 }
 ```
 
-### Step 1.10 — SocketManager
+### Step 1.10 — AppSocketManager
 
-**File:** `Core/Network/SocketManager.swift`  
+**File:** `Core/Network/AppSocketManager.swift`  
 **Replaces:** `SocketManager.kt` (Socket.IO Android → Socket.IO-Client-Swift)
+
+> **Naming:** The class is called `AppSocketManager` (not `SocketManager`) to avoid a name collision with `SocketIO.SocketManager` from the SPM package.
 
 Each Android `MutableSharedFlow<String>` becomes a `PassthroughSubject<String, Never>`:
 
@@ -612,18 +599,18 @@ Each Android `MutableSharedFlow<String>` becomes a `PassthroughSubject<String, N
 import SocketIO
 import Combine
 
-class SocketManager: ObservableObject {
-    static let shared = SocketManager()
+class AppSocketManager: ObservableObject {
+    static let shared = AppSocketManager()
 
     private var manager: SocketIO.SocketManager?
     private var socket: SocketIOClient?
 
     // Mirrors each MutableSharedFlow in SocketManager.kt
-    let newMessageFlow    = PassthroughSubject<String, Never>()
-    let friendRequestFlow = PassthroughSubject<String, Never>()
-    let taskUpdatedFlow   = PassthroughSubject<String, Never>()
+    let newMessageFlow      = PassthroughSubject<String, Never>()
+    let friendRequestFlow   = PassthroughSubject<String, Never>()
+    let taskUpdatedFlow     = PassthroughSubject<String, Never>()
     let activityUpdatedFlow = PassthroughSubject<String, Never>()
-    let noteUpdatedFlow   = PassthroughSubject<String, Never>()
+    let noteUpdatedFlow     = PassthroughSubject<String, Never>()
 
     func connect() {
         guard socket?.status != .connected else { return }
@@ -712,6 +699,22 @@ class MainViewModel {
 ```
 
 **Usage note:** Create `MainViewModel` as a `@State` property at the `@main` App level (see Step 5.1). Use it to gate the launch cover overlay — keep the cover visible until `isReady == true`.
+
+**ProfileRepository requirements:** `MainViewModel` calls two methods that `ProfileRepository` must expose:
+
+```swift
+// Returns the cached or network-fetched profile. Throws on auth error or network failure.
+func getProfile() async throws -> UserProfile
+
+// Stores profile in a private single-use cache consumed by the first DashboardViewModel call.
+// After consumption the cache is cleared so all subsequent fetches hit the network.
+func primeSplashCache(_ profile: UserProfile) {
+    // private var splashCache: UserProfile?
+    splashCache = profile
+}
+```
+
+The `splashCache` field should be declared `private var splashCache: UserProfile?` in `ProfileRepository`. When `getProfile()` is called, check `splashCache` first — if non-nil, return it and set `splashCache = nil`. Otherwise fetch from the network. This mirrors `ProfileRepository.kt`'s `_splashCache` exactly.
 
 ### Step 1.12 — SwiftData Persistence Layer
 
@@ -805,6 +808,8 @@ class PersistenceController {
 
 **File:** `Core/Sync/SyncWorker.swift`  
 **Replaces:** `SyncWorker.kt` (WorkManager → BGTaskScheduler)
+
+> **BGTaskScheduler limitation:** `BGProcessingTask` only fires when the device is idle and charging — it will not run immediately on network reconnect. For on-reconnect sync, the `AppLifecycle` class in Step 5.1 also calls `Task { await SyncRepository.shared.processPendingOperations() }` directly in the `onNetworkRestored` sink, which handles the connected-but-not-idle case. `SyncWorker.scheduleIfNeeded()` handles the background/charging case.
 
 Register the task identifier in `Info.plist` under `BGTaskSchedulerPermittedIdentifiers`: `dev.usecontinuum.sync`
 
@@ -1252,7 +1257,7 @@ Build features in this order — each builds on the previous. For each feature, 
 
 **Key translation notes:**
 - Rich text editor: use `RichTextKit` pod (same HTML input/output format)
-- Google Drive import: use `ASWebAuthenticationSession` to open the CCT picker URL. Register the `continuum://drive-pick` deep link in `Info.plist` — the same backend URL works
+- Google Drive import: use `SFSafariViewController` wrapped in `UIViewControllerRepresentable` to open the CCT picker URL — this matches Chrome Custom Tab behaviour (no system permission alert, shares Safari cookies). `ASWebAuthenticationSession` is incorrect here because it shows an authentication-consent alert. Register the `continuum://drive-pick` deep link in `Info.plist` — the same backend URL works
 - PDF download: use `URLSession` to download bytes, save to temp file, open with `PDFKit.PDFDocument`
 - `useInfiniteQuery` pattern → fetch all pages in parallel using Swift `async let`, merge results
 - Pull-to-refresh: use `.continuumRefreshable` (Step 2.8) on the notes list
@@ -1297,7 +1302,7 @@ Build features in this order — each builds on the previous. For each feature, 
 **Reference files:** `MessagingApiService.kt`, `MessagingDtos.kt`, `MessagingRepository.kt`, `Messaging.kt`, `MessagingViewModel.kt`, 2 presentation screens
 
 **Key translation notes:**
-- Real-time message delivery: subscribe to `SocketManager.shared.newMessageFlow` in `ConversationDetailScreen` using `.onReceive`
+- Real-time message delivery: subscribe to `AppSocketManager.shared.newMessageFlow` in `ConversationDetailScreen` using `.onReceive`
 - Optimistic message send: add optimistic `Message` with `UUID` id to local list immediately, replace with confirmed server message on success (same pattern as Android)
 - Shared content deep links in messages: parse `[shared:note:id]` prefix pattern from message content (same regex as Android)
 - Reverse layout (newest at bottom): `LazyVStack` reversed, or `List` with `.scrollPosition` anchored to bottom
@@ -1343,14 +1348,32 @@ import SDWebImage
 import SDWebImageSVGCoder
 import Combine
 
+// AppLifecycle holds the Combine subscriptions that must outlive the App struct's init().
+// Using @State private var cancellables = Set<AnyCancellable>() inside App is a bug —
+// @State on a non-View causes the set to be reallocated on every render, dropping the sink.
+private class AppLifecycle: ObservableObject {
+    var cancellables = Set<AnyCancellable>()
+
+    init() {
+        // Connect socket when network restores (mirrors networkMonitor flow in ContinuumApp.kt)
+        NetworkMonitor.shared.onNetworkRestored
+            .sink {
+                AppSocketManager.shared.onNetworkAvailable()
+                // BGProcessingTask only fires when idle + charging, so also sync directly on reconnect
+                Task { await SyncRepository.shared.processPendingOperations() }
+            }
+            .store(in: &cancellables)
+    }
+}
+
 @main
 struct ContinuumApp: App {
-    @State private var tokenManager    = TokenManager.shared
-    @State private var networkMonitor  = NetworkMonitor.shared
+    @State private var tokenManager   = TokenManager.shared
+    @State private var networkMonitor = NetworkMonitor.shared
     // Mirrors MainViewModel created via viewModels() in MainActivity.kt
-    @State private var mainViewModel   = MainViewModel()
+    @State private var mainViewModel  = MainViewModel()
 
-    @State private var cancellables = Set<AnyCancellable>()
+    @StateObject private var lifecycle = AppLifecycle()
 
     init() {
         // --- SVG decoder setup ---
@@ -1360,11 +1383,6 @@ struct ContinuumApp: App {
 
         // Register background sync task (mirrors WorkManager setup in ContinuumApp.kt)
         SyncWorker.shared.registerBackgroundTask()
-
-        // Connect socket when network restores (mirrors networkMonitor flow in ContinuumApp.kt)
-        NetworkMonitor.shared.onNetworkRestored
-            .sink { SocketManager.shared.onNetworkAvailable() }
-            .store(in: &cancellables)
     }
 
     var body: some Scene {
@@ -1429,6 +1447,8 @@ extension EnvironmentValues {
 }
 // Usage in any View: @Environment(\.isDemo) var isDemo
 ```
+
+> **Wiring the isDemo flag:** The `.environment(\.isDemo, false)` placeholder in `ContinuumApp` must be replaced with the actual JWT claim after login or session hydration. Add a `getJwtClaim(_ key: String) -> Bool` helper to `TokenManager` that base64-decodes the JWT payload and reads the key (mirrors `getJwtUserId()` in `TokenManager.kt`). After login succeeds or the app restores a session, read the `isDemo` claim and pass it via `.environment(\.isDemo, tokenManager.getJwtClaim("isDemo"))`. Without this, demo accounts on iOS will not be blocked from mutating data.
 
 ---
 
@@ -1516,7 +1536,7 @@ Branch: create feat/ios-app from main before writing any code
 
 Commit format: Conventional Commits, imperative mood, no periods, no em dashes, no scoped prefixes
   CORRECT:   feat: add TokenManager with Keychain storage
-  CORRECT:   chore: add Socket.IO-Client-Swift to Podfile
+  CORRECT:   chore: add SPM package dependencies via Xcode
   INCORRECT: feat(ios): add TokenManager
   INCORRECT: feat: added TokenManager.
 
@@ -1531,7 +1551,7 @@ After ALL phases are complete, create the PR:
   Full SwiftUI iOS port of the Continuum Android app with 1:1 feature parity.
 
   ## What was built
-  - Core infrastructure: TokenManager (Keychain), APIClient (URLSession), SocketManager (Socket.IO), SwiftData persistence, BGTaskScheduler sync
+  - Core infrastructure: TokenManager (Keychain), APIClient (URLSession), AppSocketManager (Socket.IO), SwiftData persistence, BGTaskScheduler sync
   - MainViewModel splash pre-fetch with 3s timeout and ProfileRepository splash cache
   - SVG rendering via SDWebImageSVGCoder (logo lockup on auth screens, team badge icon)
   - LaunchCoverView animating out once profile pre-fetch completes
@@ -1572,9 +1592,9 @@ After ALL phases are complete, create the PR:
 
 BUILD PHASE 1 — in this exact order, one file at a time, commit after each:
 1. Create branch: feat/ios-app
-2. /ios/Podfile with Socket.IO-Client-Swift, SDWebImageSwiftUI, SDWebImageSVGCoder,
-   lottie-ios, RichTextKit, GoogleSignIn
-   Commit: chore: add iOS Podfile with core dependencies
+2. Add SPM packages via Xcode: File → Add Package Dependencies for Socket.IO-Client-Swift,
+   SDWebImageSwiftUI, SDWebImageSVGCoder, lottie-ios, RichTextKit, GoogleSignIn
+   Commit: chore: add SPM package dependencies via Xcode
 3. Core/UI/Theme/Colors.swift
    Commit: feat: add design system colors matching Android Color.kt
 4. Core/UI/Theme/Typography.swift
@@ -1593,8 +1613,8 @@ BUILD PHASE 1 — in this exact order, one file at a time, commit after each:
     Commit: feat: add APIClient with URLSession auth interceptor and token refresh
 11. Core/Network/ErrorUtils.swift
     Commit: feat: add error message mapping matching Android ErrorUtils
-12. Core/Network/SocketManager.swift
-    Commit: feat: add SocketManager with Socket.IO event streams
+12. Core/Network/AppSocketManager.swift
+    Commit: feat: add AppSocketManager with Socket.IO event streams
 13. Core/App/MainViewModel.swift
     Commit: feat: add MainViewModel with 3s splash pre-fetch timeout
 14. Core/Persistence/Models.swift + PersistenceController.swift
@@ -1643,7 +1663,7 @@ These behaviors exist in Android but have no iOS equivalent or require a differe
 | `EncryptedSharedPreferences` + Android KeyStore | Keychain with `kSecAttrAccessibleWhenUnlockedThisDeviceOnly` — equivalent hardware-backed security |
 | `WorkManager` one-time + periodic tasks | `BGTaskScheduler` + `BGProcessingTaskRequest` |
 | `ConnectivityManager` + `NetworkCallback` | `NWPathMonitor` |
-| Chrome Custom Tabs (CCT) for Drive Picker | `ASWebAuthenticationSession` opening same backend URL |
+| Chrome Custom Tabs (CCT) for Drive Picker | `SFSafariViewController` wrapped in `UIViewControllerRepresentable` — same backend URL, no system alert |
 | `DownloadManager` for PDF download | `URLSession` download task + save to `FileManager` |
 | `PdfRenderer` for PDF display | `PDFKit.PDFView` — significantly simpler API |
 | `ActivityResultContracts.GetContent()` | `PhotosUI.PhotosPicker` (images) or `UIDocumentPickerViewController` (PDFs) |
