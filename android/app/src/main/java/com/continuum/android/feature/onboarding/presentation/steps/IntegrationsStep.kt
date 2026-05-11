@@ -13,11 +13,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.continuum.android.core.ui.components.ContinuumButton
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.feature.profile.domain.Profile
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -96,17 +97,9 @@ fun IntegrationsStep(
                         onClick = {
                             linking = true
                             val intent = CustomTabsIntent.Builder().build()
-                            intent.launchUrl(context, "$apiBaseUrl/api/auth/google".toUri())
-                            scope.launch {
-                                delay(1_000)
-                                val refreshed = profileRepository.getProfile().getOrNull()
-                                linking = false
-                                if (refreshed?.isGoogleLinked == true) {
-                                    isGoogleConnected = true
-                                    // Don't auto-advance — user manually clicks Continue
-                                    // so they can connect additional integrations first
-                                }
-                            }
+                            // source=linking tells AuthCallback this is a linking flow so it
+                            // shows a 'Connected' screen instead of navigating to onboarding
+                            intent.launchUrl(context, "$apiBaseUrl/api/auth/google?source=linking".toUri())
                         },
                         enabled = !linking,
                         colors = ButtonDefaults.buttonColors(containerColor = BrandPurple),
@@ -124,6 +117,20 @@ fun IntegrationsStep(
         }
 
         // Additional integration cards (Canvas LMS, etc.) slot here
+
+        // Poll the profile when the app returns to foreground (i.e. the CCT closed).
+        // This replaces the old 1-second one-shot delay which fired before OAuth could finish.
+        LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+            if (linking) {
+                scope.launch {
+                    val refreshed = profileRepository.getProfile().getOrNull()
+                    linking = false
+                    if (refreshed?.isGoogleLinked == true) {
+                        isGoogleConnected = true
+                    }
+                }
+            }
+        }
 
         Spacer(Modifier.height(20.dp))
         ContinuumButton(

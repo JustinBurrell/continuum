@@ -256,6 +256,17 @@ fun AppNavHost(
         else navProfileViewModel.clear()
     }
 
+    LaunchedEffect(navProfile.isLoaded, navProfile.onboardingCompleted, navProfile.tourCompleted) {
+        if (isAuthenticated && navProfile.isLoaded &&
+            (!navProfile.onboardingCompleted || !navProfile.tourCompleted) &&
+            !navProfile.isDemo
+        ) {
+            navController.navigate(NavRoutes.Onboarding.ROOT) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
+
     // Logo tap: navigate to Dashboard from any tab screen
     val onLogoClick: () -> Unit = {
         navController.navigate(NavRoutes.Dashboard.ROOT) {

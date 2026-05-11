@@ -49,6 +49,12 @@ export default function AppLayout() {
     return <Navigate to="/login" replace />;
   }
 
+  if (!user.onboardingCompleted || !user.tourCompleted) {
+    if (!user.isDemo && !user.isSeedUser) {
+      return <Navigate to="/onboarding" replace />;
+    }
+  }
+
   // OnboardingModal is now only used for the replay/finish-setup paths triggered from Profile.
   // Fresh-signup onboarding happens on the dedicated /onboarding route (no AppLayout chrome).
   const isReplay = forceOnboardingOpen && !!user?.onboardingCompleted;

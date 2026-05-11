@@ -63,11 +63,33 @@ export default function IntegrationsStep({ onContinue, onSkip }) {
   const handleConnectGoogle = () => {
     setLinking(true);
     const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-    const popup = window.open(`${apiBase}/api/auth/google`, 'google-oauth', 'width=500,height=640');
 
+    // BroadcastChannel receives the success message from AuthCallback regardless of
+    // whether the browser opened a popup or a new tab (window.opener is unreliable
+    // after cross-origin OAuth redirects through Google's servers).
+    const channel = new BroadcastChannel('continuum_oauth');
+    channel.onmessage = (e) => {
+      if (e.data.type === 'GOOGLE_OAUTH_SUCCESS' && e.data.googleId) {
+        channel.close();
+        setLinking(false);
+        updateUser({ googleId: e.data.googleId });
+        try {
+          posthog.capture('integration_connected', {
+            platform: 'web',
+            integration: 'google_drive',
+            connected_during: 'onboarding',
+          });
+        } catch (_) {}
+      }
+    };
+
+    const popup = window.open(`${apiBase}/api/auth/google?source=linking`, 'google-oauth', 'width=500,height=640');
+
+    // Keep polling popup.closed as a fallback for when window.close() works normally
     const poll = setInterval(async () => {
       if (!popup || popup.closed) {
         clearInterval(poll);
+        channel.close();
         setLinking(false);
         try {
           const res = await api.get('/auth/me');
@@ -81,12 +103,16 @@ export default function IntegrationsStep({ onContinue, onSkip }) {
                 connected_during: 'onboarding',
               });
             } catch (_) {}
-            // Don't auto-advance — user manually clicks Continue
-            // so they can connect additional integrations first
           }
         } catch (_) {}
       }
     }, 500);
+
+    // Clean up channel and poll if the component unmounts mid-flow
+    return () => {
+      clearInterval(poll);
+      channel.close();
+    };
   };
 
   return (

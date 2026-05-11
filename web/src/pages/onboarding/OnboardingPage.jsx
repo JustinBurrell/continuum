@@ -166,7 +166,7 @@ export default function OnboardingPage() {
     navigate('/dashboard', { replace: true });
   };
 
-  const handleActivationGo = (route) => {
+  const handleActivationGo = async (route) => {
     const goal = user?.onboardingGoal ?? 'not_sure';
     const act = GOAL_ACTIVATION[goal] ?? GOAL_ACTIVATION.not_sure;
     try {
@@ -184,7 +184,8 @@ export default function OnboardingPage() {
       setForceOnboardingOpen(true);
       navigate('/dashboard');
     } else {
-      completeTour();
+      // Must await so tourCompleted is true in React state before AppLayout's guard runs
+      await completeTour();
       navigate(route);
     }
   };
