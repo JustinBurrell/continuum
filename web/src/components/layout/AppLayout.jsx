@@ -49,7 +49,9 @@ export default function AppLayout() {
     return <Navigate to="/login" replace />;
   }
 
-  if (!user.onboardingCompleted || !user.tourCompleted) {
+  // Only redirect to /onboarding for the initial signup flow.
+  // tourCompleted can be false during a replay — that is handled by the modal, not a redirect.
+  if (!user.onboardingCompleted) {
     if (!user.isDemo && !user.isSeedUser) {
       return <Navigate to="/onboarding" replace />;
     }
