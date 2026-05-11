@@ -837,15 +837,16 @@ Always validate input, scope queries by user, exclude sensitive fields, check au
 
 ### 8. **Marketing — WaitlistEntry Collection**
 
-Stores email signups captured from the mobile gate screen. No user reference — signups are anonymous.
+Stores email signups captured from the mobile marketing page. No user reference — signups are anonymous.
 
 ```javascript
 WaitlistEntry {
-  email:     String  // required, unique, lowercase, trimmed
-  firstName: String  // optional, trimmed, null if not provided
-  source:    String  // default: 'mobile_gate' — allows future reuse (newsletter, etc.)
-  createdAt: Date    // auto via timestamps
-  updatedAt: Date    // auto via timestamps
+  email:            String  // required, unique, lowercase, trimmed
+  firstName:        String  // optional, trimmed, null if not provided
+  source:           String  // default: 'mobile_gate' — allows future reuse
+  platformInterest: String  // optional, enum: 'ios' | 'android' | 'both', null if omitted
+  createdAt:        Date    // auto via timestamps
+  updatedAt:        Date    // auto via timestamps
 }
 ```
 

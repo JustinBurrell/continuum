@@ -312,9 +312,10 @@ All DELETE endpoints perform soft deletes (set `deletedAt` timestamp) except `DE
 
 **Request body:**
 ```json
-{ "email": "student@university.edu", "firstName": "Justin", "source": "mobile_gate" }
+{ "email": "student@university.edu", "firstName": "Justin", "source": "mobile_gate", "platformInterest": "android" }
 ```
-`firstName` is optional — stored as `null` if omitted.
+`firstName` is optional — stored as `null` if omitted.  
+`platformInterest` is optional — enum `ios | android | both`, stored as `null` if omitted. Used to personalize the Resend welcome email sent on signup.
 
 **Responses:**
 - `201` — Email successfully subscribed: `{ success: true, message: "You're on the list!" }`
