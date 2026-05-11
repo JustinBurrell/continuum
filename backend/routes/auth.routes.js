@@ -156,7 +156,12 @@ router.post('/refresh', authLimiter, authController.refresh);
  *       302:
  *         description: Redirect to Google
  */
-router.get('/google', passport.authenticate('google', { session: false, scope: ['profile', 'email', 'https://www.googleapis.com/auth/drive.file'], accessType: 'offline', prompt: 'consent' }));
+router.get('/google', (req, res, next) => {
+    if (req.query.source === 'linking') {
+        res.cookie('oauth_source', 'linking', { httpOnly: true, maxAge: 120_000, sameSite: 'lax' });
+    }
+    passport.authenticate('google', { session: false, scope: ['profile', 'email', 'https://www.googleapis.com/auth/drive.file'], accessType: 'offline', prompt: 'consent' })(req, res, next);
+});
 
 /**
  * @swagger

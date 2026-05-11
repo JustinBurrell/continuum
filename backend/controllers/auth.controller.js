@@ -377,7 +377,10 @@ exports.googleCallback = async (req, res) => {
         expiresAt: new Date(Date.now() + 60 * 1000), // 60 seconds
     });
 
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?code=${rawCode}`);
+    const oauthSource = req.cookies?.oauth_source || '';
+    res.clearCookie('oauth_source');
+    const sourcePart = oauthSource === 'linking' ? '&source=linking' : '';
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?code=${rawCode}${sourcePart}`);
 };
 
 // ----------------------------------------
