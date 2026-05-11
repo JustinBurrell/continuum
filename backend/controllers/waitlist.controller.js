@@ -16,9 +16,9 @@ if (process.env.RESEND_DISABLED === 'true') {
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function platformLine(platformInterest) {
-    if (platformInterest === 'ios')     return `<p style="color:#374151;font-size:15px;margin:0 0 20px;">We saw you're most excited about iOS — we're putting the finishing touches on it now.</p>`;
-    if (platformInterest === 'android') return `<p style="color:#374151;font-size:15px;margin:0 0 20px;">We saw you're most excited about Android — that one is nearly complete.</p>`;
-    if (platformInterest === 'both')    return `<p style="color:#374151;font-size:15px;margin:0 0 20px;">We saw you're excited about both platforms — we're building them in parallel and they're both on the way.</p>`;
+    if (platformInterest === 'ios')     return `<p style="color:#374151;font-size:15px;margin:0 0 20px;">We saw you're most excited about iOS. We're putting the finishing touches on it now.</p>`;
+    if (platformInterest === 'android') return `<p style="color:#374151;font-size:15px;margin:0 0 20px;">We saw you're most excited about Android. That one is nearly complete.</p>`;
+    if (platformInterest === 'both')    return `<p style="color:#374151;font-size:15px;margin:0 0 20px;">We saw you're excited about both platforms. We're building them in parallel and they're both on the way.</p>`;
     return '';
 }
 
@@ -37,7 +37,7 @@ function waitlistEmail({ firstName, platformInterest }) {
         <tr><td>
           <p style="color:#111827;font-size:16px;margin:0 0 12px;">${greeting}</p>
           <p style="color:#374151;font-size:15px;margin:0 0 20px;">You're on the Continuum waitlist. Glad to have you here.</p>
-          <p style="color:#374151;font-size:15px;margin:0 0 20px;">Continuum is a student workspace that brings everything into one place — AI-powered notes with instant summaries, smart flashcards generated from your notes, task tracking so you never miss a deadline, a career pipeline to keep your job search organized, and a social layer to collaborate with classmates. Instead of juggling a different app for each part of your academic life, you have one.</p>
+          <p style="color:#374151;font-size:15px;margin:0 0 20px;">Continuum is a student workspace that brings everything into one place: AI-powered notes with instant summaries, smart flashcards generated from your notes, task tracking so you never miss a deadline, a career pipeline to keep your job search organized, and a social layer to collaborate with classmates. Instead of juggling a different app for each part of your academic life, you have one.</p>
           ${platformLine(platformInterest)}
           <p style="color:#374151;font-size:15px;margin:0 0 20px;">Both Android and iOS are in active development. You'll be among the first to know when we're ready for you.</p>
           <p style="color:#374151;font-size:15px;margin:0;">The Continuum Team</p>
