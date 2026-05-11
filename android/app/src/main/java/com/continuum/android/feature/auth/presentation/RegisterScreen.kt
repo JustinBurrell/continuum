@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import coil3.compose.rememberAsyncImagePainter
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import com.continuum.android.BuildConfig
@@ -70,8 +71,9 @@ fun RegisterScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         androidx.compose.foundation.Image(
-            painter = painterResource(R.drawable.ic_logo_lockup),
+            painter = rememberAsyncImagePainter("file:///android_asset/ic_logo_lockup.svg"),
             contentDescription = "Continuum",
+            contentScale = androidx.compose.ui.layout.ContentScale.Fit,
             modifier = Modifier.width(220.dp).height(56.dp)
         )
         Spacer(Modifier.height(32.dp))

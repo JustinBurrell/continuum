@@ -90,6 +90,7 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 # Image Loading
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }
 
 # Socket.io
 socketio-client = { group = "io.socket", name = "socket.io-client", version.ref = "socketio" }

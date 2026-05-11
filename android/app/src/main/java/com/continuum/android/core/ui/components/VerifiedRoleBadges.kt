@@ -15,9 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.continuum.android.R
+import coil3.compose.rememberAsyncImagePainter
 import com.continuum.android.core.ui.theme.AppShape
 import com.continuum.android.core.ui.theme.BrandPurple
 import com.continuum.android.core.ui.theme.WarningAmber
@@ -66,7 +65,7 @@ fun VerifiedRoleBadges(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_logo_symbol),
+                        painter = rememberAsyncImagePainter("file:///android_asset/ic_logo_symbol.svg"),
                         contentDescription = "Team Continuum",
                         tint = BrandPurple,
                         modifier = Modifier.size(16.dp)
