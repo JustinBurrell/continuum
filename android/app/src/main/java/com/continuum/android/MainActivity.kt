@@ -1,7 +1,11 @@
 package com.continuum.android
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.os.Bundle
+import android.view.View
 import android.view.WindowManager
+import android.view.animation.DecelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -29,9 +33,34 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var profileRepository: ProfileRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        splashScreen.setOnExitAnimationListener { provider ->
+            val iconView = provider.iconView
+            val splashView = provider.view
+
+            // Compute scale needed to make the icon fill the screen (X-style zoom)
+            val targetScale = maxOf(
+                splashView.width.toFloat() / iconView.width.coerceAtLeast(1),
+                splashView.height.toFloat() / iconView.height.coerceAtLeast(1)
+            ) * 1.5f
+
+            val scaleX = ObjectAnimator.ofFloat(iconView, View.SCALE_X, 1f, targetScale)
+            val scaleY = ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 1f, targetScale)
+            val fade = ObjectAnimator.ofFloat(splashView, View.ALPHA, 1f, 0f)
+
+            AnimatorSet().apply {
+                playTogether(scaleX, scaleY, fade)
+                duration = 420L
+                interpolator = DecelerateInterpolator(1.5f)
+                start()
+            }
+
+            // Remove the splash view after the animation completes
+            iconView.postDelayed({ provider.remove() }, 420L)
+        }
 
         setContent {
             val isAuthenticated by tokenManager.isLoggedIn.collectAsStateWithLifecycle()

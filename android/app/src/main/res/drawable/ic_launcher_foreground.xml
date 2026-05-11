@@ -4,20 +4,20 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Left C: center≈(31,54) radius 25, opening faces right at x=43. Gap=22dp between openings. -->
+    <!-- Left C: center≈(32,54) radius 30, opening faces right at x=40. Gap=28dp. -->
     <path
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="11"
+        android:strokeWidth="13"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:fillColor="@android:color/transparent"
-        android:pathData="M43,32 A25,25 0 1 0 43,76" />
-    <!-- Right C: center≈(77,54) radius 25, opening faces left at x=65. -->
+        android:pathData="M40,25 A30,30 0 1 0 40,83" />
+    <!-- Right C: center≈(76,54) radius 30, opening faces left at x=68. -->
     <path
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="11"
+        android:strokeWidth="13"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:fillColor="@android:color/transparent"
-        android:pathData="M65,76 A25,25 0 1 0 65,32" />
+        android:pathData="M68,83 A30,30 0 1 0 68,25" />
 </vector>

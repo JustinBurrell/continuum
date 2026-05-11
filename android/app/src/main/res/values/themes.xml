@@ -3,7 +3,7 @@
 
     <!-- Splash screen: purple background + white double-C mark, transitions to main theme -->
     <style name="Theme.Continuum.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#6b21a8</item>
+        <item name="windowSplashScreenBackground">#7D3CB2</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_icon</item>
         <item name="windowSplashScreenAnimationDuration">0</item>
         <item name="postSplashScreenTheme">@style/Theme.Continuum</item>
