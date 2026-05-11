@@ -3,36 +3,31 @@
 
 ## Git Workflow
 
-Follow the [Agile Workflow Guide](../agile_workflow_guide.md) for every fix. The pattern is:
+Follow the [Agile Workflow Guide](../agile_workflow_guide.md). All tiers are done in **one branch** — commit after each individual fix.
 
 ```bash
 # 1. Start from an up-to-date main
 git checkout main && git pull origin main
 
-# 2. Create a branch per tier (or per logical group of fixes)
-git checkout -b fix/android-polish-critical   # Tier 1
-git checkout -b fix/android-polish-high       # Tier 2
-# etc.
+# 2. Create one branch for the entire audit
+git checkout -b fix/android-play-polish
 
-# 3. Commit after each individual fix — do not batch unrelated changes
+# 3. Commit after each individual fix — never batch unrelated changes
 git add <files>
 git commit -m "fix: change labelSmall from 10sp to 12sp for a11y compliance"
 
-# 4. Push and open PR when the tier is done
-git push -u origin fix/android-polish-critical
-gh pr create --title "fix: Android polish — critical tier (Play Store blockers)" ...
+git add <files>
+git commit -m "fix: expand sensitiveRoutes to cover editor and settings screens"
 
-# 5. Merge in GitHub, then pull main and start the next branch
+# ... continue through every tier in order ...
+
+# 4. Push and open one PR when all tiers are done
+git push -u origin fix/android-play-polish
+gh pr create --title "fix: Android Play Store polish — all tiers" ...
+
+# 5. Merge in GitHub, then pull main
 git checkout main && git pull origin main
 ```
-
-Branch naming for this work:
-| Tier | Branch name |
-|------|-------------|
-| Critical | `fix/android-polish-critical` |
-| High | `fix/android-polish-high` |
-| Medium | `fix/android-polish-medium` |
-| Low / store listing | `chore/android-play-store-prep` |
 
 ---
 
