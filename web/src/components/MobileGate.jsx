@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Sparkles,
   NotebookPen,
   CalendarCheck,
   BrainCircuit,
@@ -21,13 +20,16 @@ import { Card } from '@/components/ui/Card';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// iPhone X native dims: 375 x 812
+const IPHONE_W = 375;
+
 const FEATURES = [
-  { icon: NotebookPen,   label: 'Notes & AI summaries',       desc: 'Capture anything. Understand it instantly.' },
-  { icon: CalendarCheck, label: 'Tasks & deadlines',           desc: 'Stay on top of every due date, everywhere.' },
-  { icon: BrainCircuit,  label: 'Smart flashcards',            desc: 'Generate cards from your notes. Study on the go.' },
-  { icon: TrendingUp,    label: 'Career pipeline',              desc: 'Track every application without switching apps.' },
-  { icon: Users,         label: 'Social & collaboration',      desc: 'Connect with classmates, share notes, and study together.' },
-  { icon: Puzzle,        label: 'Tool integrations',            desc: 'Connect Google Docs and more tools as we grow.' },
+  { icon: NotebookPen,   label: 'Notes & AI summaries',  desc: 'Capture anything. Understand it instantly.' },
+  { icon: CalendarCheck, label: 'Tasks & deadlines',      desc: 'Stay on top of every due date, everywhere.' },
+  { icon: BrainCircuit,  label: 'Smart flashcards',       desc: 'Generate cards from your notes. Study on the go.' },
+  { icon: TrendingUp,    label: 'Career pipeline',         desc: 'Track every application without switching apps.' },
+  { icon: Users,         label: 'Social & collaboration', desc: 'Connect with classmates, share notes, and study together.' },
+  { icon: Puzzle,        label: 'Tool integrations',       desc: 'Connect Google Docs and more tools as we grow.' },
 ];
 
 const SUCCESS_SUBTEXT = {
@@ -35,6 +37,20 @@ const SUCCESS_SUBTEXT = {
   android: "We'll reach out when the Android app is ready for you.",
   both:    "We'll reach out when both apps are ready for you.",
 };
+
+function MiniPhone({ bg = '#E5E7EB' }) {
+  // Renders an iPhone X frame scaled to ~56px wide, 110px tall (clipped)
+  const scale = 56 / IPHONE_W;
+  return (
+    <div style={{ position: 'relative', width: 56, height: 110, flexShrink: 0, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: 0, right: 0, width: IPHONE_W, transform: `scale(${scale})`, transformOrigin: 'top right', pointerEvents: 'none' }}>
+        <DeviceFrameset device="iPhone X">
+          <div style={{ width: '100%', height: '100%', background: bg }} />
+        </DeviceFrameset>
+      </div>
+    </div>
+  );
+}
 
 export default function MobileGate() {
   const [firstName, setFirstName]               = useState('');
@@ -53,7 +69,6 @@ export default function MobileGate() {
 
   useEffect(() => {
     if (location.state?.scrollToForm) {
-      // Small delay lets the page paint before scrolling
       setTimeout(() => {
         document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth' });
       }, 120);
@@ -97,12 +112,15 @@ export default function MobileGate() {
 
   const canSubmit = firstName.trim().length > 0 && emailRegex.test(email.trim()) && platformInterest !== null;
 
+  // Hero phone: scale iPhone X (375px wide) to fit 42% of ~350px container = ~147px
+  const heroPhoneScale = 147 / IPHONE_W;
+
   return (
     <div
       className="font-marketing w-full min-h-screen overflow-x-hidden"
       style={{ backgroundColor: '#F8F9FA', position: 'relative' }}
     >
-      {/* Background: radial gradient + dot pattern */}
+      {/* Background */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div style={{ position: 'absolute', top: -120, left: '50%', transform: 'translateX(-50%)', width: 800, height: 600, borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(107,33,168,0.08) 0%, transparent 65%)' }} />
         <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.3 }}>
@@ -113,7 +131,7 @@ export default function MobileGate() {
         </svg>
       </div>
 
-      {/* ── Nav bar ── */}
+      {/* ── Nav ── */}
       <nav
         className="relative w-full"
         style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
@@ -129,136 +147,106 @@ export default function MobileGate() {
         </div>
       </nav>
 
-      {/* ── Section 1: Hero ── */}
-      <section className="relative w-full">
-        <div className="max-w-sm mx-auto w-full px-4 pt-10 pb-10 text-center">
-          {/* Badge */}
-          <div
-            className="mb-6"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'white', border: '1px solid #E5E7EB', color: '#6B21A8', fontSize: '0.75rem', fontWeight: 500, borderRadius: 999, padding: '6px 14px' }}
-          >
-            <Sparkles size={12} />
-            Mobile app, coming soon
+      {/* ── Section 1: Hero — text left, phone right ── */}
+      <section className="relative w-full overflow-hidden">
+        <div className="max-w-sm mx-auto w-full px-4" style={{ display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: 32, paddingBottom: 32 }}>
+
+          {/* Left: text + CTA */}
+          <div style={{ flex: '0 0 58%', paddingRight: 12, paddingTop: 8 }}>
+            <h1
+              className="font-bold tracking-tight"
+              style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 'clamp(1.5rem, 6vw, 2rem)', color: '#111827', lineHeight: 1.15, marginBottom: 12 }}
+            >
+              Your student workspace, wherever you are.
+            </h1>
+            <p style={{ color: '#6B7280', fontSize: '0.875rem', lineHeight: 1.65, marginBottom: 20 }}>
+              Continuum brings your notes, tasks, flashcards, and career into one place. Collaborate with classmates, connect Google Docs and your favorite tools, and manage your academic life from one app.
+            </p>
+            <Button variant="primary" size="md" className="w-full" onClick={scrollToForm}>
+              Join the waitlist
+            </Button>
           </div>
 
-          <h1
-            className="font-bold tracking-tight"
-            style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 'clamp(2rem, 8vw, 2.5rem)', color: '#111827', lineHeight: 1.1, marginBottom: 16 }}
-          >
-            Your student workspace, wherever you are.
-          </h1>
-
-          <p style={{ color: '#6B7280', fontSize: '1rem', lineHeight: 1.65, marginBottom: 28 }}>
-            Continuum brings your notes, tasks, flashcards, and career into one place. Collaborate with classmates, connect Google Docs and your favorite tools, and manage your academic life from one app. The mobile app is almost here.
-          </p>
-
-          <Button variant="primary" size="lg" className="w-full" onClick={scrollToForm}>
-            Join the waitlist
-          </Button>
-        </div>
-      </section>
-
-      {/* ── Section 2: Device mockup ── */}
-      <section className="relative w-full">
-        <div className="max-w-sm mx-auto w-full px-4 pb-10">
-          {/* Responsive wrapper: scales device frames to fit container */}
-          <div style={{ position: 'relative', width: '100%', height: 230, overflow: 'visible' }}>
-            {/* Laptop (MacBook Pro): 960x600 native, scaled to ~35% */}
+          {/* Right: iPhone frame (42%), overflow clips bottom */}
+          <div style={{ flex: '0 0 42%', position: 'relative', overflow: 'hidden', minHeight: 300, alignSelf: 'stretch' }}>
             <div style={{
               position: 'absolute',
               top: 0,
-              left: 0,
-              transform: 'scale(0.35)',
-              transformOrigin: 'top left',
-              pointerEvents: 'none',
-            }}>
-              <DeviceFrameset device="MacBook Pro">
-                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #F3F0FF 0%, #E5E7EB 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <img src="/logo-lockup.svg" alt="" style={{ height: 28, opacity: 0.4 }} />
-                </div>
-              </DeviceFrameset>
-            </div>
-
-            {/* Phone (iPhone X): 375x812 native, scaled to ~31%, rotated */}
-            <div style={{
-              position: 'absolute',
-              bottom: -30,
               right: -8,
-              transform: 'scale(0.31) rotate(5deg)',
-              transformOrigin: 'bottom right',
+              width: IPHONE_W,
+              transform: `scale(${heroPhoneScale})`,
+              transformOrigin: 'top right',
               pointerEvents: 'none',
             }}>
               <DeviceFrameset device="iPhone X">
                 <div style={{ width: '100%', height: '100%', background: 'linear-gradient(160deg, #F3F0FF 0%, #E5E7EB 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <img src="/logo.svg" alt="" style={{ height: 32, opacity: 0.35 }} />
+                  <img src="/logo.svg" alt="" style={{ height: 28, opacity: 0.3 }} />
                 </div>
               </DeviceFrameset>
             </div>
           </div>
 
-          <p style={{ color: '#9B9B9B', fontSize: '0.75rem', textAlign: 'center', marginTop: 12 }}>
-            Available now on web · Android launching soon · iOS in development
-          </p>
         </div>
+        {/* Caption */}
+        <p style={{ color: '#9B9B9B', fontSize: '0.6875rem', textAlign: 'center', paddingBottom: 16 }}>
+          Available now on web · Android launching soon · iOS in development
+        </p>
       </section>
 
-      {/* ── Section 3: Feature highlights ── */}
+      {/* ── Section 2: Feature highlights with mini phone per feature ── */}
       <section className="relative w-full">
         <div className="max-w-sm mx-auto w-full px-4 pb-10">
-          <p
-            className="font-marketing"
-            style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6B7280', marginBottom: 12 }}
-          >
+          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: 16, letterSpacing: '-0.01em' }}>
             Everything you need
-          </p>
+          </h2>
           <Card style={{ padding: 0 }}>
             {FEATURES.map(({ icon: Icon, label, desc }, i) => (
               <div
                 key={label}
                 style={{
                   display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 14,
-                  padding: '14px 20px',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '14px 16px',
                   borderBottom: i < FEATURES.length - 1 ? '1px solid #F3F4F6' : 'none',
                 }}
               >
-                <div style={{ flexShrink: 0, marginTop: 2 }}>
-                  <Icon size={20} color="#6B21A8" />
+                {/* Icon */}
+                <div style={{ flexShrink: 0 }}>
+                  <Icon size={18} color="#6B21A8" />
                 </div>
-                <div>
-                  <p style={{ fontWeight: 600, fontSize: '0.875rem', color: '#111827', margin: '0 0 2px' }}>{label}</p>
-                  <p style={{ fontSize: '0.8125rem', color: '#6B7280', margin: 0, lineHeight: 1.5 }}>{desc}</p>
+                {/* Text */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontWeight: 600, fontSize: '0.8125rem', color: '#111827', margin: '0 0 2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</p>
+                  <p style={{ fontSize: '0.75rem', color: '#6B7280', margin: 0, lineHeight: 1.5 }}>{desc}</p>
                 </div>
+                {/* Mini iPhone placeholder */}
+                <MiniPhone bg="linear-gradient(160deg, #F3F0FF 0%, #E5E7EB 100%)" />
               </div>
             ))}
           </Card>
         </div>
       </section>
 
-      {/* ── Section 4: Waitlist form ── */}
+      {/* ── Section 3: Waitlist form ── */}
       <section id="waitlist-form" className="relative w-full">
         <div className="max-w-sm mx-auto w-full px-4 pb-10">
-          <p
-            className="font-marketing"
-            style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6B7280', marginBottom: 12 }}
-          >
+          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: 16, letterSpacing: '-0.01em' }}>
             Get early access
-          </p>
+          </h2>
 
           {submitted ? (
             <div style={{ textAlign: 'center', padding: '32px 24px', background: 'white', border: '1px solid #E5E7EB', borderRadius: 16 }}>
               <CheckCircle size={40} color="#6B21A8" style={{ margin: '0 auto 16px' }} />
-              <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.5rem', fontWeight: 600, color: '#111827', margin: '0 0 8px' }}>
+              <h3 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.5rem', fontWeight: 600, color: '#111827', margin: '0 0 8px' }}>
                 You're on the list.
-              </h2>
+              </h3>
               <p style={{ color: '#6B7280', fontSize: '0.9375rem', margin: 0, lineHeight: 1.6 }}>
                 {SUCCESS_SUBTEXT[platformInterest]}
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 16, padding: '24px 20px' }}>
-              {/* Platform interest pills */}
               <p style={{ fontWeight: 500, fontSize: '0.875rem', color: '#111827', marginBottom: 10 }}>
                 Which platform interests you?
               </p>
@@ -332,7 +320,7 @@ export default function MobileGate() {
         </div>
       </section>
 
-      {/* ── Section 5: Directional desktop copy ── */}
+      {/* ── Section 4: Directional copy ── */}
       <section className="relative w-full" style={{ borderTop: '1px solid #E5E7EB' }}>
         <div className="max-w-sm mx-auto w-full px-4 pt-6 pb-6 text-center">
           <Monitor size={18} color="#6B7280" style={{ margin: '0 auto 8px' }} />
@@ -342,7 +330,7 @@ export default function MobileGate() {
         </div>
       </section>
 
-      {/* ── Section 6: Mobile footer ── */}
+      {/* ── Footer ── */}
       <footer className="relative w-full">
         <div className="max-w-sm mx-auto w-full px-4 pt-4 pb-8 text-center">
           <p style={{ color: '#9B9B9B', fontSize: '0.75rem', margin: '0 0 8px' }}>
