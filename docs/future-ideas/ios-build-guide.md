@@ -1717,10 +1717,11 @@ After ALL phases are complete, create the PR:
   - BGTaskScheduler replacing WorkManager
   - SDWebImageSwiftUI + SDWebImageSVGCoder replacing Coil3 + SvgDecoder
   - GoogleSignIn SDK replacing CredentialManager
+  - AuthenticationServices (built-in) for Sign in with Apple — required for App Store
 
   ## Test plan
   - [ ] Install on device via Xcode free signing
-  - [ ] Auth: login, register, Google OAuth, forgot password — logo lockup renders from SVG
+  - [ ] Auth: login, register, Google OAuth, Sign in with Apple, forgot password — logo lockup renders from SVG
   - [ ] Notes: create, edit, delete, Google Drive import, AI summary, generate flashcards
   - [ ] Flashcards: study mode flip animation, swipe gestures, session recording
   - [ ] Tasks: kanban board, status change, shared tasks
@@ -1820,5 +1821,18 @@ These behaviors exist in Android but have no iOS equivalent or require a differe
 | `CompositionLocal` | SwiftUI `@Environment` with custom `EnvironmentKey` |
 
 ---
+
+---
+
+## When iOS ships — update these docs
+
+Do not update these until the iOS app is actually working on device. Once it is, go through this list:
+
+- [ ] **`README.md` (root)** — add `ios/` to the monorepo structure block; add iOS row to the tech stack table; update the Android bullet in "What it does" to mention iOS; add `ios/README.md` link in the module links; add this build guide to the Documentation table
+- [ ] **`ios/README.md`** — create it (tech stack, build instructions, link to this guide, backend endpoints including `POST /api/auth/apple/mobile`)
+- [ ] **`docs/continuum-interview-brief.md`** — update Mobile row in Tech Stack to include iOS; add iOS screens count to The Numbers table; update stale URLs (`continuum-web.vercel.app` → `usecontinuum.dev`, old Render URL → `api.usecontinuum.dev`); add Sign in with Apple to the Auth feature description
+- [ ] **`docs/android/architecture.md`** — add a one-line note at the top pointing to the iOS equivalent
+- [ ] **`backend/README.md`** — add `POST /api/auth/apple/mobile` to the mobile endpoints section once it is implemented
+- [ ] **`docs/future-ideas/implementation-order-pitch-launch.md`** — move iOS from long-term to active once development starts
 
 *Generated from Android source at `/android` — updated May 2026*
