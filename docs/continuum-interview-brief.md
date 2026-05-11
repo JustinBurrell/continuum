@@ -22,12 +22,12 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 |--------|-------|
 | Database collections | 15 |
 | API endpoints | ~108 across 17 route groups |
-| Frontend pages (web) | 27 |
+| Frontend pages (web) | 29 |
 | Frontend screens (Android) | 30+ |
 | Web UI components | 26 |
 | Android composables | 40+ (reusable + screen-level) |
 | Backend tests | 272 Jest + Supertest across 18 suites |
-| Web E2E tests | Playwright — auth, notes, flashcards, tasks, career |
+| Web E2E tests | Playwright — auth, notes, flashcards, tasks, career, mobile gate |
 | Android unit tests | MockK ViewModel tests — auth, notes, tasks, flashcards, career |
 | Backend controllers | 15 |
 | Services | 4 (AI, Activity, Share, Account) |
@@ -63,6 +63,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 - **Social** — friend requests, activity feed (cursor-paginated, own actions filtered Instagram-style, shared content titles and comment previews are clickable purple links with scroll-to-comment on the target page), direct messaging with real-time socket delivery (no polling), profile photos in feed and comments
 - **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section), contacts and reminders per application, inline PDF resume viewer (iframe modal matching Android's in-app viewer)
 - **Auth** — email/password and Google OAuth (`drive.file` scope — non-sensitive, no CASA assessment required) with JWT + httpOnly refresh cookie rotation
+- **Mobile marketing page** — purpose-built waitlist landing page shown to visitors on phones and tablets (<1024px). Hero split layout (text + iPhone device frame), six feature highlights each with a mini device preview, platform-interest waitlist form (iOS/Android/Both), Resend welcome email with platform-personalized copy. `/privacy` and `/terms` serve mobile-optimized legal pages without hitting the gate. Legal docs on Android now open in the device browser via `LocalUriHandler` instead of an in-app screen.
 - **Dashboard** — accurate total counts pulled from paginated response metadata (not capped list lengths)
 - **Onboarding** — goal-personalized multi-step profile setup (web full-page, Android full-screen) → activation step with coach mark on the goal-relevant CTA; "Show me everything" goal opens the full 11-step feature tour instead. Replay tour available from Profile on both platforms. Web tour uses a React portal-rendered backdrop (bypasses CSS stacking context from `animation-fill-mode: both`) + pulsing purple ring via `getBoundingClientRect` screen coords. Android replay tour uses a `TourOverlay` composable (full-width bottom card, dimmed backdrop, back/next/skip) that navigates through each section in sidebar order while showing the real app UI behind it. Demo and seed accounts bypass all onboarding flows.
 
@@ -550,7 +551,7 @@ Continuum has three test layers, all running in parallel on every PR via GitHub 
 | Profile | View and update own profile, avatar, bio, username uniqueness |
 | Resumes | Upload, AI feedback generation, delete, ownership isolation |
 | Users | Update settings, password change, account deletion grace period |
-| Waitlist | Sign-up, duplicate prevention, validation |
+| Waitlist | Sign-up, duplicate prevention, validation, platformInterest field, backward-compat when field omitted |
 
 **No real database needed.** `mongodb-memory-server` spins up a real MongoDB process in RAM. Tests run offline, in CI, with zero Atlas configuration.
 
@@ -565,6 +566,7 @@ Playwright boots the real Express backend (with `mongodb-memory-server`) and the
 | Flashcards | Create set, add card, study mode (reveal → Got it! → Set complete!) |
 | Tasks | Create, status change (regression: no `old?.pages` TypeError), dashboard stat count |
 | Career | Create application, edit status, delete, Resumes tab renders |
+| Mobile | Gate renders at <1024px; desktop renders at ≥1024px; /privacy and /terms accessible without hitting gate; waitlist form validation (platform pills mutually exclusive, submit gated on all three fields); successful signup shows platform-personalized success state; duplicate email error; scroll-to-form from nav and legal pages; "Join the waitlist" on legal pages navigates and scrolls; TOC anchor links |
 
 The `old?.pages` TypeError was a production bug caught by the delete-note and status-change tests. Guard: `if (!old?.pages) return old` in both `NotesList.jsx` and `Tasks.jsx`.
 
@@ -1185,6 +1187,8 @@ Events are split between frontend (UI interactions) and backend (data mutations)
 **Career:** `resume_uploaded`, `resume_feedback_generated`, `resume_score_viewed`, `job_application_created`
 
 **Social:** `friend_request_sent`, `friend_request_accepted`, `friend_removed`, `message_sent`, `task_shared`, `task_created`, `comment_added`, `comment_reply_added`
+
+**Mobile waitlist:** `mobile_landing_viewed`, `mobile_waitlist_form_started` (fires once on first field focus), `mobile_waitlist_submitted` (includes `platform_interest: ios|android|both`)
 
 ### Activation Funnel
 
