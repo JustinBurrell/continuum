@@ -73,23 +73,23 @@ describe('POST /api/auth/register', () => {
     expect(res.body.success).toBe(false);
   });
 
-  it('assigns role: founder when registering with a founder email', async () => {
-    const original = process.env.FOUNDER_EMAILS;
-    process.env.FOUNDER_EMAILS = 'founder@continuum.test';
+  it('assigns role: team when registering with a team email', async () => {
+    const original = process.env.TEAM_EMAILS;
+    process.env.TEAM_EMAILS = 'team@continuum.test';
     try {
       const res = await request(app).post('/api/auth/register').send({
         ...validUser,
-        email: 'founder@continuum.test',
-        username: 'foundertest',
+        email: 'team@continuum.test',
+        username: 'teamtest',
       });
       expect(res.statusCode).toBe(201);
-      expect(res.body.user.roles).toContain('founder');
+      expect(res.body.user.roles).toContain('team');
     } finally {
-      process.env.FOUNDER_EMAILS = original;
+      process.env.TEAM_EMAILS = original;
     }
   });
 
-  it('assigns role: null for a non-special email', async () => {
+  it('assigns no roles for a non-special email', async () => {
     const res = await request(app).post('/api/auth/register').send(validUser);
     expect(res.statusCode).toBe(201);
     expect(res.body.user.roles).toEqual([]);

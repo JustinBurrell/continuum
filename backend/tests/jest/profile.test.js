@@ -81,7 +81,7 @@ describe('PATCH /api/auth/me/profile', () => {
     const res = await request(app)
       .patch('/api/auth/me/profile')
       .set('Authorization', `Bearer ${token}`)
-      .send({ bio: 'test', role: 'founder' }); // bio is a valid field; role should be silently ignored
+      .send({ bio: 'test', role: 'team' }); // bio is a valid field; role should be silently ignored
 
     expect(res.statusCode).toBe(200);
     expect(res.body.user.roles).toEqual([]);

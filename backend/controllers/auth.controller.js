@@ -183,7 +183,8 @@ exports.register = async (req, res) => {
 
     // Auto-assign roles based on TEAM_EMAILS env var — read at request time so tests can override
     const teamEmails = (process.env.TEAM_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-    if (teamEmails.includes(email.toLowerCase())) {
+    const isTeam = teamEmails.includes(email.toLowerCase());
+    if (isTeam) {
         await User.updateOne({ _id: user._id }, { roles: ['team'] });
     }
 
@@ -219,7 +220,7 @@ exports.register = async (req, res) => {
 
     const userObj = user.toObject();
     delete userObj.password;
-    if (assignedRoles.length) userObj.roles = assignedRoles; // reflect the updateOne above since user was created before roles were set
+    if (isTeam) userObj.roles = ['team']; // reflect the updateOne above since user was created before roles were set
     setRefreshCookie(res, refreshToken);
     res.status(201).json({ success: true, token, user: userObj });
 };
