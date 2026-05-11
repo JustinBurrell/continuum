@@ -66,7 +66,7 @@ export default function Sidebar() {
       {/* Brand */}
       <div style={{ padding: '20px 16px 16px' }}>
         <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
-          <img src="/wordmark.svg" alt="Continuum" style={{ height: 26 }} />
+          <img src="/logo-lockup.svg" alt="Continuum" style={{ height: 26 }} />
         </a>
       </div>
 
