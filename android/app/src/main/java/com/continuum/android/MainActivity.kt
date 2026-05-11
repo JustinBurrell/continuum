@@ -55,16 +55,23 @@ class MainActivity : ComponentActivity() {
 
             val scaleX = ObjectAnimator.ofFloat(iconView, View.SCALE_X, 1f, targetScale)
             val scaleY = ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 1f, targetScale)
-            val fade = ObjectAnimator.ofFloat(splashView, View.ALPHA, 1f, 0f)
+
+            // Delay the splash fade until the icon has nearly filled the screen.
+            // Without the delay, the pre-rendered dashboard bleeds through the
+            // semi-transparent splash too early. With it, the icon already covers
+            // the content when the brief fade begins.
+            val fadeSplash = ObjectAnimator.ofFloat(splashView, View.ALPHA, 1f, 0f).apply {
+                startDelay = 380L
+            }
 
             AnimatorSet().apply {
-                playTogether(scaleX, scaleY, fade)
-                duration = 550L
+                playTogether(scaleX, scaleY, fadeSplash)
+                duration = 560L
                 interpolator = DecelerateInterpolator(2.0f)
                 start()
             }
 
-            iconView.postDelayed({ provider.remove() }, 550L)
+            iconView.postDelayed({ provider.remove() }, 560L)
         }
 
         setContent {
