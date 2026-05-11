@@ -1,19 +1,19 @@
 // assign-special-tags.js
 // Backfill script: assigns `roles` to existing accounts based on
-// FOUNDER_EMAILS and TEAM_EMAILS environment variables.
+// the TEAM_EMAILS environment variable.
 //
 // Usage: node backend/scripts/assign-special-tags.js
 //
 // Idempotent — uses $addToSet so running multiple times is safe.
 // Also migrates any legacy `role` (string) field to the new `roles` (array) field.
+// Also strips any stale 'founder' role values left from the old system.
 
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Comment = require('../models/Comment');
 
-const FOUNDER_EMAILS = (process.env.FOUNDER_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-const TEAM_EMAILS    = (process.env.TEAM_EMAILS    || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+const TEAM_EMAILS = (process.env.TEAM_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
 async function run() {
     if (!process.env.MONGODB_URI) {
@@ -30,14 +30,13 @@ async function run() {
         console.log(`Cleaned up legacy 'role' field from ${cleanup.modifiedCount} document(s).`);
     }
 
-    if (FOUNDER_EMAILS.length) {
-        const result = await User.updateMany(
-            { email: { $in: FOUNDER_EMAILS } },
-            { $addToSet: { roles: 'founder' } }
-        );
-        console.log(`Founder role added to ${result.modifiedCount} account(s).`);
-    } else {
-        console.log('No founder emails configured — skipping.');
+    // Strip any stale 'founder' role values
+    const founderStrip = await User.updateMany(
+        { roles: 'founder' },
+        { $pull: { roles: 'founder' } }
+    );
+    if (founderStrip.modifiedCount) {
+        console.log(`Removed stale 'founder' role from ${founderStrip.modifiedCount} account(s).`);
     }
 
     if (TEAM_EMAILS.length) {
@@ -51,7 +50,6 @@ async function run() {
     }
 
     // Backfill comment userSnapshots that are missing `roles`
-    // Finds all users who have roles, then patches their existing comments
     const usersWithRoles = await User.find({ roles: { $exists: true, $ne: [] } }).select('_id roles');
     let commentCount = 0;
     for (const u of usersWithRoles) {

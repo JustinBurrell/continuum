@@ -1799,10 +1799,10 @@ async function main() {
     await seedExtraComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks);
     await seedActivities(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks, comments);
 
-    // 10. Update Justin's activity visibility and ensure founder + team roles are set
+    // 10. Update Justin's activity visibility and ensure team role is set
     await User.updateOne({ _id: justin._id }, {
       'settings.activityVisibility': 'friends',
-      roles: ['founder', 'team'],
+      roles: ['team'],
     });
 
     // Bust Redis activity cache so dashboard/activity pages don't show stale data
