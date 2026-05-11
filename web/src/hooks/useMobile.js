@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const MOBILE_BREAKPOINT = 768; // matches Tailwind md: breakpoint
+const MOBILE_BREAKPOINT = 1024; // covers phones and portrait-orientation tablets (lg: breakpoint)
 
 export function useMobile() {
   const [isMobile, setIsMobile] = useState(
