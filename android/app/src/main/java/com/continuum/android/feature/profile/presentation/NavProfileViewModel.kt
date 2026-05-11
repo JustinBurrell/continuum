@@ -16,7 +16,10 @@ import javax.inject.Inject
 data class NavProfileUiState(
     val avatarUrl: String? = null,
     val displayName: String = "Profile",
-    val isDemo: Boolean = false
+    val isDemo: Boolean = false,
+    val onboardingCompleted: Boolean = false,
+    val tourCompleted: Boolean = false,
+    val isLoaded: Boolean = false,
 )
 
 @HiltViewModel
@@ -50,7 +53,10 @@ class NavProfileViewModel @Inject constructor(
                                 .filter { name -> name.isNotBlank() }
                                 .joinToString(" ")
                                 .ifBlank { profile.username.ifBlank { "Profile" } },
-                            isDemo = profile.isDemo
+                            isDemo = profile.isDemo,
+                            onboardingCompleted = profile.onboardingCompleted,
+                            tourCompleted = profile.tourCompleted,
+                            isLoaded = true,
                         )
                     }
                 }
