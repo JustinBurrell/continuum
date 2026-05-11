@@ -51,7 +51,7 @@ Shared notes, friend requests, and messages need to open in the app from iMessag
 - [ ] Test on physical device via iMessage and browser
 
 ### 2. In-App Notification Bell
-Users expect notifications. Stops at Socket.io delivery — skip email and FCM for now.
+Foundation for everything below. Stops at Socket.io in-app delivery first.
 - [ ] `Notification` model + `notification.service.js` with `notify()` dispatcher
 - [ ] Wire into `comments.controller.js`, `friends.controller.js`, `share.service.js`
 - [ ] `GET /api/notifications`, `PATCH /api/notifications/read`, `DELETE /api/notifications/:id`
@@ -59,14 +59,28 @@ Users expect notifications. Stops at Socket.io delivery — skip email and FCM f
 - [ ] Web: notification bell in sidebar with unread badge and dropdown
 - [ ] Android: notification bell in top bar; `socket.on('new_notification')` handler
 
-### 3. Accessibility Audit
+### 3. FCM Push Notifications
+Android only. Requires notification bell infrastructure above.
+- [ ] Add Firebase to the project (`google-services.json`, Firebase SDK)
+- [ ] `FCMToken` stored per user session on the backend
+- [ ] Backend sends FCM message via `notification.service.js` when `notify()` fires
+- [ ] Android: handle foreground + background notification payloads, tap → deep link
+
+### 4. Notification Email Delivery
+Requires notification bell infrastructure. Send on events users care about when they're not in the app.
+- [ ] Configure transactional email provider (e.g. Resend or SendGrid) with `noreply@usecontinuum.dev`
+- [ ] Email template for comment, friend request, and shared content notifications
+- [ ] Respect `emailNotifications` user setting (already exists on the profile model)
+- [ ] Unsubscribe link in every email (CAN-SPAM)
+
+### 5. Accessibility Audit
 Play Store IARC questionnaire surfaces a11y failures, and it fits the All Star Code / TEA profile.
 - [ ] Lighthouse + axe scan on all public and app routes (web)
 - [ ] Fix contrast, keyboard nav, focus indicators, aria-label, modal focus trap, alt text
 - [ ] Android: content descriptions on all icon-only buttons and images
 - [ ] `Accessibility.jsx` page at `/accessibility` + footer link
 
-### 4. Email Inbound Routing
+### 6. Email Inbound Routing
 Quick win — needed before real support traffic comes in.
 - [ ] Confirm `usecontinuum.dev` is 30+ days old
 - [ ] ImprovMX MX records + forwarding rules for `hello@`, `support@`, `noreply@`
@@ -91,17 +105,6 @@ Quick win — needed before real support traffic comes in.
 - [ ] Privacy policy URL live and linked in the listing
 - [ ] Target audience and content settings
 - [ ] Release track: Internal Testing → Closed Testing → Production
-
----
-
-## Long-Term (Post-Google Play)
-
-| Feature | Notes |
-|---|---|
-| FCM Push Notifications | Android only; ship after notification bell is live and users are on Play Store |
-| Notification Email Delivery | After real users are active on the platform |
-| iOS App | Full SwiftUI port — 6 phases, 9 feature modules; start after Android Play Store traction |
-| Forum | Existing social primitives cover the story for now |
 
 ---
 
