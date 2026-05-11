@@ -33,6 +33,7 @@ accompanist = "0.36.0"
 workmanager = "2.10.0"
 mockk = "1.13.13"
 lottie = "6.6.2"
+coreSplashscreen = "1.0.1"
 
 [libraries]
 # AndroidX Core
@@ -89,6 +90,7 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 # Image Loading
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }
 
 # Socket.io
 socketio-client = { group = "io.socket", name = "socket.io-client", version.ref = "socketio" }
@@ -119,6 +121,9 @@ androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx"
 
 # Lottie Animations
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
+
+# Splash Screen
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

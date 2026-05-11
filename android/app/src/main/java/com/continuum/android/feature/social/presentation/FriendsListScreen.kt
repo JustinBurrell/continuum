@@ -21,7 +21,7 @@ import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.social.domain.Friend
 import com.continuum.android.feature.social.domain.FriendRequest
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import com.continuum.android.core.ui.components.ContinuumPullToRefresh
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,8 +73,8 @@ fun FriendsListScreen(
                 }
             }
 
-            PullToRefreshBox(
-                isRefreshing = state.isLoading,
+            ContinuumPullToRefresh(
+                isLoading = state.isLoading,
                 onRefresh = { viewModel.loadFriends() },
                 modifier = Modifier.weight(1f)
             ) {

@@ -9,11 +9,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.continuum.android.R
+import coil3.compose.rememberAsyncImagePainter
 import com.continuum.android.core.ui.theme.*
 
 /**
@@ -42,7 +41,7 @@ fun ContinuumTopHeader(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_logo_symbol),
+                    painter = rememberAsyncImagePainter("file:///android_asset/ic_logo_symbol.svg"),
                     contentDescription = "Continuum",
                     tint = BrandPurple,
                     modifier = Modifier.size(24.dp),

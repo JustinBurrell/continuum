@@ -598,7 +598,7 @@ export default function Profile() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <span style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>{fullName}</span>
-                  <VerifiedBadge roles={me?.roles} expanded />
+                  <VerifiedBadge roles={me?.roles} />
                 </span>
                 <p style={{ fontSize: 13, color: '#9CA3AF', margin: '2px 0 6px' }}>@{me?.username}</p>
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
@@ -609,7 +609,7 @@ export default function Profile() {
                     <Users size={11} /> {friendships.length} friend{friendships.length !== 1 ? 's' : ''}
                   </span>
                 </div>
-                {me?.bio && <p style={{ fontSize: 13, color: '#374151', marginTop: 8, marginBottom: 0 }}>{me.bio}</p>}
+                {me?.bio && <p style={{ fontSize: 13, color: '#374151', marginTop: 8, marginBottom: 0, whiteSpace: 'pre-wrap' }}>{me.bio}</p>}
                 <SocialLinks user={me} style={{ marginTop: 8 }} />
               </div>
               <Button size="sm" variant="outline" onClick={() => setActiveTab('profile')} data-tour-highlight="profile-edit">

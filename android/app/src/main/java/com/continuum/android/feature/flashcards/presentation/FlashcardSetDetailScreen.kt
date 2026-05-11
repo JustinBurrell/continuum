@@ -18,7 +18,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import com.continuum.android.core.ui.components.ContinuumPullToRefresh
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalTokenManager
 import com.continuum.android.core.ui.components.*
@@ -221,8 +221,8 @@ fun FlashcardSetDetailScreen(
                     }
 
                     SetDetailTab.History -> {
-                        PullToRefreshBox(
-                            isRefreshing = historyState.isLoading && historyState.sessions.isNotEmpty(),
+                        ContinuumPullToRefresh(
+                            isLoading = historyState.isLoading && historyState.sessions.isNotEmpty(),
                             onRefresh = { viewModel.loadSetStudyHistory(setId) },
                             modifier = Modifier.weight(1f)
                         ) {

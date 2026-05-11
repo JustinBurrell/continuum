@@ -25,7 +25,7 @@ import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.notes.domain.Note
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import com.continuum.android.core.ui.components.ContinuumPullToRefresh
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -142,8 +142,8 @@ fun NotesListScreen(
                 }
             }
 
-            PullToRefreshBox(
-                isRefreshing = listState.isLoading,
+            ContinuumPullToRefresh(
+                isLoading = listState.isLoading,
                 onRefresh = { viewModel.loadNotes() },
                 modifier = Modifier.weight(1f)
             ) {

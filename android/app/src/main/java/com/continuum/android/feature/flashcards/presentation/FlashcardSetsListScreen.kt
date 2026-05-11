@@ -24,7 +24,7 @@ import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import com.continuum.android.core.ui.components.ContinuumPullToRefresh
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -159,8 +159,8 @@ fun FlashcardSetsListScreen(
                 }
             }
 
-            PullToRefreshBox(
-                isRefreshing = state.isLoading,
+            ContinuumPullToRefresh(
+                isLoading = state.isLoading,
                 onRefresh = { viewModel.loadSets() },
                 modifier = Modifier.weight(1f)
             ) {

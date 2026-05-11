@@ -62,7 +62,7 @@ export default function MarketingNav() {
       <div style={{ maxWidth: 1152, margin: '0 auto', padding: '0 24px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* Logo */}
         <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}>
-          <img src="/wordmark.svg" alt="Continuum" style={{ height: 28 }} />
+          <img src="/logo-lockup.svg" alt="Continuum" style={{ height: 34 }} />
         </Link>
 
         {/* Center nav links */}

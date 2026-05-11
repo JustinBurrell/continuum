@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import coil3.compose.rememberAsyncImagePainter
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -79,10 +80,10 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         androidx.compose.foundation.Image(
-            painter = painterResource(R.drawable.ic_logo_wordmark),
+            painter = rememberAsyncImagePainter("file:///android_asset/ic_logo_lockup.svg"),
             contentDescription = "Continuum",
-            colorFilter = ColorFilter.tint(BrandPurple),
-            modifier = Modifier.width(200.dp).height(48.dp)
+            contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+            modifier = Modifier.width(220.dp).height(56.dp)
         )
         Spacer(Modifier.height(32.dp))
 
@@ -119,7 +120,9 @@ fun LoginScreen(
                                 val credential = result.credential
                                 val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data)
                                 viewModel.loginWithGoogle(googleIdToken.idToken)
-                            } catch (_: Exception) { }
+                            } catch (e: Exception) {
+                                viewModel.setGoogleError(e.message ?: "Google sign-in failed")
+                            }
                         }
                     },
                     modifier = Modifier
@@ -128,6 +131,13 @@ fun LoginScreen(
                     shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary)
                 ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_google),
+                        contentDescription = null,
+                        tint = androidx.compose.ui.graphics.Color.Unspecified,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
                     Text("Continue with Google")
                 }
 

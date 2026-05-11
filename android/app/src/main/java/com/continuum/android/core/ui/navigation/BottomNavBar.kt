@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Style
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
+import coil3.compose.rememberAsyncImagePainter
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
@@ -88,7 +89,7 @@ fun ContinuumBottomBar(
                             contentDescription = item.contentDescription,
                         )
                         is NavItem.LogoItem -> Icon(
-                            painter = painterResource(R.drawable.ic_logo_symbol),
+                            painter = rememberAsyncImagePainter("file:///android_asset/ic_logo_symbol.svg"),
                             contentDescription = "Dashboard",
                             tint = if (selected) BrandPurple else TextMuted,
                             modifier = Modifier.size(28.dp),
@@ -137,7 +138,7 @@ fun ContinuumNavigationRail(
                             contentDescription = item.contentDescription,
                         )
                         is NavItem.LogoItem -> Icon(
-                            painter = painterResource(R.drawable.ic_logo_symbol),
+                            painter = rememberAsyncImagePainter("file:///android_asset/ic_logo_symbol.svg"),
                             contentDescription = "Dashboard",
                             tint = if (selected) BrandPurple else TextMuted,
                             modifier = Modifier.size(28.dp),

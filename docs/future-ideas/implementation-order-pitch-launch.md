@@ -1,12 +1,13 @@
-# Implementation Order — Pitch & Launch
+# Implementation Order — Pitch, Launch & Google Play
 
-**Pitch:** April 29, 2026 ✅ Delivered  
+**Pitch (TEI):** April 29, 2026 ✅ Delivered  
 **Public Web Launch:** May 6, 2026 ✅ Shipped  
-**Current date:** May 10, 2026
+**Google Play Launch:** Target — TEA program (Technical Entrepreneurship Accelerator, sequel to TEI with Google Play + All Star Code). Start date TBD; ship everything below before it begins.  
+**Current date:** May 11, 2026
 
 ---
 
-## Shipped (Pre-Pitch + Launch)
+## Shipped
 
 ### 1. Authenticated App Pages Redesign ✅
 Full visual redesign of all 13 authenticated routes. Lavender/pastel colors removed, Fraunces typography applied to all page headings, semantic badge/status color system unified. PR #195.
@@ -28,46 +29,86 @@ Full goal-personalized onboarding on web (dedicated `/onboarding` route) and And
 ### 5. Sessions / Logout Others ✅
 `GET /api/auth/sessions` lists active sessions with device label, IP location, and `isCurrent` flag. `DELETE /api/auth/sessions/:id` revokes individual sessions. `POST /api/auth/logout-all` immediately invalidates all sessions via `tokenVersion` increment + Redis blocklist. Profile security tab exposes all three actions.
 
+### 6. Brand Asset Refresh ✅
+Full brand identity applied across web and Android. PR #219.
+- **Web:** favicon replaced with app icon PNG (white background for Arc/colored-tab browsers), apple-touch-icon updated, Sidebar/MarketingNav/MarketingFooter switched to logo lockup
+- **Android launcher icon:** new brand icon at all adaptive-icon densities (foreground PNGs in safe zone) and mipmap WebP fallbacks; white background so Android squircle mask clips cleanly
+- **Android splash screen:** app icon at all densities with CC marks explicitly filled white; `setKeepOnScreenCondition` holds splash while `MainViewModel` pre-fetches the user profile so dashboard greeting and stats are populated on first frame; single-use splash cache consumed by `DashboardViewModel` with no stale-data risk
+- **Android auth screens:** logo lockup via Coil3 SVG; Google sign-in on Login and Register with official Google G icon and error surfacing
+- **Role badges:** Founder and Team Continuum badges shown in comment threads and activity feed
+
 ---
 
-## Post-Launch Backlog
+## Pre-Google Play Launch (Code Complete First)
 
-### In-App Notification Bell
-Stop at the in-app bell + Socket.io delivery. Skip email and FCM for now.
+Get the app feature-complete and polished before TEA starts. Play Store listing and signing happen with TEA — focus here is purely on code.
 
+### 0. Android Polish Audit
+Full audit of the Android app against Google Play standards (navigation, scale, gestures, empty states, loading/error states, store listing readiness). See [`android-play-audit.md`](android-play-audit.md) for the full prioritized list. Work through Critical → High → Medium before submission.
+
+### 1. Deep Links
+Shared notes, friend requests, and messages need to open in the app from iMessage/Slack/browser — core to the social story TEA judges will evaluate.
+- [ ] Android App Links: add `/.well-known/assetlinks.json` to the backend
+- [ ] Wire `MainActivity` intent filter → `NavController` for shared note, friend request, and task deep links
+- [ ] Open Graph meta tags on public share pages for link previews (iMessage, Slack)
+- [ ] Test on physical device via iMessage and browser
+
+### 2. In-App Notification Bell
+Foundation for everything below. Stops at Socket.io in-app delivery first.
 - [ ] `Notification` model + `notification.service.js` with `notify()` dispatcher
 - [ ] Wire into `comments.controller.js`, `friends.controller.js`, `share.service.js`
 - [ ] `GET /api/notifications`, `PATCH /api/notifications/read`, `DELETE /api/notifications/:id`
 - [ ] Emit `new_notification` Socket.io event
-- [ ] Notification bell in sidebar with unread badge and dropdown
-- [ ] `socket.on('new_notification')` in `AuthContext.jsx`
+- [ ] Web: notification bell in sidebar with unread badge and dropdown
+- [ ] Android: notification bell in top bar; `socket.on('new_notification')` handler
 
-### Deep Links
-- [ ] Audit all externally linkable routes
-- [ ] Open Graph meta tags on public pages for link previews
-- [ ] Android: wire `MainActivity` intent → `NavController` for message, friend request, shared note, task deep links
-- [ ] Test in iMessage, Slack, and browser
+### 3. FCM Push Notifications
+Android only. Requires notification bell infrastructure above.
+- [ ] Add Firebase to the project (`google-services.json`, Firebase SDK)
+- [ ] `FCMToken` stored per user session on the backend
+- [ ] Backend sends FCM message via `notification.service.js` when `notify()` fires
+- [ ] Android: handle foreground + background notification payloads, tap → deep link
 
-### Accessibility Audit
-- [ ] Lighthouse + axe on all public and app routes
-- [ ] Fix contrast, keyboard nav, focus, aria-label, modal focus trap, alt text violations
-- [ ] `Accessibility.jsx` at `/accessibility` + footer link
+### 4. Notification Email Delivery
+Requires notification bell infrastructure. Send on events users care about when they're not in the app.
+- [ ] Configure transactional email provider (e.g. Resend or SendGrid) with `noreply@usecontinuum.dev`
+- [ ] Email template for comment, friend request, and shared content notifications
+- [ ] Respect `emailNotifications` user setting (already exists on the profile model)
+- [ ] Unsubscribe link in every email (CAN-SPAM)
 
-### Email Inbound Routing
+### 5. Accessibility Audit
+Play Store IARC questionnaire surfaces a11y failures, and it fits the All Star Code / TEA profile.
+- [ ] Lighthouse + axe scan on all public and app routes (web)
+- [ ] Fix contrast, keyboard nav, focus indicators, aria-label, modal focus trap, alt text
+- [ ] Android: content descriptions on all icon-only buttons and images
+- [ ] `Accessibility.jsx` page at `/accessibility` + footer link
+
+### 6. Email Inbound Routing
+Quick win — needed before real support traffic comes in.
 - [ ] Confirm `usecontinuum.dev` is 30+ days old
 - [ ] ImprovMX MX records + forwarding rules for `hello@`, `support@`, `noreply@`
 
 ---
 
-## Long-Term
+## Do With TEA
 
-| Feature | Notes |
-|---|---|
-| iOS App | Full SwiftUI port — 6 phases, 9 feature modules |
-| Notification email delivery | Complete after real users on platform |
-| FCM push notifications | Android only, after notification bell ships |
-| Forum | Existing social primitives cover the pitch story for now |
+### Android Release Build & Signing
+- [ ] Generate a production release keystore and store it securely (not in repo)
+- [ ] Configure `signingConfigs` in `build.gradle.kts` for release
+- [ ] Build a signed AAB (`./gradlew bundleRelease`)
+- [ ] Verify `minSdk`, `targetSdk`, and `versionCode`/`versionName` are set correctly
+- [ ] Test the release build on a physical device before upload
+
+### Google Play Store Listing
+- [ ] Create Google Play Developer account (one-time $25 fee)
+- [ ] App title, short description (80 chars), full description
+- [ ] Feature graphic (1024×500 px) — use brand assets
+- [ ] At least 2 phone screenshots per required screen size
+- [ ] Content rating questionnaire (IARC)
+- [ ] Privacy policy URL live and linked in the listing
+- [ ] Target audience and content settings
+- [ ] Release track: Internal Testing → Closed Testing → Production
 
 ---
 
-*Last updated: May 10, 2026*
+*Last updated: May 11, 2026*

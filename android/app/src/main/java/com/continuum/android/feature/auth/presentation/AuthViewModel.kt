@@ -104,5 +104,7 @@ class AuthViewModel @Inject constructor(
 
     fun resetState() { _uiState.value = AuthUiState.Idle }
 
+    fun setGoogleError(message: String) { _uiState.value = AuthUiState.Error(message) }
+
     private fun errorMessage(t: Throwable): String = friendlyError(t)
 }

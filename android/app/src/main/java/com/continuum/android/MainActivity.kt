@@ -1,10 +1,16 @@
 package com.continuum.android
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.os.Bundle
+import android.view.View
 import android.view.WindowManager
+import android.view.animation.DecelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,9 +33,46 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var networkMonitor: NetworkMonitor
     @Inject lateinit var profileRepository: ProfileRepository
 
+    private val mainViewModel: MainViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Hold the splash until the initial profile fetch completes (max 3s).
+        // This ensures the dashboard greeting and stats are populated on first frame.
+        splashScreen.setKeepOnScreenCondition { !mainViewModel.isReady.value }
+
+        splashScreen.setOnExitAnimationListener { provider ->
+            val iconView = provider.iconView
+            val splashView = provider.view
+
+            val targetScale = maxOf(
+                splashView.width.toFloat() / iconView.width.coerceAtLeast(1),
+                splashView.height.toFloat() / iconView.height.coerceAtLeast(1)
+            ) * 1.5f
+
+            val scaleX = ObjectAnimator.ofFloat(iconView, View.SCALE_X, 1f, targetScale)
+            val scaleY = ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 1f, targetScale)
+
+            // Delay the splash fade until the icon has nearly filled the screen.
+            // Without the delay, the pre-rendered dashboard bleeds through the
+            // semi-transparent splash too early. With it, the icon already covers
+            // the content when the brief fade begins.
+            val fadeSplash = ObjectAnimator.ofFloat(splashView, View.ALPHA, 1f, 0f).apply {
+                startDelay = 380L
+            }
+
+            AnimatorSet().apply {
+                playTogether(scaleX, scaleY, fadeSplash)
+                duration = 560L
+                interpolator = DecelerateInterpolator(2.0f)
+                start()
+            }
+
+            iconView.postDelayed({ provider.remove() }, 560L)
+        }
 
         setContent {
             val isAuthenticated by tokenManager.isLoggedIn.collectAsStateWithLifecycle()

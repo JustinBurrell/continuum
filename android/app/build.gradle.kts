@@ -127,6 +127,7 @@ dependencies {
     // Image Loading
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    implementation(libs.coil.svg)
 
     // Socket.io
     implementation(libs.socketio.client) {
@@ -156,6 +157,9 @@ dependencies {
 
     // Lottie Animations
     implementation(libs.lottie.compose)
+
+    // Splash Screen
+    implementation(libs.androidx.core.splashscreen)
 
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)

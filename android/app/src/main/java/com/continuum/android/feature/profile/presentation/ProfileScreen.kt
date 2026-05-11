@@ -173,22 +173,26 @@ fun ProfileScreen(
                         }
                     }
                     Spacer(Modifier.height(12.dp))
-                    Text(
-                        text = profile.fullName,
-                        fontFamily = FrauncesFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        color = TextPrimary
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = profile.fullName,
+                            fontFamily = FrauncesFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = TextPrimary
+                        )
+                        if (profile.roles.isNotEmpty()) {
+                            VerifiedRoleBadges(roles = profile.roles, expanded = false)
+                        }
+                    }
                     Text(
                         text = "@${profile.username}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextSecondary
                     )
-                    if (profile.roles.isNotEmpty()) {
-                        Spacer(Modifier.height(6.dp))
-                        VerifiedRoleBadges(roles = profile.roles, expanded = true)
-                    }
                     profile.bio?.takeIf { it.isNotBlank() }?.let { bio ->
                         Spacer(Modifier.height(8.dp))
                         Text(
