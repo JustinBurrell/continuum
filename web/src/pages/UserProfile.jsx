@@ -263,7 +263,7 @@ export default function UserProfile() {
                   <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.25rem', fontWeight: 800, color: '#111827', margin: 0, lineHeight: 1.2 }}>
                     {name}
                   </h1>
-                  <VerifiedBadge roles={profile.roles} expanded />
+                  <VerifiedBadge roles={profile.roles} />
                 </span>
                 <p style={{ fontSize: 13, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
                   <AtSign size={12} />{profile.username}

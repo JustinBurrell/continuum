@@ -598,7 +598,7 @@ export default function Profile() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <span style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>{fullName}</span>
-                  <VerifiedBadge roles={me?.roles} expanded />
+                  <VerifiedBadge roles={me?.roles} />
                 </span>
                 <p style={{ fontSize: 13, color: '#9CA3AF', margin: '2px 0 6px' }}>@{me?.username}</p>
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
