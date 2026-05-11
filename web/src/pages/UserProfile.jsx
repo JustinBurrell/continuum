@@ -345,7 +345,7 @@ export default function UserProfile() {
 
         {/* Bio */}
         {profile.bio && (
-          <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginTop: 20, paddingTop: 20, borderTop: '1px solid #E5E7EB' }}>
+          <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginTop: 20, paddingTop: 20, borderTop: '1px solid #E5E7EB', whiteSpace: 'pre-wrap' }}>
             {profile.bio}
           </p>
         )}

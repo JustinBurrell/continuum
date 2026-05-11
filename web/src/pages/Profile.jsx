@@ -609,7 +609,7 @@ export default function Profile() {
                     <Users size={11} /> {friendships.length} friend{friendships.length !== 1 ? 's' : ''}
                   </span>
                 </div>
-                {me?.bio && <p style={{ fontSize: 13, color: '#374151', marginTop: 8, marginBottom: 0 }}>{me.bio}</p>}
+                {me?.bio && <p style={{ fontSize: 13, color: '#374151', marginTop: 8, marginBottom: 0, whiteSpace: 'pre-wrap' }}>{me.bio}</p>}
                 <SocialLinks user={me} style={{ marginTop: 8 }} />
               </div>
               <Button size="sm" variant="outline" onClick={() => setActiveTab('profile')} data-tour-highlight="profile-edit">
