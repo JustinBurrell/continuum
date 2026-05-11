@@ -38,12 +38,13 @@ const SUCCESS_SUBTEXT = {
   both:    "We'll reach out when both apps are ready for you.",
 };
 
+// iPhone X native height: 812px. At scale(0.17) → 138px tall, 64px wide — fully visible.
 function MiniPhone({ bg = '#E5E7EB' }) {
-  // Renders an iPhone X frame scaled to ~56px wide, 110px tall (clipped)
-  const scale = 56 / IPHONE_W;
+  const scale = 64 / IPHONE_W;
+  const scaledH = Math.ceil(812 * scale);
   return (
-    <div style={{ position: 'relative', width: 56, height: 110, flexShrink: 0, overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: 0, right: 0, width: IPHONE_W, transform: `scale(${scale})`, transformOrigin: 'top right', pointerEvents: 'none' }}>
+    <div style={{ position: 'relative', width: 64, height: scaledH, flexShrink: 0 }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, width: IPHONE_W, transform: `scale(${scale})`, transformOrigin: 'top left', pointerEvents: 'none' }}>
         <DeviceFrameset device="iPhone X">
           <div style={{ width: '100%', height: '100%', background: bg }} />
         </DeviceFrameset>
@@ -112,8 +113,9 @@ export default function MobileGate() {
 
   const canSubmit = firstName.trim().length > 0 && emailRegex.test(email.trim()) && platformInterest !== null;
 
-  // Hero phone: scale iPhone X (375px wide) to fit 42% of ~350px container = ~147px
-  const heroPhoneScale = 147 / IPHONE_W;
+  // Hero phone scale: fills 42% of the usable viewport width.
+  // clamp(320,430) → phone col ~130–168px. Scale 0.40 is the midpoint sweet spot.
+  const heroPhoneScale = 0.40;
 
   return (
     <div
@@ -136,7 +138,7 @@ export default function MobileGate() {
         className="relative w-full"
         style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
       >
-        <div className="max-w-sm mx-auto w-full px-4 py-3 flex items-center justify-between">
+        <div className="w-full px-4 py-3 flex items-center justify-between">
           <img src="/logo-lockup.svg" alt="Continuum" style={{ height: 28 }} />
           <button
             onClick={scrollToForm}
@@ -149,7 +151,7 @@ export default function MobileGate() {
 
       {/* ── Section 1: Hero — text left, phone right ── */}
       <section className="relative w-full overflow-hidden">
-        <div className="max-w-sm mx-auto w-full px-4" style={{ display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: 32, paddingBottom: 32 }}>
+        <div className="w-full px-4" style={{ display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: 32, paddingBottom: 32 }}>
 
           {/* Left: text + CTA */}
           <div style={{ flex: '0 0 58%', paddingRight: 12, paddingTop: 8 }}>
@@ -167,8 +169,8 @@ export default function MobileGate() {
             </Button>
           </div>
 
-          {/* Right: iPhone frame (42%), overflow clips bottom */}
-          <div style={{ flex: '0 0 42%', position: 'relative', overflow: 'hidden', minHeight: 300, alignSelf: 'stretch' }}>
+          {/* Right: iPhone frame (42%), height matches text column via alignSelf stretch */}
+          <div style={{ flex: '0 0 42%', position: 'relative', overflow: 'hidden', alignSelf: 'stretch' }}>
             <div style={{
               position: 'absolute',
               top: 0,
@@ -195,8 +197,8 @@ export default function MobileGate() {
 
       {/* ── Section 2: Feature highlights with mini phone per feature ── */}
       <section className="relative w-full">
-        <div className="max-w-sm mx-auto w-full px-4 pb-10">
-          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: 16, letterSpacing: '-0.01em' }}>
+        <div className="w-full px-4 pb-10">
+          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: 16, letterSpacing: '-0.01em', textAlign: 'center' }}>
             Everything you need
           </h2>
           <Card style={{ padding: 0 }}>
@@ -205,14 +207,14 @@ export default function MobileGate() {
                 key={label}
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
+                  alignItems: 'flex-start',
                   gap: 12,
                   padding: '14px 16px',
                   borderBottom: i < FEATURES.length - 1 ? '1px solid #F3F4F6' : 'none',
                 }}
               >
                 {/* Icon */}
-                <div style={{ flexShrink: 0 }}>
+                <div style={{ flexShrink: 0, marginTop: 2 }}>
                   <Icon size={18} color="#6B21A8" />
                 </div>
                 {/* Text */}
@@ -230,8 +232,8 @@ export default function MobileGate() {
 
       {/* ── Section 3: Waitlist form ── */}
       <section id="waitlist-form" className="relative w-full">
-        <div className="max-w-sm mx-auto w-full px-4 pb-10">
-          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: 16, letterSpacing: '-0.01em' }}>
+        <div className="w-full px-4 pb-10">
+          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: 16, letterSpacing: '-0.01em', textAlign: 'center' }}>
             Get early access
           </h2>
 
@@ -322,7 +324,7 @@ export default function MobileGate() {
 
       {/* ── Section 4: Directional copy ── */}
       <section className="relative w-full" style={{ borderTop: '1px solid #E5E7EB' }}>
-        <div className="max-w-sm mx-auto w-full px-4 pt-6 pb-6 text-center">
+        <div className="w-full px-4 pt-6 pb-6 text-center">
           <Monitor size={18} color="#6B7280" style={{ margin: '0 auto 8px' }} />
           <p style={{ color: '#6B7280', fontSize: '0.875rem', margin: 0, lineHeight: 1.6 }}>
             Best experienced on a laptop. Open usecontinuum.dev there to get started today.
@@ -332,7 +334,7 @@ export default function MobileGate() {
 
       {/* ── Footer ── */}
       <footer className="relative w-full">
-        <div className="max-w-sm mx-auto w-full px-4 pt-4 pb-8 text-center">
+        <div className="w-full px-4 pt-4 pb-8 text-center">
           <p style={{ color: '#9B9B9B', fontSize: '0.75rem', margin: '0 0 8px' }}>
             &copy; 2026 Continuum. All rights reserved.
           </p>
