@@ -33,6 +33,7 @@ accompanist = "0.36.0"
 workmanager = "2.10.0"
 mockk = "1.13.13"
 lottie = "6.6.2"
+coreSplashscreen = "1.0.1"
 
 [libraries]
 # AndroidX Core
@@ -119,6 +120,9 @@ androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx"
 
 # Lottie Animations
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
+
+# Splash Screen
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

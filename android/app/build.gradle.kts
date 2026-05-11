@@ -157,6 +157,9 @@ dependencies {
     // Lottie Animations
     implementation(libs.lottie.compose)
 
+    // Splash Screen
+    implementation(libs.androidx.core.splashscreen)
+
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
 
