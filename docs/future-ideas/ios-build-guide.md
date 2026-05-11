@@ -80,6 +80,8 @@ Use Swift Package Manager (SPM) — no CocoaPods or Podfile needed. In Xcode: **
 
 For each package, select the default branch or latest version tag and add it to the **Continuum** target. Xcode resolves all transitive dependencies automatically — no separate install step, no `.xcworkspace` distinction.
 
+> **Sign in with Apple does not need an SPM package.** `AuthenticationServices` is a system framework built into iOS 13+. Add it to `ContinuumApp.swift` with `import AuthenticationServices` — no entry in the package list above required.
+
 ### Step 0.3 — Add fonts to Xcode
 
 1. Drag all 6 `.ttf` font files into Xcode under `Continuum/Resources/Fonts/`
@@ -1252,11 +1254,152 @@ Build features in this order — each builds on the previous. For each feature, 
 - **Logo lockup on auth screens:** Android renders `"file:///android_asset/ic_logo_lockup.svg"` via Coil3. iOS: use `WebImage(url: Bundle.main.url(forResource: "ic_logo_lockup", withExtension: "svg"))` — copy `ic_logo_lockup.svg` from `/android/app/src/main/assets/` to `Continuum/Resources/` and add to target. Requires SDWebImageSVGCoder (Step 5.1).
 - Password validation regex: copy the same rules from `RegisterScreen.kt` (8+ chars, letter, digit, special char)
 
+#### Sign in with Apple
+
+**Why it is required:** Apple's App Store rules mandate that any app offering a third-party social login (Google, Facebook, etc.) must also offer an equivalent privacy-respecting login option. In practice Sign in with Apple is the only option that satisfies all three conditions Apple checks (limited data collection, private relay email, no cross-app tracking). Omitting it when Google Sign-In is present will fail App Review.
+
+**No new SPM package.** Use `import AuthenticationServices` — it is a system framework built into iOS 13+.
+
+**New backend endpoint.** Model it directly on `POST /api/auth/google/mobile` in `auth.mobile.controller.js`:
+
+```
+POST /api/auth/apple/mobile
+Body: { identityToken: String, firstName: String?, lastName: String?, email: String? }
+
+Server:
+  1. Verify identityToken against Apple's public keys (use the `apple-signin-auth` npm package
+     or Apple's JWKS endpoint — mirrors googleClient.verifyIdToken() in the Google flow)
+  2. Extract `sub` (Apple's stable user ID), `email` (may be private relay), given/family name
+  3. Upsert user by appleId or email — same logic as googleMobileLogin
+  4. Return: { success: true, token: JWT, refreshToken: String }
+     (body, not httpOnly cookie — mirrors the mobile Google endpoint)
+```
+
+> Note: Apple delivers `email` and `fullName` only on the **very first authorization**. On all subsequent sign-ins they are `nil`. The backend must treat `firstName`, `lastName`, and `email` as optional and only set them on account creation.
+
+**The one-time name and email problem — critical.** Apple returns `fullName` and `email` exactly once: the moment the user taps "Continue" in the system sheet. They are `nil` on every subsequent call. Handle this before anything else in `didCompleteWithAuthorization`:
+
+```swift
+import AuthenticationServices
+import Combine
+
+class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate {
+    var onResult: ((Result<AppleCredential, Error>) -> Void)?
+
+    func authorizationController(controller: ASAuthorizationController,
+                                 didCompleteWithAuthorization authorization: ASAuthorization) {
+        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+              let identityTokenData = credential.identityToken,
+              let identityToken = String(data: identityTokenData, encoding: .utf8) else { return }
+
+        // Capture name and email IMMEDIATELY — they are nil on every subsequent auth.
+        // Store to Keychain as a local safety net in case the network call fails
+        // before the server can persist them.
+        let firstName = credential.fullName?.givenName
+        let lastName  = credential.fullName?.familyName
+        let email     = credential.email
+
+        if let firstName, let lastName {
+            // Keychain safety net — mirrors how TokenManager stores tokens
+            TokenManager.shared.saveAppleUserName(firstName: firstName, lastName: lastName)
+        }
+        if let email {
+            TokenManager.shared.saveAppleEmail(email)
+        }
+
+        onResult?(.success(AppleCredential(
+            identityToken: identityToken,
+            firstName: firstName,
+            lastName: lastName,
+            email: email
+        )))
+    }
+
+    func authorizationController(controller: ASAuthorizationController,
+                                 didCompleteWithError error: Error) {
+        onResult?(.failure(error))
+    }
+}
+
+struct AppleCredential {
+    let identityToken: String
+    let firstName: String?
+    let lastName: String?
+    let email: String?
+}
+```
+
+**Triggering the flow (mirrors the Google button handler in LoginScreen/RegisterScreen):**
+
+```swift
+func signInWithApple() {
+    let provider = ASAuthorizationAppleIDProvider()
+    let request  = provider.createRequest()
+    request.requestedScopes = [.fullName, .email]
+
+    let coordinator = AppleSignInCoordinator()
+    coordinator.onResult = { result in
+        switch result {
+        case .success(let cred):
+            Task {
+                // POST to /api/auth/apple/mobile — same pattern as loginWithGoogle()
+                await viewModel.loginWithApple(
+                    identityToken: cred.identityToken,
+                    firstName: cred.firstName,
+                    lastName: cred.lastName,
+                    email: cred.email
+                )
+            }
+        case .failure(let error):
+            // Surface error via AuthUiState.Error — same as Google error path
+            viewModel.setAppleError(error.localizedDescription)
+        }
+    }
+
+    let controller = ASAuthorizationController(authorizationRequests: [request])
+    controller.delegate = coordinator
+    controller.presentationContextProvider = self
+    controller.performRequests()
+}
+```
+
+**TokenManager additions.** Add three Keychain helpers to mirror how tokens are stored — these serve as a local safety net for the one-time name/email:
+
+```swift
+func saveAppleUserName(firstName: String, lastName: String) {
+    save(key: "apple_first_name", value: firstName)
+    save(key: "apple_last_name",  value: lastName)
+}
+func saveAppleEmail(_ email: String) { save(key: "apple_email", value: email) }
+func getAppleUserName() -> (firstName: String?, lastName: String?) {
+    (load(key: "apple_first_name"), load(key: "apple_last_name"))
+}
+```
+
+**Button requirements (App Store enforced).** Apple mandates `ASAuthorizationAppleIDButton` — custom-styled buttons are an App Review rejection:
+
+```swift
+// Use .signIn on Login, .signUp on Register, .continue on ambiguous flows
+// Style: .black on light backgrounds, .white/.whiteOutline on dark backgrounds
+// Minimum height: 44pt. Must maintain Apple's required padding and aspect ratio.
+SignInWithAppleButton(.signIn, onRequest: { request in
+    request.requestedScopes = [.fullName, .email]
+}, onCompletion: { result in
+    // handle result
+})
+.frame(height: 50)
+.cornerRadius(8)
+```
+
+**Placement.** The SIWA button must be **at least as prominent as the Google button** — same height, same width, same visual weight. Place it directly below the Google button on both Login and Register screens, above the email/password divider. Both buttons then sit above `"or sign in with email"`.
+
+**Apple private relay email.** When the user chooses "Hide My Email", Apple returns an address like `abc123@privaterelay.appleid.com`. The backend must accept and store it as-is — it is a valid, working forwarding address. Do not validate against a domain allowlist.
+
 ### Step 4.2 — Notes Feature
 **Reference files:** `NotesApiService.kt`, `NoteDtos.kt`, `NotesRepository.kt`, `Note.kt`, `NotesViewModel.kt`, 4 presentation screens
 
 **Key translation notes:**
-- Rich text editor: use `RichTextKit` pod (same HTML input/output format)
+- Rich text editor: use `RichTextKit` SPM package (same HTML input/output format)
 - Google Drive import: use `SFSafariViewController` wrapped in `UIViewControllerRepresentable` to open the CCT picker URL — this matches Chrome Custom Tab behaviour (no system permission alert, shares Safari cookies). `ASWebAuthenticationSession` is incorrect here because it shows an authentication-consent alert. Register the `continuum://drive-pick` deep link in `Info.plist` — the same backend URL works
 - PDF download: use `URLSession` to download bytes, save to temp file, open with `PDFKit.PDFDocument`
 - `useInfiniteQuery` pattern → fetch all pages in parallel using Swift `async let`, merge results
@@ -1500,9 +1643,10 @@ ARCHITECTURE (non-negotiable):
 - Keychain Services for token storage (mirrors EncryptedSharedPreferences)
 - Combine PassthroughSubject for all event buses (mirrors SharedFlow)
 - NWPathMonitor for network (mirrors ConnectivityManager)
-- Socket.IO-Client-Swift pod for real-time (mirrors Socket.IO Android)
+- Socket.IO-Client-Swift SPM package for real-time (mirrors Socket.IO Android)
 - SDWebImageSwiftUI + SDWebImageSVGCoder for image loading + SVG (mirrors Coil3 + SvgDecoder)
-- GoogleSignIn pod for OAuth (mirrors CredentialManager + GetGoogleIdOption)
+- GoogleSignIn SPM package for OAuth (mirrors CredentialManager + GetGoogleIdOption)
+- AuthenticationServices (built-in, no package) for Sign in with Apple
 
 DESIGN SYSTEM (exact matches from Android):
 - Fraunces-Bold / Fraunces-Black for headlines (FrauncesFamily)
@@ -1668,6 +1812,7 @@ These behaviors exist in Android but have no iOS equivalent or require a differe
 | `PdfRenderer` for PDF display | `PDFKit.PDFView` — significantly simpler API |
 | `ActivityResultContracts.GetContent()` | `PhotosUI.PhotosPicker` (images) or `UIDocumentPickerViewController` (PDFs) |
 | `CredentialManager` + `GetGoogleIdOption` + `ic_google` drawable | `GoogleSignIn` iOS SDK + `GIDSignIn.sharedInstance` + `ic_google.png` asset |
+| No equivalent (Android has no SIWA) | `AuthenticationServices` (built-in) — required by App Store when any third-party login exists; `ASAuthorizationAppleIDButton` mandatory for button; name + email delivered only once, capture immediately in delegate and persist to Keychain before network call |
 | Coil3 `SvgDecoder.Factory()` registered in `ContinuumApp.kt` | `SDImageSVGCoder.shared` added to `SDImageCodersManager` in `ContinuumApp.init()` |
 | `SplashScreen.setKeepOnScreenCondition` + `setOnExitAnimationListener` (ObjectAnimator zoom + delayed fade) | `LaunchCoverView` full-screen overlay driven by `MainViewModel.isReady`; fades out with `.easeOut(duration: 0.3)` |
 | `RichTextEditor` (Compose Rich Editor) | `RichTextKit` pod — same HTML in/out contract |
