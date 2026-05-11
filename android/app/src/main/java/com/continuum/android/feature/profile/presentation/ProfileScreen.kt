@@ -50,8 +50,6 @@ fun ProfileScreen(
     onCalendar: () -> Unit = {},
     onTasks: () -> Unit = {},
     onResumes: () -> Unit = {},
-    onTerms: () -> Unit = {},
-    onPrivacy: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -307,9 +305,9 @@ fun ProfileScreen(
             // Legal
             item {
                 ProfileSection(title = "Legal") {
-                    ProfileRow(icon = Icons.Default.Article, label = "Terms of Service", onClick = onTerms)
+                    ProfileRow(icon = Icons.Default.Article, label = "Terms of Service", onClick = { uriHandler.openUri("https://usecontinuum.dev/terms") })
                     HorizontalDivider(color = Border)
-                    ProfileRow(icon = Icons.Default.Shield, label = "Privacy Policy", onClick = onPrivacy)
+                    ProfileRow(icon = Icons.Default.Shield, label = "Privacy Policy", onClick = { uriHandler.openUri("https://usecontinuum.dev/privacy") })
                 }
             }
 

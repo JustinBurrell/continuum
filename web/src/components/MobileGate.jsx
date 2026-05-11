@@ -10,7 +10,7 @@ import {
   Monitor,
 } from 'lucide-react';
 import api from '@/lib/api';
-import posthog from '@/lib/posthog';
+import { posthog } from '@/lib/posthog';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';

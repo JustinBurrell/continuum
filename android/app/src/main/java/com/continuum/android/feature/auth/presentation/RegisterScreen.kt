@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import coil3.compose.rememberAsyncImagePainter
 import androidx.credentials.CredentialManager
@@ -39,12 +40,11 @@ import kotlinx.coroutines.launch
 fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    onNavigateToPrivacy: () -> Unit,
-    onNavigateToTerms: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val coroutineScope = rememberCoroutineScope()
 
     var firstName by remember { mutableStateOf("") }
@@ -214,11 +214,11 @@ fun RegisterScreen(
                         color = TextMuted
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = onNavigateToTerms, contentPadding = PaddingValues(4.dp)) {
+                        TextButton(onClick = { uriHandler.openUri("https://usecontinuum.dev/terms") }, contentPadding = PaddingValues(4.dp)) {
                             Text("Terms of Service", color = BrandPurple, style = MaterialTheme.typography.bodySmall)
                         }
                         Text("and", style = MaterialTheme.typography.bodySmall, color = TextMuted)
-                        TextButton(onClick = onNavigateToPrivacy, contentPadding = PaddingValues(4.dp)) {
+                        TextButton(onClick = { uriHandler.openUri("https://usecontinuum.dev/privacy") }, contentPadding = PaddingValues(4.dp)) {
                             Text("Privacy Policy", color = BrandPurple, style = MaterialTheme.typography.bodySmall)
                         }
                     }

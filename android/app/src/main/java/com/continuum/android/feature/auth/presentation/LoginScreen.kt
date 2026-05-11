@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import coil3.compose.rememberAsyncImagePainter
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,14 +38,13 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
-    onNavigateToPrivacy: () -> Unit,
-    onNavigateToTerms: () -> Unit,
     remoteLogoutMessage: String? = null,
     onRemoteLogoutShown: () -> Unit = {},
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -233,11 +233,11 @@ fun LoginScreen(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(onClick = onNavigateToTerms, contentPadding = PaddingValues(4.dp)) {
+            TextButton(onClick = { uriHandler.openUri("https://usecontinuum.dev/terms") }, contentPadding = PaddingValues(4.dp)) {
                 Text("Terms of Service", color = BrandPurple, style = MaterialTheme.typography.bodySmall)
             }
             Text("and", style = MaterialTheme.typography.bodySmall, color = TextMuted)
-            TextButton(onClick = onNavigateToPrivacy, contentPadding = PaddingValues(4.dp)) {
+            TextButton(onClick = { uriHandler.openUri("https://usecontinuum.dev/privacy") }, contentPadding = PaddingValues(4.dp)) {
                 Text("Privacy Policy", color = BrandPurple, style = MaterialTheme.typography.bodySmall)
             }
         }
