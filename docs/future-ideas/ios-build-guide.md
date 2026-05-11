@@ -16,7 +16,7 @@ Before starting, confirm you have:
 - CocoaPods installed: `sudo gem install cocoapods`
 - The Continuum repo cloned locally
 - Font files available: `fraunces_bold.ttf`, `fraunces_black.ttf`, `plus_jakarta_sans_regular.ttf`, `plus_jakarta_sans_medium.ttf`, `plus_jakarta_sans_semibold.ttf`, `plus_jakarta_sans_bold.ttf` (extract from `/android/app/src/main/res/font/`)
-- SVG assets: `ic_logo_symbol.xml`, `ic_logo_wordmark.xml`, `ic_linkedin.xml`, `ic_instagram.xml` (convert to PDF or PNG for iOS)
+- SVG assets: `ic_logo_symbol.svg`, `ic_logo_lockup.svg` are in `/android/app/src/main/assets/`. `ic_linkedin.xml`, `ic_instagram.xml` (convert to PDF or PNG for iOS)
 
 ---
 
@@ -50,11 +50,17 @@ target 'Continuum' do
   # Replaces io.coil-kt.coil3 (Android image loading)
   pod 'SDWebImageSwiftUI'
   
+  # SVG support for SDWebImage — replaces Coil3 SvgDecoder.Factory() in ContinuumApp.kt
+  pod 'SDWebImageSVGCoder'
+  
   # Replaces Lottie Android — same library, Apple version
   pod 'lottie-ios', '~> 4.4'
   
   # Replaces com.mohamedrejeb.richeditor (rich text editing)
   pod 'RichTextKit', '~> 1.0'
+  
+  # Replaces CredentialManager + GetGoogleIdOption (Android)
+  pod 'GoogleSignIn', '~> 7.0'
 end
 ```
 
@@ -74,15 +80,19 @@ Run `pod install` from `/ios/`, then open `Continuum.xcworkspace` (not `.xcodepr
 
 ### Step 0.4 — Add logo assets
 
-> **⚠️ STOP — Claude Code must ask the user for PNGs before proceeding.**
->
-> For `ic_logo_symbol` and `ic_logo_wordmark`, Claude Code cannot convert Android `.xml` vector drawables to iOS-compatible assets automatically. It must pause and ask:
+SVG assets live in `/android/app/src/main/assets/`:
+- `ic_logo_symbol.svg` — the infinity/lemniscate logo mark
+- `ic_logo_lockup.svg` — the combined symbol + wordmark used on the auth screens
+
+For iOS, SDWebImageSVGCoder can render SVGs directly (see Step 5.1). For the Xcode asset catalog (app icon, static references), you still need raster or PDF versions:
+
+> **Note — Claude Code must ask the user for PNGs before adding to the asset catalog.**
 >
 > *"I need two PNG assets before I can continue:*
 > *1. `ic_logo_symbol.png` — the infinity/lemniscate logo mark (transparent background, any size 512px+)*
 > *2. `ic_logo_wordmark.png` — the full "continuum" text wordmark (transparent background, any size 1024px+)*
 >
-> *You can export these from Figma, your web frontend's public folder, or by screenshotting the Android app with a white background and removing it. Please provide both files and I will add them to the Xcode asset catalog."*
+> *You can export these from Figma, or from the SVGs at `/android/app/src/main/assets/`. Please provide both files and I will add them to the Xcode asset catalog."*
 
 Once the user provides the PNGs, add them to Xcode:
 
@@ -622,7 +632,59 @@ class SocketManager: ObservableObject {
 }
 ```
 
-### Step 1.11 — SwiftData Persistence Layer
+### Step 1.11 — MainViewModel (Splash Pre-fetch)
+
+**File:** `Core/App/MainViewModel.swift`  
+**Replaces:** `MainViewModel.kt` — pre-fetches the user profile during splash with a 3-second timeout, then primes the single-use splash cache in `ProfileRepository` so the dashboard first frame is populated.
+
+```swift
+import Foundation
+
+@Observable
+class MainViewModel {
+    var isReady: Bool = false
+
+    init(tokenManager: TokenManager = .shared,
+         profileRepository: ProfileRepository = .shared) {
+        Task {
+            if tokenManager.getAccessToken() != nil {
+                // Mirror withTimeout(3_000L) in MainViewModel.kt:
+                // Try to pre-fetch the profile; ignore timeout or auth errors
+                // so the splash never hangs longer than 3 seconds.
+                await withTaskGroup(of: Void.self) { group in
+                    group.addTask {
+                        do {
+                            try await withThrowingTaskGroup(of: Void.self) { inner in
+                                inner.addTask {
+                                    if let profile = try? await profileRepository.getProfile() {
+                                        profileRepository.primeSplashCache(profile)
+                                    }
+                                }
+                                // 3-second hard timeout (mirrors withTimeout(3_000L))
+                                inner.addTask {
+                                    try await Task.sleep(nanoseconds: 3_000_000_000)
+                                    throw CancellationError()
+                                }
+                                // First to finish wins; cancel the other
+                                _ = try await inner.next()
+                                inner.cancelAll()
+                            }
+                        } catch {
+                            // Network too slow, auth error, or offline — proceed normally
+                        }
+                    }
+                    await group.waitForAll()
+                }
+            }
+            await MainActor.run { isReady = true }
+        }
+    }
+}
+```
+
+**Usage note:** Create `MainViewModel` as a `@State` property at the `@main` App level (see Step 5.1). Use it to gate the launch cover overlay — keep the cover visible until `isReady == true`.
+
+### Step 1.12 — SwiftData Persistence Layer
 
 **File:** `Core/Persistence/Models.swift`  
 **Replaces:** All `@Entity` classes in `AppDatabase.kt` (Room → SwiftData)
@@ -710,7 +772,7 @@ class PersistenceController {
 }
 ```
 
-### Step 1.12 — SyncWorker
+### Step 1.13 — SyncWorker
 
 **File:** `Core/Sync/SyncWorker.swift`  
 **Replaces:** `SyncWorker.kt` (WorkManager → BGTaskScheduler)
@@ -948,8 +1010,142 @@ Translate directly from `OfflineBanner.kt`, `DemoBanner.kt`, `EmptyState.kt`. Ea
 ### Step 2.7 — StatusBadge
 **Replaces:** `StatusBadge.kt` — translate the `colorsFor(status)` mapping to a Swift switch statement using the same `ApplicationStatus` enum values.
 
-### Step 2.8 — CommentThread + ShareToFriendsSheet
+### Step 2.8 — ContinuumPullToRefresh
+
+**File:** `Core/UI/Components/ContinuumPullToRefresh.swift`  
+**Replaces:** `ContinuumPullToRefresh.kt` — wraps pull-to-refresh with a 700ms minimum spinner duration so the indicator never flashes and disappears instantly (mirrors Instagram's behaviour).
+
+The Android component wraps `PullToRefreshBox` and manages a local `isRefreshing` state separate from the caller's loading state. The iOS equivalent uses the `.refreshable` modifier with a `Task` that enforces the same 700ms floor.
+
+```swift
+import SwiftUI
+
+// Mirrors ContinuumPullToRefresh.kt — MIN_REFRESH_MS = 700ms
+private let minRefreshDuration: Duration = .milliseconds(700)
+
+extension View {
+    /// Drop-in replacement for `.refreshable` that enforces a 700ms minimum
+    /// spinner duration. Attach to any `List` or `ScrollView`.
+    /// Replaces: ContinuumPullToRefresh.kt
+    func continuumRefreshable(action: @escaping () async -> Void) -> some View {
+        self.refreshable {
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask { await action() }
+                group.addTask { try? await Task.sleep(for: minRefreshDuration) }
+                // Wait for BOTH: data load and minimum duration
+                await group.waitForAll()
+            }
+        }
+    }
+}
+```
+
+**Usage on every refreshable screen** (mirrors all screens that use `ContinuumPullToRefresh`):
+
+```swift
+List { /* content */ }
+    .continuumRefreshable {
+        await viewModel.refresh()
+    }
+```
+
+> The tint colour of the system pull-to-refresh indicator is set via the app's accent colour in `Assets.xcassets` → `AccentColor` → set to `#6B21A8` (BrandPurple). This matches the `color = BrandPurple` passed to `PullToRefreshDefaults.Indicator` in the Android component.
+
+### Step 2.9 — VerifiedRoleBadges
+
+**File:** `Core/UI/Components/VerifiedRoleBadges.swift`  
+**Replaces:** `VerifiedRoleBadges.kt`
+
+The `expanded` parameter controls icon-only vs icon+text display:
+- `expanded = false` — compact icon chip, used inline next to names in profile header, activity feed, and comment thread
+- `expanded = true` — icon + text label, used on full profile pages where space allows
+
+The team badge icon loads the logo symbol SVG via SDWebImage (mirrors `rememberAsyncImagePainter("file:///android_asset/ic_logo_symbol.svg")`).
+
+```swift
+import SwiftUI
+import SDWebImageSwiftUI
+
+/// Inline verified role badges. Mirrors VerifiedRoleBadges.kt exactly.
+/// - expanded = false: icon only (compact, for use next to names)
+/// - expanded = true: icon + text label
+struct VerifiedRoleBadges: View {
+    let roles: [String]
+    var expanded: Bool = true
+
+    private var showFounder: Bool { roles.contains { $0.lowercased() == "founder" } }
+    private var showTeam: Bool    { roles.contains { $0.lowercased() == "team" } }
+
+    var body: some View {
+        if roles.isEmpty || (!showFounder && !showTeam) {
+            EmptyView()
+        } else {
+            HStack(spacing: 8) {
+                if showFounder {
+                    founderBadge
+                }
+                if showTeam {
+                    teamBadge
+                }
+            }
+        }
+    }
+
+    private var founderBadge: some View {
+        HStack(spacing: expanded ? 4 : 0) {
+            Image(systemName: "star.fill")
+                .resizable()
+                .frame(width: 12, height: 12)
+                .foregroundStyle(Color.warningAmber)
+            if expanded {
+                Text("Founder")
+                    .font(.labelMedium)
+                    .foregroundStyle(Color.warningAmber)
+            }
+        }
+        .padding(.horizontal, expanded ? 10 : 6)
+        .padding(.vertical, 4)
+        .background(Color.warningAmber.opacity(0.15))
+        .clipShape(AppShape.chip)
+    }
+
+    private var teamBadge: some View {
+        HStack(spacing: expanded ? 4 : 0) {
+            // Load ic_logo_symbol.svg from the app bundle.
+            // Replaces: rememberAsyncImagePainter("file:///android_asset/ic_logo_symbol.svg")
+            // Requires SDWebImageSVGCoder registered at app init (see Step 5.1).
+            if let svgUrl = Bundle.main.url(forResource: "ic_logo_symbol", withExtension: "svg") {
+                WebImage(url: svgUrl)
+                    .resizable()
+                    .frame(width: 12, height: 12)
+                    .colorMultiply(Color.brandPurple)
+            } else {
+                Image(systemName: "infinity")
+                    .resizable()
+                    .frame(width: 12, height: 12)
+                    .foregroundStyle(Color.brandPurple)
+            }
+            if expanded {
+                Text("Team Continuum")
+                    .font(.labelMedium)
+                    .foregroundStyle(Color.brandPurple)
+            }
+        }
+        .padding(.horizontal, expanded ? 10 : 6)
+        .padding(.vertical, 4)
+        .background(Color.brandPurple.opacity(0.12))
+        .clipShape(AppShape.chip)
+    }
+}
+```
+
+**Asset setup:** Copy `ic_logo_symbol.svg` from `/android/app/src/main/assets/ic_logo_symbol.svg` into `Continuum/Resources/` and add it to the Xcode target. SDWebImageSVGCoder (registered in Step 5.1) handles rendering.
+
+### Step 2.10 — CommentThread + ShareToFriendsSheet
+
 **Replaces:** `CommentThread.kt` + `ShareToFriendsSheet.kt` — these are the most complex shared components. Translate the nested `Column`/`Row` layouts to `VStack`/`HStack`. `ModalBottomSheet` → `.sheet(isPresented:)`.
+
+**Important update in `CommentThread`:** The `CommentItem` now renders `VerifiedRoleBadges(roles: comment.authorRoles, expanded: false)` inline in the author name row, between the name and the timestamp. Mirror this exactly — the `HStack` containing the author name, the badges, and the date must be in that order with `spacing: 6`.
 
 ---
 
@@ -1010,11 +1206,16 @@ Build features in this order — each builds on the previous. For each feature, 
 6. Screens (SwiftUI `View` structs mirroring the Kotlin `@Composable` functions)
 
 ### Step 4.1 — Auth Feature
-**Reference files:** `AuthApiService.kt`, `AuthDtos.kt`, `AuthRepository.kt`, `User.kt`, `AuthViewModel.kt`, all 6 auth presentation screens
+**Reference files:** `AuthApiService.kt`, `AuthDtos.kt`, `AuthRepository.kt`, `User.kt`, `AuthViewModel.kt`, `LoginScreen.kt`, `RegisterScreen.kt`, and 4 other auth screens
 
 **Key translation notes:**
 - `AuthUiState` sealed class → Swift `enum AuthUiState`
-- Google Sign-In: replace `CredentialManager` + `GetGoogleIdOption` with `import GoogleSignIn` SDK. Get `idToken` from `GIDSignIn.sharedInstance` and POST to `POST /api/auth/google/mobile` — same endpoint as Android
+- **Google Sign-In:** Replace `CredentialManager` + `GetGoogleIdOption` (Android) with `import GoogleSignIn` SDK (pod added in Step 0.2). The flow:
+  1. Call `GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)` 
+  2. Retrieve `user.idToken?.tokenString`
+  3. POST to `POST /api/auth/google/mobile` — same endpoint as Android
+  - The Android screens use `painterResource(R.drawable.ic_google)` for the Google icon. iOS: add `ic_google.png` (standard Google "G" logo) to `Assets.xcassets` and reference it as `Image("ic_google")`.
+- **Logo lockup on auth screens:** Android renders `"file:///android_asset/ic_logo_lockup.svg"` via Coil3. iOS: use `WebImage(url: Bundle.main.url(forResource: "ic_logo_lockup", withExtension: "svg"))` — copy `ic_logo_lockup.svg` from `/android/app/src/main/assets/` to `Continuum/Resources/` and add to target. Requires SDWebImageSVGCoder (Step 5.1).
 - Password validation regex: copy the same rules from `RegisterScreen.kt` (8+ chars, letter, digit, special char)
 
 ### Step 4.2 — Notes Feature
@@ -1025,6 +1226,7 @@ Build features in this order — each builds on the previous. For each feature, 
 - Google Drive import: use `ASWebAuthenticationSession` to open the CCT picker URL. Register the `continuum://drive-pick` deep link in `Info.plist` — the same backend URL works
 - PDF download: use `URLSession` to download bytes, save to temp file, open with `PDFKit.PDFDocument`
 - `useInfiniteQuery` pattern → fetch all pages in parallel using Swift `async let`, merge results
+- Pull-to-refresh: use `.continuumRefreshable` (Step 2.8) on the notes list
 
 ### Step 4.3 — Flashcards Feature
 **Reference files:** `FlashcardsApiService.kt`, `FlashcardDtos.kt`, `FlashcardsRepository.kt`, `Flashcard.kt`, `FlashcardsViewModel.kt`, 5 presentation screens
@@ -1033,6 +1235,7 @@ Build features in this order — each builds on the previous. For each feature, 
 - Card flip animation: use SwiftUI `rotation3DEffect` with `withAnimation(.easeInOut(duration: 0.4))` — identical to `animateFloatAsState` flip in Android
 - Swipe gestures on revealed card: use `DragGesture` with `onEnded` threshold check (`>120pt` mirrors the Android `120f` threshold)
 - Study session submit: `POST /api/study-sessions` — same endpoint, same DTO
+- Pull-to-refresh: use `.continuumRefreshable` (Step 2.8) on the sets list
 
 ### Step 4.4 — Tasks Feature
 **Reference files:** `TasksApiService.kt`, `TaskDtos.kt`, `TaskParticipantDtoAdapter.kt`, `TasksRepository.kt`, `Task.kt`, `TasksViewModel.kt`, 4 presentation screens
@@ -1051,12 +1254,15 @@ Build features in this order — each builds on the previous. For each feature, 
 - Multipart upload: construct `URLRequest` with multipart/form-data body manually (no Retrofit `@Multipart` annotation)
 
 ### Step 4.6 — Social Feature
-**Reference files:** `SocialApiService.kt`, `SocialDtos.kt`, `SocialRepository.kt`, `Social.kt`, `SocialViewModel.kt`, 6 presentation screens
+**Reference files:** `SocialApiService.kt`, `SocialDtos.kt`, `SocialRepository.kt`, `Social.kt`, `SocialViewModel.kt`, `ActivityFeedScreen.kt`, `CommentThread.kt`, and 5 other screens
 
 **Key translation notes:**
 - `CommentThread` and `ShareToFriendsSheet` are already built in Phase 2 — wire them up to the social ViewModel here
+- **Role badges in ActivityFeedScreen:** `ActivityCard` renders `VerifiedRoleBadges(roles: item.actorRoles, expanded: false)` inline after the actor name in the same `HStack`. Match the Android layout: actor name (purple, clickable) → badges → action text (truncated, weight 1f).
+- **Role badges in CommentThread:** Already included in Step 2.10. Each `CommentItem` shows `VerifiedRoleBadges(roles: comment.authorRoles, expanded: false)` between the author name and the timestamp.
 - Cursor-based activity feed pagination: track `nextCursor` in ViewModel state, load more when last visible item is within 3 of the end (same as Android `shouldLoadMore` derived state)
 - `getFriendProfileExtras` parallel fetch: use `async let` for all 4 concurrent requests
+- Pull-to-refresh on activity feed: use `.continuumRefreshable` (Step 2.8)
 
 ### Step 4.7 — Messaging Feature
 **Reference files:** `MessagingApiService.kt`, `MessagingDtos.kt`, `MessagingRepository.kt`, `Messaging.kt`, `MessagingViewModel.kt`, 2 presentation screens
@@ -1068,13 +1274,14 @@ Build features in this order — each builds on the previous. For each feature, 
 - Reverse layout (newest at bottom): `LazyVStack` reversed, or `List` with `.scrollPosition` anchored to bottom
 
 ### Step 4.8 — Profile Feature
-**Reference files:** `ProfileApiService.kt`, `ProfileDtos.kt`, `ProfileRepository.kt`, `Profile.kt`, `ProfileViewModel.kt`, 4 presentation screens
+**Reference files:** `ProfileApiService.kt`, `ProfileDtos.kt`, `ProfileRepository.kt`, `Profile.kt`, `ProfileViewModel.kt`, `ProfileScreen.kt`, 3 other screens
 
 **Key translation notes:**
 - Avatar upload: use `PhotosUI.PhotosPicker` (iOS 16+) to pick image, compress to JPEG, upload as multipart
 - Session management: `GET /api/auth/sessions` + `DELETE /api/auth/sessions/:id` — same endpoints
 - Account deletion grace period: same 30-day flow, confirm with username input + password (same validation as Android `DeleteAccountDialog`)
 - Google unlink: `DELETE /api/auth/me/google/link` — same endpoint
+- **Profile header badge placement:** In `ProfileScreen.kt`, the name and badges are in a `Row` with `Arrangement.spacedBy(8.dp)`. Mirror this exactly: `HStack(spacing: 8)` containing the full name `Text` followed immediately by `VerifiedRoleBadges(roles: profile.roles, expanded: false)`. The badges are icon-only chips — do NOT use `expanded: true` here.
 
 ### Step 4.9 — Dashboard Feature
 **Reference files:** `DashboardViewModel.kt`, `DashboardScreen.kt`
@@ -1082,7 +1289,7 @@ Build features in this order — each builds on the previous. For each feature, 
 **Key translation notes:**
 - Parallel data loading: use `async let` for the 5 concurrent fetches (profile, notes, tasks, sets, applications)
 - Instagram-style header: `ContinuumTopHeader` — a custom `HStack` with logo wordmark + 3 icon buttons
-- Pull-to-refresh: `.refreshable { await viewModel.refresh() }`
+- **Pull-to-refresh:** Use `.continuumRefreshable` (Step 2.8) instead of raw `.refreshable`. This matches the Android `ContinuumPullToRefresh` wrapper now used on `DashboardScreen.kt`.
 - Stat tiles horizontal scroll: `ScrollView(.horizontal, showsIndicators: false)` + `HStack`
 
 ---
@@ -1092,21 +1299,40 @@ Build features in this order — each builds on the previous. For each feature, 
 ### Step 5.1 — App entry point
 
 **File:** `ContinuumApp.swift`  
-**Replaces:** `ContinuumApp.kt` (@HiltAndroidApp) + `MainActivity.kt`
+**Replaces:** `ContinuumApp.kt` (@HiltAndroidApp + SingletonImageLoader.Factory) + `MainActivity.kt`
+
+**Two key additions vs the previous guide:**
+
+1. **SVG decoder registration** — `ContinuumApp.kt` registers `SvgDecoder.Factory()` as the singleton Coil3 image loader. The iOS equivalent registers `SDImageSVGCoder` with `SDImageCodersManager` so that `WebImage` and `SDWebImage` can render `.svg` files (used for the logo lockup on auth screens, the team badge icon, etc.).
+
+2. **MainViewModel splash gate** — `MainActivity.kt` calls `splashScreen.setKeepOnScreenCondition { !mainViewModel.isReady.value }` to hold the OS splash screen until the profile pre-fetch completes. iOS's `LaunchScreen.storyboard` is static and cannot be held programmatically. The equivalent is a "launch cover" `ZStack` overlay that fades out once `mainViewModel.isReady == true`.
 
 ```swift
 import SwiftUI
 import SwiftData
+import SDWebImage
+import SDWebImageSVGCoder
+import Combine
 
 @main
 struct ContinuumApp: App {
-    @State private var tokenManager = TokenManager.shared
-    @State private var networkMonitor = NetworkMonitor.shared
+    @State private var tokenManager    = TokenManager.shared
+    @State private var networkMonitor  = NetworkMonitor.shared
+    // Mirrors MainViewModel created via viewModels() in MainActivity.kt
+    @State private var mainViewModel   = MainViewModel()
+
+    @State private var cancellables = Set<AnyCancellable>()
 
     init() {
-        // Register background sync task (mirrors WorkManager setup)
+        // --- SVG decoder setup ---
+        // Replaces: ContinuumApp.kt → ImageLoader.Builder.components { add(SvgDecoder.Factory()) }
+        // Must be registered before any WebImage/SDWebImage calls that load .svg URLs.
+        SDImageCodersManager.shared.addCoder(SDImageSVGCoder.shared)
+
+        // Register background sync task (mirrors WorkManager setup in ContinuumApp.kt)
         SyncWorker.shared.registerBackgroundTask()
-        // Connect socket when network restores
+
+        // Connect socket when network restores (mirrors networkMonitor flow in ContinuumApp.kt)
         NetworkMonitor.shared.onNetworkRestored
             .sink { SocketManager.shared.onNetworkAvailable() }
             .store(in: &cancellables)
@@ -1114,17 +1340,48 @@ struct ContinuumApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppNavHost()
-                .modelContainer(PersistenceController.shared.container)
-                .environment(tokenManager)
-                .environment(networkMonitor)
-                .environment(\.isDemo, false) // set from JWT after login
+            ZStack {
+                AppNavHost()
+                    .modelContainer(PersistenceController.shared.container)
+                    .environment(tokenManager)
+                    .environment(networkMonitor)
+                    .environment(\.isDemo, false) // set from JWT after login
+
+                // Launch cover — mirrors setKeepOnScreenCondition in MainActivity.kt.
+                // Holds a purple full-screen cover (matching the splash background) until
+                // the profile pre-fetch in MainViewModel completes, then animates out.
+                // This prevents the dashboard from bleeding through before data is ready.
+                if !mainViewModel.isReady {
+                    LaunchCoverView()
+                        .transition(.opacity)
+                        .zIndex(1)
+                }
+            }
+            .animation(.easeOut(duration: 0.3), value: mainViewModel.isReady)
+            .onOpenURL { url in handleDeepLink(url) }
         }
     }
-    
-    @State private var cancellables = Set<AnyCancellable>()
+}
+
+/// Full-screen cover shown during the MainViewModel splash pre-fetch.
+/// Replaces: the Android SplashScreen API + custom ObjectAnimator exit animation in MainActivity.kt.
+/// Uses DeepPurple background to match the Android splash theme (windowSplashScreenBackground).
+private struct LaunchCoverView: View {
+    var body: some View {
+        Color.deepPurple
+            .ignoresSafeArea()
+            .overlay(
+                // Logo symbol centred — mirrors the splash screen icon from ic_launcher_foreground
+                Image("ic_logo_symbol")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 80, height: 80)
+            )
+    }
 }
 ```
+
+**Add `ic_logo_symbol.svg` to the bundle:** Copy `/android/app/src/main/assets/ic_logo_symbol.svg` to `Continuum/Resources/ic_logo_symbol.svg` and add it to the Xcode target. `SDImageSVGCoder` handles rendering; the static `Image("ic_logo_symbol")` in `LaunchCoverView` uses the raster version from `Assets.xcassets`.
 
 ### Step 5.2 — Demo mode environment key
 
@@ -1185,7 +1442,7 @@ https://api.usecontinuum.dev (Swagger at /api-docs)
 REFERENCE BEFORE WRITING ANY CODE:
 - Read /android/app/src/main/java/com/continuum/android/core/ completely
 - Read /android/app/src/main/java/com/continuum/android/di/ completely
-- Read the continuum-ios-build-guide.md in the project root
+- Read the ios-build-guide.md in docs/future-ideas/
 
 ARCHITECTURE (non-negotiable):
 - @Observable class for all ViewModels (iOS 17)
@@ -1195,20 +1452,33 @@ ARCHITECTURE (non-negotiable):
 - Combine PassthroughSubject for all event buses (mirrors SharedFlow)
 - NWPathMonitor for network (mirrors ConnectivityManager)
 - Socket.IO-Client-Swift pod for real-time (mirrors Socket.IO Android)
+- SDWebImageSwiftUI + SDWebImageSVGCoder for image loading + SVG (mirrors Coil3 + SvgDecoder)
+- GoogleSignIn pod for OAuth (mirrors CredentialManager + GetGoogleIdOption)
 
 DESIGN SYSTEM (exact matches from Android):
 - Fraunces-Bold / Fraunces-Black for headlines (FrauncesFamily)
 - PlusJakartaSans for all body/UI text (PlusJakartaSansFamily)
 - BrandPurple #6B21A8, PageBackground #F8F9FA, Border #E5E7EB (all exact hex)
 
-LOGO ASSETS — STOP AND ASK THE USER:
-Before creating any Xcode asset catalog entries for ic_logo_symbol or
-ic_logo_wordmark, stop and ask me:
-"I need two PNG assets to continue:
-1. ic_logo_symbol.png — the infinity/lemniscate logo mark, transparent background, 512px+
-2. ic_logo_wordmark.png — the 'continuum' wordmark, transparent background, 1024px+
-Please provide both files."
-Do not proceed with the asset catalog until I provide them.
+LOGO ASSETS:
+- ic_logo_symbol.svg and ic_logo_lockup.svg are already in
+  /android/app/src/main/assets/ — copy them to Continuum/Resources/ and add to target.
+- ic_logo_lockup.svg is used on LoginScreen and RegisterScreen via WebImage(url:).
+- ic_logo_symbol.svg is used in VerifiedRoleBadges (team chip) and LaunchCoverView.
+- For the Xcode asset catalog (AppIcon, static Image() references), stop and ask:
+  "I need ic_logo_symbol.png and ic_logo_wordmark.png as raster assets.
+   Please export from Figma or provide them."
+  Do not proceed with the asset catalog until I provide them.
+
+PULL-TO-REFRESH (non-negotiable):
+- Never use raw .refreshable directly.
+- Always use .continuumRefreshable (defined in Core/UI/Components/ContinuumPullToRefresh.swift).
+- This enforces a 700ms minimum spinner duration matching ContinuumPullToRefresh.kt.
+
+ROLE BADGES (non-negotiable):
+- VerifiedRoleBadges(roles:, expanded:) — always pass expanded: false when badges appear
+  inline next to a name (profile header, activity feed actor row, comment author row).
+- Only use expanded: true on dedicated profile/user detail pages.
 
 GIT WORKFLOW — follow this exactly for every file you create or modify:
 
@@ -1233,8 +1503,13 @@ After ALL phases are complete, create the PR:
 
   ## What was built
   - Core infrastructure: TokenManager (Keychain), APIClient (URLSession), SocketManager (Socket.IO), SwiftData persistence, BGTaskScheduler sync
+  - MainViewModel splash pre-fetch with 3s timeout and ProfileRepository splash cache
+  - SVG rendering via SDWebImageSVGCoder (logo lockup on auth screens, team badge icon)
+  - LaunchCoverView animating out once profile pre-fetch completes
   - All 9 features: Auth, Notes, Flashcards, Tasks, Career, Social, Messaging, Profile, Dashboard
   - Shared UI component library matching Android design system exactly
+  - ContinuumPullToRefresh with 700ms minimum duration on all refreshable screens
+  - VerifiedRoleBadges with expanded/compact modes used consistently
   - Navigation with deep link handling (continuum:// URL scheme)
   - Demo mode via @Environment(\.isDemo)
   - Offline-first with SyncQueue
@@ -1247,17 +1522,20 @@ After ALL phases are complete, create the PR:
   - Combine PassthroughSubject replacing Kotlin SharedFlow
   - NWPathMonitor replacing ConnectivityManager
   - BGTaskScheduler replacing WorkManager
+  - SDWebImageSwiftUI + SDWebImageSVGCoder replacing Coil3 + SvgDecoder
+  - GoogleSignIn SDK replacing CredentialManager
 
   ## Test plan
   - [ ] Install on device via Xcode free signing
-  - [ ] Auth: login, register, Google OAuth, forgot password
+  - [ ] Auth: login, register, Google OAuth, forgot password — logo lockup renders from SVG
   - [ ] Notes: create, edit, delete, Google Drive import, AI summary, generate flashcards
   - [ ] Flashcards: study mode flip animation, swipe gestures, session recording
   - [ ] Tasks: kanban board, status change, shared tasks
   - [ ] Career: upload resume, AI feedback, application tracking
-  - [ ] Social: friends, activity feed, comments, sharing
+  - [ ] Social: friends, activity feed (role badges inline), comments (role badges inline), sharing
   - [ ] Messaging: send/receive, real-time delivery via Socket.IO
-  - [ ] Profile: edit, avatar upload, settings
+  - [ ] Profile: edit, avatar upload, settings — role badges icon-only inline with name
+  - [ ] Pull-to-refresh: all screens — spinner visible for at least 700ms
   - [ ] Offline: disconnect wifi, verify cached data shows, reconnect and sync
 
   Closes #<fill in from gh issue list output>" \
@@ -1265,7 +1543,8 @@ After ALL phases are complete, create the PR:
 
 BUILD PHASE 1 — in this exact order, one file at a time, commit after each:
 1. Create branch: feat/ios-app
-2. /ios/Podfile with Socket.IO-Client-Swift, SDWebImageSwiftUI, lottie-ios, RichTextKit
+2. /ios/Podfile with Socket.IO-Client-Swift, SDWebImageSwiftUI, SDWebImageSVGCoder,
+   lottie-ios, RichTextKit, GoogleSignIn
    Commit: chore: add iOS Podfile with core dependencies
 3. Core/UI/Theme/Colors.swift
    Commit: feat: add design system colors matching Android Color.kt
@@ -1287,10 +1566,18 @@ BUILD PHASE 1 — in this exact order, one file at a time, commit after each:
     Commit: feat: add error message mapping matching Android ErrorUtils
 12. Core/Network/SocketManager.swift
     Commit: feat: add SocketManager with Socket.IO event streams
-13. Core/Persistence/Models.swift + PersistenceController.swift
+13. Core/App/MainViewModel.swift
+    Commit: feat: add MainViewModel with 3s splash pre-fetch timeout
+14. Core/Persistence/Models.swift + PersistenceController.swift
     Commit: feat: add SwiftData models mirroring Room entities
-14. Core/Sync/SyncWorker.swift
+15. Core/Sync/SyncWorker.swift
     Commit: feat: add SyncWorker using BGTaskScheduler
+16. Core/UI/Components/ContinuumPullToRefresh.swift
+    Commit: feat: add ContinuumPullToRefresh with 700ms minimum duration
+17. Core/UI/Components/VerifiedRoleBadges.swift
+    Commit: feat: add VerifiedRoleBadges with expanded and compact modes
+18. ContinuumApp.swift (includes LaunchCoverView, SVG decoder init)
+    Commit: feat: add app entry point with SVG decoder and splash cover
 
 Ask clarifying questions before writing anything. Enter plan mode, confirm
 scope for each file, then implement one file at a time. Do not skip ahead.
@@ -1302,10 +1589,12 @@ scope for each file, then implement one file at a time. Do not skip ahead.
 
 | Android resource | iOS equivalent | Notes |
 |---|---|---|
-| `ic_logo_symbol.xml` | `ic_logo_symbol.pdf` in Assets | Export from Figma/Inkscape as PDF, single scale |
-| `ic_logo_wordmark.xml` | `ic_logo_wordmark.pdf` in Assets | Same |
+| `ic_logo_symbol.svg` (assets/) | Copy to `Continuum/Resources/ic_logo_symbol.svg`, add to target | SDWebImageSVGCoder renders it at runtime; also export as PNG for asset catalog |
+| `ic_logo_lockup.svg` (assets/) | Copy to `Continuum/Resources/ic_logo_lockup.svg`, add to target | Used on auth screens via WebImage; SDWebImageSVGCoder required |
+| `ic_logo_wordmark.xml` | `ic_logo_wordmark.pdf` in Assets | Export from Figma/Inkscape as PDF for static Image() references |
 | `ic_linkedin.xml` | `ic_linkedin.pdf` in Assets | White paths, use as template image |
 | `ic_instagram.xml` | `ic_instagram.pdf` in Assets | White paths, use as template image |
+| `ic_google` (drawable) | `ic_google.png` in Assets | Standard Google "G" logo; used on Login/Register Google buttons |
 | `fraunces_bold.ttf` | Same file, added to Xcode target | Copy from `/android/app/src/main/res/font/` |
 | `fraunces_black.ttf` | Same file | Copy from same location |
 | `plus_jakarta_sans_*.ttf` (4 files) | Same files, added to Xcode target | Copy from same location |
@@ -1329,11 +1618,13 @@ These behaviors exist in Android but have no iOS equivalent or require a differe
 | `DownloadManager` for PDF download | `URLSession` download task + save to `FileManager` |
 | `PdfRenderer` for PDF display | `PDFKit.PDFView` — significantly simpler API |
 | `ActivityResultContracts.GetContent()` | `PhotosUI.PhotosPicker` (images) or `UIDocumentPickerViewController` (PDFs) |
-| `CredentialManager` + Google Sign-In | `GoogleSignIn` iOS SDK + `GIDSignIn.sharedInstance` |
+| `CredentialManager` + `GetGoogleIdOption` + `ic_google` drawable | `GoogleSignIn` iOS SDK + `GIDSignIn.sharedInstance` + `ic_google.png` asset |
+| Coil3 `SvgDecoder.Factory()` registered in `ContinuumApp.kt` | `SDImageSVGCoder.shared` added to `SDImageCodersManager` in `ContinuumApp.init()` |
+| `SplashScreen.setKeepOnScreenCondition` + `setOnExitAnimationListener` (ObjectAnimator zoom + delayed fade) | `LaunchCoverView` full-screen overlay driven by `MainViewModel.isReady`; fades out with `.easeOut(duration: 0.3)` |
 | `RichTextEditor` (Compose Rich Editor) | `RichTextKit` pod — same HTML in/out contract |
 | `HiltViewModel` + `@Inject constructor` | `@Observable class` with direct init — no DI framework needed at this scale |
 | `CompositionLocal` | SwiftUI `@Environment` with custom `EnvironmentKey` |
 
 ---
 
-*Generated from Android source at `/android` — April 2026*
+*Generated from Android source at `/android` — updated May 2026*
