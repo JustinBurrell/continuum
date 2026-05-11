@@ -4,16 +4,18 @@
     android:height="24dp"
     android:viewportWidth="100"
     android:viewportHeight="100">
-  <!--
-    Continuum logo symbol — infinity / lemniscate shape.
-    Drawn as a stroke so Android Icon tinting (SRC_IN) colours it correctly.
-    Original SVG export was incomplete (empty <group>); recreated from the web favicon concept.
-  -->
-  <path
-      android:strokeColor="#6b21a8"
-      android:strokeWidth="9"
-      android:strokeLineCap="round"
-      android:strokeLineJoin="round"
-      android:fillColor="@android:color/transparent"
-      android:pathData="M50,50 C44,37 32,24 20,24 C8,24 2,35 2,50 C2,65 8,76 20,76 C32,76 44,63 50,50 C56,37 68,24 80,24 C92,24 98,35 98,50 C98,65 92,76 80,76 C68,76 56,63 50,50"/>
+    <path
+        android:strokeColor="#6b21a8"
+        android:strokeWidth="9"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M52,31 A22,22 0 1 0 52,69" />
+    <path
+        android:strokeColor="#6b21a8"
+        android:strokeWidth="9"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M48,69 A22,22 0 1 0 48,31" />
 </vector>
