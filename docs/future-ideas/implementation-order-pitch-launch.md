@@ -39,37 +39,19 @@ Full brand identity applied across web and Android. PR #219.
 
 ---
 
-## Pre-Google Play Launch (Priority Order)
+## Pre-Google Play Launch (Code Complete First)
 
-These must be complete before submitting to the Play Store. Ordered by what blocks submission vs. what improves the listing.
+Get the app feature-complete and polished before TEA starts. Play Store listing and signing happen with TEA — focus here is purely on code.
 
-### 1. Google Play Store Listing
-Required to submit. Without this, nothing else matters.
-- [ ] Create Google Play Developer account (one-time $25 fee)
-- [ ] App title, short description (80 chars), full description
-- [ ] Feature graphic (1024×500 px) — use brand assets
-- [ ] At least 2 phone screenshots per required screen size
-- [ ] Content rating questionnaire (IARC)
-- [ ] Privacy policy URL live and linked in the listing
-- [ ] Target audience and content settings
-- [ ] Release track: start with Internal Testing → Closed Testing → Production
-
-### 2. Android Release Build & Signing
-- [ ] Generate a production release keystore and store it securely (not in repo)
-- [ ] Configure `signingConfigs` in `build.gradle.kts` for release
-- [ ] Build a signed AAB (`./gradlew bundleRelease`)
-- [ ] Verify `minSdk`, `targetSdk`, and `versionCode`/`versionName` are set correctly
-- [ ] Test the release build on a physical device before upload
-
-### 3. Deep Links
-Needed so shared notes, friend requests, and messages open correctly in the app — important for social features that reviewers and TEA judges will test.
+### 1. Deep Links
+Shared notes, friend requests, and messages need to open in the app from iMessage/Slack/browser — core to the social story TEA judges will evaluate.
 - [ ] Android App Links: add `/.well-known/assetlinks.json` to the backend
 - [ ] Wire `MainActivity` intent filter → `NavController` for shared note, friend request, and task deep links
 - [ ] Open Graph meta tags on public share pages for link previews (iMessage, Slack)
 - [ ] Test on physical device via iMessage and browser
 
-### 4. In-App Notification Bell
-Users and reviewers expect to see notifications. Stops at Socket.io delivery — skip email and FCM for now.
+### 2. In-App Notification Bell
+Users expect notifications. Stops at Socket.io delivery — skip email and FCM for now.
 - [ ] `Notification` model + `notification.service.js` with `notify()` dispatcher
 - [ ] Wire into `comments.controller.js`, `friends.controller.js`, `share.service.js`
 - [ ] `GET /api/notifications`, `PATCH /api/notifications/read`, `DELETE /api/notifications/:id`
@@ -77,17 +59,38 @@ Users and reviewers expect to see notifications. Stops at Socket.io delivery —
 - [ ] Web: notification bell in sidebar with unread badge and dropdown
 - [ ] Android: notification bell in top bar; `socket.on('new_notification')` handler
 
-### 5. Accessibility Audit
-Google Play and the IARC questionnaire flag apps with basic a11y failures. Also required for professionalism at the TEA program level.
+### 3. Accessibility Audit
+Play Store IARC questionnaire surfaces a11y failures, and it fits the All Star Code / TEA profile.
 - [ ] Lighthouse + axe scan on all public and app routes (web)
 - [ ] Fix contrast, keyboard nav, focus indicators, aria-label, modal focus trap, alt text
 - [ ] Android: content descriptions on all icon-only buttons and images
 - [ ] `Accessibility.jsx` page at `/accessibility` + footer link
 
-### 6. Email Inbound Routing
-Low-effort, needed before real users start emailing support addresses.
+### 4. Email Inbound Routing
+Quick win — needed before real support traffic comes in.
 - [ ] Confirm `usecontinuum.dev` is 30+ days old
 - [ ] ImprovMX MX records + forwarding rules for `hello@`, `support@`, `noreply@`
+
+---
+
+## Do With TEA
+
+### Android Release Build & Signing
+- [ ] Generate a production release keystore and store it securely (not in repo)
+- [ ] Configure `signingConfigs` in `build.gradle.kts` for release
+- [ ] Build a signed AAB (`./gradlew bundleRelease`)
+- [ ] Verify `minSdk`, `targetSdk`, and `versionCode`/`versionName` are set correctly
+- [ ] Test the release build on a physical device before upload
+
+### Google Play Store Listing
+- [ ] Create Google Play Developer account (one-time $25 fee)
+- [ ] App title, short description (80 chars), full description
+- [ ] Feature graphic (1024×500 px) — use brand assets
+- [ ] At least 2 phone screenshots per required screen size
+- [ ] Content rating questionnaire (IARC)
+- [ ] Privacy policy URL live and linked in the listing
+- [ ] Target audience and content settings
+- [ ] Release track: Internal Testing → Closed Testing → Production
 
 ---
 
