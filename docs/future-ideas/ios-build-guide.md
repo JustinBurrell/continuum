@@ -1815,7 +1815,7 @@ These behaviors exist in Android but have no iOS equivalent or require a differe
 | No equivalent (Android has no SIWA) | `AuthenticationServices` (built-in) — required by App Store when any third-party login exists; `ASAuthorizationAppleIDButton` mandatory for button; name + email delivered only once, capture immediately in delegate and persist to Keychain before network call |
 | Coil3 `SvgDecoder.Factory()` registered in `ContinuumApp.kt` | `SDImageSVGCoder.shared` added to `SDImageCodersManager` in `ContinuumApp.init()` |
 | `SplashScreen.setKeepOnScreenCondition` + `setOnExitAnimationListener` (ObjectAnimator zoom + delayed fade) | `LaunchCoverView` full-screen overlay driven by `MainViewModel.isReady`; fades out with `.easeOut(duration: 0.3)` |
-| `RichTextEditor` (Compose Rich Editor) | `RichTextKit` pod — same HTML in/out contract |
+| `RichTextEditor` (Compose Rich Editor) | `RichTextKit` SPM package — same HTML in/out contract |
 | `HiltViewModel` + `@Inject constructor` | `@Observable class` with direct init — no DI framework needed at this scale |
 | `CompositionLocal` | SwiftUI `@Environment` with custom `EnvironmentKey` |
 
