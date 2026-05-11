@@ -43,6 +43,9 @@ Full brand identity applied across web and Android. PR #219.
 
 Get the app feature-complete and polished before TEA starts. Play Store listing and signing happen with TEA — focus here is purely on code.
 
+### 0. Android Polish Audit
+Full audit of the Android app against Google Play standards (navigation, scale, gestures, empty states, loading/error states, store listing readiness). See [`android-play-audit.md`](android-play-audit.md) for the full prioritized list. Work through Critical → High → Medium before submission.
+
 ### 1. Deep Links
 Shared notes, friend requests, and messages need to open in the app from iMessage/Slack/browser — core to the social story TEA judges will evaluate.
 - [ ] Android App Links: add `/.well-known/assetlinks.json` to the backend

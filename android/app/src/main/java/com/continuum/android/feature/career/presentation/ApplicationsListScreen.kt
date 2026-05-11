@@ -24,7 +24,7 @@ import com.continuum.android.core.ui.theme.*
 import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.career.domain.Application
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import com.continuum.android.core.ui.components.ContinuumPullToRefresh
 
 private val statusTabs = listOf("all", "draft", "applied", "interview", "offer", "rejected", "withdrawn")
 
@@ -108,8 +108,8 @@ fun ApplicationsListScreen(
                 }
             }
 
-            PullToRefreshBox(
-                isRefreshing = state.isLoading,
+            ContinuumPullToRefresh(
+                isLoading = state.isLoading,
                 onRefresh = { viewModel.loadApplications() },
                 modifier = Modifier.weight(1f)
             ) {

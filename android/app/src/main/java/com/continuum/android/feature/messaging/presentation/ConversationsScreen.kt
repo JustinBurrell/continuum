@@ -22,7 +22,7 @@ import com.continuum.android.core.ui.theme.*
 import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.messaging.domain.Conversation
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import com.continuum.android.core.ui.components.ContinuumPullToRefresh
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,8 +56,8 @@ fun ConversationsScreen(
             )
         )
 
-        PullToRefreshBox(
-            isRefreshing = state.isLoading,
+        ContinuumPullToRefresh(
+            isLoading = state.isLoading,
             onRefresh = { viewModel.loadConversations() },
             modifier = Modifier.weight(1f)
         ) {

@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import com.continuum.android.core.ui.components.ContinuumPullToRefresh
 import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
@@ -51,8 +51,8 @@ fun FlashcardStudyHistoryScreen(
         ) {
             if (!isOnline) OfflineBanner()
 
-            PullToRefreshBox(
-                isRefreshing = state.isLoading && state.sessions.isNotEmpty(),
+            ContinuumPullToRefresh(
+                isLoading = state.isLoading && state.sessions.isNotEmpty(),
                 onRefresh = { viewModel.loadStudyHistory() },
                 modifier = Modifier.weight(1f)
             ) {
