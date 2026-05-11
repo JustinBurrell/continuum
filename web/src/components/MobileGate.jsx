@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Sparkles,
   NotebookPen,
   CalendarCheck,
   BrainCircuit,
   TrendingUp,
+  Users,
+  Puzzle,
   CheckCircle,
   Monitor,
 } from 'lucide-react';
+import { DeviceFrameset } from 'react-device-frameset';
+import 'react-device-frameset/styles/marvel-devices.min.css';
 import api from '@/lib/api';
 import { posthog } from '@/lib/posthog';
 import Input from '@/components/ui/Input';
@@ -18,30 +22,43 @@ import { Card } from '@/components/ui/Card';
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const FEATURES = [
-  { icon: NotebookPen,   label: 'Notes & AI summaries',  desc: 'Capture anything. Understand it instantly.' },
-  { icon: CalendarCheck, label: 'Tasks & deadlines',      desc: 'Stay on top of every due date, everywhere.' },
-  { icon: BrainCircuit,  label: 'Smart flashcards',       desc: 'Generate cards from your notes. Study on the go.' },
-  { icon: TrendingUp,    label: 'Career pipeline',         desc: 'Track every application without switching apps.' },
+  { icon: NotebookPen,   label: 'Notes & AI summaries',       desc: 'Capture anything. Understand it instantly.' },
+  { icon: CalendarCheck, label: 'Tasks & deadlines',           desc: 'Stay on top of every due date, everywhere.' },
+  { icon: BrainCircuit,  label: 'Smart flashcards',            desc: 'Generate cards from your notes. Study on the go.' },
+  { icon: TrendingUp,    label: 'Career pipeline',              desc: 'Track every application without switching apps.' },
+  { icon: Users,         label: 'Social & collaboration',      desc: 'Connect with classmates, share notes, and study together.' },
+  { icon: Puzzle,        label: 'Tool integrations',            desc: 'Connect Google Docs and more tools as we grow.' },
 ];
 
 const SUCCESS_SUBTEXT = {
-  ios:     'We\'ll reach out when the iOS app is ready for you.',
-  android: 'We\'ll reach out when the Android app is ready for you.',
-  both:    'We\'ll reach out when both apps are ready for you.',
+  ios:     "We'll reach out when the iOS app is ready for you.",
+  android: "We'll reach out when the Android app is ready for you.",
+  both:    "We'll reach out when both apps are ready for you.",
 };
 
 export default function MobileGate() {
-  const [firstName, setFirstName]             = useState('');
-  const [email, setEmail]                     = useState('');
+  const [firstName, setFirstName]               = useState('');
+  const [email, setEmail]                       = useState('');
   const [platformInterest, setPlatformInterest] = useState(null);
-  const [loading, setLoading]                 = useState(false);
-  const [submitted, setSubmitted]             = useState(false);
-  const [error, setError]                     = useState('');
-  const [formStarted, setFormStarted]         = useState(false);
+  const [loading, setLoading]                   = useState(false);
+  const [submitted, setSubmitted]               = useState(false);
+  const [error, setError]                       = useState('');
+  const [formStarted, setFormStarted]           = useState(false);
+
+  const location = useLocation();
 
   useEffect(() => {
     posthog.capture('mobile_landing_viewed', { platform: 'web' });
   }, []);
+
+  useEffect(() => {
+    if (location.state?.scrollToForm) {
+      // Small delay lets the page paint before scrolling
+      setTimeout(() => {
+        document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth' });
+      }, 120);
+    }
+  }, [location.state?.scrollToForm]);
 
   function handleFieldFocus() {
     if (!formStarted) {
@@ -57,12 +74,10 @@ export default function MobileGate() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-
     if (!emailRegex.test(email.trim())) {
       setError('Please enter a valid email address.');
       return;
     }
-
     setLoading(true);
     try {
       await api.post('/waitlist', {
@@ -98,16 +113,32 @@ export default function MobileGate() {
         </svg>
       </div>
 
+      {/* ── Nav bar ── */}
+      <nav
+        className="relative w-full"
+        style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+      >
+        <div className="max-w-sm mx-auto w-full px-4 py-3 flex items-center justify-between">
+          <img src="/logo-lockup.svg" alt="Continuum" style={{ height: 28 }} />
+          <button
+            onClick={scrollToForm}
+            style={{ background: 'none', border: 'none', color: '#6B21A8', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+          >
+            Join the waitlist
+          </button>
+        </div>
+      </nav>
+
       {/* ── Section 1: Hero ── */}
       <section className="relative w-full">
-        <div className="max-w-sm mx-auto w-full px-4 pt-16 pb-10 text-center">
+        <div className="max-w-sm mx-auto w-full px-4 pt-10 pb-10 text-center">
           {/* Badge */}
           <div
             className="mb-6"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'white', border: '1px solid #E5E7EB', color: '#6B21A8', fontSize: '0.75rem', fontWeight: 500, borderRadius: 999, padding: '6px 14px' }}
           >
             <Sparkles size={12} />
-            Mobile app — coming soon
+            Mobile app, coming soon
           </div>
 
           <h1
@@ -118,7 +149,7 @@ export default function MobileGate() {
           </h1>
 
           <p style={{ color: '#6B7280', fontSize: '1rem', lineHeight: 1.65, marginBottom: 28 }}>
-            Continuum brings your notes, tasks, flashcards, and career into one place. The mobile app is almost here — join the waitlist to be first.
+            Continuum brings your notes, tasks, flashcards, and career into one place. Collaborate with classmates, connect Google Docs and your favorite tools, and manage your academic life from one app. The mobile app is almost here.
           </p>
 
           <Button variant="primary" size="lg" className="w-full" onClick={scrollToForm}>
@@ -130,27 +161,42 @@ export default function MobileGate() {
       {/* ── Section 2: Device mockup ── */}
       <section className="relative w-full">
         <div className="max-w-sm mx-auto w-full px-4 pb-10">
-          <div className="relative w-full" style={{ paddingBottom: '68%' }}>
-            {/* Laptop placeholder — 16:10 */}
-            <div
-              className="absolute inset-0 rounded-xl"
-              style={{ background: '#E5E7EB', border: '1px solid #D1D5DB' }}
-            />
-            {/* Phone placeholder — 9:19.5, bottom-right */}
-            <div
-              className="absolute rounded-xl drop-shadow-xl"
-              style={{
-                width: '35%',
-                aspectRatio: '9 / 19.5',
-                bottom: '-8%',
-                right: '-4%',
-                background: '#D1D5DB',
-                border: '1px solid #9CA3AF',
-                transform: 'rotate(6deg)',
-              }}
-            />
+          {/* Responsive wrapper: scales device frames to fit container */}
+          <div style={{ position: 'relative', width: '100%', height: 230, overflow: 'visible' }}>
+            {/* Laptop (MacBook Pro): 960x600 native, scaled to ~35% */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              transform: 'scale(0.35)',
+              transformOrigin: 'top left',
+              pointerEvents: 'none',
+            }}>
+              <DeviceFrameset device="MacBook Pro">
+                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #F3F0FF 0%, #E5E7EB 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src="/logo-lockup.svg" alt="" style={{ height: 28, opacity: 0.4 }} />
+                </div>
+              </DeviceFrameset>
+            </div>
+
+            {/* Phone (iPhone X): 375x812 native, scaled to ~31%, rotated */}
+            <div style={{
+              position: 'absolute',
+              bottom: -30,
+              right: -8,
+              transform: 'scale(0.31) rotate(5deg)',
+              transformOrigin: 'bottom right',
+              pointerEvents: 'none',
+            }}>
+              <DeviceFrameset device="iPhone X">
+                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(160deg, #F3F0FF 0%, #E5E7EB 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src="/logo.svg" alt="" style={{ height: 32, opacity: 0.35 }} />
+                </div>
+              </DeviceFrameset>
+            </div>
           </div>
-          <p style={{ color: '#9B9B9B', fontSize: '0.75rem', textAlign: 'center', marginTop: 20 }}>
+
+          <p style={{ color: '#9B9B9B', fontSize: '0.75rem', textAlign: 'center', marginTop: 12 }}>
             Available now on web · Android launching soon · iOS in development
           </p>
         </div>
@@ -173,7 +219,7 @@ export default function MobileGate() {
                   display: 'flex',
                   alignItems: 'flex-start',
                   gap: 14,
-                  padding: '16px 20px',
+                  padding: '14px 20px',
                   borderBottom: i < FEATURES.length - 1 ? '1px solid #F3F4F6' : 'none',
                 }}
               >
@@ -240,7 +286,6 @@ export default function MobileGate() {
                 ))}
               </div>
 
-              {/* First name */}
               <div style={{ marginBottom: 12 }}>
                 <Input
                   label="First name"
@@ -254,7 +299,6 @@ export default function MobileGate() {
                 />
               </div>
 
-              {/* Email */}
               <div style={{ marginBottom: 16 }}>
                 <Input
                   label="Email address"
@@ -293,7 +337,7 @@ export default function MobileGate() {
         <div className="max-w-sm mx-auto w-full px-4 pt-6 pb-6 text-center">
           <Monitor size={18} color="#6B7280" style={{ margin: '0 auto 8px' }} />
           <p style={{ color: '#6B7280', fontSize: '0.875rem', margin: 0, lineHeight: 1.6 }}>
-            Best experienced on a laptop — open usecontinuum.dev there to get started today.
+            Best experienced on a laptop. Open usecontinuum.dev there to get started today.
           </p>
         </div>
       </section>

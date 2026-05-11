@@ -1,105 +1,181 @@
 import { Link } from 'react-router-dom';
 
+const toc = [
+  { id: 'acceptance-of-terms',       label: 'Acceptance of Terms' },
+  { id: 'eligibility',               label: 'Eligibility' },
+  { id: 'your-account',              label: 'Your Account' },
+  { id: 'acceptable-use',            label: 'Acceptable Use' },
+  { id: 'intellectual-property',     label: 'Intellectual Property' },
+  { id: 'google-integration',        label: 'Google Integration' },
+  { id: 'ai-generated-content',      label: 'AI-Generated Content' },
+  { id: 'disclaimer-of-warranties',  label: 'Disclaimer of Warranties' },
+  { id: 'limitation-of-liability',   label: 'Limitation of Liability' },
+  { id: 'termination',               label: 'Termination' },
+  { id: 'changes-to-terms',          label: 'Changes to These Terms' },
+  { id: 'contact',                   label: 'Contact' },
+];
+
 export default function MobileTermsPage() {
   return (
     <div className="w-full min-h-screen overflow-x-hidden" style={{ backgroundColor: '#F8F9FA' }}>
-      {/* Header */}
-      <header className="w-full" style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: '#ffffff' }}>
-        <div className="max-w-sm mx-auto w-full px-4 py-4 text-center">
+      {/* Nav */}
+      <nav className="w-full" style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: 'rgba(255,255,255,0.95)', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div className="max-w-sm mx-auto w-full px-4 py-3 flex items-center justify-between">
           <Link to="/">
-            <img src="/logo-lockup.svg" alt="Continuum" style={{ height: 32, display: 'inline-block' }} />
+            <img src="/logo-lockup.svg" alt="Continuum" style={{ height: 28 }} />
+          </Link>
+          <Link to="/" state={{ scrollToForm: true }} style={{ color: '#6B21A8', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none' }}>
+            Join the waitlist
           </Link>
         </div>
-      </header>
+      </nav>
 
       {/* Content */}
-      <main className="max-w-sm mx-auto w-full px-4 py-6">
-        <h1 style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: 4 }}>
+      <main className="max-w-sm mx-auto w-full px-4 py-8">
+        <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: '1.75rem', color: '#111827', marginBottom: 6, lineHeight: 1.15 }}>
           Terms of Service
         </h1>
-        <p style={{ fontSize: '0.8125rem', color: '#9B9B9B', marginBottom: 28 }}>Last updated: April 2026</p>
+        <p style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#6B21A8', marginBottom: 16 }}>Last updated: March 2026</p>
 
-        <Section title="1. Acceptance of Terms">
-          By using Continuum, you agree to these Terms of Service. If you do not agree, please do not use the app.
-        </Section>
+        <p style={{ fontSize: '0.875rem', lineHeight: 1.75, color: '#374151', marginBottom: 28 }}>
+          These Terms of Service govern your access to and use of Continuum, a student productivity platform. Please read these Terms carefully before using the platform. By creating an account or accessing Continuum, you agree to be bound by these Terms.
+        </p>
 
-        <Section title="2. Use of Service">
-          Continuum provides tools for note-taking, flashcard creation, task management, career tracking, and social learning. You may use these services for personal and professional learning purposes.
-        </Section>
+        {/* Table of contents */}
+        <div style={{ background: '#F3F0FF', border: '1px solid #E5E7EB', borderRadius: 12, padding: '20px', marginBottom: 36 }}>
+          <p style={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6B7280', marginBottom: 12 }}>
+            Table of Contents
+          </p>
+          <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {toc.map((item) => (
+              <li key={item.id}>
+                <a href={`#${item.id}`} style={{ fontSize: '0.875rem', color: '#6B21A8', fontWeight: 500, textDecoration: 'none' }}>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </div>
 
-        <Section title="3. Account Responsibilities">
-          You are responsible for maintaining the confidentiality of your account credentials. You agree to notify us immediately of any unauthorized use of your account.
-        </Section>
+        {/* Sections */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
 
-        <Section title="4. User Content">
-          You retain ownership of content you create. By using Continuum, you grant us a limited license to process your content solely to provide the service (including AI features).
-        </Section>
+          <Section id="acceptance-of-terms" title="1. Acceptance of Terms">
+            <p>By creating an account or using Continuum, you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not use the platform. These Terms apply to all users of Continuum, including registered users and visitors.</p>
+            <p>We may update these Terms from time to time. Continued use of Continuum after changes are posted constitutes your acceptance of the updated Terms.</p>
+          </Section>
 
-        <Section title="5. Acceptable Use">
-          You agree not to:
-          <ul>
-            <li>Use the service for any unlawful purpose</li>
-            <li>Share another user's private information without consent</li>
-            <li>Attempt to access systems or data you are not authorized to access</li>
-            <li>Reverse engineer or attempt to extract the source code of the app</li>
-          </ul>
-        </Section>
+          <Section id="eligibility" title="2. Eligibility">
+            <p>You must be at least 13 years old to use Continuum. By creating an account, you represent and warrant that you meet this age requirement.</p>
+            <p>If you are between 13 and 18 years old, you represent that you have your parent or guardian's permission to use the platform and that they have agreed to these Terms on your behalf.</p>
+          </Section>
 
-        <Section title="6. AI-Powered Features">
-          Continuum uses AI to generate summaries, feedback, and flashcards. AI outputs are provided as-is and may not always be accurate. Do not rely solely on AI-generated content for critical decisions.
-        </Section>
+          <Section id="your-account" title="3. Your Account">
+            <p>You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. You agree to notify us immediately at <a href="mailto:support@usecontinuum.dev" style={{ color: '#6B21A8' }}>support@usecontinuum.dev</a> if you become aware of any unauthorized use of your account.</p>
+            <p>You may not create an account on behalf of someone else or transfer your account to another person. Each account is for a single individual user.</p>
+            <p>You agree to provide accurate, complete, and current information when registering and to keep your account information up to date.</p>
+          </Section>
 
-        <Section title="7. Termination">
-          We reserve the right to suspend or terminate accounts that violate these terms.
-        </Section>
+          <Section id="acceptable-use" title="4. Acceptable Use">
+            <p>You agree to use Continuum only for lawful purposes and in a manner that does not infringe the rights of others. You may not:</p>
+            <ul>
+              <li>Post or share content that is abusive, harassing, defamatory, or otherwise harmful</li>
+              <li>Attempt to gain unauthorized access to other users' accounts or data</li>
+              <li>Use Continuum to distribute spam, malware, or other malicious content</li>
+              <li>Scrape, crawl, or otherwise extract data from the platform without our express written permission</li>
+              <li>Use the platform in any way that could damage, disable, overburden, or impair its operation</li>
+              <li>Impersonate another person or entity</li>
+              <li>Use Continuum for any commercial purpose without our written consent</li>
+            </ul>
+            <p>We reserve the right to suspend or terminate accounts that violate these guidelines.</p>
+          </Section>
 
-        <Section title="8. Disclaimer of Warranties">
-          The service is provided "as is" without warranties of any kind, either express or implied.
-        </Section>
+          <Section id="intellectual-property" title="5. Intellectual Property">
+            <p>The Continuum platform, including its design, code, features, and branding, is owned by Continuum and protected by applicable intellectual property laws. You may not copy, modify, distribute, or create derivative works based on the platform without our express written permission.</p>
+            <p>Content you create on Continuum, such as notes, flashcard sets, and resumes, remains yours. By posting content on the platform, you grant us a limited license to store, process, and display that content as necessary to operate the service. We do not claim ownership of your content.</p>
+          </Section>
 
-        <Section title="9. Limitation of Liability">
-          To the maximum extent permitted by law, Continuum shall not be liable for any indirect, incidental, special, or consequential damages.
-        </Section>
+          <Section id="google-integration" title="6. Google Integration">
+            <p>Continuum offers Google OAuth login and Google Drive integration. By connecting your Google account, you authorize us to access the Google services and data you permit, as described in our Privacy Policy.</p>
+            <p>Your use of Google services through Continuum is also subject to Google's Terms of Service and Privacy Policy. We are not responsible for Google's services or any changes Google makes to its platform or APIs.</p>
+            <p>You can revoke Continuum's access to your Google account at any time through your Google Account settings.</p>
+          </Section>
 
-        <Section title="10. Changes to Terms">
-          We may update these terms periodically. Continued use of the service after changes constitutes acceptance of the new terms.
-        </Section>
+          <Section id="ai-generated-content" title="7. AI-Generated Content">
+            <p>Continuum uses AI to provide features including note summaries, flashcard generation, and resume feedback. AI-generated content is provided for informational and productivity purposes only.</p>
+            <p>We do not guarantee the accuracy, completeness, or fitness for a particular purpose of any AI-generated content. You are responsible for reviewing and verifying any AI-generated content before relying on it.</p>
+            <p>AI features are subject to usage limits. We reserve the right to adjust these limits at any time.</p>
+          </Section>
 
-        <Section title="11. Contact" last>
-          Questions? Email us at{' '}
-          <a href="mailto:support@usecontinuum.dev" style={{ color: '#6B21A8' }}>support@usecontinuum.dev</a>
-        </Section>
+          <Section id="disclaimer-of-warranties" title="8. Disclaimer of Warranties">
+            <p>Continuum is provided "as is" and "as available" without warranties of any kind, either express or implied. To the fullest extent permitted by law, we disclaim all warranties, including warranties of merchantability, fitness for a particular purpose, and non-infringement.</p>
+            <p>We do not warrant that the platform will be uninterrupted, error-free, or free of harmful components.</p>
+          </Section>
+
+          <Section id="limitation-of-liability" title="9. Limitation of Liability">
+            <p>To the fullest extent permitted by applicable law, Continuum and its founders, officers, employees, and agents shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of data, loss of profits, or loss of goodwill, arising from your use of or inability to use the platform.</p>
+            <p>In no event shall our total liability to you for all claims exceed the amount you have paid us in the twelve months preceding the claim, or one hundred dollars (USD $100), whichever is greater.</p>
+          </Section>
+
+          <Section id="termination" title="10. Termination">
+            <p>You may delete your account at any time from your account settings. When you initiate a deletion, your account enters a 30-day grace period. During this period your account and all associated data are deactivated but not yet permanently removed. You can restore your account at any time within those 30 days by logging back in. After 30 days, your account and all associated data are permanently deleted and cannot be recovered.</p>
+            <p>We reserve the right to suspend or terminate your account at any time, without prior notice, if we reasonably believe you have violated these Terms or if we discontinue the platform.</p>
+          </Section>
+
+          <Section id="changes-to-terms" title="11. Changes to These Terms">
+            <p>We may revise these Terms at any time. When we make material changes, we will update the "Last updated" date at the top of this page. We encourage you to review these Terms periodically. Your continued use of Continuum after changes are posted means you accept the revised Terms.</p>
+          </Section>
+
+          <Section id="contact" title="12. Contact" last>
+            <p>If you have questions about these Terms, please contact us at:</p>
+            <p><strong>Email:</strong> <a href="mailto:support@usecontinuum.dev" style={{ color: '#6B21A8' }}>support@usecontinuum.dev</a></p>
+          </Section>
+
+        </div>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full" style={{ borderTop: '1px solid #E5E7EB' }}>
-        <div className="max-w-sm mx-auto w-full px-4 pt-4 pb-8 text-center">
-          <p style={{ color: '#9B9B9B', fontSize: '0.75rem', margin: '0 0 8px' }}>
-            &copy; 2026 Continuum. All rights reserved.
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 20 }}>
-            <Link to="/privacy" style={{ color: '#6B7280', fontSize: '0.75rem', textDecoration: 'underline' }}>
-              Privacy Policy
-            </Link>
-            <Link to="/terms" style={{ color: '#6B7280', fontSize: '0.75rem', textDecoration: 'underline' }}>
-              Terms of Service
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <MobileFooter />
+
+      <style>{`
+        .legal-content { display: flex; flex-direction: column; gap: 10px; }
+        .legal-content p { font-size: 0.875rem; line-height: 1.75; color: #374151; margin: 0; }
+        .legal-content ul { padding-left: 18px; list-style: disc; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+        .legal-content ul li { font-size: 0.875rem; line-height: 1.7; color: #374151; }
+        .legal-content a { color: #6B21A8; }
+        .legal-content strong { color: #111827; }
+        section[id] { scroll-margin-top: 64px; }
+      `}</style>
     </div>
   );
 }
 
-function Section({ title, children, last = false }) {
+function Section({ id, title, children, last = false }) {
   return (
-    <div style={{ marginBottom: last ? 0 : 24 }}>
-      <h2 style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '0.9375rem', fontWeight: 600, color: '#111827', marginBottom: 6 }}>
+    <section id={id} style={{ marginBottom: last ? 0 : undefined }}>
+      <h2 style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: 12 }}>
         {title}
       </h2>
-      <div style={{ fontSize: '0.875rem', color: '#374151', lineHeight: 1.7 }}>
-        {children}
+      <div className="legal-content">{children}</div>
+    </section>
+  );
+}
+
+function MobileFooter() {
+  return (
+    <footer className="w-full" style={{ borderTop: '1px solid #E5E7EB', marginTop: 48 }}>
+      <div className="max-w-sm mx-auto w-full px-4 pt-4 pb-8 text-center">
+        <p style={{ color: '#9B9B9B', fontSize: '0.75rem', margin: '0 0 8px' }}>
+          &copy; 2026 Continuum. All rights reserved.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 20 }}>
+          <Link to="/privacy" style={{ color: '#6B7280', fontSize: '0.75rem', textDecoration: 'underline' }}>
+            Privacy Policy
+          </Link>
+          <Link to="/terms" style={{ color: '#6B7280', fontSize: '0.75rem', textDecoration: 'underline' }}>
+            Terms of Service
+          </Link>
+        </div>
       </div>
-    </div>
+    </footer>
   );
 }
