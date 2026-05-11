@@ -9,6 +9,7 @@ import android.view.animation.DecelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -32,16 +33,21 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var networkMonitor: NetworkMonitor
     @Inject lateinit var profileRepository: ProfileRepository
 
+    private val mainViewModel: MainViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Hold the splash until the initial profile fetch completes (max 3s).
+        // This ensures the dashboard greeting and stats are populated on first frame.
+        splashScreen.setKeepOnScreenCondition { !mainViewModel.isReady.value }
+
         splashScreen.setOnExitAnimationListener { provider ->
             val iconView = provider.iconView
             val splashView = provider.view
 
-            // Compute scale needed to make the icon fill the screen (X-style zoom)
             val targetScale = maxOf(
                 splashView.width.toFloat() / iconView.width.coerceAtLeast(1),
                 splashView.height.toFloat() / iconView.height.coerceAtLeast(1)
@@ -53,13 +59,12 @@ class MainActivity : ComponentActivity() {
 
             AnimatorSet().apply {
                 playTogether(scaleX, scaleY, fade)
-                duration = 420L
-                interpolator = DecelerateInterpolator(1.5f)
+                duration = 550L
+                interpolator = DecelerateInterpolator(2.0f)
                 start()
             }
 
-            // Remove the splash view after the animation completes
-            iconView.postDelayed({ provider.remove() }, 420L)
+            iconView.postDelayed({ provider.remove() }, 550L)
         }
 
         setContent {

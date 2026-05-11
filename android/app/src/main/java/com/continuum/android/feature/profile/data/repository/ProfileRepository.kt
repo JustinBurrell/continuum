@@ -17,6 +17,13 @@ class ProfileRepository @Inject constructor(
     private val api: ProfileApiService
 ) {
 
+    // Single-use cache: populated by the splash pre-fetch, consumed once by the first
+    // DashboardViewModel call, then cleared so all subsequent fetches go to the network.
+    @Volatile private var _splashCache: Profile? = null
+
+    fun primeSplashCache(profile: Profile) { _splashCache = profile }
+    fun clearProfileCache() { _splashCache = null }
+
     private fun ProfileDto.toDomain(): Profile {
         val dto = this
         return Profile(
@@ -49,7 +56,7 @@ class ProfileRepository @Inject constructor(
     private fun ProfileResponseDto.resolve(): ProfileDto = data ?: user
 
     suspend fun getProfile(): Result<Profile> = runCatching {
-        api.getProfile().resolve().toDomain()
+        _splashCache?.also { _splashCache = null } ?: api.getProfile().resolve().toDomain()
     }
 
     suspend fun getLastViewedActivityAt(): String? = try {
