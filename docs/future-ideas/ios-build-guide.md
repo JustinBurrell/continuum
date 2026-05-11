@@ -7,6 +7,35 @@
 
 ---
 
+## Git Workflow
+
+Follow the [Agile Workflow Guide](../agile_workflow_guide.md). Branch first, commit after every step.
+
+```bash
+# Start from an up-to-date main
+git checkout main && git pull origin main
+
+# Create the iOS branch
+git checkout -b feat/ios-app
+
+# Commit after every step — one commit per file/step as listed in each phase
+git add ios/Podfile
+git commit -m "chore: add iOS Podfile with core dependencies"
+
+git add ios/Core/UI/Theme/Colors.swift
+git commit -m "feat: add design system colors matching Android Color.kt"
+
+# ... continue step by step through all phases ...
+
+# Push and open PR when all phases are complete
+git push -u origin feat/ios-app
+gh pr create --title "feat: Continuum iOS app — full feature parity with Android" ...
+```
+
+**Never batch multiple steps into one commit.** Each step in the phases below maps to exactly one commit. This keeps history readable and makes it easy to bisect if something breaks.
+
+---
+
 ## Prerequisites
 
 Before starting, confirm you have:

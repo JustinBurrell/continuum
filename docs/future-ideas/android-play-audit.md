@@ -1,6 +1,41 @@
 # Continuum Android — Google Play Polish Audit
 *Generated: May 11, 2026*
 
+## Git Workflow
+
+Follow the [Agile Workflow Guide](../agile_workflow_guide.md) for every fix. The pattern is:
+
+```bash
+# 1. Start from an up-to-date main
+git checkout main && git pull origin main
+
+# 2. Create a branch per tier (or per logical group of fixes)
+git checkout -b fix/android-polish-critical   # Tier 1
+git checkout -b fix/android-polish-high       # Tier 2
+# etc.
+
+# 3. Commit after each individual fix — do not batch unrelated changes
+git add <files>
+git commit -m "fix: change labelSmall from 10sp to 12sp for a11y compliance"
+
+# 4. Push and open PR when the tier is done
+git push -u origin fix/android-polish-critical
+gh pr create --title "fix: Android polish — critical tier (Play Store blockers)" ...
+
+# 5. Merge in GitHub, then pull main and start the next branch
+git checkout main && git pull origin main
+```
+
+Branch naming for this work:
+| Tier | Branch name |
+|------|-------------|
+| Critical | `fix/android-polish-critical` |
+| High | `fix/android-polish-high` |
+| Medium | `fix/android-polish-medium` |
+| Low / store listing | `chore/android-play-store-prep` |
+
+---
+
 ## Critical (blocks store submission or causes crashes)
 
 1. **File:** `android/app/src/main/java/com/continuum/android/core/ui/theme/Type.kt` (lines 32–40)
