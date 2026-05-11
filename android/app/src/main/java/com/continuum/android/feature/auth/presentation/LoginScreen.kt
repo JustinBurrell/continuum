@@ -79,10 +79,9 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         androidx.compose.foundation.Image(
-            painter = painterResource(R.drawable.ic_logo_wordmark),
+            painter = painterResource(R.drawable.ic_logo_lockup),
             contentDescription = "Continuum",
-            colorFilter = ColorFilter.tint(BrandPurple),
-            modifier = Modifier.width(200.dp).height(48.dp)
+            modifier = Modifier.width(220.dp).height(56.dp)
         )
         Spacer(Modifier.height(32.dp))
 
@@ -119,7 +118,9 @@ fun LoginScreen(
                                 val credential = result.credential
                                 val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data)
                                 viewModel.loginWithGoogle(googleIdToken.idToken)
-                            } catch (_: Exception) { }
+                            } catch (e: Exception) {
+                                viewModel.setGoogleError(e.message ?: "Google sign-in failed")
+                            }
                         }
                     },
                     modifier = Modifier
