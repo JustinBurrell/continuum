@@ -40,7 +40,6 @@ function waitlistEmail({ firstName, platformInterest }) {
           <p style="color:#374151;font-size:15px;margin:0 0 20px;">Continuum is a student workspace that brings everything into one place: AI-powered notes with instant summaries, smart flashcards generated from your notes, task tracking so you never miss a deadline, a career pipeline to keep your job search organized, and a social layer to collaborate with classmates. Instead of juggling a different app for each part of your academic life, you have one.</p>
           ${platformLine(platformInterest)}
           <p style="color:#374151;font-size:15px;margin:0 0 20px;">Both Android and iOS are in active development. You'll be among the first to know when we're ready for you.</p>
-          <p style="color:#374151;font-size:15px;margin:0;">The Continuum Team</p>
           <hr style="border:none;border-top:1px solid #E5E7EB;margin:32px 0;" />
           <p style="color:#6B7280;font-size:13px;margin:0 0 16px;">Team Continuum</p>
           <img src="https://usecontinuum.dev/logo-lockup.svg" alt="Continuum" height="32" style="display:block;" />

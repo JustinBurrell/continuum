@@ -210,7 +210,7 @@ exports.register = async (req, res) => {
             to: user.email,
             subject: 'Verify your Continuum email',
             html: emailTemplate(`
-                <p style="color:#111827;font-size:16px;margin:0 0 12px;">Hi ${user.firstName},</p>
+                <p style="color:#111827;font-size:16px;margin:0 0 12px;">Hi ${user.firstName} ${user.lastName},</p>
                 <p style="color:#374151;font-size:15px;margin:0 0 24px;">Welcome to Continuum! Click the button below to verify your email address. This link expires in 24 hours.</p>
                 <a href="${verifyUrl}" style="display:inline-block;background:#6B21A8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600;">Verify Email</a>
                 <p style="color:#6B7280;font-size:13px;margin:24px 0 0;">If you didn't create a Continuum account, you can safely ignore this email.</p>
@@ -946,7 +946,7 @@ exports.deleteAccount = async (req, res) => {
             to: user.email,
             subject: 'Your Continuum account has been scheduled for deletion',
             html: emailTemplate(`
-                <p style="color:#111827;font-size:16px;margin:0 0 12px;">Hi ${user.firstName},</p>
+                <p style="color:#111827;font-size:16px;margin:0 0 12px;">Hi ${user.firstName} ${user.lastName},</p>
                 <p style="color:#374151;font-size:15px;margin:0 0 12px;">Your account has been scheduled for deletion. <strong>All your data (notes, tasks, flashcards, messages, and more) will be permanently deleted on ${restoreDeadline}.</strong></p>
                 <p style="color:#374151;font-size:15px;margin:0 0 24px;">Changed your mind? Simply log in before ${restoreDeadline} and your account will be fully restored.</p>
                 <p style="color:#6B7280;font-size:13px;margin:0;">If you did not request this, log in immediately to restore your account.</p>
