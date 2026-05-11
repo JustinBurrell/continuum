@@ -10,8 +10,13 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import com.continuum.android.BuildConfig
 import com.continuum.android.R
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,6 +30,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(
@@ -35,6 +43,8 @@ fun RegisterScreen(
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
@@ -82,6 +92,54 @@ fun RegisterScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
+
+                OutlinedButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            try {
+                                val googleIdOption = GetGoogleIdOption.Builder()
+                                    .setFilterByAuthorizedAccounts(false)
+                                    .setServerClientId(BuildConfig.WEB_CLIENT_ID)
+                                    .build()
+                                val request = GetCredentialRequest.Builder()
+                                    .addCredentialOption(googleIdOption)
+                                    .build()
+                                val credentialManager = CredentialManager.create(context)
+                                val result = credentialManager.getCredential(context, request)
+                                val credential = result.credential
+                                val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data)
+                                viewModel.loginWithGoogle(googleIdToken.idToken)
+                            } catch (_: Exception) { }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = MaterialTheme.shapes.small,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_google),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Continue with Google")
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    HorizontalDivider(modifier = Modifier.weight(1f), color = Border)
+                    Text(
+                        text = "  or sign up with email  ",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMuted
+                    )
+                    HorizontalDivider(modifier = Modifier.weight(1f), color = Border)
+                }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     ContinuumTextField(
