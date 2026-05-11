@@ -93,4 +93,28 @@ describe('POST /api/waitlist', () => {
         expect(res.statusCode).toBe(201);
         expect(res.body.success).toBe(true);
     });
+
+    it('saves platformInterest when provided', async () => {
+        const WaitlistEntry = require('../../models/WaitlistEntry');
+        await request(app)
+            .post('/api/waitlist')
+            .send({ email: 'android@example.com', firstName: 'Alex', platformInterest: 'android' });
+
+        const entry = await WaitlistEntry.findOne({ email: 'android@example.com' });
+        expect(entry).not.toBeNull();
+        expect(entry.platformInterest).toBe('android');
+    });
+
+    it('returns 201 and stores null platformInterest when field is omitted (backward compat)', async () => {
+        const WaitlistEntry = require('../../models/WaitlistEntry');
+        const res = await request(app)
+            .post('/api/waitlist')
+            .send({ email: 'compat@example.com', firstName: 'Sam' });
+
+        expect(res.statusCode).toBe(201);
+        expect(res.body.success).toBe(true);
+
+        const entry = await WaitlistEntry.findOne({ email: 'compat@example.com' });
+        expect(entry.platformInterest).toBeNull();
+    });
 });

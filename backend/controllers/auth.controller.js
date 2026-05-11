@@ -36,7 +36,7 @@ function emailTemplate(content) {
           ${content}
           <hr style="border:none;border-top:1px solid #E5E7EB;margin:32px 0;" />
           <p style="color:#6B7280;font-size:13px;margin:0 0 16px;">Team Continuum</p>
-          <img src="https://usecontinuum.dev/wordmark.svg" alt="Continuum" height="22" style="display:block;" />
+          <img src="https://usecontinuum.dev/logo-lockup.svg" alt="Continuum" height="32" style="display:block;" />
         </td></tr>
       </table>
     </td></tr>
