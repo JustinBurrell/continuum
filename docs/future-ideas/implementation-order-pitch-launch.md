@@ -43,17 +43,28 @@ Full brand identity applied across web and Android. PR #219.
 
 Get the app feature-complete and polished before TEA starts. Play Store listing and signing happen with TEA — focus here is purely on code.
 
-### 0. Android Polish Audit
+### 1. Mobile & Tablet Marketing Gate ✅
+Intercepts all routes at viewports below 1024px (mobile + tablet) and renders a dedicated marketing page instead of the full app.
+- [x] `useMobile` hook + `isMobile` branch in `App.jsx` routes all sub-1024px traffic to `MobileGate`
+- [x] Hero section with custom CSS Pixel 9 frame showing real Android dashboard screenshot
+- [x] Feature carousel (6 cards, scroll-snap) with real Android screenshots per feature — status bar clipped, rounded corners, gradient breathing room
+- [x] Waitlist form: platform interest (iOS / Android / Both), first name, email; `noValidate` + client + server validation; 409 duplicate guard
+- [x] PostHog events: `mobile_landing_viewed`, `mobile_waitlist_form_started`, `mobile_waitlist_submitted`
+- [x] Resend welcome email with platform-personalized copy (non-blocking, fires after 201)
+- [x] `MobilePrivacyPage` and `MobileTermsPage` — legal pages accessible on mobile without hitting the gate
+- [x] 65-test Playwright E2E suite covering gate rendering, form states, legal pages, and viewport breakpoints
+
+### 2. Android Polish Audit
 Full audit of the Android app against Google Play standards (navigation, scale, gestures, empty states, loading/error states, store listing readiness). See [`android-play-audit.md`](android-play-audit.md) for the full prioritized list. Work through Critical → High → Medium before submission.
 
-### 1. Deep Links
+### 3. Deep Links
 Shared notes, friend requests, and messages need to open in the app from iMessage/Slack/browser — core to the social story TEA judges will evaluate.
 - [ ] Android App Links: add `/.well-known/assetlinks.json` to the backend
 - [ ] Wire `MainActivity` intent filter → `NavController` for shared note, friend request, and task deep links
 - [ ] Open Graph meta tags on public share pages for link previews (iMessage, Slack)
 - [ ] Test on physical device via iMessage and browser
 
-### 2. In-App Notification Bell
+### 4. In-App Notification Bell
 Foundation for everything below. Stops at Socket.io in-app delivery first.
 - [ ] `Notification` model + `notification.service.js` with `notify()` dispatcher
 - [ ] Wire into `comments.controller.js`, `friends.controller.js`, `share.service.js`
@@ -62,28 +73,28 @@ Foundation for everything below. Stops at Socket.io in-app delivery first.
 - [ ] Web: notification bell in sidebar with unread badge and dropdown
 - [ ] Android: notification bell in top bar; `socket.on('new_notification')` handler
 
-### 3. FCM Push Notifications
+### 5. FCM Push Notifications
 Android only. Requires notification bell infrastructure above.
 - [ ] Add Firebase to the project (`google-services.json`, Firebase SDK)
 - [ ] `FCMToken` stored per user session on the backend
 - [ ] Backend sends FCM message via `notification.service.js` when `notify()` fires
 - [ ] Android: handle foreground + background notification payloads, tap → deep link
 
-### 4. Notification Email Delivery
+### 6. Notification Email Delivery
 Requires notification bell infrastructure. Send on events users care about when they're not in the app.
 - [ ] Configure transactional email provider (e.g. Resend or SendGrid) with `noreply@usecontinuum.dev`
 - [ ] Email template for comment, friend request, and shared content notifications
 - [ ] Respect `emailNotifications` user setting (already exists on the profile model)
 - [ ] Unsubscribe link in every email (CAN-SPAM)
 
-### 5. Accessibility Audit
+### 7. Accessibility Audit
 Play Store IARC questionnaire surfaces a11y failures, and it fits the All Star Code / TEA profile.
 - [ ] Lighthouse + axe scan on all public and app routes (web)
 - [ ] Fix contrast, keyboard nav, focus indicators, aria-label, modal focus trap, alt text
 - [ ] Android: content descriptions on all icon-only buttons and images
 - [ ] `Accessibility.jsx` page at `/accessibility` + footer link
 
-### 6. Email Inbound Routing
+### 8. Email Inbound Routing
 Quick win — needed before real support traffic comes in.
 - [ ] Confirm `usecontinuum.dev` is 30+ days old
 - [ ] ImprovMX MX records + forwarding rules for `hello@`, `support@`, `noreply@`
@@ -111,4 +122,4 @@ Quick win — needed before real support traffic comes in.
 
 ---
 
-*Last updated: May 11, 2026*
+*Last updated: May 12, 2026*

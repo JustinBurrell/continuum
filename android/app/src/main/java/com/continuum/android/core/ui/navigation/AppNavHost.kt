@@ -63,8 +63,6 @@ object NavRoutes {
         const val FORGOT_PASSWORD = "auth/forgot-password"
         const val RESET_PASSWORD = "auth/reset-password"
         const val VERIFY_EMAIL = "auth/verify-email"
-        const val PRIVACY = "auth/privacy"
-        const val TERMS = "auth/terms"
     }
 
     object Onboarding {
@@ -443,8 +441,6 @@ private fun NavGraph(
                     },
                     onNavigateToRegister = { navController.navigate(NavRoutes.Auth.REGISTER) },
                     onNavigateToForgotPassword = { navController.navigate(NavRoutes.Auth.FORGOT_PASSWORD) },
-                    onNavigateToPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) },
-                    onNavigateToTerms = { navController.navigate(NavRoutes.Auth.TERMS) },
                     remoteLogoutMessage = remoteLogoutMessage,
                     onRemoteLogoutShown = onRemoteLogoutShown
                 )
@@ -456,9 +452,7 @@ private fun NavGraph(
                             popUpTo(NavRoutes.Auth.ROOT) { inclusive = true }
                         }
                     },
-                    onNavigateToLogin = { navController.popBackStack() },
-                    onNavigateToPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) },
-                    onNavigateToTerms = { navController.navigate(NavRoutes.Auth.TERMS) }
+                    onNavigateToLogin = { navController.popBackStack() }
                 )
             }
             composable(route = NavRoutes.Auth.FORGOT_PASSWORD) {
@@ -494,20 +488,7 @@ private fun NavGraph(
                     }
                 )
             }
-            composable(route = NavRoutes.Auth.PRIVACY) {
-                LegalDocumentScreen(
-                    title = "Privacy Policy",
-                    path = "privacy",
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            }
-            composable(route = NavRoutes.Auth.TERMS) {
-                LegalDocumentScreen(
-                    title = "Terms of Service",
-                    path = "terms",
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            }
+
         }
 
         // ---- Onboarding graph ----
@@ -928,8 +909,6 @@ private fun NavGraph(
                     onCalendar = { navController.navigate(NavRoutes.Calendar.ROOT) },
                     onTasks = { navController.navigate(NavRoutes.Tasks.ROOT) },
                     onResumes = { navController.navigate(NavRoutes.Career.RESUMES_LIST) },
-                    onTerms = { navController.navigate(NavRoutes.Auth.TERMS) },
-                    onPrivacy = { navController.navigate(NavRoutes.Auth.PRIVACY) },
                 )
             }
             composable(NavRoutes.Profile.EDIT) {

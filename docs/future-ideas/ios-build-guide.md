@@ -1792,8 +1792,8 @@ scope for each file, then implement one file at a time. Do not skip ahead.
 | `fraunces_bold.ttf` | Same file, added to Xcode target | Copy from `/android/app/src/main/res/font/` |
 | `fraunces_black.ttf` | Same file | Copy from same location |
 | `plus_jakarta_sans_*.ttf` (4 files) | Same files, added to Xcode target | Copy from same location |
-| `privacy_policy.txt` | Add to Xcode bundle as-is | `Bundle.main.url(forResource:)` to load |
-| `terms_of_service.txt` | Add to Xcode bundle as-is | Same |
+| `privacy_policy.txt` | Not bundled — open web URL instead | Use `UIApplication.shared.open(URL(string: "https://usecontinuum.dev/privacy")!)` or present a `SFSafariViewController` |
+| `terms_of_service.txt` | Not bundled — open web URL instead | Same pattern as above for `https://usecontinuum.dev/terms` |
 | `network_security_config.xml` | `Info.plist` → `NSAppTransportSecurity` | For local dev: add `NSExceptionDomains` for `10.0.2.2` (simulator) and `localhost` |
 
 ---

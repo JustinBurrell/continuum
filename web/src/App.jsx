@@ -5,6 +5,8 @@ import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/components/ui/Toast';
 import { useMobile } from '@/hooks/useMobile';
 import MobileGate from '@/components/MobileGate';
+import MobilePrivacyPage from '@/pages/MobilePrivacyPage';
+import MobileTermsPage from '@/pages/MobileTermsPage';
 
 import AppLayout from '@/components/layout/AppLayout';
 import AuthLayout from '@/components/layout/AuthLayout';
@@ -53,7 +55,12 @@ export default function App() {
         <BrowserRouter>
           <ScrollToTop />
           <TitleManager />
-          {isMobile ? <MobileGate /> : <Routes>
+          {isMobile ? <Routes>
+            {/* Legal pages reachable on mobile without hitting the gate */}
+            <Route path="/privacy" element={<MobilePrivacyPage />} />
+            <Route path="/terms" element={<MobileTermsPage />} />
+            <Route path="*" element={<MobileGate />} />
+          </Routes> : <Routes>
             {/* Public pages */}
             <Route path="/" element={<Landing />} />
             <Route path="/product" element={<Product />} />
@@ -99,6 +106,7 @@ export default function App() {
             </Route>
           </Routes>}
         </BrowserRouter>
+
       </AuthProvider>
       </ToastProvider>
     </QueryClientProvider>

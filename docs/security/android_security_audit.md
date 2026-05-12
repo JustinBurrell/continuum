@@ -21,7 +21,6 @@
 `android/app/src/main/java/com/continuum/android/di/DatabaseModule.kt`  
 `android/app/src/main/java/com/continuum/android/core/data/local/AppDatabase.kt`  
 `android/app/src/main/java/com/continuum/android/core/ui/navigation/AppNavHost.kt`  
-`android/app/src/main/java/com/continuum/android/feature/auth/presentation/LegalDocumentScreen.kt`  
 `android/app/src/main/java/com/continuum/android/feature/auth/data/repository/AuthRepository.kt`  
 `android/README.md` (security summary table)
 
@@ -246,14 +245,9 @@ Both use `android:autoVerify="true"`. **Digital Asset Links verification applies
 
 ---
 
-### A-M5 — Legal / Policy WebView — Medium / Mostly Good
+### A-M5 — Legal / Policy WebView — Resolved
 
-**File:** `android/.../feature/auth/presentation/LegalDocumentScreen.kt`
-
-- **`javaScriptEnabled = false`** — materially reduces XSS within that WebView.  
-- URL: derived from `BuildConfig.BASE_URL` host with a path segment (`privacy`, `terms`) — keeps docs aligned with environment.
-
-**Residual:** Default `WebViewClient()` — if you later enable links or JS, add **`shouldOverrideUrlLoading`**, mixed-content hardening, and a strict allowlist of hosts.
+`LegalDocumentScreen.kt` has been deleted. Legal documents now open in the device's default browser via `LocalUriHandler.openUri("https://usecontinuum.dev/privacy|/terms")` from LoginScreen, RegisterScreen, and ProfileScreen. The in-app WebView is eliminated entirely — no residual XSS surface.
 
 ---
 

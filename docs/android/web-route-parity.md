@@ -26,8 +26,8 @@
 | `/` | `Landing` | — | **N/A** — native app starts at auth or main graph; marketing lives on web / Play listing. |
 | `/product` | `Product` | — | **N/A** |
 | `/about` | `About` | — | **N/A** |
-| `/privacy` | `PrivacyPolicy` | `auth/privacy` (`LegalDocumentScreen`) | **Partial** — reachable from auth flows, not a top-level public route. |
-| `/terms` | `TermsOfService` | `auth/terms` | **Partial** |
+| `/privacy` | `PrivacyPolicy` (desktop) / `MobilePrivacyPage` (mobile) | Opens `https://usecontinuum.dev/privacy` in device browser via `LocalUriHandler` | **Done** — `LegalDocumentScreen` removed; external browser link from Login, Register, and Profile screens. |
+| `/terms` | `TermsOfService` (desktop) / `MobileTermsPage` (mobile) | Opens `https://usecontinuum.dev/terms` in device browser via `LocalUriHandler` | **Done** |
 
 ---
 
