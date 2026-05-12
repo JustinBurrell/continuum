@@ -152,7 +152,7 @@ export default function MobileGate() {
             className="font-bold tracking-tight"
             style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 'clamp(1.875rem, 8vw, 2.5rem)', color: '#111827', lineHeight: 1.1, marginBottom: 16 }}
           >
-            Your student workspace, wherever you are.
+            Stop switching between 8 apps. Start using one.
           </h1>
           <p style={{ color: '#6B7280', fontSize: '0.9375rem', lineHeight: 1.75, marginBottom: 28 }}>
             Continuum brings your notes, tasks, flashcards, and career into one place. Collaborate with classmates, connect Google Docs and your favorite tools, and manage your academic life from one app.
