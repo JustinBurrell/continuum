@@ -183,7 +183,7 @@ export default function MobileGate() {
                   pointerEvents: 'none',
                 }}>
                   <DeviceFrameset device="iPhone X">
-                    <img src="/screenshots/android/dashboard.png" alt="Continuum dashboard" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+                    <img src="/screenshots/android/dashboard.png" alt="Continuum dashboard" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', borderRadius: 28 }} />
                   </DeviceFrameset>
                 </div>
               </div>
@@ -225,8 +225,8 @@ export default function MobileGate() {
               }}
             >
               {/* Screen preview — portrait 9:16 ratio matches a phone screenshot */}
-              <div style={{ width: '100%', aspectRatio: '9 / 16', background: bg, overflow: 'hidden' }}>
-                <img src={screenshot} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+              <div style={{ width: '100%', aspectRatio: '9 / 16', background: bg, overflow: 'hidden', padding: '10px 10px 0', boxSizing: 'border-box' }}>
+                <img src={screenshot} alt={label} style={{ width: '100%', display: 'block', borderRadius: '10px 10px 0 0' }} />
               </div>
 
               {/* Feature text */}
