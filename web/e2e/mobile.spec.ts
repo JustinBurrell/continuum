@@ -12,7 +12,7 @@ test.describe('Mobile gate', () => {
     await page.setViewportSize(MOBILE);
     await page.goto('/');
     // Hero headline is unique to MobileGate
-    await expect(page.locator('h1')).toContainText('Your student workspace');
+    await expect(page.locator('h1')).toContainText('Stop switching between 8 apps');
     // App navigation (sidebar/dashboard) must NOT be present
     await expect(page.locator('text=Dashboard')).not.toBeVisible();
   });
@@ -146,7 +146,7 @@ test.describe('Mobile legal pages', () => {
     await page.setViewportSize(MOBILE);
     await page.goto('/privacy');
     await expect(page.locator('h1')).toContainText('Privacy Policy');
-    await expect(page.locator('text=Information We Collect')).toBeVisible();
+    await expect(page.locator('h2:has-text("Information We Collect")')).toBeVisible();
     // Full app must NOT render
     await expect(page.locator('text=Dashboard')).not.toBeVisible();
   });
@@ -155,7 +155,7 @@ test.describe('Mobile legal pages', () => {
     await page.setViewportSize(MOBILE);
     await page.goto('/terms');
     await expect(page.locator('h1')).toContainText('Terms of Service');
-    await expect(page.locator('text=Acceptance of Terms')).toBeVisible();
+    await expect(page.locator('h2:has-text("Acceptance of Terms")')).toBeVisible();
   });
 
   test('/privacy nav has logo and "Join the waitlist" link', async ({ page }) => {

@@ -106,7 +106,7 @@ export default function MobileGate() {
     }
   }
 
-  const canSubmit = firstName.trim().length > 0 && emailRegex.test(email.trim()) && platformInterest !== null;
+  const canSubmit = firstName.trim().length > 0 && email.trim().length > 0 && platformInterest !== null;
   const heroPhoneScale = 0.40;
 
   return (
