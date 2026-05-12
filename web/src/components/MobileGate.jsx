@@ -148,28 +148,28 @@ export default function MobileGate() {
       {/* the viewport bottom on smaller devices, revealing more as the user scrolls. */}
       <section className="relative w-full">
 
-        {/* Text — left aligned, full width */}
-        <div className="w-full px-4" style={{ paddingTop: 36, paddingBottom: 24 }}>
+        {/* Text — centered, full width */}
+        <div className="w-full px-4 text-center" style={{ paddingTop: 40, paddingBottom: 28 }}>
           <h1
             className="font-bold tracking-tight"
-            style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 'clamp(1.875rem, 8vw, 2.5rem)', color: '#111827', lineHeight: 1.1, marginBottom: 14 }}
+            style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 'clamp(1.875rem, 8vw, 2.5rem)', color: '#111827', lineHeight: 1.1, marginBottom: 16 }}
           >
             Your student workspace, wherever you are.
           </h1>
-          <p style={{ color: '#6B7280', fontSize: '0.9375rem', lineHeight: 1.7, marginBottom: 24 }}>
+          <p style={{ color: '#6B7280', fontSize: '0.9375rem', lineHeight: 1.75, marginBottom: 28 }}>
             Continuum brings your notes, tasks, flashcards, and career into one place. Collaborate with classmates, connect Google Docs and your favorite tools, and manage your academic life from one app.
           </p>
           <Button variant="primary" size="lg" className="w-full" onClick={scrollToForm}>
             Join the waitlist
           </Button>
-          <p style={{ color: '#9B9B9B', fontSize: '0.6875rem', textAlign: 'center', marginTop: 10, marginBottom: 0 }}>
+          <p style={{ color: '#9B9B9B', fontSize: '0.6875rem', marginTop: 10, marginBottom: 0 }}>
             Web · Android soon · iOS in development
           </p>
         </div>
 
-        {/* Phone — centered, full height in flow, bleeds off viewport on small screens */}
+        {/* Phone — centered, smaller scale, bleeds off viewport on small screens */}
         {(() => {
-          const phoneW = Math.min(Math.round(window.innerWidth * 0.78), 295);
+          const phoneW = Math.min(Math.round(window.innerWidth * 0.62), 250);
           const scale  = phoneW / IPHONE_W;
           const phoneH = Math.ceil(812 * scale);
           return (
