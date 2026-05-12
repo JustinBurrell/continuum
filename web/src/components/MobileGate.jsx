@@ -293,7 +293,7 @@ export default function MobileGate() {
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 16, padding: '24px 20px' }}>
+            <form onSubmit={handleSubmit} noValidate style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 16, padding: '24px 20px' }}>
               <p style={{ fontWeight: 500, fontSize: '0.875rem', color: '#111827', marginBottom: 10 }}>
                 Which platform interests you?
               </p>
