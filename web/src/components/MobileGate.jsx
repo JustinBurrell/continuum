@@ -143,50 +143,51 @@ export default function MobileGate() {
         </div>
       </nav>
 
-      {/* ── Section 1: Hero — text left, phone right (bleeds off edge) ── */}
-      {/* Technique: section clips with overflow:hidden; phone is absolute on right,
-          slightly bleeding past the edge. Used by Revolut, Monzo, N26. */}
-      <section className="relative w-full overflow-hidden" style={{ minHeight: 300 }}>
+      {/* ── Section 1: Hero — Mogul pattern: left-aligned text, phone centered below ── */}
+      {/* Phone sits in normal flow below the CTA; its height naturally bleeds off   */}
+      {/* the viewport bottom on smaller devices, revealing more as the user scrolls. */}
+      <section className="relative w-full">
 
-        {/* Text — takes left 58% */}
-        <div style={{ width: '58%', paddingLeft: 16, paddingTop: 28, paddingBottom: 24 }}>
+        {/* Text — left aligned, full width */}
+        <div className="w-full px-4" style={{ paddingTop: 36, paddingBottom: 24 }}>
           <h1
             className="font-bold tracking-tight"
-            style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 'clamp(1.5rem, 6vw, 2rem)', color: '#111827', lineHeight: 1.15, marginBottom: 12 }}
+            style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 'clamp(1.875rem, 8vw, 2.5rem)', color: '#111827', lineHeight: 1.1, marginBottom: 14 }}
           >
             Your student workspace, wherever you are.
           </h1>
-          <p style={{ color: '#6B7280', fontSize: '0.8125rem', lineHeight: 1.65, marginBottom: 18 }}>
+          <p style={{ color: '#6B7280', fontSize: '0.9375rem', lineHeight: 1.7, marginBottom: 24 }}>
             Continuum brings your notes, tasks, flashcards, and career into one place. Collaborate with classmates, connect Google Docs and your favorite tools, and manage your academic life from one app.
           </p>
-          <Button variant="primary" size="md" style={{ width: '100%' }} onClick={scrollToForm}>
+          <Button variant="primary" size="lg" className="w-full" onClick={scrollToForm}>
             Join the waitlist
           </Button>
-          <p style={{ color: '#9B9B9B', fontSize: '0.625rem', marginTop: 12, marginBottom: 0, lineHeight: 1.5 }}>
+          <p style={{ color: '#9B9B9B', fontSize: '0.6875rem', textAlign: 'center', marginTop: 10, marginBottom: 0 }}>
             Web · Android soon · iOS in development
           </p>
         </div>
 
-        {/* Phone — absolute right, scale 0.48, bleeds ~12px off right edge */}
+        {/* Phone — centered, full height in flow, bleeds off viewport on small screens */}
         {(() => {
-          const scale  = 0.48;
-          const phoneW = Math.ceil(IPHONE_W * scale); // 180px
-          const phoneH = Math.ceil(812 * scale);       // 390px
+          const phoneW = Math.min(Math.round(window.innerWidth * 0.78), 295);
+          const scale  = phoneW / IPHONE_W;
+          const phoneH = Math.ceil(812 * scale);
           return (
-            <div style={{
-              position: 'absolute',
-              top: 8,
-              right: -12,
-              width: phoneW,
-              height: phoneH,
-              pointerEvents: 'none',
-            }}>
-              <div style={{ position: 'absolute', top: 0, left: 0, width: IPHONE_W, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-                <DeviceFrameset device="iPhone X">
-                  <div style={{ width: '100%', height: '100%', background: 'linear-gradient(160deg, #F3F0FF 0%, #E5E7EB 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <img src="/logo.svg" alt="" style={{ height: 28, opacity: 0.3 }} />
-                  </div>
-                </DeviceFrameset>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: phoneW, height: phoneH, position: 'relative', flexShrink: 0 }}>
+                <div style={{
+                  position: 'absolute', top: 0, left: 0,
+                  width: IPHONE_W,
+                  transform: `scale(${scale})`,
+                  transformOrigin: 'top left',
+                  pointerEvents: 'none',
+                }}>
+                  <DeviceFrameset device="iPhone X">
+                    <div style={{ width: '100%', height: '100%', background: 'linear-gradient(160deg, #F3F0FF 0%, #E5E7EB 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src="/logo.svg" alt="" style={{ height: 32, opacity: 0.3 }} />
+                    </div>
+                  </DeviceFrameset>
+                </div>
               </div>
             </div>
           );
@@ -217,8 +218,7 @@ export default function MobileGate() {
             <div
               key={label}
               style={{
-                flex: '0 0 80vw',
-                maxWidth: 320,
+                flex: '0 0 min(80vw, 300px)',
                 scrollSnapAlign: 'start',
                 background: 'white',
                 borderRadius: 16,
