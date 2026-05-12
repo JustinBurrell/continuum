@@ -22,12 +22,12 @@ const IPHONE_W = 375;
 
 // Accent colors per feature for screen preview backgrounds
 const FEATURES = [
-  { icon: NotebookPen,   label: 'Notes & AI summaries',  desc: 'Capture anything. Understand it instantly.',         bg: 'linear-gradient(135deg, #F3F0FF 0%, #DDD6FE 100%)' },
-  { icon: CalendarCheck, label: 'Tasks & deadlines',      desc: 'Stay on top of every due date, everywhere.',         bg: 'linear-gradient(135deg, #EFF6FF 0%, #BFDBFE 100%)' },
-  { icon: BrainCircuit,  label: 'Smart flashcards',       desc: 'Generate cards from your notes. Study on the go.',   bg: 'linear-gradient(135deg, #F0FDF4 0%, #BBF7D0 100%)' },
-  { icon: TrendingUp,    label: 'Career pipeline',         desc: 'Track every application without switching apps.',    bg: 'linear-gradient(135deg, #FFF7ED 0%, #FED7AA 100%)' },
-  { icon: Users,         label: 'Social & collaboration', desc: 'Connect with classmates, share notes, study together.', bg: 'linear-gradient(135deg, #FDF4FF 0%, #F5D0FE 100%)' },
-  { icon: Puzzle,        label: 'Tool integrations',       desc: 'Connect Google Docs and more tools as we grow.',     bg: 'linear-gradient(135deg, #F0F9FF 0%, #BAE6FD 100%)' },
+  { icon: NotebookPen,   label: 'Notes & AI summaries',  desc: 'Capture anything. Understand it instantly.',            bg: 'linear-gradient(135deg, #F3F0FF 0%, #DDD6FE 100%)', screenshot: '/screenshots/android/notes.png' },
+  { icon: CalendarCheck, label: 'Tasks & deadlines',      desc: 'Stay on top of every due date, everywhere.',            bg: 'linear-gradient(135deg, #EFF6FF 0%, #BFDBFE 100%)', screenshot: '/screenshots/android/tasks.png' },
+  { icon: BrainCircuit,  label: 'Smart flashcards',       desc: 'Generate cards from your notes. Study on the go.',      bg: 'linear-gradient(135deg, #F0FDF4 0%, #BBF7D0 100%)', screenshot: '/screenshots/android/flashcards.png' },
+  { icon: TrendingUp,    label: 'Career pipeline',        desc: 'Track every application without switching apps.',        bg: 'linear-gradient(135deg, #FFF7ED 0%, #FED7AA 100%)', screenshot: '/screenshots/android/career.png' },
+  { icon: Users,         label: 'Social & collaboration', desc: 'Connect with classmates, share notes, study together.', bg: 'linear-gradient(135deg, #FDF4FF 0%, #F5D0FE 100%)', screenshot: '/screenshots/android/social.png' },
+  { icon: Puzzle,        label: 'Tool integrations',      desc: 'Connect Google Docs and more tools as we grow.',        bg: 'linear-gradient(135deg, #F0F9FF 0%, #BAE6FD 100%)', screenshot: '/screenshots/android/integrations.png' },
 ];
 
 const SUCCESS_SUBTEXT = {
@@ -183,9 +183,7 @@ export default function MobileGate() {
                   pointerEvents: 'none',
                 }}>
                   <DeviceFrameset device="iPhone X">
-                    <div style={{ width: '100%', height: '100%', background: 'linear-gradient(160deg, #F3F0FF 0%, #E5E7EB 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src="/logo.svg" alt="" style={{ height: 32, opacity: 0.3 }} />
-                    </div>
+                    <img src="/screenshots/android/dashboard.png" alt="Continuum dashboard" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
                   </DeviceFrameset>
                 </div>
               </div>
@@ -214,7 +212,7 @@ export default function MobileGate() {
             msOverflowStyle: 'none',
           }}
         >
-          {FEATURES.map(({ icon: Icon, label, desc, bg }) => (
+          {FEATURES.map(({ icon: Icon, label, desc, bg, screenshot }) => (
             <div
               key={label}
               style={{
@@ -227,15 +225,8 @@ export default function MobileGate() {
               }}
             >
               {/* Screen preview — portrait 9:16 ratio matches a phone screenshot */}
-              <div style={{
-                width: '100%',
-                aspectRatio: '9 / 16',
-                background: bg,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <Icon size={48} color="#6B21A8" strokeWidth={1.5} />
+              <div style={{ width: '100%', aspectRatio: '9 / 16', background: bg, overflow: 'hidden' }}>
+                <img src={screenshot} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
               </div>
 
               {/* Feature text */}
