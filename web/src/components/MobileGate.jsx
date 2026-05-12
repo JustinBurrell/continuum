@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   NotebookPen,
@@ -16,20 +16,18 @@ import api from '@/lib/api';
 import { posthog } from '@/lib/posthog';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// iPhone X native dims: 375 x 812
 const IPHONE_W = 375;
 
+// Accent colors per feature for screen preview backgrounds
 const FEATURES = [
-  { icon: NotebookPen,   label: 'Notes & AI summaries',  desc: 'Capture anything. Understand it instantly.' },
-  { icon: CalendarCheck, label: 'Tasks & deadlines',      desc: 'Stay on top of every due date, everywhere.' },
-  { icon: BrainCircuit,  label: 'Smart flashcards',       desc: 'Generate cards from your notes. Study on the go.' },
-  { icon: TrendingUp,    label: 'Career pipeline',         desc: 'Track every application without switching apps.' },
-  { icon: Users,         label: 'Social & collaboration', desc: 'Connect with classmates, share notes, and study together.' },
-  { icon: Puzzle,        label: 'Tool integrations',       desc: 'Connect Google Docs and more tools as we grow.' },
+  { icon: NotebookPen,   label: 'Notes & AI summaries',  desc: 'Capture anything. Understand it instantly.',         bg: 'linear-gradient(135deg, #F3F0FF 0%, #DDD6FE 100%)' },
+  { icon: CalendarCheck, label: 'Tasks & deadlines',      desc: 'Stay on top of every due date, everywhere.',         bg: 'linear-gradient(135deg, #EFF6FF 0%, #BFDBFE 100%)' },
+  { icon: BrainCircuit,  label: 'Smart flashcards',       desc: 'Generate cards from your notes. Study on the go.',   bg: 'linear-gradient(135deg, #F0FDF4 0%, #BBF7D0 100%)' },
+  { icon: TrendingUp,    label: 'Career pipeline',         desc: 'Track every application without switching apps.',    bg: 'linear-gradient(135deg, #FFF7ED 0%, #FED7AA 100%)' },
+  { icon: Users,         label: 'Social & collaboration', desc: 'Connect with classmates, share notes, study together.', bg: 'linear-gradient(135deg, #FDF4FF 0%, #F5D0FE 100%)' },
+  { icon: Puzzle,        label: 'Tool integrations',       desc: 'Connect Google Docs and more tools as we grow.',     bg: 'linear-gradient(135deg, #F0F9FF 0%, #BAE6FD 100%)' },
 ];
 
 const SUCCESS_SUBTEXT = {
@@ -37,21 +35,6 @@ const SUCCESS_SUBTEXT = {
   android: "We'll reach out when the Android app is ready for you.",
   both:    "We'll reach out when both apps are ready for you.",
 };
-
-// iPhone X native height: 812px. At scale(0.17) → 138px tall, 64px wide — fully visible.
-function MiniPhone({ bg = '#E5E7EB' }) {
-  const scale = 64 / IPHONE_W;
-  const scaledH = Math.ceil(812 * scale);
-  return (
-    <div style={{ position: 'relative', width: 64, height: scaledH, flexShrink: 0 }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, width: IPHONE_W, transform: `scale(${scale})`, transformOrigin: 'top left', pointerEvents: 'none' }}>
-        <DeviceFrameset device="iPhone X">
-          <div style={{ width: '100%', height: '100%', background: bg }} />
-        </DeviceFrameset>
-      </div>
-    </div>
-  );
-}
 
 export default function MobileGate() {
   const [firstName, setFirstName]               = useState('');
@@ -61,7 +44,9 @@ export default function MobileGate() {
   const [submitted, setSubmitted]               = useState(false);
   const [error, setError]                       = useState('');
   const [formStarted, setFormStarted]           = useState(false);
+  const [activeFeature, setActiveFeature]       = useState(0);
 
+  const carouselRef = useRef(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -75,6 +60,18 @@ export default function MobileGate() {
       }, 120);
     }
   }, [location.state?.scrollToForm]);
+
+  // Track which feature card is visible in the carousel
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const handler = () => {
+      const cardWidth = el.scrollWidth / FEATURES.length;
+      setActiveFeature(Math.round(el.scrollLeft / cardWidth));
+    };
+    el.addEventListener('scroll', handler, { passive: true });
+    return () => el.removeEventListener('scroll', handler);
+  }, []);
 
   function handleFieldFocus() {
     if (!formStarted) {
@@ -112,9 +109,6 @@ export default function MobileGate() {
   }
 
   const canSubmit = firstName.trim().length > 0 && emailRegex.test(email.trim()) && platformInterest !== null;
-
-  // Hero phone scale: fills 42% of the usable viewport width.
-  // clamp(320,430) → phone col ~130–168px. Scale 0.40 is the midpoint sweet spot.
   const heroPhoneScale = 0.40;
 
   return (
@@ -149,91 +143,130 @@ export default function MobileGate() {
         </div>
       </nav>
 
-      {/* ── Section 1: Hero — text left, phone right ── */}
-      <section className="relative w-full overflow-hidden">
-        <div className="w-full px-4" style={{ display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: 32, paddingBottom: 32 }}>
+      {/* ── Section 1: Hero — stacked (industry standard for mobile landing pages) ── */}
+      <section className="relative w-full" style={{ paddingBottom: 0 }}>
 
-          {/* Left: text + CTA */}
-          <div style={{ flex: '0 0 58%', paddingRight: 12, paddingTop: 8 }}>
-            <h1
-              className="font-bold tracking-tight"
-              style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 'clamp(1.5rem, 6vw, 2rem)', color: '#111827', lineHeight: 1.15, marginBottom: 12 }}
-            >
-              Your student workspace, wherever you are.
-            </h1>
-            <p style={{ color: '#6B7280', fontSize: '0.875rem', lineHeight: 1.65, marginBottom: 20 }}>
-              Continuum brings your notes, tasks, flashcards, and career into one place. Collaborate with classmates, connect Google Docs and your favorite tools, and manage your academic life from one app.
-            </p>
-            <Button variant="primary" size="md" className="w-full" onClick={scrollToForm}>
-              Join the waitlist
-            </Button>
-          </div>
-
-          {/* Right: iPhone frame (42%), height matches text column via alignSelf stretch */}
-          <div style={{ flex: '0 0 42%', position: 'relative', overflow: 'hidden', alignSelf: 'stretch' }}>
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              right: -8,
-              width: IPHONE_W,
-              transform: `scale(${heroPhoneScale})`,
-              transformOrigin: 'top right',
-              pointerEvents: 'none',
-            }}>
-              <DeviceFrameset device="iPhone X">
-                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(160deg, #F3F0FF 0%, #E5E7EB 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <img src="/logo.svg" alt="" style={{ height: 28, opacity: 0.3 }} />
-                </div>
-              </DeviceFrameset>
-            </div>
-          </div>
-
+        {/* Text block — full width, centered */}
+        <div className="w-full px-4 text-center" style={{ paddingTop: 32, paddingBottom: 24 }}>
+          <h1
+            className="font-bold tracking-tight"
+            style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 'clamp(1.75rem, 7vw, 2.25rem)', color: '#111827', lineHeight: 1.15, marginBottom: 14 }}
+          >
+            Your student workspace, wherever you are.
+          </h1>
+          <p style={{ color: '#6B7280', fontSize: '0.9375rem', lineHeight: 1.65, marginBottom: 22, maxWidth: 340, margin: '0 auto 22px' }}>
+            Continuum brings your notes, tasks, flashcards, and career into one place. Collaborate with classmates, connect Google Docs and your favorite tools, and manage your academic life from one app.
+          </p>
+          <Button variant="primary" size="lg" className="w-full" onClick={scrollToForm}>
+            Join the waitlist
+          </Button>
         </div>
-        {/* Caption */}
-        <p style={{ color: '#9B9B9B', fontSize: '0.6875rem', textAlign: 'center', paddingBottom: 16 }}>
+
+        {/* Phone mockup — centered, fills ~65vw, full frame visible */}
+        {(() => {
+          const phoneW = Math.min(Math.round(window.innerWidth * 0.65), 250);
+          const scale  = phoneW / IPHONE_W;
+          const phoneH = Math.ceil(812 * scale);
+          return (
+            <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: 0 }}>
+              <div style={{ width: phoneW, height: phoneH, position: 'relative', flexShrink: 0 }}>
+                <div style={{
+                  position: 'absolute', top: 0, left: 0, width: IPHONE_W,
+                  transform: `scale(${scale})`, transformOrigin: 'top left', pointerEvents: 'none',
+                }}>
+                  <DeviceFrameset device="iPhone X">
+                    <div style={{ width: '100%', height: '100%', background: 'linear-gradient(160deg, #F3F0FF 0%, #E5E7EB 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src="/logo.svg" alt="" style={{ height: 32, opacity: 0.3 }} />
+                    </div>
+                  </DeviceFrameset>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        <p style={{ color: '#9B9B9B', fontSize: '0.6875rem', textAlign: 'center', padding: '10px 16px 4px' }}>
           Available now on web · Android launching soon · iOS in development
         </p>
       </section>
 
-      {/* ── Section 2: Feature highlights with mini phone per feature ── */}
-      <section className="relative w-full">
-        <div className="w-full px-4 pb-10">
-          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: 16, letterSpacing: '-0.01em', textAlign: 'center' }}>
-            Everything you need
-          </h2>
-          <Card style={{ padding: 0 }}>
-            {FEATURES.map(({ icon: Icon, label, desc }, i) => (
-              <div
-                key={label}
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 12,
-                  padding: '14px 16px',
-                  borderBottom: i < FEATURES.length - 1 ? '1px solid #F3F4F6' : 'none',
-                }}
-              >
-                {/* Icon */}
-                <div style={{ flexShrink: 0, marginTop: 2 }}>
-                  <Icon size={18} color="#6B21A8" />
-                </div>
-                {/* Text */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontWeight: 600, fontSize: '0.8125rem', color: '#111827', margin: '0 0 2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</p>
-                  <p style={{ fontSize: '0.75rem', color: '#6B7280', margin: 0, lineHeight: 1.5 }}>{desc}</p>
-                </div>
-                {/* Mini iPhone placeholder */}
-                <MiniPhone bg="linear-gradient(160deg, #F3F0FF 0%, #E5E7EB 100%)" />
+      {/* ── Section 2: Feature carousel ── */}
+      <section className="relative w-full" style={{ paddingTop: 28, paddingBottom: 8 }}>
+        <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: 16, textAlign: 'center' }}>
+          Everything you need
+        </h2>
+
+        {/* Horizontal scroll carousel — one feature per card */}
+        <div
+          ref={carouselRef}
+          style={{
+            display: 'flex',
+            overflowX: 'auto',
+            scrollSnapType: 'x mandatory',
+            WebkitOverflowScrolling: 'touch',
+            gap: 12,
+            padding: '0 16px 4px',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
+        >
+          {FEATURES.map(({ icon: Icon, label, desc, bg }) => (
+            <div
+              key={label}
+              style={{
+                flex: '0 0 80vw',
+                maxWidth: 320,
+                scrollSnapAlign: 'start',
+                background: 'white',
+                borderRadius: 16,
+                border: '1px solid #E5E7EB',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Screen preview area — placeholder until real screenshots arrive */}
+              <div style={{
+                width: '100%',
+                height: '50vw',
+                maxHeight: 220,
+                minHeight: 140,
+                background: bg,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <Icon size={40} color="#6B21A8" strokeWidth={1.5} />
               </div>
-            ))}
-          </Card>
+
+              {/* Feature text */}
+              <div style={{ padding: '16px' }}>
+                <p style={{ fontWeight: 700, fontSize: '0.9375rem', color: '#111827', margin: '0 0 4px' }}>{label}</p>
+                <p style={{ fontSize: '0.875rem', color: '#6B7280', margin: 0, lineHeight: 1.55 }}>{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Dots indicator */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, paddingTop: 14 }}>
+          {FEATURES.map((_, i) => (
+            <div
+              key={i}
+              style={{
+                width: i === activeFeature ? 20 : 6,
+                height: 6,
+                borderRadius: 999,
+                background: i === activeFeature ? '#6B21A8' : '#D1D5DB',
+                transition: 'all 0.2s',
+              }}
+            />
+          ))}
         </div>
       </section>
 
       {/* ── Section 3: Waitlist form ── */}
-      <section id="waitlist-form" className="relative w-full">
+      <section id="waitlist-form" className="relative w-full" style={{ paddingTop: 28 }}>
         <div className="w-full px-4 pb-10">
-          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: 16, letterSpacing: '-0.01em', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: 16, textAlign: 'center' }}>
             Get early access
           </h2>
 
@@ -348,6 +381,10 @@ export default function MobileGate() {
           </div>
         </div>
       </footer>
+
+      <style>{`
+        div::-webkit-scrollbar { display: none; }
+      `}</style>
     </div>
   );
 }
