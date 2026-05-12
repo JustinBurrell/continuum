@@ -113,8 +113,8 @@ export default function MobileGate() {
 
   return (
     <div
-      className="font-marketing w-full min-h-screen overflow-x-hidden"
-      style={{ backgroundColor: '#F8F9FA', position: 'relative' }}
+      className="font-marketing w-full min-h-screen"
+      style={{ backgroundColor: '#F8F9FA', position: 'relative', overflowX: 'clip' }}
     >
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -195,7 +195,7 @@ export default function MobileGate() {
       </section>
 
       {/* ── Section 2: Feature carousel ── */}
-      <section className="relative w-full" style={{ paddingTop: 28, paddingBottom: 8 }}>
+      <section className="relative w-full" style={{ paddingTop: 48, paddingBottom: 8 }}>
         <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: 16, textAlign: 'center' }}>
           Everything you need
         </h2>
