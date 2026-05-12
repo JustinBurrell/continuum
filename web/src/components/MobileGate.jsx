@@ -10,8 +10,6 @@ import {
   CheckCircle,
   Monitor,
 } from 'lucide-react';
-import { DeviceFrameset } from 'react-device-frameset';
-import 'react-device-frameset/styles/marvel-devices.min.css';
 import api from '@/lib/api';
 import { posthog } from '@/lib/posthog';
 import Input from '@/components/ui/Input';
@@ -171,7 +169,7 @@ export default function MobileGate() {
         {(() => {
           const phoneW = Math.min(Math.round(window.innerWidth * 0.62), 250);
           const scale  = phoneW / IPHONE_W;
-          const phoneH = Math.ceil(812 * scale);
+          const phoneH = Math.ceil(830 * scale);
           return (
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <div style={{ width: phoneW, height: phoneH, position: 'relative', flexShrink: 0 }}>
@@ -182,9 +180,29 @@ export default function MobileGate() {
                   transformOrigin: 'top left',
                   pointerEvents: 'none',
                 }}>
-                  <DeviceFrameset device="iPhone X">
-                    <img src="/screenshots/android/dashboard.png" alt="Continuum dashboard" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', borderRadius: 28 }} />
-                  </DeviceFrameset>
+                  {/* Pixel 9 frame */}
+                  <div style={{
+                    position: 'relative',
+                    background: 'linear-gradient(160deg, #252525 0%, #1a1a1a 100%)',
+                    borderRadius: 44,
+                    padding: '15px 13px 20px',
+                    boxShadow: '0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.05), 0 30px 80px rgba(0,0,0,0.4)',
+                  }}>
+                    {/* Power button */}
+                    <div style={{ position: 'absolute', right: -2.5, top: 148, width: 3, height: 56, background: '#222', borderRadius: '0 3px 3px 0' }} />
+                    {/* Volume up */}
+                    <div style={{ position: 'absolute', left: -2.5, top: 108, width: 3, height: 42, background: '#222', borderRadius: '3px 0 0 3px' }} />
+                    {/* Volume down */}
+                    <div style={{ position: 'absolute', left: -2.5, top: 162, width: 3, height: 42, background: '#222', borderRadius: '3px 0 0 3px' }} />
+                    {/* Screen */}
+                    <div style={{ borderRadius: 30, overflow: 'hidden', lineHeight: 0 }}>
+                      <img src="/screenshots/android/dashboard.png" alt="Continuum dashboard" style={{ width: '100%', display: 'block' }} />
+                    </div>
+                    {/* Home indicator */}
+                    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8 }}>
+                      <div style={{ width: 100, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.2)' }} />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -224,9 +242,11 @@ export default function MobileGate() {
                 overflow: 'hidden',
               }}
             >
-              {/* Screen preview — portrait 9:16 ratio matches a phone screenshot */}
-              <div style={{ width: '100%', aspectRatio: '9 / 16', background: bg, overflow: 'hidden', padding: '10px 10px 0', boxSizing: 'border-box' }}>
-                <img src={screenshot} alt={label} style={{ width: '100%', display: 'block', borderRadius: '10px 10px 0 0' }} />
+              {/* Screen preview — portrait 9:16, clips Android status bar */}
+              <div style={{ width: '100%', aspectRatio: '9 / 16', background: bg, overflow: 'hidden' }}>
+                <div style={{ margin: '10px 8px 0', borderRadius: '10px 10px 0 0', overflow: 'hidden' }}>
+                  <img src={screenshot} alt={label} style={{ width: '100%', display: 'block', marginTop: -36 }} />
+                </div>
               </div>
 
               {/* Feature text */}
