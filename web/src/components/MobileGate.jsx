@@ -143,51 +143,54 @@ export default function MobileGate() {
         </div>
       </nav>
 
-      {/* ── Section 1: Hero — stacked (industry standard for mobile landing pages) ── */}
-      <section className="relative w-full" style={{ paddingBottom: 0 }}>
+      {/* ── Section 1: Hero — text left, phone right (bleeds off edge) ── */}
+      {/* Technique: section clips with overflow:hidden; phone is absolute on right,
+          slightly bleeding past the edge. Used by Revolut, Monzo, N26. */}
+      <section className="relative w-full overflow-hidden" style={{ minHeight: 300 }}>
 
-        {/* Text block — full width, centered */}
-        <div className="w-full px-4 text-center" style={{ paddingTop: 32, paddingBottom: 24 }}>
+        {/* Text — takes left 58% */}
+        <div style={{ width: '58%', paddingLeft: 16, paddingTop: 28, paddingBottom: 24 }}>
           <h1
             className="font-bold tracking-tight"
-            style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 'clamp(1.75rem, 7vw, 2.25rem)', color: '#111827', lineHeight: 1.15, marginBottom: 14 }}
+            style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: 'clamp(1.5rem, 6vw, 2rem)', color: '#111827', lineHeight: 1.15, marginBottom: 12 }}
           >
             Your student workspace, wherever you are.
           </h1>
-          <p style={{ color: '#6B7280', fontSize: '0.9375rem', lineHeight: 1.65, marginBottom: 22, maxWidth: 340, margin: '0 auto 22px' }}>
+          <p style={{ color: '#6B7280', fontSize: '0.8125rem', lineHeight: 1.65, marginBottom: 18 }}>
             Continuum brings your notes, tasks, flashcards, and career into one place. Collaborate with classmates, connect Google Docs and your favorite tools, and manage your academic life from one app.
           </p>
-          <Button variant="primary" size="lg" className="w-full" onClick={scrollToForm}>
+          <Button variant="primary" size="md" style={{ width: '100%' }} onClick={scrollToForm}>
             Join the waitlist
           </Button>
+          <p style={{ color: '#9B9B9B', fontSize: '0.625rem', marginTop: 12, marginBottom: 0, lineHeight: 1.5 }}>
+            Web · Android soon · iOS in development
+          </p>
         </div>
 
-        {/* Phone mockup — centered, fills ~65vw, full frame visible */}
+        {/* Phone — absolute right, scale 0.48, bleeds ~12px off right edge */}
         {(() => {
-          const phoneW = Math.min(Math.round(window.innerWidth * 0.65), 250);
-          const scale  = phoneW / IPHONE_W;
-          const phoneH = Math.ceil(812 * scale);
+          const scale  = 0.48;
+          const phoneW = Math.ceil(IPHONE_W * scale); // 180px
+          const phoneH = Math.ceil(812 * scale);       // 390px
           return (
-            <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: 0 }}>
-              <div style={{ width: phoneW, height: phoneH, position: 'relative', flexShrink: 0 }}>
-                <div style={{
-                  position: 'absolute', top: 0, left: 0, width: IPHONE_W,
-                  transform: `scale(${scale})`, transformOrigin: 'top left', pointerEvents: 'none',
-                }}>
-                  <DeviceFrameset device="iPhone X">
-                    <div style={{ width: '100%', height: '100%', background: 'linear-gradient(160deg, #F3F0FF 0%, #E5E7EB 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src="/logo.svg" alt="" style={{ height: 32, opacity: 0.3 }} />
-                    </div>
-                  </DeviceFrameset>
-                </div>
+            <div style={{
+              position: 'absolute',
+              top: 8,
+              right: -12,
+              width: phoneW,
+              height: phoneH,
+              pointerEvents: 'none',
+            }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: IPHONE_W, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+                <DeviceFrameset device="iPhone X">
+                  <div style={{ width: '100%', height: '100%', background: 'linear-gradient(160deg, #F3F0FF 0%, #E5E7EB 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src="/logo.svg" alt="" style={{ height: 28, opacity: 0.3 }} />
+                  </div>
+                </DeviceFrameset>
               </div>
             </div>
           );
         })()}
-
-        <p style={{ color: '#9B9B9B', fontSize: '0.6875rem', textAlign: 'center', padding: '10px 16px 4px' }}>
-          Available now on web · Android launching soon · iOS in development
-        </p>
       </section>
 
       {/* ── Section 2: Feature carousel ── */}
@@ -223,18 +226,16 @@ export default function MobileGate() {
                 overflow: 'hidden',
               }}
             >
-              {/* Screen preview area — placeholder until real screenshots arrive */}
+              {/* Screen preview — portrait 9:16 ratio matches a phone screenshot */}
               <div style={{
                 width: '100%',
-                height: '50vw',
-                maxHeight: 220,
-                minHeight: 140,
+                aspectRatio: '9 / 16',
                 background: bg,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-                <Icon size={40} color="#6B21A8" strokeWidth={1.5} />
+                <Icon size={48} color="#6B21A8" strokeWidth={1.5} />
               </div>
 
               {/* Feature text */}
