@@ -177,10 +177,19 @@ fun FlashcardSetsListScreen(
                     state.sets.isEmpty() -> {
                         EmptyState(
                             icon = Icons.Default.Style,
-                            headline = if (state.isSharedTab) "No shared sets" else "No flashcard sets yet",
-                            subtext = if (state.isSharedTab) "Sets shared with you will appear here" else "Create a set or generate one from your notes",
-                            actionLabel = if (state.isSharedTab || isDemo) null else "Create set",
-                            onAction = if (state.isSharedTab || isDemo) null else { { showCreateSheet = true } },
+                            headline = when {
+                                state.searchQuery.isNotBlank() -> "No results for \"${state.searchQuery}\""
+                                state.isSharedTab -> "No shared sets"
+                                else -> "No flashcard sets yet"
+                            },
+                            subtext = when {
+                                state.searchQuery.isNotBlank() -> "Try a different search term"
+                                state.isSharedTab -> "Sets shared with you will appear here"
+                                else -> "Create a set or generate one from your notes"
+                            },
+                            actionLabel = if (state.isSharedTab || isDemo || state.searchQuery.isNotBlank()) null else "Create set",
+                            onAction = if (state.isSharedTab || isDemo || state.searchQuery.isNotBlank()) null else { { showCreateSheet = true } },
+                            clearSearchAction = if (state.searchQuery.isNotBlank()) { { viewModel.setSearchQuery("") } } else null,
                             modifier = Modifier.fillMaxSize()
                         )
                     }

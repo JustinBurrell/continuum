@@ -71,8 +71,9 @@ fun ConversationsScreen(
                 state.conversations.isEmpty() -> {
                     EmptyState(
                         icon = Icons.Default.ChatBubbleOutline,
-                        headline = if (state.searchQuery.isNotBlank()) "No results" else "No conversations yet",
+                        headline = if (state.searchQuery.isNotBlank()) "No results for \"${state.searchQuery}\"" else "No conversations yet",
                         subtext = if (state.searchQuery.isNotBlank()) "Try a different search" else "Message a friend from their profile",
+                        clearSearchAction = if (state.searchQuery.isNotBlank()) { { viewModel.setConversationSearch("") } } else null,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
