@@ -108,6 +108,16 @@ fun SettingsScreen(
 
             item { Spacer(Modifier.height(8.dp)) }
             item { SettingsSectionLabel("Notifications") }
+            if (isDemo) {
+                item {
+                    Text(
+                        "Demo account: notification settings are read-only.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMuted,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
+            }
 
             item {
                 SettingsToggleRow(
