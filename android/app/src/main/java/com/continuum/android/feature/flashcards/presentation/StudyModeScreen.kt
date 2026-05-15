@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -197,7 +198,7 @@ private fun FlipCard(
 
     Card(
         modifier = modifier
-            .graphicsLayer { rotationY = rotation; cameraDistance = 12f * density }
+            .graphicsLayer { rotationY = rotation; translationX = dragOffsetX; cameraDistance = 12f * density }
             .then(
                 if (isFlipped) {
                     Modifier.pointerInput(Unit) {
@@ -215,7 +216,13 @@ private fun FlipCard(
                 } else Modifier
             ),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = White),
+        colors = CardDefaults.cardColors(
+            containerColor = when {
+                dragOffsetX > 60f -> Color(0xFF22C55E).copy(alpha = 0.15f)
+                dragOffsetX < -60f -> ErrorRed.copy(alpha = 0.15f)
+                else -> White
+            }
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         onClick = onFlip
     ) {
