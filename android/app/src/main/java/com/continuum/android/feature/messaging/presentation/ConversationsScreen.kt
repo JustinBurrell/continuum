@@ -36,6 +36,7 @@ fun ConversationsScreen(
     val state by viewModel.conversationsState.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
     val isDemo = LocalIsDemo.current
+    var conversationToDelete by remember { mutableStateOf<Conversation?>(null) }
 
     LaunchedEffect(Unit) { viewModel.loadConversations() }
 
@@ -89,7 +90,7 @@ fun ConversationsScreen(
                                 onClick = {
                                     onConversationClick(convo.id, convo.participantName, convo.participantId)
                                 },
-                                onDelete = if (isDemo) null else { { viewModel.deleteConversation(convo.id) } },
+                                onDelete = if (isDemo) null else { { conversationToDelete = convo } },
                                 onParticipantClick = onParticipantProfileClick?.let { nav -> { nav(convo.participantId) } }
                             )
                         }
@@ -97,6 +98,25 @@ fun ConversationsScreen(
                 }
             }
         }
+    }
+
+    conversationToDelete?.let { convo ->
+        AlertDialog(
+            onDismissRequest = { conversationToDelete = null },
+            title = { Text("Delete conversation?") },
+            text = { Text("This conversation with ${convo.participantName} will be permanently deleted.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteConversation(convo.id)
+                    conversationToDelete = null
+                }) {
+                    Text("Delete", color = ErrorRed)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { conversationToDelete = null }) { Text("Cancel") }
+            }
+        )
     }
 }
 
