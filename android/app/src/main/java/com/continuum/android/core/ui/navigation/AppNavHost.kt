@@ -162,12 +162,15 @@ object NavRoutes {
 
 val sensitiveRoutes = setOf(
     NavRoutes.Notes.DETAIL,
+    NavRoutes.Notes.EDITOR,
     NavRoutes.Flashcards.HISTORY,
     NavRoutes.Career.RESUME_DETAIL,
     NavRoutes.Career.RESUME_FEEDBACK,
     NavRoutes.Career.APPLICATION_DETAIL,
     NavRoutes.Social.CONVERSATION_DETAIL,
-    NavRoutes.Social.SHARED_NOTE
+    NavRoutes.Social.SHARED_NOTE,
+    NavRoutes.Profile.EDIT,
+    NavRoutes.Profile.SETTINGS,
 )
 
 // ---------------------------------------------------------------------------
