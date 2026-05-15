@@ -28,7 +28,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
+import com.continuum.android.core.ui.components.AvatarInitials
 import androidx.navigation.NavController
 import com.continuum.android.R
 import com.continuum.android.core.ui.LocalScrollToTopNotifier
@@ -184,13 +185,15 @@ private fun ProfileNavIcon(
     ) {
         if (!avatarUrl.isNullOrBlank()) {
             key(imageCacheKey, avatarUrl) {
-                AsyncImage(
+                SubcomposeAsyncImage(
                     model = avatarUrl,
                     contentDescription = displayName,
                     modifier = Modifier
                         .size(iconSize - 2.dp)
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop,
+                    loading = { AvatarInitials(name = displayName, size = iconSize - 2.dp) },
+                    error = { AvatarInitials(name = displayName, size = iconSize - 2.dp) },
                 )
             }
         } else {
