@@ -19,3 +19,13 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Retrofit — keep service interfaces and their HTTP-annotated methods
+-keep class retrofit2.** { *; }
+-keepclassmembers class ** { @retrofit2.http.* <methods>; }
+
+# Moshi — keep model classes and generated adapters from R8 stripping
+-keep class com.squareup.moshi.** { *; }
+
+# Preserve annotations used by Retrofit and Moshi at runtime
+-keepattributes *Annotation*
