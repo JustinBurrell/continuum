@@ -36,5 +36,5 @@ val ContinuumTypography = Typography(
     // Labels
     labelLarge  = TextStyle(fontFamily = PlusJakartaSansFamily, fontWeight = FontWeight.SemiBold, fontSize = 14.sp),
     labelMedium = TextStyle(fontFamily = PlusJakartaSansFamily, fontWeight = FontWeight.Medium,   fontSize = 12.sp),
-    labelSmall  = TextStyle(fontFamily = PlusJakartaSansFamily, fontWeight = FontWeight.Medium,   fontSize = 10.sp),
+    labelSmall  = TextStyle(fontFamily = PlusJakartaSansFamily, fontWeight = FontWeight.Medium,   fontSize = 12.sp),
 )

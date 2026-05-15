@@ -27,6 +27,7 @@ fun EmptyState(
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
+    clearSearchAction: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
@@ -60,6 +61,15 @@ fun EmptyState(
             ContinuumButton(
                 text = actionLabel,
                 onClick = onAction,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        if (clearSearchAction != null) {
+            Spacer(Modifier.height(16.dp))
+            ContinuumButton(
+                text = "Clear search",
+                onClick = clearSearchAction,
+                variant = ContinuumButtonVariant.Secondary,
                 modifier = Modifier.fillMaxWidth(),
             )
         }

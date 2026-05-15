@@ -89,8 +89,9 @@ fun ActivityFeedScreen(
                 state.items.isEmpty() -> {
                     EmptyState(
                         icon = Icons.Default.FiberNew,
-                        headline = if (state.searchQuery.isNotBlank()) "No results" else "No activity yet",
+                        headline = if (state.searchQuery.isNotBlank()) "No results for \"${state.searchQuery}\"" else "No activity yet",
                         subtext = if (state.searchQuery.isNotBlank()) "Try a different search term" else "Connect with friends to see their activity here",
+                        clearSearchAction = if (state.searchQuery.isNotBlank()) { { viewModel.setActivitySearch("") } } else null,
                         modifier = Modifier.fillMaxSize()
                     )
                 }

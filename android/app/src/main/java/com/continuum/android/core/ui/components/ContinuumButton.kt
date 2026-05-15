@@ -10,6 +10,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.continuum.android.core.ui.theme.AppShape
 import com.continuum.android.core.ui.theme.BrandPurple
@@ -28,6 +30,7 @@ fun ContinuumButton(
     loading: Boolean = false,
 ) {
     val shape = AppShape.button
+    val haptic = LocalHapticFeedback.current
 
     when (variant) {
         ContinuumButtonVariant.Secondary -> {
@@ -52,7 +55,10 @@ fun ContinuumButton(
         else -> {
             val containerColor = if (variant == ContinuumButtonVariant.Danger) ErrorRed else BrandPurple
             Button(
-                onClick = onClick,
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onClick()
+                },
                 modifier = modifier.height(48.dp),
                 enabled = enabled && !loading,
                 shape = shape,

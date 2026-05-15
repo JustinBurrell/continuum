@@ -123,10 +123,11 @@ fun ApplicationsListScreen(
                     filtered.isEmpty() -> {
                         EmptyState(
                             icon = Icons.Default.Work,
-                            headline = "No applications",
-                            subtext = if (state.statusFilter == "all") "Track your job applications here" else "No ${state.statusFilter} applications",
-                            actionLabel = if (state.statusFilter == "all" && !isDemo) "Add application" else null,
-                            onAction = if (state.statusFilter == "all" && !isDemo) ({ showCreateSheet = true }) else null,
+                            headline = if (state.searchQuery.isNotBlank()) "No results for \"${state.searchQuery}\"" else "No applications",
+                            subtext = if (state.searchQuery.isNotBlank()) "Try a different search term" else if (state.statusFilter == "all") "Track your job applications here" else "No ${state.statusFilter} applications",
+                            actionLabel = if (state.statusFilter == "all" && !isDemo && state.searchQuery.isBlank()) "Add application" else null,
+                            onAction = if (state.statusFilter == "all" && !isDemo && state.searchQuery.isBlank()) ({ showCreateSheet = true }) else null,
+                            clearSearchAction = if (state.searchQuery.isNotBlank()) { { viewModel.setApplicationsSearchQuery("") } } else null,
                             modifier = Modifier.fillMaxSize()
                         )
                     }

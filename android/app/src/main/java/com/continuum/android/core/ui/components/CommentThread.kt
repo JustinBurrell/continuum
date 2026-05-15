@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.core.ui.utils.toDisplayDate
@@ -143,6 +144,7 @@ private fun CommentItem(
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = if (onUserClick != null) BrandPurple else TextPrimary,
+                    textDecoration = if (onUserClick != null) TextDecoration.Underline else TextDecoration.None,
                     modifier = if (onUserClick != null) Modifier.clickable(onClick = onUserClick) else Modifier
                 )
                 if (comment.authorRoles.isNotEmpty()) {

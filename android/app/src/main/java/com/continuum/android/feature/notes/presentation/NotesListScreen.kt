@@ -167,7 +167,7 @@ fun NotesListScreen(
                             icon = Icons.Default.Article,
                             headline = when {
                                 listState.isSharedTab -> "No shared notes"
-                                searchQuery.isNotBlank() -> "No results"
+                                searchQuery.isNotBlank() -> "No results for \"$searchQuery\""
                                 else -> "No notes yet"
                             },
                             subtext = when {
@@ -177,6 +177,7 @@ fun NotesListScreen(
                             },
                             actionLabel = if (!listState.isSharedTab && searchQuery.isBlank()) "Create note" else null,
                             onAction = if (!listState.isSharedTab && searchQuery.isBlank()) onCreateNote else null,
+                            clearSearchAction = if (searchQuery.isNotBlank()) { { viewModel.setSearchQuery("") } } else null,
                             modifier = Modifier.fillMaxSize()
                         )
                     }

@@ -134,6 +134,7 @@ fun TaskBoardScreen(
                         icon = Icons.Default.CheckCircle,
                         headline = if (state.searchQuery.isNotBlank()) "No matching tasks" else "No tasks in this status",
                         subtext = if (state.searchQuery.isNotBlank()) "Try another search term" else "Use + to add a new task",
+                        clearSearchAction = if (state.searchQuery.isNotBlank()) { { viewModel.setSearchQuery("") } } else null,
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
