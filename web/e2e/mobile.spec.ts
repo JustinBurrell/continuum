@@ -2,10 +2,13 @@ import { test, expect, devices } from '@playwright/test';
 
 const DESKTOP = { width: 1280, height: 800 };
 
+// Strip defaultBrowserType so test.use() works inside describe blocks
+const { defaultBrowserType: _bt, ...IPHONE_14 } = devices['iPhone 14'];
+
 // ─── Mobile gate (phone UA) ───────────────────────────────────────────────────
 
 test.describe('Mobile gate', () => {
-  test.use({ ...devices['iPhone 14'] });
+  test.use(IPHONE_14);
 
   test('shows mobile gate (not app) at mobile viewport', async ({ page }) => {
     await page.goto('/');
@@ -60,7 +63,7 @@ test.describe('Mobile gate (desktop UA)', () => {
 // ─── Waitlist form ────────────────────────────────────────────────────────────
 
 test.describe('Mobile waitlist form', () => {
-  test.use({ ...devices['iPhone 14'] });
+  test.use(IPHONE_14);
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -129,7 +132,7 @@ test.describe('Mobile waitlist form', () => {
 // ─── Legal pages accessible on mobile ────────────────────────────────────────
 
 test.describe('Mobile legal pages', () => {
-  test.use({ ...devices['iPhone 14'] });
+  test.use(IPHONE_14);
 
   test('/privacy is accessible at mobile viewport and shows policy content', async ({ page }) => {
     await page.goto('/privacy');
