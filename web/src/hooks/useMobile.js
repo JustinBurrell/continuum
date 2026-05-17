@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react';
+import isMobileLib from 'is-mobile';
 
-const MOBILE_BREAKPOINT = 1024; // covers phones and portrait-orientation tablets (lg: breakpoint)
+function isPhoneOrTablet() {
+  // Modern Chromium browsers (Chrome, Edge, Opera) expose this natively
+  if (navigator.userAgentData?.mobile === true) return true;
+  // Safari, Firefox, and others: UA string parsing + maxTouchPoints for iPads
+  return isMobileLib({ tablet: true });
+}
 
 export function useMobile() {
-  const [isMobile, setIsMobile] = useState(
-    // Note: if SSR is ever added, guard with typeof window !== 'undefined'
-    () => window.innerWidth < MOBILE_BREAKPOINT
-  );
+  const [isMobile, setIsMobile] = useState(() => isPhoneOrTablet());
 
   useEffect(() => {
-    function handleResize() {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    // Re-evaluate on orientation change in case layout needs updating
+    function handleOrientationChange() {
+      setIsMobile(isPhoneOrTablet());
     }
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    return () => window.removeEventListener('orientationchange', handleOrientationChange);
   }, []);
 
   return isMobile;
