@@ -73,6 +73,10 @@ app.use('/api/activity', require('./routes/activity.routes'));
 app.use('/api/sync', require('./routes/sync.routes'));
 app.use('/api/waitlist', require('./routes/waitlist.routes'));
 
+// Share pages — public HTML with OG meta tags, no /api prefix
+// (Vercel proxies https://usecontinuum.dev/share/* → https://api.usecontinuum.dev/share/*)
+app.use('/share', require('./routes/share.routes'));
+
 // API docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

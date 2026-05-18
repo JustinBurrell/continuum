@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/share/:path(.*)",
+      "destination": "https://api.usecontinuum.dev/share/:path"
+    },
+    {
       "source": "/ph/static/:path(.*)",
       "destination": "https://us-assets.i.posthog.com/static/:path"
     },

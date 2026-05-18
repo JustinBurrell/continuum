@@ -57,6 +57,18 @@
                 <data android:scheme="continuum" android:host="drive-pick" />
             </intent-filter>
 
+            <!-- App Links: shared notes, user profiles, tasks
+                 Verified against https://usecontinuum.dev/.well-known/assetlinks.json
+                 android:autoVerify triggers Digital Asset Links verification on install/update -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                      android:host="usecontinuum.dev"
+                      android:pathPrefix="/share/" />
+            </intent-filter>
+
         </activity>
 
     </application>

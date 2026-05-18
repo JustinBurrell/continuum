@@ -119,9 +119,11 @@ Once the user provides the PNGs, add them to Xcode:
    - Add `ic_instagram` — same approach
 2. For app icon: create a 1024×1024 PNG from `ic_launcher_foreground.xml` on a purple background (`#6B21A8`) and add to `AppIcon` in Assets
 
-### Step 0.5 — Register URL schemes (replaces AndroidManifest.xml intent-filters)
+### Step 0.5 — Register URL schemes and Associated Domains
 
-In `Info.plist`, add `URL types` with the following schemes (mirrors the 3 deep links in the manifest):
+**Custom URL schemes** (replaces AndroidManifest.xml `continuum://` intent-filters):
+
+In `Info.plist`, add `URL types` with the following schemes:
 
 | URL Scheme | Host | Purpose |
 |---|---|---|
@@ -129,6 +131,23 @@ In `Info.plist`, add `URL types` with the following schemes (mirrors the 3 deep 
 | `continuum` | `drive-pick` | Google Drive Picker callback |
 
 In Xcode: Info tab → URL Types → add identifier `dev.usecontinuum.app` with URL Schemes: `continuum`
+
+**Associated Domains** (iOS equivalent of Android `android:autoVerify="true"` App Links):
+
+In Xcode → Signing & Capabilities → + Capability → Associated Domains → add:
+```
+applinks:usecontinuum.dev
+```
+
+This enables Universal Links for the three share URLs below. The `apple-app-site-association` file is already deployed at `https://usecontinuum.dev/.well-known/apple-app-site-association` — no backend work needed.
+
+| Universal Link pattern | Destination |
+|---|---|
+| `https://usecontinuum.dev/share/note/{noteId}` | `.sharedNote(id:)` |
+| `https://usecontinuum.dev/share/user/{userId}` | `.userProfile(id:)` |
+| `https://usecontinuum.dev/share/task/{taskId}` | `.taskDetail(id:)` |
+
+> **Replace TEAMID:** The `apple-app-site-association` file currently contains `TEAMID.dev.usecontinuum.app`. Replace `TEAMID` with your Apple Developer Team ID (found in Apple Developer Portal → Membership) before going live.
 
 ---
 
@@ -886,6 +905,8 @@ struct SkeletonLoader: View {
 ### Step 2.2 — ContinuumButton
 **Replaces:** `ContinuumButton.kt` (Primary / Secondary / Danger variants)
 
+> **Haptic feedback:** Android `ContinuumButton` now calls `hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)` on primary and danger taps. Mirror this on iOS with `UIImpactFeedbackGenerator`.
+
 ```swift
 import SwiftUI
 
@@ -897,7 +918,12 @@ struct ContinuumButton: View {
     var enabled: Bool = true; var loading: Bool = false
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            if variant == .primary || variant == .danger {
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            }
+            action()
+        }) {
             Group {
                 if loading { ProgressView().tint(foreground) }
                 else { Text(text).font(.labelLarge) }
@@ -1198,6 +1224,8 @@ enum Route: Hashable {
     case login, register, forgotPassword
     case resetPassword(token: String), verifyEmail(token: String)
     case privacy, terms
+    // Onboarding — shown after register if onboardingCompleted or tourCompleted is false
+    case onboarding
     // Main tabs
     case dashboard
     case notesList, noteDetail(id: String), noteEditor(id: String), driveImport
@@ -1214,17 +1242,43 @@ enum Route: Hashable {
 
 The tab structure mirrors `bottomNavItems` in `BottomNavBar.kt` exactly: Notes → Flashcards → Dashboard (logo center) → Career → Profile.
 
+> **Onboarding routing:** After a successful registration, navigate to `.onboarding` and pop auth from the stack (mirrors `navController.navigate(NavRoutes.Onboarding.ROOT) { popUpTo(NavRoutes.Auth.ROOT) { inclusive = true } }` in `RegisterScreen`). On app launch, check `profile.onboardingCompleted && profile.tourCompleted` — if either is false and the user is not a demo account, redirect to `.onboarding`. See Step 4.10 for the full onboarding feature implementation.
+
 ### Step 3.2 — Deep link handling
 
-**In `Info.plist`** add URL types with scheme `continuum`. In your `@main App` struct:
+**Custom scheme links** — In `Info.plist` add URL types with scheme `continuum` (done in Step 0.5). In your `@main App` struct handle both custom scheme and Universal Links via the same handler:
 
 ```swift
 .onOpenURL { url in
-    // Mirrors AndroidManifest.xml intent-filters
-    // continuum://auth/verify-email?token=...
-    // continuum://auth/reset-password?token=...
-    // continuum://drive-pick?id=...&name=...&url=...
+    // Custom scheme (continuum://):
+    //   continuum://auth/verify-email?token=...
+    //   continuum://auth/reset-password?token=...
+    //   continuum://drive-pick?id=...&name=...&url=...
+    //
+    // Universal Links (https://usecontinuum.dev/) — requires Associated Domains (Step 0.5):
+    //   https://usecontinuum.dev/share/note/{noteId}   → Route.sharedNote(id:)
+    //   https://usecontinuum.dev/share/user/{userId}   → Route.userProfile(id:)
+    //   https://usecontinuum.dev/share/task/{taskId}   → Route.taskDetail(id:)
     handleDeepLink(url)
+}
+```
+
+`handleDeepLink` must parse both scheme families. Universal Link paths arrive with `url.scheme == "https"` and `url.host == "usecontinuum.dev"`. Extract the path components to determine destination:
+
+```swift
+func handleDeepLink(_ url: URL) {
+    if url.scheme == "https", url.host == "usecontinuum.dev" {
+        let parts = url.pathComponents  // ["", "share", "note", "abc123"]
+        guard parts.count == 4, parts[1] == "share" else { return }
+        switch parts[2] {
+        case "note": router.navigate(to: .sharedNote(id: parts[3]))
+        case "user": router.navigate(to: .userProfile(id: parts[3]))
+        case "task": router.navigate(to: .taskDetail(id: parts[3]))
+        default: break
+        }
+    } else {
+        // Handle continuum:// custom scheme links
+    }
 }
 ```
 
@@ -1410,7 +1464,28 @@ SignInWithAppleButton(.signIn, onRequest: { request in
 
 **Key translation notes:**
 - Card flip animation: use SwiftUI `rotation3DEffect` with `withAnimation(.easeInOut(duration: 0.4))` — identical to `animateFloatAsState` flip in Android
-- Swipe gestures on revealed card: use `DragGesture` with `onEnded` threshold check (`>120pt` mirrors the Android `120f` threshold)
+- Swipe gestures on revealed card: use `DragGesture` with `onEnded` threshold check (`>120pt` mirrors the Android `120f` threshold). Also apply real-time visual feedback during the drag — Android now shows a card offset + color tint as the user drags:
+  ```swift
+  @State private var dragOffset: CGFloat = 0
+  // On the card view:
+  .offset(x: dragOffset)
+  .overlay(
+      Color(dragOffset > 60 ? .successGreen : dragOffset < -60 ? .errorRed : .clear)
+          .opacity(min(abs(dragOffset) / 300, 0.4))
+          .clipShape(AppShape.card)
+  )
+  .gesture(
+      DragGesture()
+          .onChanged { drag in dragOffset = drag.translation.width }
+          .onEnded { drag in
+              let swipedRight = drag.translation.width > 120
+              let swipedLeft  = drag.translation.width < -120
+              withAnimation { dragOffset = 0 }
+              if swipedRight { viewModel.markCorrect() }
+              else if swipedLeft { viewModel.markIncorrect() }
+          }
+  )
+  ```
 - Study session submit: `POST /api/study-sessions` — same endpoint, same DTO
 - Pull-to-refresh: use `.continuumRefreshable` (Step 2.8) on the sets list
 
@@ -1468,6 +1543,48 @@ SignInWithAppleButton(.signIn, onRequest: { request in
 - Instagram-style header: `ContinuumTopHeader` — a custom `HStack` with logo wordmark + 3 icon buttons
 - **Pull-to-refresh:** Use `.continuumRefreshable` (Step 2.8) instead of raw `.refreshable`. This matches the Android `ContinuumPullToRefresh` wrapper now used on `DashboardScreen.kt`.
 - Stat tiles horizontal scroll: `ScrollView(.horizontal, showsIndicators: false)` + `HStack`
+
+### Step 4.10 — Onboarding Feature
+**Reference files:** `OnboardingScreen.kt`, `OnboardingViewModel.kt`, `TourOverlay.kt`, `FirstRunCoachMark.kt`  
+**Android source:** `/android/app/src/main/java/com/continuum/android/feature/onboarding/`
+
+This feature is **not present in the original guide** — it was added after the Android app shipped. It is a mandatory pre-dashboard flow for all new (non-demo) users.
+
+**Flow:**
+1. After registration → navigate to `.onboarding` (pop auth stack)
+2. On app launch → if `profile.onboardingCompleted == false || profile.tourCompleted == false` → navigate to `.onboarding` (pop everything)
+3. Demo accounts skip onboarding entirely — check `@Environment(\.isDemo)` at the start of `OnboardingScreen`
+
+**Steps within onboarding** (mirrors `OnboardingScreen.kt` step sequencing):
+- Welcome screen with Continuum brand
+- Goal selection: Academics / Career / Both (stored on profile, drives personalized activation step)
+- Integrations: Google Drive, Google Calendar
+- Name setup (first/last name)
+- Photo + bio (optional, skippable)
+- Activation step: goal-personalized first action (e.g., "Create your first note" for Academics)
+
+**Feature tour** (`TourOverlay.kt`):
+- 11-step overlay covering each tab and key actions
+- Triggered by selecting "Show me everything" as goal, or by `onReplayTour()` from Settings
+- `tourCompleted` flag set to `true` when the last step is dismissed
+- iOS: implement as a `ZStack` overlay with a spotlight cutout (`Path` with a subtracted circular hole), position highlight based on the current step's target frame
+
+**`FirstRunCoachMark`:**
+- A pulsing ring indicator that appears on the Notes tab or Tasks tab on first visit post-onboarding
+- Dismissed permanently on first tap
+- iOS: `.overlay` with a `@State var shown` that reads from UserDefaults, animated with `.scaleEffect` + `.opacity` pulses via `withAnimation(.easeInOut.repeatForever(autoreverses: true))`
+
+**Completion API:**
+```swift
+// Mark onboarding done — same endpoints as Android
+PATCH /api/auth/profile  body: { onboardingCompleted: true }
+PATCH /api/auth/profile  body: { tourCompleted: true }
+```
+
+**Key translation notes:**
+- Android uses `OnboardingViewModel` as a `@HiltViewModel` with `UiState` sealed class — iOS: `@Observable class OnboardingViewModel` with a `@Published var step: OnboardingStep` enum
+- `TourOverlay` in Android is rendered as a sibling to the nav scaffold via `Box(modifier = Modifier.fillMaxSize())` with `if (tourActive)` — iOS: pass a `@Binding var tourActive: Bool` down from `ContinuumApp` and render `TourOverlay` in the root `ZStack` alongside `AppNavHost`
+- `NavProfile.tourCompleted` is fetched in `NavProfileViewModel` on auth state change — mirror this with a profile fetch in the root app view and pass `tourCompleted` as a binding
 
 ---
 
@@ -1835,4 +1952,12 @@ Do not update these until the iOS app is actually working on device. Once it is,
 - [ ] **`backend/README.md`** — add `POST /api/auth/apple/mobile` to the mobile endpoints section once it is implemented
 - [ ] **`docs/future-ideas/implementation-order-pitch-launch.md`** — move iOS from long-term to active once development starts
 
-*Generated from Android source at `/android` — updated May 2026*
+*Generated from Android source at `/android` — updated May 18, 2026*
+
+**Changes in this revision (May 18, 2026):**
+- Step 0.5: Added Associated Domains entitlement for Universal Links (`applinks:usecontinuum.dev`); `apple-app-site-association` is already deployed
+- Step 2.2: Added haptic feedback to `ContinuumButton` (primary + danger variants)
+- Step 3.1: Added `.onboarding` case to Route enum; documented post-register and launch-gate routing
+- Step 3.2: Added Universal Link handling for `/share/note`, `/share/user`, `/share/task`
+- Step 4.3: Added real-time drag offset + color tint feedback to flashcard swipe gesture
+- Step 4.10: New — full Onboarding feature (7-step flow, feature tour, coach mark, replay from Settings)

@@ -3,7 +3,7 @@
 **Pitch (TEI):** April 29, 2026 ✅ Delivered  
 **Public Web Launch:** May 6, 2026 ✅ Shipped  
 **Google Play Launch:** Target — TEA program (Technical Entrepreneurship Accelerator, sequel to TEI with Google Play + All Star Code). Start date TBD; ship everything below before it begins.  
-**Current date:** May 11, 2026
+**Current date:** May 18, 2026
 
 ---
 
@@ -44,6 +44,7 @@ Full brand identity applied across web and Android. PR #219.
 Get the app feature-complete and polished before TEA starts. Play Store listing and signing happen with TEA — focus here is purely on code.
 
 ### 1. Mobile & Tablet Marketing Gate ✅
+
 Intercepts all routes at viewports below 1024px (mobile + tablet) and renders a dedicated marketing page instead of the full app.
 - [x] `useMobile` hook + `isMobile` branch in `App.jsx` routes all sub-1024px traffic to `MobileGate`
 - [x] Hero section with custom CSS Pixel 9 frame showing real Android dashboard screenshot
@@ -54,15 +55,25 @@ Intercepts all routes at viewports below 1024px (mobile + tablet) and renders a 
 - [x] `MobilePrivacyPage` and `MobileTermsPage` — legal pages accessible on mobile without hitting the gate
 - [x] 65-test Playwright E2E suite covering gate rendering, form states, legal pages, and viewport breakpoints
 
-### 2. Android Polish Audit
-Full audit of the Android app against Google Play standards (navigation, scale, gestures, empty states, loading/error states, store listing readiness). See [`android-play-audit.md`](android-play-audit.md) for the full prioritized list. Work through Critical → High → Medium before submission.
+### 2. Android Polish Audit ✅
+Full audit of the Android app against Google Play standards. All Critical → High → Medium issues resolved.
 
-### 3. Deep Links
-Shared notes, friend requests, and messages need to open in the app from iMessage/Slack/browser — core to the social story TEA judges will evaluate.
-- [ ] Android App Links: add `/.well-known/assetlinks.json` to the backend
-- [ ] Wire `MainActivity` intent filter → `NavController` for shared note, friend request, and task deep links
-- [ ] Open Graph meta tags on public share pages for link previews (iMessage, Slack)
-- [ ] Test on physical device via iMessage and browser
+### 3. Deep Links ✅
+Shared notes, user profiles (friend requests), and tasks open in the app from iMessage/Slack/browser.
+- [x] Android App Links: `web/public/.well-known/assetlinks.json` deployed to `usecontinuum.dev`
+- [x] `AndroidManifest.xml`: `https://usecontinuum.dev/share/` App Links intent-filter with `autoVerify`
+- [x] `AppNavHost.kt`: `navDeepLink` wired to `SharedNoteViewScreen`, `UserProfileScreen`, `TaskDetailScreen`
+- [x] `UserProfileScreen` cold-start crash fix (`runCatching` on `getBackStackEntry`)
+- [x] Backend: `GET /share/note/:id`, `/share/user/:id`, `/share/task/:id` — HTML with Open Graph meta tags
+- [x] `web/vercel.json`: `/share/*` proxied to backend for OG rendering
+- [x] iOS: `apple-app-site-association` deployed; Associated Domains entitlement documented in iOS build guide
+- [x] 13 backend Jest tests for share routes
+- [x] Debug SHA-256 fingerprint added to `web/public/.well-known/assetlinks.json` (debug builds only)
+- [ ] **⚠️ TODO (before Play Store release):** Add release fingerprint to `web/public/.well-known/assetlinks.json`. Two options — pick one:
+  - **Option A — Play App Signing (recommended):** Enroll in Google Play Console → Setup → App Integrity → Play App Signing. Google manages the release key. Copy the SHA-256 fingerprint shown there and add it as a second entry in the `sha256_cert_fingerprints` array alongside the debug fingerprint.
+  - **Option B — Self-managed keystore:** Generate a release keystore (`keytool -genkey ...`), run `keytool -list -v -keystore release.keystore` to get the SHA-256, and add it to the array. Store the keystore file securely outside the repo.
+- [ ] **⚠️ You must do:** Test on Android emulator via `adb shell am start` (see PR description for commands)
+- [ ] Test OG preview by pasting a share URL into Slack
 
 ### 4. In-App Notification Bell
 Foundation for everything below. Stops at Socket.io in-app delivery first.
@@ -122,4 +133,4 @@ Quick win — needed before real support traffic comes in.
 
 ---
 
-*Last updated: May 12, 2026*
+*Last updated: May 18, 2026*
