@@ -161,6 +161,25 @@ cd android
 ```
 Requires signing configuration in `app/build.gradle.kts`. See [Android signing docs](https://developer.android.com/studio/publish/app-signing).
 
+### Troubleshooting
+
+**`jlink does not exist` build error**
+
+If you see this after working in Cursor:
+
+```
+jlink executable /Users/.../.cursor/extensions/redhat.java-.../jre/.../bin/jlink does not exist.
+```
+
+Cursor's Red Hat Java extension starts a Gradle daemon using its bundled JRE (no `jlink`). That daemon gets reused even when you build from the terminal. Fix: stop all daemons so a fresh one starts with the correct JDK.
+
+```bash
+./gradlew --stop
+./gradlew assembleDebug
+```
+
+`~/.gradle/gradle.properties` is already configured to use Android Studio's JBR, which has `jlink`. The stop-and-rebuild is all that's needed.
+
 ---
 
 ## Features
