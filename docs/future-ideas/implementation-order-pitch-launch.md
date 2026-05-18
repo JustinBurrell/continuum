@@ -68,7 +68,10 @@ Shared notes, user profiles (friend requests), and tasks open in the app from iM
 - [x] `web/vercel.json`: `/share/*` proxied to backend for OG rendering
 - [x] iOS: `apple-app-site-association` deployed; Associated Domains entitlement documented in iOS build guide
 - [x] 13 backend Jest tests for share routes
-- [ ] **⚠️ You must do:** Fill in SHA-256 fingerprint in `web/public/.well-known/assetlinks.json` (run `keytool` on debug keystore or get from Play Console)
+- [x] Debug SHA-256 fingerprint added to `web/public/.well-known/assetlinks.json` (debug builds only)
+- [ ] **⚠️ TODO (before Play Store release):** Add release fingerprint to `web/public/.well-known/assetlinks.json`. Two options — pick one:
+  - **Option A — Play App Signing (recommended):** Enroll in Google Play Console → Setup → App Integrity → Play App Signing. Google manages the release key. Copy the SHA-256 fingerprint shown there and add it as a second entry in the `sha256_cert_fingerprints` array alongside the debug fingerprint.
+  - **Option B — Self-managed keystore:** Generate a release keystore (`keytool -genkey ...`), run `keytool -list -v -keystore release.keystore` to get the SHA-256, and add it to the array. Store the keystore file securely outside the repo.
 - [ ] **⚠️ You must do:** Test on Android emulator via `adb shell am start` (see PR description for commands)
 - [ ] Test OG preview by pasting a share URL into Slack
 
