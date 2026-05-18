@@ -187,6 +187,9 @@ val sensitiveRoutes = setOf(
  * - Deep links registered:
  *     continuum://auth/verify-email?token={token}
  *     continuum://auth/reset-password?token={token}
+ *     https://usecontinuum.dev/share/note/{noteId}   → SharedNoteViewScreen
+ *     https://usecontinuum.dev/share/user/{userId}   → UserProfileScreen
+ *     https://usecontinuum.dev/share/task/{taskId}   → TaskDetailScreen
  */
 @Composable
 fun AppNavHost(
@@ -701,7 +704,10 @@ private fun NavGraph(
             }
             composable(
                 route = NavRoutes.Tasks.DETAIL,
-                arguments = listOf(navArgument("taskId") { type = NavType.StringType })
+                arguments = listOf(navArgument("taskId") { type = NavType.StringType }),
+                deepLinks = listOf(
+                    navDeepLink { uriPattern = "https://usecontinuum.dev/share/task/{taskId}" }
+                )
             ) { backStackEntry ->
                 val taskId = backStackEntry.arguments?.getString("taskId") ?: return@composable
                 TaskDetailScreen(
@@ -791,14 +797,23 @@ private fun NavGraph(
             }
             composable(
                 route = NavRoutes.Social.USER_PROFILE,
-                arguments = listOf(navArgument("userId") { type = NavType.StringType })
+                arguments = listOf(navArgument("userId") { type = NavType.StringType }),
+                deepLinks = listOf(
+                    navDeepLink { uriPattern = "https://usecontinuum.dev/share/user/{userId}" }
+                )
             ) { backStackEntry ->
                 val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
                 val tokenManager = LocalTokenManager.current
-                val socialGraphEntry = remember(backStackEntry) {
+                // runCatching guards against cold-start via deep link where the Social graph
+                // is not yet on the back stack, which would throw IllegalArgumentException.
+                val socialGraphEntry = runCatching {
                     navController.getBackStackEntry(NavRoutes.Social.ROOT)
+                }.getOrNull()
+                val messagingViewModel: MessagingViewModel = if (socialGraphEntry != null) {
+                    hiltViewModel(socialGraphEntry)
+                } else {
+                    hiltViewModel()
                 }
-                val messagingViewModel: MessagingViewModel = hiltViewModel(socialGraphEntry)
                 UserProfileScreen(
                     userId = userId,
                     currentUserId = tokenManager.getJwtUserId(),
@@ -827,7 +842,10 @@ private fun NavGraph(
             }
             composable(
                 route = NavRoutes.Social.SHARED_NOTE,
-                arguments = listOf(navArgument("noteId") { type = NavType.StringType })
+                arguments = listOf(navArgument("noteId") { type = NavType.StringType }),
+                deepLinks = listOf(
+                    navDeepLink { uriPattern = "https://usecontinuum.dev/share/note/{noteId}" }
+                )
             ) { backStackEntry ->
                 val noteId = backStackEntry.arguments?.getString("noteId") ?: return@composable
                 val sharedNoteTokenManager = LocalTokenManager.current
