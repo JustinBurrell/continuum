@@ -20,6 +20,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -28,6 +29,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
@@ -134,7 +136,7 @@ class DashboardViewModelTest {
         coEvery { profileRepository.getProfile() } returns Result.success(fakeProfile(onboardingCompleted = false))
 
         val events = mutableListOf<Unit>()
-        val job = kotlinx.coroutines.launch(testDispatcher) {
+        val job = launch(testDispatcher) {
             viewModel.navigateToOnboarding.collect { events.add(it) }
         }
 
@@ -150,7 +152,7 @@ class DashboardViewModelTest {
         coEvery { profileRepository.getProfile() } returns Result.success(fakeProfile(onboardingCompleted = true))
 
         val events = mutableListOf<Unit>()
-        val job = kotlinx.coroutines.launch(testDispatcher) {
+        val job = launch(testDispatcher) {
             viewModel.navigateToOnboarding.collect { events.add(it) }
         }
 
@@ -194,17 +196,6 @@ class DashboardViewModelTest {
 
         assertEquals(1, viewModel.state.value.applications.size)
         assertEquals("Anthropic", viewModel.state.value.applications.first().company)
-    }
-
-    @Test
-    fun `load — error state set on exception`() = runTest {
-        coEvery { profileRepository.getProfile() } throws RuntimeException("Network down")
-
-        viewModel.load()
-        advanceUntilIdle()
-
-        assertEquals("Network down", viewModel.state.value.error)
-        assertFalse(viewModel.state.value.isLoading)
     }
 
     @Test

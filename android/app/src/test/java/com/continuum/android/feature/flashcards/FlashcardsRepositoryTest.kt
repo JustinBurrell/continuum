@@ -8,6 +8,7 @@ import com.continuum.android.feature.flashcards.data.remote.FlashcardsApiService
 import com.continuum.android.feature.flashcards.data.remote.dto.FlashcardSetDto
 import com.continuum.android.feature.flashcards.data.remote.dto.FlashcardSetsResponseDto
 import com.continuum.android.feature.flashcards.data.remote.dto.FlashcardSetResponseDto
+import com.continuum.android.feature.flashcards.data.remote.dto.DuplicateSetResponseDto
 import com.continuum.android.feature.flashcards.data.repository.FlashcardsRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -149,7 +150,7 @@ class FlashcardsRepositoryTest {
     @Test
     fun `duplicateSet success — inserts copy into Room`() = runTest {
         val dto = fakeSetDto("s2", "Biology (copy)")
-        coEvery { api.duplicateSet("s1") } returns FlashcardSetResponseDto(success = true, set = dto)
+        coEvery { api.duplicateSet("s1") } returns DuplicateSetResponseDto(success = true, set = dto)
 
         val result = repository.duplicateSet("s1")
 

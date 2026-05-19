@@ -43,9 +43,9 @@ class ErrorUtilsTest {
     }
 
     @Test
-    fun `friendlyError returns fallback for unmapped message`() {
+    fun `friendlyError returns the raw message for unmapped errors`() {
         val e = RuntimeException("Some totally unknown error")
-        assertEquals("Something totally unknown error", friendlyError(e, "Something totally unknown error"))
+        assertEquals("Some totally unknown error", friendlyError(e))
     }
 
     @Test
