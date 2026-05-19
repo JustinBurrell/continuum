@@ -27,8 +27,9 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | Web UI components | 26 |
 | Android composables | 40+ (reusable + screen-level) |
 | Backend tests | 272 Jest + Supertest across 18 suites |
+| Web unit tests | 44 Vitest tests — utils, error helpers |
 | Web E2E tests | Playwright — auth, notes, flashcards, tasks, career, mobile gate |
-| Android unit tests | MockK ViewModel tests — auth, notes, tasks, flashcards, career |
+| Android unit tests | 176 MockK tests — 10 ViewModels, 6 repositories, 2 utility modules |
 | Backend controllers | 15 |
 | Services | 4 (AI, Activity, Share, Account) |
 | Middleware types | 5 (auth, rate limiting, validation, uploads, error handling) |
@@ -555,7 +556,16 @@ Continuum has three test layers, all running in parallel on every PR via GitHub 
 
 **No real database needed.** `mongodb-memory-server` spins up a real MongoDB process in RAM. Tests run offline, in CI, with zero Atlas configuration.
 
-### 2. Web — Playwright E2E tests (Chromium)
+### 2. Web — 44 Vitest unit tests + Playwright E2E (Chromium)
+
+**Unit tests (Vitest + jsdom)**
+
+| File | What it covers |
+|------|----------------|
+| `utils.test.js` | `cn` (Tailwind merge), `formatDate`, `formatRelative` (just-now/m/h/d/absolute), `truncate`, `getInitials`, `stripHtml` |
+| `errors.test.js` | `friendlyError()` — all ERROR_MAP entries (auth, account, server errors), fallback, null/undefined, plain Error |
+
+**E2E tests (Playwright, Chromium)**
 
 Playwright boots the real Express backend (with `mongodb-memory-server`) and the Vite dev server, then drives a headless Chromium browser through the full UI.
 
@@ -570,17 +580,42 @@ Playwright boots the real Express backend (with `mongodb-memory-server`) and the
 
 The `old?.pages` TypeError was a production bug caught by the delete-note and status-change tests. Guard: `if (!old?.pages) return old` in both `NotesList.jsx` and `Tasks.jsx`.
 
-### 3. Android — ViewModel unit tests (JVM, no emulator)
+### 3. Android — 176 unit tests (JVM, no emulator)
 
 MockK mocks repository interfaces; `UnconfinedTestDispatcher` makes coroutines run eagerly on the test thread. Runs in ~30s with no emulator.
+
+**ViewModels (10 suites)**
 
 | File | What it covers |
 |------|----------------|
 | `AuthViewModelTest` | Login/register success and failure, hydrate, logout, resetState |
-| `NotesViewModelTest` | Load (fast-path Flow), search query path, createNote, deleteNote, type filter |
-| `TasksViewModelTest` | Load (fast-path Flow), createTask, moveTask (status change), derived `todoTasks` state |
+| `NotesViewModelTest` | Load (fast-path Flow), search query path, createNote, deleteNote, type filter, Drive import |
+| `TasksViewModelTest` | Load (fast-path Flow), createTask, moveTask (status change), sharedTab, derived `todoTasks` state |
 | `FlashcardsViewModelTest` | Load sets + streak, createSet, startStudy, flipCard, answerCard, session complete |
 | `CareerViewModelTest` | Load applications, createApplication, updateStatus, delete, loadResumes, filtered state |
+| `DashboardViewModelTest` | Cache-first load, firstName from profile, onboarding redirect, task priority sort, career API mapping |
+| `SocialViewModelTest` | Activity load + search, friends/requests, searchUsers, sharedNote, userProfile |
+| `OnboardingViewModelTest` | Step computation (new vs replay), advance/skip/goBack, completeTour, exitAll, onGoalSaved |
+| `MessagingViewModelTest` | Conversations load, delete, startConversation, messages load, optimistic send, send failure |
+| `ProfileViewModelTest` | Load (demo vs non-demo), updateFields, updateUsername (409 conflict), changePassword, logoutAll, deleteAccount, restore |
+
+**Repositories (6 suites)**
+
+| File | What it covers |
+|------|----------------|
+| `AuthRepositoryTest` | login/register/getMe/forgotPassword/resetPassword/logout/isLoggedIn/loginWithGoogle |
+| `NotesRepositoryTest` | Cache-first flow, getCachedNotes, createNote, deleteNote, updateNote, queryNotes (shared), getNoteById (cache fallback) |
+| `TasksRepositoryTest` | Cache-first flow, createTask, updateStatus, deleteTask, queryTasks (shared), getTask |
+| `CareerRepositoryTest` | getApplicationsFlow, createApplication, updateApplication, deleteApplication, getApplications (search), getResumes, addContact |
+| `FlashcardsRepositoryTest` | Cache-first flow, getCachedSets, createSet, deleteSet, querySets (shared), getStreak, updateSet, duplicateSet |
+| `MessagingRepositoryTest` | getConversationsFlow, getConversations (search), getMessages, sendMessage, deleteConversation |
+
+**Utilities (2 suites)**
+
+| File | What it covers |
+|------|----------------|
+| `DateUtilsTest` | `toDisplayDate()` — ISO date conversion, datetime truncation, edge cases (leap day, year-end, padding) |
+| `ErrorUtilsTest` | `friendlyError()` — all ERROR_MAP entries, raw message passthrough, blank/colon-prefixed messages |
 
 **GitHub Actions CI** runs all three jobs in parallel on every push and every PR. Failing any test blocks merges to main.
 
