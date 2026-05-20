@@ -61,17 +61,13 @@ const resourceNav = (type, id) => {
 function getRowNav(item) {
   const m = item.metadata || {};
   switch (item.type) {
+    case 'note_created':
     case 'note_shared':    return { to: '/notes/view', state: { id: item.targetId } };
+    case 'flashcard_set_created':
     case 'flashcard_shared': return { to: '/flashcards/view', state: { id: item.targetId } };
     case 'task_created':   return { to: '/tasks', state: { openTaskId: item.targetId } };
     case 'comment_added': {
       const base = resourceNav(item.targetType, item.targetId);
-      if (!base) return null;
-      return m.commentId ? { to: base.to, state: { ...base.state, commentId: m.commentId } } : base;
-    }
-    case 'like_added': {
-      if (!m.resourceId) return null;
-      const base = resourceNav(m.resourceType, m.resourceId);
       if (!base) return null;
       return m.commentId ? { to: base.to, state: { ...base.state, commentId: m.commentId } } : base;
     }
@@ -98,8 +94,12 @@ export function getActivitySentence(item, actor) {
   const suffix = shareSuffix(m);
 
   switch (item.type) {
+    case 'note_created':
+      return <>{bold} created a note {m.noteTitle && contentLink('/notes/view', { id: item.targetId }, m.noteTitle)}</>;
     case 'note_shared':
       return <>{bold} shared their note {m.noteTitle && contentLink('/notes/view', { id: item.targetId }, m.noteTitle)}{suffix}</>;
+    case 'flashcard_set_created':
+      return <>{bold} {m.isAIGenerated ? 'generated' : 'created'} a flashcard set {m.setTitle && contentLink('/flashcards/view', { id: item.targetId }, m.setTitle)}</>;
     case 'flashcard_shared':
       return <>{bold} shared a flashcard set {m.setTitle && contentLink('/flashcards/view', { id: item.targetId }, m.setTitle)}{suffix}</>;
     case 'task_created':
@@ -110,13 +110,6 @@ export function getActivitySentence(item, actor) {
       return m.commentPreview
         ? <>{bold} commented: {nav ? contentLink(nav.to, nav.state, m.commentPreview) : <span style={{ color: '#9CA3AF', fontStyle: 'italic' }}>"{m.commentPreview}"</span>}</>
         : <>{bold} left a comment</>;
-    }
-    case 'like_added': {
-      const base = m.resourceId ? resourceNav(m.resourceType, m.resourceId) : null;
-      const nav = base && m.commentId ? { to: base.to, state: { ...base.state, commentId: m.commentId } } : base;
-      return m.commentPreview
-        ? <>{bold} liked your comment: {nav ? contentLink(nav.to, nav.state, m.commentPreview) : <span style={{ color: '#9CA3AF', fontStyle: 'italic' }}>"{m.commentPreview}"</span>}</>
-        : <>{bold} liked a comment</>;
     }
     default:
       return <>{bold} did something</>;

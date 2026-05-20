@@ -6,6 +6,7 @@ const Friendship = require('../models/Friendship');
 const { createActivity } = require('../services/activity.service');
 const { getIO } = require('../lib/socket');
 const posthog = require('../lib/posthog');
+const { notify } = require('../services/notification.service');
 
 // ============================================================
 // COMMENTS CONTROLLER
@@ -127,9 +128,9 @@ exports.addComment = async (req, res) => {
         metadata: { commentPreview: content.trim().slice(0, 100), commentId: comment._id.toString() },
     }).catch(() => {});
 
-    // Notify the resource owner (if different from commenter)
+    // Resolve the content owner and notify them
+    let ownerId = null;
     try {
-        let ownerId = null;
         if (targetType === 'note') {
             const n = await Note.findById(targetId).select('userId');
             ownerId = n?.userId?.toString();
@@ -140,13 +141,50 @@ exports.addComment = async (req, res) => {
             const t = await Task.findById(targetId).select('userId');
             ownerId = t?.userId?.toString();
         }
-        if (ownerId && ownerId !== req.user._id.toString()) {
-            getIO().to(`user:${ownerId}`).emit('comment_added', {
-                targetType,
-                targetId: targetId.toString(),
-            });
-        }
     } catch (_) {}
+
+    const commentPreview = content.trim().slice(0, 120);
+
+    if (ownerId && ownerId !== req.user._id.toString()) {
+        // Socket emit and notify are independent — socket throws in test env so
+        // keep them in separate try-catch blocks so notify always runs.
+        try { getIO().to(`user:${ownerId}`).emit('comment_added', { targetType, targetId: targetId.toString() }); } catch (_) {}
+        notify({
+            recipientId: ownerId,
+            actorId: req.user._id,
+            type: 'comment_added',
+            targetId,
+            targetType,
+            message: `${req.user.firstName} commented on your ${targetType}`,
+            metadata: { commentPreview, commentId: comment._id.toString() },
+            debounceMinutes: 2,
+        }).catch(() => {});
+    }
+
+    // Notify the parent comment author on a reply
+    if (parentId) {
+        try {
+            const parent = await Comment.findById(parentId).select('userId').lean();
+            const parentAuthorId = parent?.userId?.toString();
+            if (parentAuthorId && parentAuthorId !== req.user._id.toString() && parentAuthorId !== ownerId) {
+                notify({
+                    recipientId: parentAuthorId,
+                    actorId: req.user._id,
+                    type: 'comment_reply',
+                    targetId: parentId,
+                    targetType: 'comment',
+                    message: `${req.user.firstName} replied to your comment`,
+                    metadata: {
+                        commentPreview,
+                        commentId: comment._id.toString(),
+                        resourceId: comment.targetId?.toString(),
+                        resourceType: comment.targetType,
+                    },
+                    debounceMinutes: 2,
+                }).catch(() => {});
+            }
+        } catch (_) {}
+    }
 
     res.status(201).json({ success: true, comment });
 };
@@ -255,26 +293,28 @@ exports.toggleLike = async (req, res) => {
 
     const updated = await Comment.findByIdAndUpdate(req.params.id, update, { new: true });
 
-    // Only fire activity when adding a like, not removing
+    // Only fire notifications/activity when adding a like, not removing
     if (!alreadyLiked) {
-        createActivity({
-            actorId: userId,
-            type: 'like_added',
-            targetId: comment._id,
-            targetType: 'comment',
-            metadata: {
-                commentPreview: comment.content?.slice(0, 100),
-                resourceId: comment.targetId?.toString(),
-                resourceType: comment.targetType,
-            },
-        }).catch(() => {});
-
         // Notify the comment author instantly so their activity feed updates
         const commentAuthorId = comment.userId?.toString();
         if (commentAuthorId && commentAuthorId !== userId.toString()) {
             try {
                 getIO().to(`user:${commentAuthorId}`).emit('like_added');
             } catch (_) {}
+            notify({
+                recipientId: commentAuthorId,
+                actorId: userId,
+                type: 'like_added',
+                targetId: comment._id,
+                targetType: 'comment',
+                message: `${req.user.firstName} liked your comment`,
+                metadata: {
+                    commentPreview: comment.content?.slice(0, 120),
+                    resourceId: comment.targetId?.toString(),
+                    resourceType: comment.targetType,
+                },
+                debounceMinutes: 2,
+            }).catch(() => {});
         }
     }
 

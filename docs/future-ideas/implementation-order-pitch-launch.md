@@ -75,14 +75,19 @@ Shared notes, user profiles (friend requests), and tasks open in the app from iM
 - [ ] **⚠️ You must do:** Test on Android emulator via `adb shell am start` (see PR description for commands)
 - [ ] Test OG preview by pasting a share URL into Slack
 
-### 4. In-App Notification Bell
-Foundation for everything below. Stops at Socket.io in-app delivery first.
-- [ ] `Notification` model + `notification.service.js` with `notify()` dispatcher
-- [ ] Wire into `comments.controller.js`, `friends.controller.js`, `share.service.js`
-- [ ] `GET /api/notifications`, `PATCH /api/notifications/read`, `DELETE /api/notifications/:id`
-- [ ] Emit `new_notification` Socket.io event
-- [ ] Web: notification bell in sidebar with unread badge and dropdown
-- [ ] Android: notification bell in top bar; `socket.on('new_notification')` handler
+### 4. In-App Notification Bell (PR #229)
+Foundation for everything below.
+- [x] `Notification` model + `notification.service.js` with `notify()` dispatcher and debounce
+- [x] Wire into `comments.controller.js`, `friends.controller.js`, `conversations.controller.js`, `notes.controller.js`, `flashcardSets.controller.js`, `tasks.controller.js`
+- [x] `GET /api/notifications` (cursor pagination), `PATCH /api/notifications/read`, `PATCH /api/notifications/:id/read`, `DELETE /api/notifications/:id`
+- [x] Emit `new_notification` Socket.io event after every `Notification.create()`
+- [x] Web: notification bell in sidebar header and marketing nav with unread badge and dropdown
+- [x] Web: `/notifications` history page with Today / This week / This month / Earlier grouping and infinite scroll
+- [x] 8 notification types: `new_message`, `share_received`, `task_assigned`, `comment_added`, `comment_reply`, `like_added`, `friend_request`, `friend_accepted`
+- [x] PostHog events: bell open, item click, mark all read (bell + page), see all, dismiss, page view
+- [x] Seed notifications for Jane and Justin across all time groups
+- [x] Backend Jest suite + Vitest component and hook tests
+- [ ] Android: notification bell in top bar; `socket.on('new_notification')` handler (follow-up PR)
 
 ### 5. FCM Push Notifications
 Android only. Requires notification bell infrastructure above.

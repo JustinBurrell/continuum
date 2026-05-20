@@ -167,6 +167,11 @@ export default function UserProfile() {
     onSuccess: invalidateFriends,
   });
 
+  const declineMutation = useMutation({
+    mutationFn: () => api.put(`/friends/request/${pendingEntry?._id}`, { action: 'decline' }),
+    onSuccess: invalidateFriends,
+  });
+
   const removeMutation = useMutation({
     mutationFn: () => api.delete('/friends/' + isFriendEntry?._id),
     onSuccess: invalidateFriends,
@@ -327,9 +332,33 @@ export default function UserProfile() {
                   </button>
                 </>
               ) : pendingEntry ? (
-                <Button size="sm" onClick={() => acceptMutation.mutate()} loading={acceptMutation.isPending}>
-                  <UserPlus size={13} /> Accept request
-                </Button>
+                <>
+                  <Button size="sm" onClick={() => acceptMutation.mutate()} loading={acceptMutation.isPending}>
+                    <UserPlus size={13} /> Accept
+                  </Button>
+                  <button
+                    onClick={() => declineMutation.mutate()}
+                    disabled={declineMutation.isPending}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '6px 12px',
+                      borderRadius: 8,
+                      border: '1px solid #E5E7EB',
+                      background: 'transparent',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: '#6B7280',
+                      cursor: 'pointer',
+                      transition: 'color 0.15s, border-color 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.borderColor = '#fecaca'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.borderColor = '#E5E7EB'; }}
+                  >
+                    Decline
+                  </button>
+                </>
               ) : sentEntry ? (
                 <Button size="sm" variant="outline" onClick={() => cancelMutation.mutate()} loading={cancelMutation.isPending}>
                   <Clock size={13} /> Request sent - Revoke

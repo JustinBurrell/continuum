@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import api from '@/lib/api';
 import { connectSocket, disconnectSocket } from '@/lib/socket';
 import queryClient from '@/lib/queryClient';
@@ -6,22 +6,33 @@ import { posthog } from '@/lib/posthog';
 
 const AuthContext = createContext(null);
 
-// All socket events and which React Query keys they invalidate
-function registerSocketEvents(socket) {
+// All socket events and which React Query keys they invalidate.
+// getActiveConversation() returns the conversationId the user is currently viewing,
+// used to suppress unread badge increments and bell updates for the active chat.
+// Calls socket.off() before socket.on() so re-registering on re-renders or token
+// refresh never stacks duplicate listeners.
+function registerSocketEvents(socket, getActiveConversation) {
   // Direct messages — write directly into cache for instant display, then sync sidebar
+  socket.off('new_message');
   socket.on('new_message', ({ conversationId, message }) => {
-    // Insert into any open message query for this conversation (skip active search results)
+    const isActive = getActiveConversation() === conversationId;
+
+    // Append to any open message query for this conversation (skip active search results).
+    // Dedup by _id so re-registration or StrictMode double-invoke never inserts twice.
     const queries = queryClient.getQueriesData({ queryKey: ['messages', conversationId] });
     queries.forEach(([key, data]) => {
       const searchTerm = key[2];
       if (!searchTerm && data) {
-        queryClient.setQueryData(key, old => ({
-          ...old,
-          messages: [message, ...(old?.messages || [])],
-        }));
+        queryClient.setQueryData(key, old => {
+          if (!old) return old;
+          if (old.messages?.some(m => m._id === message._id)) return old;
+          return { ...old, messages: [...(old.messages || []), message] };
+        });
       }
     });
-    // Update conversations sidebar: bump lastMessage preview + unread count, re-sort
+
+    // Update conversations sidebar: bump lastMessage preview, only increment unread
+    // when the user is NOT already reading this conversation.
     queryClient.setQueryData(['conversations'], old => {
       if (!old) return old;
       const updated = (old.conversations || []).map(conv =>
@@ -33,7 +44,7 @@ function registerSocketEvents(socket) {
                 content: message.content,
                 sentAt: message.createdAt,
               },
-              unreadCount: (conv.unreadCount || 0) + 1,
+              unreadCount: isActive ? 0 : (conv.unreadCount || 0) + 1,
             }
           : conv
       );
@@ -45,42 +56,51 @@ function registerSocketEvents(socket) {
   });
 
   // Friend requests / accepted — invalidate all three friend query keys
+  socket.off('friend_request');
   socket.on('friend_request', () => {
     queryClient.invalidateQueries({ queryKey: ['friends'] });
     queryClient.invalidateQueries({ queryKey: ['friend-requests'] });
   });
+  socket.off('friend_accepted');
   socket.on('friend_accepted', () => {
     queryClient.invalidateQueries({ queryKey: ['friends'] });
     queryClient.invalidateQueries({ queryKey: ['friend-requests-sent'] });
   });
 
   // Task mutations — existing and new Phase 2 events
+  socket.off('task_updated');
   socket.on('task_updated', () => {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
     queryClient.invalidateQueries({ queryKey: ['calendar'] });
   });
+  socket.off('task_created');
   socket.on('task_created', () => {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
     queryClient.invalidateQueries({ queryKey: ['calendar'] });
   });
+  socket.off('task_deleted');
   socket.on('task_deleted', () => {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
     queryClient.invalidateQueries({ queryKey: ['calendar'] });
   });
 
   // Note updates, shares, and deletions
+  socket.off('note_updated');
   socket.on('note_updated', () => {
     queryClient.invalidateQueries({ queryKey: ['notes'] });
   });
+  socket.off('note_shared');
   socket.on('note_shared', () => {
     queryClient.invalidateQueries({ queryKey: ['notes'] });
   });
+  socket.off('note_deleted');
   socket.on('note_deleted', ({ noteId }) => {
     queryClient.invalidateQueries({ queryKey: ['notes'] });
     queryClient.removeQueries({ queryKey: ['note', noteId] });
   });
 
   // New comment on something you own
+  socket.off('comment_added');
   socket.on('comment_added', ({ targetType, targetId }) => {
     if (targetType === 'note') queryClient.invalidateQueries({ queryKey: ['note', targetId] });
     if (targetType === 'flashcardSet') queryClient.invalidateQueries({ queryKey: ['flashcard-set', targetId] });
@@ -89,36 +109,51 @@ function registerSocketEvents(socket) {
   });
 
   // Someone liked your comment
+  socket.off('like_added');
   socket.on('like_added', () => {
     queryClient.invalidateQueries({ queryKey: ['activity'] });
   });
 
   // Flashcard set shared with or deleted for you
+  socket.off('flashcard_shared');
   socket.on('flashcard_shared', () => {
     queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
   });
+  socket.off('flashcard_set_deleted');
   socket.on('flashcard_set_deleted', ({ setId }) => {
     queryClient.invalidateQueries({ queryKey: ['flashcard-sets'] });
     queryClient.removeQueries({ queryKey: ['flashcard-set', setId] });
   });
 
   // Activity feed — someone's action just appeared in your feed
+  socket.off('activity_updated');
   socket.on('activity_updated', () => {
     queryClient.invalidateQueries({ queryKey: ['activity'] });
   });
 
   // Study session completed — refresh streak and history in any open tab
+  socket.off('study:session-complete');
   socket.on('study:session-complete', () => {
     queryClient.invalidateQueries({ queryKey: ['study-streak'] });
     queryClient.invalidateQueries({ queryKey: ['study-sessions-all'] });
   });
 
+  // New notification — refresh bell, but skip if it's a message for the active conversation
+  // (user is already reading that chat so no need to ring the bell).
+  socket.off('new_notification');
+  socket.on('new_notification', ({ type, targetId } = {}) => {
+    if (type === 'new_message' && targetId && getActiveConversation() === targetId) return;
+    queryClient.invalidateQueries({ queryKey: ['notifications-bell'] });
+    queryClient.invalidateQueries({ queryKey: ['notifications-feed'] });
+  });
 }
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [forceOnboardingOpen, setForceOnboardingOpen] = useState(false);
+  const activeConversationRef = useRef(null);
+  const setActiveConversation = useCallback((id) => { activeConversationRef.current = id; }, []);
 
   // Hydrate user from stored token on mount
   useEffect(() => {
@@ -146,7 +181,7 @@ export function AuthProvider({ children }) {
         }
         // Reconnect socket on page refresh if already logged in
         const socket = connectSocket(token);
-        registerSocketEvents(socket);
+        registerSocketEvents(socket, () => activeConversationRef.current);
       })
       .catch(() => {
         localStorage.removeItem('token');
@@ -221,7 +256,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, googleLogin, updateUser, forceOnboardingOpen, setForceOnboardingOpen }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, googleLogin, updateUser, forceOnboardingOpen, setForceOnboardingOpen, setActiveConversation }}>
       {children}
     </AuthContext.Provider>
   );

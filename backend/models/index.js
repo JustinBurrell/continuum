@@ -29,6 +29,9 @@ module.exports = {
   SyncQueue: require('./SyncQueue'),
   Activity: require('./Activity'),
 
+  // Notifications
+  Notification: require('./Notification'),
+
   // Study
   StudySession: require('./StudySession'),
 
