@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 import { posthog } from '@/lib/posthog';
 import { formatRelative } from '@/lib/utils';
@@ -10,22 +10,32 @@ import {
     useMarkOneRead,
 } from '@/hooks/useNotifications';
 
-// Maps notification type + targetType to an app path
-function resolveUrl(notif) {
-    const { type, targetType } = notif;
-    if (type === 'new_message') return '/messages';
-    if (type === 'friend_request' || type === 'friend_accepted') return '/friends';
-    if (type === 'task_assigned') return '/tasks';
+// Returns { to, state } for react-router navigate() — points to the exact resource.
+// comment_reply and like_added target a Comment doc; fall back to /activity since
+// we don't have the parent resource ID without a separate fetch.
+function resolveNav(notif) {
+    const { type, targetType, targetId } = notif;
+    if (type === 'new_message') {
+        return { to: '/messages', state: { conversationId: targetId } };
+    }
+    if (type === 'friend_request' || type === 'friend_accepted') {
+        return { to: '/friends', state: null };
+    }
+    if (type === 'task_assigned') {
+        return { to: '/tasks', state: { openTaskId: targetId } };
+    }
     if (type === 'share_received') {
-        if (targetType === 'note') return '/notes';
-        if (targetType === 'flashcardSet') return '/flashcards';
-        if (targetType === 'task') return '/tasks';
+        if (targetType === 'note')        return { to: '/notes/view',     state: { id: targetId } };
+        if (targetType === 'flashcardSet') return { to: '/flashcards/view', state: { id: targetId } };
+        if (targetType === 'task')         return { to: '/tasks',           state: { openTaskId: targetId } };
     }
-    if (type === 'comment_added' || type === 'comment_reply' || type === 'like_added') {
-        if (targetType === 'task' || targetType === 'comment') return '/tasks';
-        return '/notes';
+    if (type === 'comment_added') {
+        if (targetType === 'note')        return { to: '/notes/view',     state: { id: targetId } };
+        if (targetType === 'flashcardSet') return { to: '/flashcards/view', state: { id: targetId } };
+        if (targetType === 'task')         return { to: '/tasks',           state: { openTaskId: targetId } };
     }
-    return '/notifications';
+    // comment_reply / like_added have targetType: 'comment' — best we can do is /activity
+    return { to: '/activity', state: null };
 }
 
 export default function NotificationBell() {
@@ -69,7 +79,8 @@ export default function NotificationBell() {
     function handleItemClick(notif) {
         markOne(notif._id);
         posthog.capture('notification_bell_item_clicked', { type: notif.type, targetType: notif.targetType });
-        navigate(resolveUrl(notif));
+        const { to, state } = resolveNav(notif);
+        navigate(to, state ? { state } : undefined);
         setOpen(false);
     }
 
@@ -87,6 +98,7 @@ export default function NotificationBell() {
     const badgeLabel = unreadCount > 9 ? '9+' : unreadCount;
 
     return (
+        // position: relative so the dropdown can use position: absolute from this anchor
         <div ref={wrapperRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             {/* Bell button */}
             <button
@@ -139,12 +151,13 @@ export default function NotificationBell() {
                 )}
             </button>
 
-            {/* Dropdown */}
+            {/* Dropdown — positioned absolutely from the wrapper so it works
+                in both the sidebar header and any other context */}
             {open && (
                 <div style={{
-                    position: 'fixed',
-                    top: 56,
-                    left: 240,
+                    position: 'absolute',
+                    top: 'calc(100% + 8px)',
+                    right: 0,
                     width: 360,
                     maxHeight: 480,
                     overflowY: 'auto',
@@ -234,13 +247,18 @@ export default function NotificationBell() {
 }
 
 function NotifItem({ notif, onClick }) {
-    const actorName = notif.actorId
-        ? `${notif.actorId.firstName || ''} ${notif.actorId.lastName || ''}`.trim()
+    const actor = notif.actorId;
+    const actorName = actor
+        ? `${actor.firstName || ''} ${actor.lastName || ''}`.trim()
         : 'Someone';
 
     return (
-        <button
+        // div instead of button so <Link> for the actor name is valid HTML
+        <div
+            role="button"
+            tabIndex={0}
             onClick={onClick}
+            onKeyDown={e => e.key === 'Enter' && onClick()}
             style={{
                 display: 'flex',
                 alignItems: 'flex-start',
@@ -248,24 +266,50 @@ function NotifItem({ notif, onClick }) {
                 width: '100%',
                 padding: '10px 16px',
                 background: notif.read ? 'transparent' : 'rgba(107,33,168,0.04)',
-                border: 'none',
                 borderLeft: notif.read ? '3px solid transparent' : '3px solid #6b21a8',
                 cursor: 'pointer',
-                textAlign: 'left',
                 transition: 'background 0.1s',
             }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.06)'}
             onMouseLeave={e => e.currentTarget.style.background = notif.read ? 'transparent' : 'rgba(107,33,168,0.04)'}
         >
-            <AppAvatar
-                name={actorName}
-                src={notif.actorId?.avatarUrl}
-                size="sm"
-            />
+            {/* Avatar — links to actor profile */}
+            <div onClick={e => e.stopPropagation()} style={{ flexShrink: 0 }}>
+                <Link to="/users/view" state={{ id: actor?._id }}>
+                    <AppAvatar
+                        name={actorName}
+                        src={actor?.avatarUrl}
+                        size="sm"
+                    />
+                </Link>
+            </div>
+
             <div style={{ flex: 1, minWidth: 0 }}>
+                {/* Actor name — clickable link to profile */}
+                {actor && (
+                    <span
+                        onClick={e => e.stopPropagation()}
+                        style={{ display: 'block', marginBottom: 2 }}
+                    >
+                        <Link
+                            to="/users/view"
+                            state={{ id: actor._id }}
+                            style={{
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b21a8',
+                                textDecoration: 'none',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                            onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+                        >
+                            {actorName}
+                        </Link>
+                    </span>
+                )}
                 <p style={{
                     fontSize: 13,
-                    color: '#111827',
+                    color: '#374151',
                     margin: 0,
                     lineHeight: 1.4,
                     overflow: 'hidden',
@@ -275,10 +319,10 @@ function NotifItem({ notif, onClick }) {
                 }}>
                     {notif.message}
                 </p>
-                <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0', lineHeight: 1.3 }}>
+                <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0', lineHeight: 1.3 }}>
                     {formatRelative(notif.createdAt)}
                 </p>
             </div>
-        </button>
+        </div>
     );
 }

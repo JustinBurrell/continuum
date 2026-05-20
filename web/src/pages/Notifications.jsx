@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { posthog } from '@/lib/posthog';
 import { formatRelative } from '@/lib/utils';
@@ -40,20 +40,29 @@ function groupNotifications(notifications) {
     return GROUP_ORDER.filter(g => map[g]?.length).map(g => ({ label: g, items: map[g] }));
 }
 
-function resolveUrl(notif) {
-    const { type, targetType } = notif;
-    if (type === 'new_message') return '/messages';
-    if (type === 'friend_request' || type === 'friend_accepted') return '/friends';
-    if (type === 'task_assigned') return '/tasks';
+// Returns { to, state } for exact resource navigation (mirrors NotificationBell.jsx)
+function resolveNav(notif) {
+    const { type, targetType, targetId } = notif;
+    if (type === 'new_message') {
+        return { to: '/messages', state: { conversationId: targetId } };
+    }
+    if (type === 'friend_request' || type === 'friend_accepted') {
+        return { to: '/friends', state: null };
+    }
+    if (type === 'task_assigned') {
+        return { to: '/tasks', state: { openTaskId: targetId } };
+    }
     if (type === 'share_received') {
-        if (targetType === 'note') return '/notes';
-        if (targetType === 'flashcardSet') return '/flashcards';
-        if (targetType === 'task') return '/tasks';
+        if (targetType === 'note')         return { to: '/notes/view',     state: { id: targetId } };
+        if (targetType === 'flashcardSet') return { to: '/flashcards/view', state: { id: targetId } };
+        if (targetType === 'task')         return { to: '/tasks',           state: { openTaskId: targetId } };
     }
-    if (['comment_added', 'comment_reply', 'like_added'].includes(type)) {
-        return targetType === 'task' ? '/tasks' : '/notes';
+    if (type === 'comment_added') {
+        if (targetType === 'note')         return { to: '/notes/view',     state: { id: targetId } };
+        if (targetType === 'flashcardSet') return { to: '/flashcards/view', state: { id: targetId } };
+        if (targetType === 'task')         return { to: '/tasks',           state: { openTaskId: targetId } };
     }
-    return '/notifications';
+    return { to: '/activity', state: null };
 }
 
 export default function Notifications() {
@@ -101,7 +110,8 @@ export default function Notifications() {
     function handleItemClick(notif) {
         markOne(notif._id);
         posthog.capture('notification_page_item_clicked', { type: notif.type, targetType: notif.targetType });
-        navigate(resolveUrl(notif));
+        const { to, state } = resolveNav(notif);
+        navigate(to, state ? { state } : undefined);
     }
 
     function handleMarkAll() {
@@ -204,8 +214,9 @@ export default function Notifications() {
 }
 
 function PageNotifItem({ notif, isLast, onClick, onDelete }) {
-    const actorName = notif.actorId
-        ? `${notif.actorId.firstName || ''} ${notif.actorId.lastName || ''}`.trim()
+    const actor = notif.actorId;
+    const actorName = actor
+        ? `${actor.firstName || ''} ${actor.lastName || ''}`.trim()
         : 'Someone';
 
     return (
@@ -214,10 +225,9 @@ function PageNotifItem({ notif, isLast, onClick, onDelete }) {
             tabIndex={0}
             onClick={onClick}
             onKeyDown={e => e.key === 'Enter' && onClick()}
-            className="group"
             style={{
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 gap: 12,
                 padding: '12px 16px',
                 background: notif.read ? 'transparent' : 'rgba(107,33,168,0.04)',
@@ -238,15 +248,44 @@ function PageNotifItem({ notif, isLast, onClick, onDelete }) {
                 if (del) del.style.opacity = '0';
             }}
         >
-            <AppAvatar name={actorName} src={notif.actorId?.avatarUrl} size="sm" />
+            {/* Avatar — links to actor profile, stops row click */}
+            <div onClick={e => e.stopPropagation()} style={{ flexShrink: 0, marginTop: 1 }}>
+                <Link to="/users/view" state={{ id: actor?._id }}>
+                    <AppAvatar name={actorName} src={actor?.avatarUrl} size="sm" />
+                </Link>
+            </div>
+
             <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, color: '#111827', margin: 0, lineHeight: 1.4 }}>
+                {/* Actor name — clickable, stops row click */}
+                {actor && (
+                    <span
+                        onClick={e => e.stopPropagation()}
+                        style={{ display: 'block', marginBottom: 2 }}
+                    >
+                        <Link
+                            to="/users/view"
+                            state={{ id: actor._id }}
+                            style={{
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b21a8',
+                                textDecoration: 'none',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                            onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+                        >
+                            {actorName}
+                        </Link>
+                    </span>
+                )}
+                <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.4 }}>
                     {notif.message}
                 </p>
-                <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
+                <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0' }}>
                     {formatRelative(notif.createdAt)}
                 </p>
             </div>
+
             <button
                 data-delete="true"
                 onClick={onDelete}
@@ -265,6 +304,7 @@ function PageNotifItem({ notif, isLast, onClick, onDelete }) {
                     color: '#6B7280',
                     flexShrink: 0,
                     transition: 'opacity 0.15s, background 0.1s',
+                    marginTop: 1,
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
                 onMouseLeave={e => e.currentTarget.style.background = '#F3F4F6'}

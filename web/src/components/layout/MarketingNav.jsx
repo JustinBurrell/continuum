@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Avatar from '@/components/ui/Avatar';
-import NotificationBell from '@/components/ui/NotificationBell';
 
 const DROPDOWN_LINKS = [
   { to: '/dashboard', label: 'Dashboard' },
@@ -105,9 +104,7 @@ export default function MarketingNav() {
         {/* Right CTA */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 180, justifyContent: 'flex-end' }}>
           {isLoading ? null : user ? (
-            /* Logged-in: notification bell + avatar dropdown */
-            <>
-            <NotificationBell />
+            /* Logged-in: avatar dropdown */
             <div ref={dropdownRef} style={{ position: 'relative' }}>
               <button
                 onClick={() => setOpen(v => !v)}
@@ -196,7 +193,6 @@ export default function MarketingNav() {
                 </div>
               )}
             </div>
-            </>
           ) : (
             <>
               <Link
