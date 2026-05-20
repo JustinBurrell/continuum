@@ -254,7 +254,7 @@ describe('DELETE /api/notifications/:id', () => {
 // ─── notify() integration - triggered by existing controller actions ──────────
 
 describe('notify() integration via controller actions', () => {
-  it('creates a comment_added Notification for the note owner when someone else comments', async () => {
+  it('creates a comment_added Notification with commentPreview metadata for the note owner', async () => {
     const { alice, bob } = await makeFriends();
     const noteId = await createNote(alice.token);
 
@@ -263,19 +263,74 @@ describe('notify() integration via controller actions', () => {
       .set('Authorization', `Bearer ${bob.token}`)
       .send({ targetId: noteId, targetType: 'note', content: 'Nice note!' });
 
-    // Give the async notify() call a tick to complete
     await new Promise(r => setTimeout(r, 50));
 
     const notif = await Notification.findOne({ userId: alice.userId, type: 'comment_added' });
     expect(notif).not.toBeNull();
     expect(notif.targetType).toBe('note');
+    expect(notif.metadata.commentPreview).toBe('Nice note!');
+    expect(notif.metadata.commentId).toBeDefined();
+  });
+
+  it('like_added notification includes resourceId and resourceType metadata', async () => {
+    const { alice, bob } = await makeFriends();
+    const noteId = await createNote(alice.token);
+
+    // Bob comments on Alice's note
+    const commentRes = await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${bob.token}`)
+      .send({ targetId: noteId, targetType: 'note', content: 'Great note' });
+
+    const commentId = commentRes.body.comment._id;
+
+    // Alice likes Bob's comment
+    await request(app)
+      .post(`/api/comments/${commentId}/like`)
+      .set('Authorization', `Bearer ${alice.token}`);
+
+    await new Promise(r => setTimeout(r, 50));
+
+    const notif = await Notification.findOne({ userId: bob.userId, type: 'like_added' });
+    expect(notif).not.toBeNull();
+    expect(notif.metadata.resourceId).toBe(noteId);
+    expect(notif.metadata.resourceType).toBe('note');
+    expect(notif.metadata.commentPreview).toBeTruthy();
+  });
+
+  it('comment_reply notification includes resourceId and resourceType metadata', async () => {
+    const { alice, bob } = await makeFriends();
+    const noteId = await createNote(alice.token);
+
+    // Bob comments on Alice's note (Bob is the parent comment author)
+    const parentRes = await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${bob.token}`)
+      .send({ targetId: noteId, targetType: 'note', content: 'Original comment' });
+
+    const parentId = parentRes.body.comment._id;
+
+    // Alice replies to Bob's comment - Bob gets a comment_reply notification
+    // (Alice is the note owner but Bob is the parent author, so the guard passes)
+    await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${alice.token}`)
+      .send({ targetId: noteId, targetType: 'note', content: 'My reply', parentId });
+
+    await new Promise(r => setTimeout(r, 50));
+
+    const notif = await Notification.findOne({ userId: bob.userId, type: 'comment_reply' });
+    expect(notif).not.toBeNull();
+    expect(notif.metadata.commentPreview).toBe('My reply');
+    expect(notif.metadata.commentId).toBeDefined();
+    expect(notif.metadata.resourceId).toBe(noteId);
+    expect(notif.metadata.resourceType).toBe('note');
   });
 
   it('creates a friend_accepted Notification for the requester when their request is accepted', async () => {
     const alice = await registerAndLogin();
     const bob = await registerAndLogin();
 
-    // Alice sends a request to Bob
     const reqRes = await request(app)
       .post('/api/friends/request')
       .set('Authorization', `Bearer ${alice.token}`)
@@ -283,7 +338,6 @@ describe('notify() integration via controller actions', () => {
 
     const friendshipId = reqRes.body.friendship._id;
 
-    // Bob accepts
     await request(app)
       .put(`/api/friends/request/${friendshipId}`)
       .set('Authorization', `Bearer ${bob.token}`)

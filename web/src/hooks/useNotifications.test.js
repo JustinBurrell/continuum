@@ -40,9 +40,11 @@ function makeWrapper() {
     React.createElement(QueryClientProvider, { client: queryClient }, children);
 }
 
+// like_added is a valid notification type (it was removed from the activity feed
+// but is still used for bell notifications when someone likes your comment)
 const SAMPLE_NOTIFS = [
-  { _id: 'n1', type: 'comment_added', targetType: 'note', message: 'Alice commented on your note', read: false, createdAt: new Date().toISOString() },
-  { _id: 'n2', type: 'like_added', targetType: 'comment', message: 'Bob liked your comment', read: true, createdAt: new Date().toISOString() },
+  { _id: 'n1', type: 'comment_added', targetType: 'note', message: 'Alice commented on your note', read: false, createdAt: new Date().toISOString(), metadata: { commentPreview: 'Great!', commentId: 'c1' } },
+  { _id: 'n2', type: 'like_added', targetType: 'comment', message: 'Bob liked your comment', read: true, createdAt: new Date().toISOString(), metadata: { resourceId: 'note1', resourceType: 'note' } },
 ];
 
 beforeEach(() => {

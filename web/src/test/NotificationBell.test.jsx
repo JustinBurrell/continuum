@@ -41,21 +41,47 @@ import NotificationBell from '@/components/ui/NotificationBell';
 const UNREAD_NOTIF = {
   _id: 'n1',
   type: 'comment_added',
+  targetId: 'note123',
   targetType: 'note',
   message: 'Alice commented on your note',
   read: false,
   createdAt: new Date().toISOString(),
   actorId: { _id: 'a1', firstName: 'Alice', lastName: 'Smith', avatarUrl: null },
+  metadata: { commentPreview: 'Great note!', commentId: 'c1' },
 };
 
 const READ_NOTIF = {
   _id: 'n2',
   type: 'new_message',
+  targetId: 'conv456',
   targetType: 'conversation',
   message: 'Bob sent you a message',
   read: true,
   createdAt: new Date().toISOString(),
   actorId: { _id: 'b1', firstName: 'Bob', lastName: 'Jones', avatarUrl: null },
+};
+
+const FRIEND_REQUEST_NOTIF = {
+  _id: 'n3',
+  type: 'friend_request',
+  targetId: 'friendship789',
+  targetType: 'friendship',
+  message: 'Carol sent you a friend request',
+  read: false,
+  createdAt: new Date().toISOString(),
+  actorId: { _id: 'c1', firstName: 'Carol', lastName: 'Davis', avatarUrl: null },
+};
+
+const LIKE_NOTIF = {
+  _id: 'n4',
+  type: 'like_added',
+  targetId: 'comment111',
+  targetType: 'comment',
+  message: 'Dave liked your comment',
+  read: false,
+  createdAt: new Date().toISOString(),
+  actorId: { _id: 'd1', firstName: 'Dave', lastName: 'Evans', avatarUrl: null },
+  metadata: { resourceId: 'note999', resourceType: 'note', commentPreview: 'Nice idea' },
 };
 
 function renderBell(notifs = [], unreadCount = 0) {
@@ -213,5 +239,61 @@ describe('Mark all read', () => {
       'notification_all_marked_read',
       expect.objectContaining({ source: 'bell' })
     );
+  });
+});
+
+// ─── resolveNav — navigation targets ─────────────────────────────────────────
+
+import { resolveNav } from '@/components/ui/NotificationBell';
+
+describe('resolveNav', () => {
+  it('friend_request navigates to /users/view with the actor id', () => {
+    const nav = resolveNav(FRIEND_REQUEST_NOTIF);
+    expect(nav.to).toBe('/users/view');
+    expect(nav.state).toEqual({ id: 'c1' });
+  });
+
+  it('friend_accepted navigates to /users/view with the actor id', () => {
+    const notif = { ...FRIEND_REQUEST_NOTIF, _id: 'n5', type: 'friend_accepted' };
+    const nav = resolveNav(notif);
+    expect(nav.to).toBe('/users/view');
+    expect(nav.state).toEqual({ id: 'c1' });
+  });
+
+  it('like_added with metadata navigates to the resource note', () => {
+    const nav = resolveNav(LIKE_NOTIF);
+    expect(nav.to).toBe('/notes/view');
+    expect(nav.state).toEqual({ id: 'note999' });
+  });
+
+  it('like_added without metadata falls back to /activity', () => {
+    const notif = { ...LIKE_NOTIF, metadata: {} };
+    const nav = resolveNav(notif);
+    expect(nav.to).toBe('/activity');
+  });
+
+  it('comment_added navigates to the note with commentId in state', () => {
+    const nav = resolveNav(UNREAD_NOTIF);
+    expect(nav.to).toBe('/notes/view');
+    expect(nav.state).toEqual({ id: 'note123', commentId: 'c1' });
+  });
+
+  it('comment_reply with metadata navigates to the resource with commentId', () => {
+    const notif = {
+      _id: 'n6', type: 'comment_reply', targetId: 'comment123', targetType: 'comment',
+      message: 'Bob replied to your comment', read: false,
+      actorId: { _id: 'b1', firstName: 'Bob', lastName: 'Jones' },
+      metadata: { commentPreview: 'Nice', commentId: 'c2', resourceId: 'note123', resourceType: 'note' },
+      createdAt: new Date().toISOString(),
+    };
+    const nav = resolveNav(notif);
+    expect(nav.to).toBe('/notes/view');
+    expect(nav.state).toEqual({ id: 'note123', commentId: 'c2' });
+  });
+
+  it('new_message navigates to /messages with conversationId', () => {
+    const nav = resolveNav(READ_NOTIF);
+    expect(nav.to).toBe('/messages');
+    expect(nav.state).toEqual({ conversationId: 'conv456' });
   });
 });
