@@ -20,18 +20,18 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 | Metric | Count |
 |--------|-------|
-| Database collections | 15 |
-| API endpoints | ~108 across 17 route groups |
-| Frontend pages (web) | 29 |
+| Database collections | 16 |
+| API endpoints | ~113 across 18 route groups |
+| Frontend pages (web) | 30 |
 | Frontend screens (Android) | 30+ |
-| Web UI components | 26 |
+| Web UI components | 27 |
 | Android composables | 40+ (reusable + screen-level) |
-| Backend tests | 272 Jest + Supertest across 18 suites |
-| Web unit tests | 44 Vitest tests — utils, error helpers |
-| Web E2E tests | Playwright — auth, notes, flashcards, tasks, career, mobile gate |
-| Android unit tests | 176 MockK tests — 10 ViewModels, 6 repositories, 2 utility modules |
-| Backend controllers | 15 |
-| Services | 4 (AI, Activity, Share, Account) |
+| Backend tests | 296 Jest + Supertest across 19 suites |
+| Web unit tests | 76 Vitest tests -- utils, error helpers, hooks, components |
+| Web E2E tests | Playwright -- auth, notes, flashcards, tasks, career, mobile gate |
+| Android unit tests | 176 MockK tests -- 10 ViewModels, 6 repositories, 2 utility modules |
+| Backend controllers | 16 |
+| Services | 6 (AI, Activity, Share, Account, Notifications, Email) |
 | Middleware types | 5 (auth, rate limiting, validation, uploads, error handling) |
 | Android API coverage | ~93/108 endpoints (~86%) |
 | Android offline tables | Room + SyncQueue (WorkManager-backed) |
@@ -61,7 +61,8 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 - **Flashcards** — study mode with flip cards, per-card progress tracking, AI extraction from notes or PDFs, study history screen, infinite-scroll pagination
 - **Tasks** — kanban board with shared tasks, per-participant status tracking, recurrence support, infinite-scroll pagination
 - **Calendar** — month and week views sharing a single `selected` state in the parent component; clicking a day in either view updates a bounded right sidebar (max-height, scrollable) rather than an inline expansion panel; overdue tasks in a fixed-height scrollable container so they never push content off screen
-- **Social** — friend requests, activity feed (cursor-paginated, own actions filtered Instagram-style, shared content titles and comment previews are clickable purple links with scroll-to-comment on the target page), direct messaging with real-time socket delivery (no polling), profile photos in feed and comments
+- **Notifications** -- in-app notification bell (sidebar header + marketing nav when logged in) with unread badge, dropdown showing the 10 most recent notifications, and a full history page (`/notifications`) grouped by Today / This week / This month / Earlier with IntersectionObserver infinite scroll. 8 event types: `new_message`, `share_received`, `task_assigned`, `comment_added`, `comment_reply`, `like_added`, `friend_request`, `friend_accepted`. Real-time badge updates via Socket.io `new_notification` event. 90-day TTL (matches industry standard). Debouncing per actor+target for high-frequency events. PostHog events on bell open, item click, mark all read (bell and page), and dismiss. Seed data for Jane and Justin covers all four time groups.
+- **Social** -- friend requests, activity feed (cursor-paginated, own actions filtered Instagram-style, shared content titles and comment previews are clickable purple links with scroll-to-comment on the target page), direct messaging with real-time socket delivery (no polling), profile photos in feed and comments
 - **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section), contacts and reminders per application, inline PDF resume viewer (iframe modal matching Android's in-app viewer)
 - **Auth** — email/password and Google OAuth (`drive.file` scope — non-sensitive, no CASA assessment required) with JWT + httpOnly refresh cookie rotation
 - **Mobile marketing page** — purpose-built waitlist landing page shown to visitors on phones and tablets (<1024px). Hero split layout (text + iPhone device frame), six feature highlights each with a mini device preview, platform-interest waitlist form (iOS/Android/Both), Resend welcome email with platform-personalized copy. `/privacy` and `/terms` serve mobile-optimized legal pages without hitting the gate. Legal docs on Android now open in the device browser via `LocalUriHandler` instead of an in-app screen.

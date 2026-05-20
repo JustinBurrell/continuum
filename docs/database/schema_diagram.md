@@ -272,6 +272,19 @@ erDiagram
         Date createdAt
     }
 
+    Notification {
+        ObjectId _id PK
+        ObjectId userId FK "recipient"
+        String type
+        ObjectId actorId FK "who triggered it"
+        ObjectId targetId
+        String targetType
+        String message "pre-rendered display text"
+        Boolean read
+        Date readAt
+        Date createdAt "TTL 90 days"
+    }
+
     %% ===== RELATIONSHIPS =====
 
     %% User owns everything
@@ -286,6 +299,7 @@ erDiagram
     User ||--o{ Message : "sends"
     User ||--o{ SyncQueue : "queues"
     User ||--o{ Activity : "generates"
+    User ||--o{ Notification : "receives"
 
     %% Note relationships (summary is embedded, not a separate entity)
     Note ||--o{ FlashcardSet : "generates"

@@ -166,6 +166,23 @@ Sharing activities are personalized: the sharer's feed shows who they shared wit
 
 ---
 
+### **Notifications**
+
+In-app notification bell and history feed. Each notification is a recipient-scoped document with a 90-day TTL (same as Activity). The bell badge is kept current by a `new_notification` Socket.io event emitted after every `Notification.create()` call.
+
+- `GET /api/notifications` - List the authenticated user's notifications, newest first. Uses the same compound-cursor pagination as the activity feed. Query params: `cursor` (compound `ISO|objectId` string), `limit` (default 20, max 50). Returns `{ notifications[], nextCursor, hasMore, unreadCount }`. Each notification's `actorId` is populated with `firstName`, `lastName`, `avatarUrl`. Requires JWT.
+- `PATCH /api/notifications/read` - Mark all of the authenticated user's unread notifications as read (`read: true`, `readAt: now`). Idempotent. Returns `{ success: true }`. Requires JWT.
+- `PATCH /api/notifications/:id/read` - Mark a single notification as read. Returns `{ success: true, notification }`. Returns 403 if the notification belongs to a different user; 404 if not found. Requires JWT.
+- `DELETE /api/notifications/:id` - Remove a notification. Returns `{ success: true }`. Returns 403 if the notification belongs to a different user; 404 if not found. Requires JWT.
+
+**Notification types**: `new_message`, `share_received`, `task_assigned`, `comment_added`, `comment_reply`, `like_added`, `friend_request`, `friend_accepted`.
+
+**Target types**: `note`, `flashcardSet`, `task`, `comment`, `conversation`, `friendship`.
+
+**Debounce**: `comment_added`, `comment_reply`, and `like_added` events are debounced per `actorId + targetId` within a 2-minute window. `new_message` is debounced per `actorId + recipientId` within a 5-minute window. Share and friend events are never debounced.
+
+---
+
 ## Direct Messaging
 
 ### **Conversations**
