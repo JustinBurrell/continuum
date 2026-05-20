@@ -53,6 +53,13 @@ const notificationSchema = new mongoose.Schema({
         required: true,
     },
 
+    // Optional context data used to enrich the notification display.
+    // For comments: { commentPreview, commentId }
+    // Keeps the schema flexible without adding typed sub-fields per event type.
+    metadata: {
+        type: mongoose.Schema.Types.Mixed,
+    },
+
     read: {
         type: Boolean,
         default: false,

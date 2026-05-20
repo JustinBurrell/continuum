@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { posthog } from '@/lib/posthog';
 import { formatRelative } from '@/lib/utils';
 import AppAvatar from '@/components/ui/AppAvatar';
+import { resolveNav } from '@/components/ui/NotificationBell';
 import {
     useNotificationsFeed,
     useMarkAllRead,
@@ -40,30 +41,6 @@ function groupNotifications(notifications) {
     return GROUP_ORDER.filter(g => map[g]?.length).map(g => ({ label: g, items: map[g] }));
 }
 
-// Returns { to, state } for exact resource navigation (mirrors NotificationBell.jsx)
-function resolveNav(notif) {
-    const { type, targetType, targetId } = notif;
-    if (type === 'new_message') {
-        return { to: '/messages', state: { conversationId: targetId } };
-    }
-    if (type === 'friend_request' || type === 'friend_accepted') {
-        return { to: '/friends', state: null };
-    }
-    if (type === 'task_assigned') {
-        return { to: '/tasks', state: { openTaskId: targetId } };
-    }
-    if (type === 'share_received') {
-        if (targetType === 'note')         return { to: '/notes/view',     state: { id: targetId } };
-        if (targetType === 'flashcardSet') return { to: '/flashcards/view', state: { id: targetId } };
-        if (targetType === 'task')         return { to: '/tasks',           state: { openTaskId: targetId } };
-    }
-    if (type === 'comment_added') {
-        if (targetType === 'note')         return { to: '/notes/view',     state: { id: targetId } };
-        if (targetType === 'flashcardSet') return { to: '/flashcards/view', state: { id: targetId } };
-        if (targetType === 'task')         return { to: '/tasks',           state: { openTaskId: targetId } };
-    }
-    return { to: '/activity', state: null };
-}
 
 export default function Notifications() {
     const navigate = useNavigate();
@@ -281,6 +258,21 @@ function PageNotifItem({ notif, isLast, onClick, onDelete }) {
                 <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.4 }}>
                     {notif.message}
                 </p>
+                {notif.metadata?.commentPreview && (
+                    <p style={{
+                        fontSize: 12,
+                        color: '#6B7280',
+                        fontStyle: 'italic',
+                        margin: '3px 0 0',
+                        lineHeight: 1.4,
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                    }}>
+                        "{notif.metadata.commentPreview}"
+                    </p>
+                )}
                 <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0' }}>
                     {formatRelative(notif.createdAt)}
                 </p>

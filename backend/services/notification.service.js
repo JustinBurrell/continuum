@@ -23,9 +23,10 @@ const { getIO } = require('../lib/socket');
  * @param {ObjectId|string} params.targetId      - the resource being referenced
  * @param {string}          params.targetType    - resource type enum
  * @param {string}          params.message       - pre-rendered human-readable string
+ * @param {Object}          [params.metadata]    - optional context (e.g. { commentPreview, commentId })
  * @param {number}          [params.debounceMinutes] - skip if same notif sent within N minutes
  */
-async function notify({ recipientId, actorId, type, targetId, targetType, message, debounceMinutes }) {
+async function notify({ recipientId, actorId, type, targetId, targetType, message, metadata, debounceMinutes }) {
     // Never notify a user about their own actions
     if (actorId && recipientId && actorId.toString() === recipientId.toString()) return;
 
@@ -42,7 +43,7 @@ async function notify({ recipientId, actorId, type, targetId, targetType, messag
         if (exists) return;
     }
 
-    await Notification.create({ userId: recipientId, actorId, type, targetId, targetType, message });
+    await Notification.create({ userId: recipientId, actorId, type, targetId, targetType, message, metadata });
 
     // Count total unread for the recipient and push to their socket room
     const unreadCount = await Notification.countDocuments({ userId: recipientId, read: false });

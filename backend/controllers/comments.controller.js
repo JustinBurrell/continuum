@@ -143,6 +143,8 @@ exports.addComment = async (req, res) => {
         }
     } catch (_) {}
 
+    const commentPreview = content.trim().slice(0, 120);
+
     if (ownerId && ownerId !== req.user._id.toString()) {
         // Socket emit and notify are independent — socket throws in test env so
         // keep them in separate try-catch blocks so notify always runs.
@@ -154,6 +156,7 @@ exports.addComment = async (req, res) => {
             targetId,
             targetType,
             message: `${req.user.firstName} commented on your ${targetType}`,
+            metadata: { commentPreview, commentId: comment._id.toString() },
             debounceMinutes: 2,
         }).catch(() => {});
     }
@@ -171,6 +174,7 @@ exports.addComment = async (req, res) => {
                     targetId: parentId,
                     targetType: 'comment',
                     message: `${req.user.firstName} replied to your comment`,
+                    metadata: { commentPreview, commentId: comment._id.toString() },
                     debounceMinutes: 2,
                 }).catch(() => {});
             }

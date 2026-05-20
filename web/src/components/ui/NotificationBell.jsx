@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 import { posthog } from '@/lib/posthog';
@@ -10,11 +10,12 @@ import {
     useMarkOneRead,
 } from '@/hooks/useNotifications';
 
-// Returns { to, state } for react-router navigate() — points to the exact resource.
-// comment_reply and like_added target a Comment doc; fall back to /activity since
-// we don't have the parent resource ID without a separate fetch.
-function resolveNav(notif) {
-    const { type, targetType, targetId } = notif;
+// Returns { to, state } for exact resource navigation.
+// For comment_added / comment_reply: includes commentId so NoteDetail scrolls to the comment.
+export function resolveNav(notif) {
+    const { type, targetType, targetId, metadata } = notif;
+    const commentId = metadata?.commentId;
+
     if (type === 'new_message') {
         return { to: '/messages', state: { conversationId: targetId } };
     }
@@ -25,21 +26,27 @@ function resolveNav(notif) {
         return { to: '/tasks', state: { openTaskId: targetId } };
     }
     if (type === 'share_received') {
-        if (targetType === 'note')        return { to: '/notes/view',     state: { id: targetId } };
+        if (targetType === 'note')         return { to: '/notes/view',     state: { id: targetId } };
         if (targetType === 'flashcardSet') return { to: '/flashcards/view', state: { id: targetId } };
         if (targetType === 'task')         return { to: '/tasks',           state: { openTaskId: targetId } };
     }
     if (type === 'comment_added') {
-        if (targetType === 'note')        return { to: '/notes/view',     state: { id: targetId } };
-        if (targetType === 'flashcardSet') return { to: '/flashcards/view', state: { id: targetId } };
-        if (targetType === 'task')         return { to: '/tasks',           state: { openTaskId: targetId } };
+        if (targetType === 'note')         return { to: '/notes/view',     state: { id: targetId, commentId } };
+        if (targetType === 'flashcardSet') return { to: '/flashcards/view', state: { id: targetId, commentId } };
+        if (targetType === 'task')         return { to: '/tasks',           state: { openTaskId: targetId, commentId } };
     }
-    // comment_reply / like_added have targetType: 'comment' — best we can do is /activity
+    if (type === 'comment_reply') {
+        // targetId is the parent comment — navigate to activity feed since we
+        // don't store the resource ID on the reply notification
+        return { to: '/activity', state: null };
+    }
     return { to: '/activity', state: null };
 }
 
 export default function NotificationBell() {
     const [open, setOpen] = useState(false);
+    // 'left' = dropdown extends rightward (left edge anchored); 'right' = extends leftward
+    const [dropAnchor, setDropAnchor] = useState('left');
     const wrapperRef = useRef(null);
     const navigate = useNavigate();
 
@@ -72,6 +79,11 @@ export default function NotificationBell() {
 
     function handleToggle() {
         const next = !open;
+        if (next && wrapperRef.current) {
+            const rect = wrapperRef.current.getBoundingClientRect();
+            // Anchor left (extends right) if 360px fits; otherwise anchor right (extends left)
+            setDropAnchor(rect.left + 360 <= window.innerWidth ? 'left' : 'right');
+        }
         setOpen(next);
         if (next) posthog.capture('notification_bell_opened', { unreadCount });
     }
@@ -151,13 +163,13 @@ export default function NotificationBell() {
                 )}
             </button>
 
-            {/* Dropdown — positioned absolutely from the wrapper so it works
-                in both the sidebar header and any other context */}
+            {/* Dropdown — anchor side computed on open so it fits in both
+                the left sidebar (extends right) and the marketing nav (extends left) */}
             {open && (
                 <div style={{
                     position: 'absolute',
                     top: 'calc(100% + 8px)',
-                    right: 0,
+                    [dropAnchor]: 0,
                     width: 360,
                     maxHeight: 480,
                     overflowY: 'auto',
@@ -307,18 +319,24 @@ function NotifItem({ notif, onClick }) {
                         </Link>
                     </span>
                 )}
-                <p style={{
-                    fontSize: 13,
-                    color: '#374151',
-                    margin: 0,
-                    lineHeight: 1.4,
-                    overflow: 'hidden',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                }}>
+                <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.4 }}>
                     {notif.message}
                 </p>
+                {notif.metadata?.commentPreview && (
+                    <p style={{
+                        fontSize: 12,
+                        color: '#6B7280',
+                        fontStyle: 'italic',
+                        margin: '3px 0 0',
+                        lineHeight: 1.4,
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                    }}>
+                        "{notif.metadata.commentPreview}"
+                    </p>
+                )}
                 <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0', lineHeight: 1.3 }}>
                     {formatRelative(notif.createdAt)}
                 </p>
