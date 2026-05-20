@@ -1770,6 +1770,20 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
     c.userId?.toString() === justin._id.toString() && c.parentId
   ) || comments[0];
 
+  // Look up actual comments for metadata
+  const alexCommentOnDp = alex && dpNote && comments.find(c =>
+    c.userId?.toString() === alex._id.toString() &&
+    c.targetId?.toString() === dpNote._id.toString()
+  );
+  const mayaCommentOnOs = maya && osNote && comments.find(c =>
+    c.userId?.toString() === maya._id.toString() &&
+    c.targetId?.toString() === osNote._id.toString()
+  );
+  const jordanCommentOnDp = jordan && dpNote && comments.find(c =>
+    c.userId?.toString() === jordan._id.toString() &&
+    c.targetId?.toString() === dpNote._id.toString()
+  );
+
   // Pick conversation docs for message notifications
   const alexConv = conversations.find(c =>
     alex && c.participants.some(p => p.toString() === alex._id.toString())
@@ -1787,6 +1801,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       targetId: dpNote._id,
       targetType: 'note',
       message: `Alex commented on your note: "Dynamic Programming: From Recursion to Optimization"`,
+      metadata: alexCommentOnDp ? { commentPreview: alexCommentOnDp.content.slice(0, 120), commentId: alexCommentOnDp._id.toString() } : undefined,
       read: false,
       createdAt: hoursAgo(1),
     },
@@ -1818,6 +1833,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       targetId: osNote._id,
       targetType: 'note',
       message: `Maya commented on your note: "OS Process Scheduling Algorithms"`,
+      metadata: mayaCommentOnOs ? { commentPreview: mayaCommentOnOs.content.slice(0, 120), commentId: mayaCommentOnOs._id.toString() } : undefined,
       read: false,
       createdAt: daysAgo(2),
     },
@@ -1840,6 +1856,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       targetId: dpNote._id,
       targetType: 'note',
       message: `Jordan commented on your note: "Dynamic Programming: From Recursion to Optimization"`,
+      metadata: jordanCommentOnDp ? { commentPreview: jordanCommentOnDp.content.slice(0, 120), commentId: jordanCommentOnDp._id.toString() } : undefined,
       read: true,
       readAt: daysAgo(12),
       createdAt: daysAgo(13),

@@ -1040,6 +1040,20 @@ async function seedNotifications(jane, friends, sharedNotes, allComments, conver
     c.userId?.toString() === jane._id.toString() && c.parentId
   ) || allComments[0];
 
+  // Look up actual comments for metadata
+  const chrisCommentOnUrl = chris && urlShortenerNote && allComments.find(c =>
+    c.userId?.toString() === chris._id.toString() &&
+    c.targetId?.toString() === urlShortenerNote._id.toString()
+  );
+  const ryanCommentOnReact = ryan && reactHooksNote && allComments.find(c =>
+    c.userId?.toString() === ryan._id.toString() &&
+    c.targetId?.toString() === reactHooksNote._id.toString()
+  );
+  const zoeCommentOnA11y = zoe && a11yNote && allComments.find(c =>
+    c.userId?.toString() === zoe._id.toString() &&
+    c.targetId?.toString() === a11yNote._id.toString()
+  );
+
   // Pick a conversation with Chris and with Ryan
   const chrisConv = conversations.find(c =>
     chris && c.participants.some(p => p.toString() === chris._id.toString())
@@ -1057,6 +1071,7 @@ async function seedNotifications(jane, friends, sharedNotes, allComments, conver
       targetId: urlShortenerNote._id,
       targetType: 'note',
       message: `Chris commented on your note: "System Design - URL Shortener"`,
+      metadata: chrisCommentOnUrl ? { commentPreview: chrisCommentOnUrl.content.slice(0, 120), commentId: chrisCommentOnUrl._id.toString() } : undefined,
       read: false,
       createdAt: hoursAgo(2),
     },
@@ -1088,6 +1103,7 @@ async function seedNotifications(jane, friends, sharedNotes, allComments, conver
       targetId: reactHooksNote._id,
       targetType: 'note',
       message: `Ryan commented on your note: "React Hooks - Deep Dive"`,
+      metadata: ryanCommentOnReact ? { commentPreview: ryanCommentOnReact.content.slice(0, 120), commentId: ryanCommentOnReact._id.toString() } : undefined,
       read: false,
       createdAt: daysAgo(3),
     },
@@ -1110,6 +1126,7 @@ async function seedNotifications(jane, friends, sharedNotes, allComments, conver
       targetId: a11yNote._id,
       targetType: 'note',
       message: `Zoe commented on your note: "Web Accessibility (a11y) Guide"`,
+      metadata: zoeCommentOnA11y ? { commentPreview: zoeCommentOnA11y.content.slice(0, 120), commentId: zoeCommentOnA11y._id.toString() } : undefined,
       read: true,
       readAt: daysAgo(12),
       createdAt: daysAgo(13),
