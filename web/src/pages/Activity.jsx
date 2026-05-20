@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
 import { Activity as ActivityIcon, Search } from 'lucide-react';
 import api from '@/lib/api';
+import { posthog } from '@/lib/posthog';
 import Button from '@/components/ui/Button';
 import ActivitySkeleton from '@/components/skeletons/ActivitySkeleton';
 import ActivityFeedItem from '@/components/ui/ActivityFeedItem';
@@ -13,6 +14,8 @@ export default function Activity() {
   const [actSearch, setActSearch] = useState('');
   const { updateUser } = useAuth();
   const queryClient = useQueryClient();
+  const searchDebounceRef = useRef(null);
+  const viewedRef = useRef(false);
 
   useEffect(() => {
     api.put('/activity/mark-seen').then(() => {
@@ -45,6 +48,31 @@ export default function Activity() {
 
   const activities = data?.pages.flatMap(p => p.feed) ?? [];
 
+  // Fire feed_viewed once after first successful load
+  useEffect(() => {
+    if (!isLoading && data && !viewedRef.current) {
+      viewedRef.current = true;
+      posthog.capture('activity_feed_viewed', { total_items: activities.length });
+    }
+  }, [isLoading, data]);
+
+  // Debounced search tracking
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setActSearch(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    if (value.trim()) {
+      searchDebounceRef.current = setTimeout(() => {
+        posthog.capture('activity_searched', { query: value.trim(), results: activities.length });
+      }, 1000);
+    }
+  };
+
+  function handleLoadMore() {
+    fetchNextPage();
+    posthog.capture('activity_load_more', { loaded_so_far: activities.length });
+  }
+
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
@@ -75,7 +103,7 @@ export default function Activity() {
           }}
           placeholder="Search activity by name or content..."
           value={actSearch}
-          onChange={e => setActSearch(e.target.value)}
+          onChange={handleSearchChange}
         />
       </div>
 
@@ -116,7 +144,7 @@ export default function Activity() {
 
         {hasNextPage && (
           <div style={{ padding: '16px 20px', borderTop: '1px solid #E5E7EB', textAlign: 'center' }}>
-            <Button variant="outline" size="sm" onClick={() => fetchNextPage()} loading={isFetchingNextPage}>
+            <Button variant="outline" size="sm" onClick={handleLoadMore} loading={isFetchingNextPage}>
               Load more
             </Button>
           </div>

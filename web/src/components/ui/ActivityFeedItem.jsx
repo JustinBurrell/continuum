@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import AppAvatar from '@/components/ui/AppAvatar';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
 import { formatRelative } from '@/lib/utils';
+import { posthog } from '@/lib/posthog';
 
 function fullName(u) {
   return [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'Someone';
@@ -122,9 +123,19 @@ export default function ActivityFeedItem({ item, isLast = false }) {
   const navigate = useNavigate();
   const rowNav = getRowNav(item);
 
+  function handleRowClick() {
+    if (!rowNav) return;
+    posthog.capture('activity_item_clicked', {
+      type: item.type,
+      target_type: item.targetType,
+      actor_id: actor?._id,
+    });
+    navigate(rowNav.to, { state: rowNav.state });
+  }
+
   return (
     <div
-      onClick={rowNav ? () => navigate(rowNav.to, { state: rowNav.state }) : undefined}
+      onClick={rowNav ? handleRowClick : undefined}
       style={{
         display: 'flex',
         alignItems: 'flex-start',
