@@ -20,13 +20,13 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 
 | Metric | Count |
 |--------|-------|
-| Database collections | 16 |
-| API endpoints | ~113 across 18 route groups |
-| Frontend pages (web) | 30 |
+| Database collections | 17 |
+| API endpoints | ~117 across 19 route groups |
+| Frontend pages (web) | 31 |
 | Frontend screens (Android) | 30+ |
 | Web UI components | 27 |
 | Android composables | 40+ (reusable + screen-level) |
-| Backend tests | 296 Jest + Supertest across 19 suites |
+| Backend tests | 314 Jest + Supertest across 20 suites |
 | Web unit tests | 76 Vitest tests -- utils, error helpers, hooks, components |
 | Web E2E tests | Playwright -- auth, notes, flashcards, tasks, career, mobile gate |
 | Android unit tests | 176 MockK tests -- 10 ViewModels, 6 repositories, 2 utility modules |
@@ -61,8 +61,8 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 - **Flashcards** — study mode with flip cards, per-card progress tracking, AI extraction from notes or PDFs, study history screen, infinite-scroll pagination
 - **Tasks** — kanban board with shared tasks, per-participant status tracking, recurrence support, infinite-scroll pagination
 - **Calendar** — month and week views sharing a single `selected` state in the parent component; clicking a day in either view updates a bounded right sidebar (max-height, scrollable) rather than an inline expansion panel; overdue tasks in a fixed-height scrollable container so they never push content off screen
-- **Notifications** -- in-app notification bell (sidebar header + marketing nav when logged in) with unread badge, dropdown showing the 10 most recent notifications, and a full history page (`/notifications`) grouped by Today / This week / This month / Earlier with IntersectionObserver infinite scroll. 8 event types: `new_message`, `share_received`, `task_assigned`, `comment_added`, `comment_reply`, `like_added`, `friend_request`, `friend_accepted`. Real-time badge updates via Socket.io `new_notification` event. 90-day TTL (matches industry standard). Debouncing per actor+target for high-frequency events. PostHog events on bell open, item click, mark all read (bell and page), and dismiss. Seed data for Jane and Justin covers all four time groups.
-- **Social** -- friend requests, activity feed (cursor-paginated, own actions filtered Instagram-style, shared content titles and comment previews are clickable purple links with scroll-to-comment on the target page), direct messaging with real-time socket delivery (no polling), profile photos in feed and comments
+- **Notifications** -- in-app notification bell (sidebar header + marketing nav when logged in) with unread badge, dropdown showing the 10 most recent, and a full history page (`/notifications`) grouped by Today / This week / This month / Earlier with IntersectionObserver infinite scroll. 8 event types: `new_message`, `share_received`, `task_assigned`, `comment_added`, `comment_reply`, `like_added`, `friend_request`, `friend_accepted`. Real-time badge updates via Socket.io `new_notification` event (payload includes `type` + `targetId` for suppression decisions). Bell is suppressed when the user is already viewing the active conversation -- matching Slack, Discord, and iMessage's pattern. `friend_request` notifications navigate to `/users/view` so you can accept/decline directly from the notification. `like_added` and `comment_reply` include `resourceId`/`resourceType` metadata so they navigate to the actual note/task, not just `/activity`. Duplicate message fix: socket handlers call `socket.off()` before `socket.on()` to prevent listener stacking on re-renders and React StrictMode double-invoke; messages append (not prepend) with `_id` dedup guard. 90-day TTL. Debouncing per actor+target. PostHog events on every interaction.
+- **Social** -- friend requests, activity feed revamped to show what friends are *creating* (research-backed: Instagram, LinkedIn, Canvas all separate "ambient friend activity" from "directed notifications"). Activity shows `note_created`, `note_shared`, `flashcard_set_created`, `flashcard_shared`, `task_created`, `comment_added` -- creator actions that provide study-group motivation. `like_added` removed from activity (micro-reaction, lives only in notifications). `activityVisibility` setting respected: `private` users are completely absent from friends' feeds; historical activities from before a user went private remain visible. Direct messaging with real-time socket delivery (no polling), profile photos in feed and comments.
 - **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section), contacts and reminders per application, inline PDF resume viewer (iframe modal matching Android's in-app viewer)
 - **Auth** — email/password and Google OAuth (`drive.file` scope — non-sensitive, no CASA assessment required) with JWT + httpOnly refresh cookie rotation
 - **Mobile marketing page** — purpose-built waitlist landing page shown to visitors on phones and tablets (<1024px). Hero split layout (text + iPhone device frame), six feature highlights each with a mini device preview, platform-interest waitlist form (iOS/Android/Both), Resend welcome email with platform-personalized copy. `/privacy` and `/terms` serve mobile-optimized legal pages without hitting the gate. Legal docs on Android now open in the device browser via `LocalUriHandler` instead of an in-app screen.
@@ -534,7 +534,7 @@ A formal security audit lives at `docs/security/backend_security_audit.md`.
 
 Continuum has three test layers, all running in parallel on every PR via GitHub Actions.
 
-### 1. Backend — 250 Jest + Supertest integration tests across 16 suites
+### 1. Backend — 314 Jest + Supertest integration tests across 20 suites
 
 | Suite | What it covers |
 |-------|----------------|
@@ -546,7 +546,8 @@ Continuum has three test layers, all running in parallel on every PR via GitHub 
 | Study Sessions | Submit session, load history, streak calculation, per-set history |
 | Applications | Create, read, update status, delete (owner-only), contacts, reminders |
 | Messages | Friend flow → conversation → send → read, non-participant blocked, soft delete |
-| Activity | Feed authentication, cursor pagination, `since` param for unseen count |
+| Notifications | CRUD endpoints, auth guards, unreadCount, cursor pagination; integration tests verify `comment_added` metadata (commentPreview + commentId), `like_added` metadata (resourceId + resourceType), `comment_reply` metadata (resourceId + resourceType + commentId), `friend_accepted` trigger |
+| Activity | Feed auth guard, `note_created` and `flashcard_set_created` appear in friend's feed when `activityVisibility: 'friends'`; private users excluded; private notes don't generate activities; `like_added` invalid type; `since` param unseen count |
 | Calendar | Task date filtering, date range queries, month-boundary edge cases |
 | Comments | Create, delete, like, ownership isolation, polymorphic target types |
 | Friends | Request, accept, decline, cancel, remove, duplicate prevention |
@@ -554,6 +555,9 @@ Continuum has three test layers, all running in parallel on every PR via GitHub 
 | Resumes | Upload, AI feedback generation, delete, ownership isolation |
 | Users | Update settings, password change, account deletion grace period |
 | Waitlist | Sign-up, duplicate prevention, validation, platformInterest field, backward-compat when field omitted |
+| Share | Note/flashcard/task share flows, permission checks |
+| Onboarding | Goal-personalized step computation, completion, replay |
+| Google Drive | Import flow, file picker, auth scope verification |
 
 **No real database needed.** `mongodb-memory-server` spins up a real MongoDB process in RAM. Tests run offline, in CI, with zero Atlas configuration.
 
@@ -565,6 +569,9 @@ Continuum has three test layers, all running in parallel on every PR via GitHub 
 |------|----------------|
 | `utils.test.js` | `cn` (Tailwind merge), `formatDate`, `formatRelative` (just-now/m/h/d/absolute), `truncate`, `getInitials`, `stripHtml` |
 | `errors.test.js` | `friendlyError()` — all ERROR_MAP entries (auth, account, server errors), fallback, null/undefined, plain Error |
+| `useNotifications.test.js` | `useNotificationsBell`, `useMarkAllRead`, `useMarkOneRead`, `useDeleteNotification` — API calls, query invalidation |
+| `NotificationBell.test.jsx` | Badge rendering (0/count/9+), dropdown open/close/Escape, empty state, item click PATCH + PostHog, mark-all-read; `resolveNav` unit tests for all 7 types including `friend_request → /users/view`, `like_added + metadata → resource`, `comment_reply → resource + commentId` |
+| `Notifications.test.jsx` | Time grouping (Today/This week/This month/Earlier), empty state, mark-all-read (source: page), item click PostHog, delete notification |
 
 **E2E tests (Playwright, Chromium)**
 
@@ -624,12 +631,12 @@ MockK mocks repository interfaces; `UnconfinedTestDispatcher` makes coroutines r
 
 ## Data Models
 
-15 MongoDB collections across 5 domains:
+16 MongoDB collections across 5 domains:
 
 **Auth:** User, RefreshToken, OAuthCode
 **Notes & Learning:** Note (embedded AI summary), FlashcardSet, Flashcard
 **Tasks:** Task (with participant tracking and recurrence)
-**Social:** Friendship, Comment (polymorphic), Conversation, Message, Activity
+**Social:** Friendship, Comment (polymorphic), Conversation, Message, Activity, Notification
 **Career:** Resume (embedded AI feedback), Application
 **Mobile:** SyncQueue
 
@@ -637,8 +644,10 @@ Notable schema decisions:
 - AI summaries embedded on Note (not a separate collection) — always read together
 - AI feedback embedded on Resume as an array — multiple generations preserved
 - Activity has a 90-day TTL index — MongoDB auto-deletes old feed items
+- Notification has a 90-day TTL index — matches Activity retention (industry standard: Instagram ~90 days, GitHub 3 months)
 - OAuthCode has a 60-second TTL index — MongoDB auto-deletes used/expired codes
 - Friendship uses ordered (user1 < user2) pair to prevent duplicate records
+- Notification uses `Schema.Types.Mixed` metadata for flexible per-type context (commentPreview + commentId for comments; resourceId + resourceType for likes so the bell can navigate to the actual resource)
 
 ---
 
@@ -745,7 +754,7 @@ For full details see `docs/android/architecture.md`, `docs/android/react-to-andr
 
 ## What Makes This Stand Out as a Senior Project
 
-1. **Real architectural decisions** — Cursor pagination, Redis pub/sub, httpOnly cookies, encrypted tokens at rest. Not just "I used React and Node." Every decision has a reason you can defend.
+1. **Real architectural decisions** — Cursor pagination, Redis pub/sub, httpOnly cookies, encrypted tokens at rest. Not just "I used React and Node." Every decision has a reason you can defend. The Activity vs Notifications separation is research-validated: studied how Instagram, LinkedIn, GitHub, and Canvas LMS handle the distinction — Activity = ambient creator actions, Notifications = directed personal events, no event appears in both for the same person.
 
 2. **Production-quality security and three-layer test coverage** — Formal security audit, 4-tier rate limiting, AES-256 encryption, one-time OAuth codes, Sentry monitoring, 250 backend integration tests, Playwright E2E catching a real production TypeError (`old?.pages` guard), and Android ViewModel unit tests — all running in parallel CI. Most senior projects have none of this.
 
@@ -991,22 +1000,23 @@ Token is passed in `auth`, which maps to `socket.handshake.auth` on the backend.
 
 ### Socket Event → React Query Invalidation Map
 
-| Socket Event | React Query Keys Invalidated |
-|-------------|------------------------------|
-| `new_message` | `['messages', conversationId]`, `['conversations']` |
-| `friend_request` | `['friends']` |
-| `friend_accepted` | `['friends']` |
-| `task_updated` | `['tasks']`, `['calendar']` |
-| `task_created` | `['tasks']`, `['calendar']` |
-| `task_deleted` | `['tasks']`, `['calendar']` |
-| `note_updated` | `['notes']` |
-| `note_shared` | `['notes']` |
-| `note_deleted` | `['notes']` + removes `['note', noteId]` from cache |
-| `comment_added` | `['note', targetId]` or `['flashcard-set', targetId]` or `['tasks']`, + `['activity']` |
-| `like_added` | `['activity']` |
-| `flashcard_shared` | `['flashcard-sets']` |
-| `flashcard_set_deleted` | `['flashcard-sets']` + removes `['flashcard-set', setId]` from cache |
-| `activity_updated` | `['activity']` |
+| Socket Event | React Query Keys Invalidated | Notes |
+|-------------|------------------------------|-------|
+| `new_message` | `['messages', conversationId]`, `['conversations']` | Appended to cache (not prepend); deduped by `_id`; unread badge skipped if user is viewing that conversation |
+| `new_notification` | `['notifications-bell']`, `['notifications-feed']` | Payload includes `{ type, targetId }` — skipped entirely if `type === 'new_message'` and user is viewing that conversation |
+| `friend_request` | `['friends']`, `['friend-requests']` | |
+| `friend_accepted` | `['friends']`, `['friend-requests-sent']` | |
+| `task_updated` | `['tasks']`, `['calendar']` | |
+| `task_created` | `['tasks']`, `['calendar']` | |
+| `task_deleted` | `['tasks']`, `['calendar']` | |
+| `note_updated` | `['notes']` | |
+| `note_shared` | `['notes']` | |
+| `note_deleted` | `['notes']` + removes `['note', noteId]` from cache | |
+| `comment_added` | `['note', targetId]` or `['flashcard-set', targetId]` or `['tasks']`, + `['activity']` | |
+| `like_added` | `['activity']` | |
+| `flashcard_shared` | `['flashcard-sets']` | |
+| `flashcard_set_deleted` | `['flashcard-sets']` + removes `['flashcard-set', setId]` from cache | |
+| `activity_updated` | `['activity']` | |
 
 This is the bridge between real-time events and the UI. When a socket event fires, `queryClient.invalidateQueries()` marks the data as stale. React Query automatically refetches the next time the component is visible or focused. The user sees updated data without a page reload, without polling, and without manual state management.
 
@@ -1403,6 +1413,17 @@ const logout = useCallback(() => { ... }, []);
 
 ## Activity Feed — Architecture
 
+### Activity vs Notifications — The Design Contract
+
+Most student projects collapse these two concepts into one. Continuum keeps them strictly separate based on how Instagram, LinkedIn, GitHub, and Canvas LMS handle this:
+
+- **Activity Feed** answers "what are my friends *creating and doing*?" — ambient social context that drives study-group motivation. Shows `note_created`, `note_shared`, `flashcard_set_created`, `flashcard_shared`, `task_created`, `comment_added`. Never shows `like_added` (micro-reaction, now notifications-only).
+- **Notifications** answers "what's *directed at me* that requires my attention?" — comment on YOUR note, message TO you, request FOR you.
+
+The rule that eliminates overlap: **no event appears in both streams for the same person.** When Bob comments on Alice's note, Alice gets a notification (targeted at her). Their mutual friend Carol sees it in her activity feed (ambient social context). Bob's `activityVisibility: 'private'` users are completely absent from others' feeds — their historical activities remain visible (stamped at creation time), but no new activities propagate.
+
+This separation was research-validated: Instagram removed their "Following Activity" tab in 2019 because it served neither purpose well — it was a reaction feed disguised as an inbox, and users felt surveilled.
+
 ### The Visibility Problem
 
 The activity feed isn't "show everything" — it's "show me only activities from people whose visibility settings allow me to see them." This required designing a per-document visibility model.
@@ -1621,4 +1642,4 @@ Each PR includes:
 
 This creates a paper trail. Six months from now, you can read a PR and understand exactly what problem it solved, what it changed, and how to verify it worked.
 
-*Last updated: May 10, 2026*
+*Last updated: May 20, 2026*
