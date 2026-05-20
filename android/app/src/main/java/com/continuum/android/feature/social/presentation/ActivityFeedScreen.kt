@@ -32,6 +32,8 @@ import com.continuum.android.core.ui.components.ContinuumPullToRefresh
 fun ActivityFeedScreen(
     onSharedNoteClick: (String) -> Unit,
     onUserClick: (String) -> Unit = {},
+    onFlashcardSetClick: (String) -> Unit = {},
+    onTaskClick: (String) -> Unit = {},
     networkMonitor: NetworkMonitor,
     onLogoClick: (() -> Unit)? = null,
     onNavigateBack: (() -> Unit)? = null,
@@ -106,8 +108,12 @@ fun ActivityFeedScreen(
                             ActivityCard(
                                 item = item,
                                 onClick = {
-                                    if (item.type == "note_shared" && item.resourceId != null) {
-                                        onSharedNoteClick(item.resourceId)
+                                    when (item.type) {
+                                        "note_shared" -> item.resourceId?.let(onSharedNoteClick)
+                                        "flashcard_shared" -> item.resourceId?.let(onFlashcardSetClick)
+                                        "task_created" -> item.resourceId?.let(onTaskClick)
+                                        "friend_accepted" -> item.actorId?.let(onUserClick)
+                                        else -> Unit
                                     }
                                 },
                                 onUserClick = { item.actorId?.let(onUserClick) }
@@ -120,9 +126,11 @@ fun ActivityFeedScreen(
     }
 }
 
+private val clickableTypes = setOf("note_shared", "flashcard_shared", "task_created", "friend_accepted")
+
 @Composable
 private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: () -> Unit) {
-    val isClickable = item.type == "note_shared" && item.resourceId != null
+    val isClickable = item.type in clickableTypes && item.resourceId != null || item.type == "friend_accepted"
 
     ContinuumCard(
         modifier = Modifier

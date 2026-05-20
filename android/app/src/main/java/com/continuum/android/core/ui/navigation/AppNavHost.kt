@@ -798,6 +798,8 @@ private fun NavGraph(
                 ActivityFeedScreen(
                     onSharedNoteClick = { noteId -> navController.navigate(NavRoutes.Social.sharedNote(noteId)) },
                     onUserClick = { userId -> navController.navigate(NavRoutes.Social.userProfile(userId)) },
+                    onFlashcardSetClick = { setId -> navController.navigate(NavRoutes.Flashcards.setDetail(setId)) },
+                    onTaskClick = { taskId -> navController.navigate(NavRoutes.Tasks.detail(taskId)) },
                     networkMonitor = networkMonitor,
                     onLogoClick = onLogoClick
                 )
