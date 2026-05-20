@@ -42,6 +42,7 @@ import ApplicationsList from '@/pages/applications/ApplicationsList';
 import ApplicationDetail from '@/pages/applications/ApplicationDetail';
 import Resumes from '@/pages/resumes/Resumes';
 import Activity from '@/pages/Activity';
+import Notifications from '@/pages/Notifications';
 import Profile from '@/pages/Profile';
 import UserProfile from '@/pages/UserProfile';
 
@@ -101,6 +102,7 @@ export default function App() {
               <Route path="/applications/view" element={<ApplicationDetail />} />
               <Route path="/resumes" element={<Resumes />} />
               <Route path="/activity" element={<Activity />} />
+              <Route path="/notifications" element={<Notifications />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/users/view" element={<UserProfile />} />
             </Route>

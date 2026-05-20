@@ -25,7 +25,7 @@ export default defineConfig({
     exclude: ['e2e/**', 'node_modules/**'],
     coverage: {
       provider: 'v8',
-      include: ['src/lib/**', 'src/hooks/**'],
+      include: ['src/lib/**', 'src/hooks/**', 'src/components/ui/**', 'src/pages/**'],
       reporter: ['text', 'html'],
     },
   },

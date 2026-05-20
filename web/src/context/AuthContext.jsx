@@ -113,6 +113,12 @@ function registerSocketEvents(socket) {
     queryClient.invalidateQueries({ queryKey: ['study-sessions-all'] });
   });
 
+  // New notification — refresh both the bell dropdown and the full history page
+  socket.on('new_notification', () => {
+    queryClient.invalidateQueries({ queryKey: ['notifications-bell'] });
+    queryClient.invalidateQueries({ queryKey: ['notifications-feed'] });
+  });
+
 }
 
 export function AuthProvider({ children }) {

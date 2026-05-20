@@ -7,6 +7,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { getInitials, cn } from '@/lib/utils';
 import AppAvatar from '@/components/ui/AppAvatar';
+import NotificationBell from '@/components/ui/NotificationBell';
 import queryClient from '@/lib/queryClient';
 import api from '@/lib/api';
 
@@ -20,6 +21,7 @@ const prefetchMap = {
   '/applications': () => queryClient.prefetchQuery({ queryKey: ['applications', { search: '', status: '' }], queryFn: () => api.get('/applications').then(r => r.data), staleTime: 120_000 }),
   '/resumes':      () => queryClient.prefetchQuery({ queryKey: ['resumes', ''], queryFn: () => api.get('/resumes').then(r => r.data), staleTime: 300_000 }),
   '/activity':     () => queryClient.prefetchInfiniteQuery({ queryKey: ['activity', { actSearch: '' }], queryFn: ({ pageParam }) => api.get('/activity', { params: pageParam ? { cursor: pageParam } : {} }).then(r => r.data), initialPageParam: null, getNextPageParam: (last) => last?.nextCursor ?? null, staleTime: 60_000 }),
+  '/notifications': () => queryClient.prefetchInfiniteQuery({ queryKey: ['notifications-feed'], queryFn: ({ pageParam }) => api.get('/notifications', { params: pageParam ? { cursor: pageParam, limit: 20 } : { limit: 20 } }).then(r => r.data), initialPageParam: null, getNextPageParam: (last) => last?.nextCursor ?? null, staleTime: 30_000 }),
   '/messages':     () => queryClient.prefetchQuery({ queryKey: ['conversations'], queryFn: () => api.get('/conversations').then(r => r.data), staleTime: 30_000 }),
   '/calendar':     () => queryClient.prefetchQuery({ queryKey: ['calendar'], queryFn: () => api.get('/calendar').then(r => r.data), staleTime: 30_000 }),
 };
@@ -64,10 +66,11 @@ export default function Sidebar() {
       style={{ width: 240, background: '#ffffff', borderRight: '1px solid #E5E7EB' }}
     >
       {/* Brand */}
-      <div style={{ padding: '20px 16px 16px' }}>
+      <div style={{ padding: '20px 16px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
           <img src="/logo-lockup.svg" alt="Continuum" style={{ height: 32 }} />
         </a>
+        <NotificationBell />
       </div>
 
       {/* Navigation */}
