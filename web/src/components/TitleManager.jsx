@@ -36,6 +36,7 @@ const TITLES = {
   '/applications/view': 'Continuum | Application',
   '/resumes': 'Continuum | Resumes',
   '/activity': 'Continuum | Activity',
+  '/notifications': 'Continuum | Notifications',
   '/profile': 'Continuum | Settings',
   '/users/view': 'Continuum | Profile',
 };
