@@ -58,6 +58,14 @@ exports.generateFromContent = async (req, res) => {
 
     posthog.capture(req.user, 'flashcard_set_generated', { platform: 'web', set_id: set._id.toString(), note_id: null, source: 'text_paste', card_count: result.cards.length, generation_path: 'from_text_paste' });
 
+    createActivity({
+        actorId: req.user._id,
+        type: 'flashcard_set_created',
+        targetId: set._id,
+        targetType: 'flashcardSet',
+        metadata: { setTitle: set.title, isAIGenerated: true },
+    }).catch(() => {});
+
     res.status(201).json({ success: true, set: populatedSet });
 };
 
@@ -82,6 +90,14 @@ exports.createSet = async (req, res) => {
     });
 
     await invalidatePattern(`flashcardSets:${req.user._id.toString()}`).catch(() => {});
+
+    createActivity({
+        actorId: req.user._id,
+        type: 'flashcard_set_created',
+        targetId: set._id,
+        targetType: 'flashcardSet',
+        metadata: { setTitle: set.title },
+    }).catch(() => {});
 
     res.status(201).json({ success: true, set });
 };

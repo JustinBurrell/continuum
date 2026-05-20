@@ -293,20 +293,8 @@ exports.toggleLike = async (req, res) => {
 
     const updated = await Comment.findByIdAndUpdate(req.params.id, update, { new: true });
 
-    // Only fire activity when adding a like, not removing
+    // Only fire notifications/activity when adding a like, not removing
     if (!alreadyLiked) {
-        createActivity({
-            actorId: userId,
-            type: 'like_added',
-            targetId: comment._id,
-            targetType: 'comment',
-            metadata: {
-                commentPreview: comment.content?.slice(0, 100),
-                resourceId: comment.targetId?.toString(),
-                resourceType: comment.targetType,
-            },
-        }).catch(() => {});
-
         // Notify the comment author instantly so their activity feed updates
         const commentAuthorId = comment.userId?.toString();
         if (commentAuthorId && commentAuthorId !== userId.toString()) {

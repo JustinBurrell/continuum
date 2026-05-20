@@ -202,6 +202,16 @@ exports.createNote = async (req, res) => {
     posthog.capture(req.user, 'note_created', { platform: 'web', source: getNoteSource(note) });
     await invalidatePattern(`notes:${req.user._id.toString()}`).catch(() => {});
 
+    if (note.visibility === 'friends' || note.visibility === 'public') {
+        createActivity({
+            actorId: req.user._id,
+            type: 'note_created',
+            targetId: note._id,
+            targetType: 'note',
+            metadata: { noteTitle: note.title, noteType: note.type },
+        }).catch(() => {});
+    }
+
     res.status(201).json({ success: true, note });
 };
 
