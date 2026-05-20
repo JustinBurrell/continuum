@@ -38,6 +38,7 @@ import com.continuum.android.feature.career.domain.Application
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
 import com.continuum.android.feature.notes.domain.Note
 import com.continuum.android.feature.social.domain.ActivityItem
+import com.continuum.android.feature.notifications.presentation.NotificationsViewModel
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.feature.tasks.domain.Task
 import java.util.Calendar
@@ -54,6 +55,7 @@ fun DashboardScreen(
     onTasksClick: () -> Unit,
     onApplicationsClick: () -> Unit,
     onActivityClick: () -> Unit,
+    onNotificationsClick: () -> Unit = {},
     onActivityActorClick: (String) -> Unit = {},
     onMessagesClick: () -> Unit,
     onCalendarClick: () -> Unit = {},
@@ -64,9 +66,11 @@ fun DashboardScreen(
     networkMonitor: NetworkMonitor,
     profileRepository: ProfileRepository,
     onNavigateToOnboarding: () -> Unit = {},
-    viewModel: DashboardViewModel = hiltViewModel()
+    viewModel: DashboardViewModel = hiltViewModel(),
+    notificationsViewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val notifState by notificationsViewModel.state.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
     val isDemo = LocalIsDemo.current
     val listState = rememberLazyListState()
@@ -87,7 +91,8 @@ fun DashboardScreen(
 
         ContinuumTopHeader(
             onCalendarClick = onCalendarClick,
-            onActivityClick = onActivityClick,
+            onNotificationsClick = onNotificationsClick,
+            notificationUnreadCount = notifState.unreadCount,
             onMessagesClick = onMessagesClick,
         )
 

@@ -49,6 +49,7 @@ import com.continuum.android.feature.messaging.presentation.*
 import com.continuum.android.feature.notes.presentation.*
 import com.continuum.android.feature.profile.presentation.*
 import com.continuum.android.feature.social.presentation.*
+import com.continuum.android.feature.notifications.presentation.NotificationsScreen
 import com.continuum.android.feature.tasks.presentation.*
 
 // ---------------------------------------------------------------------------
@@ -153,6 +154,11 @@ object NavRoutes {
         const val SCREEN = "profile/main"
         const val EDIT = "profile/edit"
         const val SETTINGS = "profile/settings"
+    }
+
+    object Notifications {
+        const val ROOT = "notifications"
+        const val SCREEN = "notifications/list"
     }
 }
 
@@ -555,6 +561,7 @@ private fun NavGraph(
                         }
                     },
                     onActivityClick = { navController.navigate(NavRoutes.Social.ACTIVITY_FEED) },
+                    onNotificationsClick = { navController.navigate(NavRoutes.Notifications.ROOT) },
                     onActivityActorClick = { userId ->
                         navController.navigate(NavRoutes.Social.userProfile(userId))
                     },
@@ -569,6 +576,18 @@ private fun NavGraph(
                     onNavigateToOnboarding = {
                         navController.navigate(NavRoutes.Onboarding.ROOT) { launchSingleTop = true }
                     },
+                )
+            }
+        }
+
+        // ---- Notifications graph ----
+        navigation(route = NavRoutes.Notifications.ROOT, startDestination = NavRoutes.Notifications.SCREEN) {
+            composable(NavRoutes.Notifications.SCREEN) {
+                NotificationsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateTo = { route ->
+                        if (route.isNotBlank()) navController.navigate(route)
+                    }
                 )
             }
         }
