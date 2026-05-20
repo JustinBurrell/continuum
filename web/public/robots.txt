@@ -1,4 +1,5 @@
 User-agent: *
+Disallow: /notifications
 Disallow: /onboarding
 Disallow: /dashboard
 Disallow: /notes

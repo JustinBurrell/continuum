@@ -118,7 +118,7 @@ export default function Notifications() {
         <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px 24px' }}>
             {/* Page header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-                <h1 style={{ fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
+                <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
                     Notifications
                 </h1>
                 {unreadCount > 0 && (

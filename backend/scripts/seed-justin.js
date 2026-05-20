@@ -13,6 +13,7 @@ const mongoose = require('mongoose');
 const {
   User, Note, FlashcardSet, Flashcard, Task, Application,
   Friendship, Conversation, Message, Comment, Activity, StudySession,
+  Notification,
 } = require('../models');
 const { generateSummary, generateFlashcards } = require('../services/groq.service');
 const { sendShareMessage } = require('../services/share.service');
@@ -268,6 +269,7 @@ async function cleanSeedData(justinId) {
   await Application.deleteMany({ userId: justinId });
   await Comment.deleteMany({ userId: { $in: allIds } });
   await Activity.deleteMany({ userId: { $in: allIds } });
+  await Notification.deleteMany({ userId: justinId });
   await Message.deleteMany({ senderId: { $in: allIds } });
   await Conversation.deleteMany({ participants: { $in: allIds } });
   await Friendship.deleteMany({
@@ -1739,6 +1741,152 @@ async function seedStudySessions(justin, justinSets) {
   console.log(`  Created ${created} study sessions (7-day streak)`);
 }
 
+// ─── SECTION 14: Notifications ───────────────────────────────────────────────
+// Seeds realistic in-app notifications for Justin across all four time groups.
+
+async function seedNotifications(justin, friends, justinNotes, comments, conversations) {
+  console.log("Seeding Justin's notifications...");
+
+  const friendMap = {};
+  for (const f of friends) friendMap[f.username] = f;
+
+  const now = Date.now();
+  const hoursAgo = (h) => new Date(now - h * 3600000);
+  const daysAgo = (d) => new Date(now - d * 86400000);
+
+  const alex = friendMap['alexchen_cs'];
+  const maya = friendMap['mayapatel_ds'];
+  const jordan = friendMap['jordanwilliams_demo'];
+  const priya = friendMap['priyasharma_demo'];
+  const marcus = friendMap['marcusjohnson_demo'] || friends[4];
+  const sofia = friendMap['sofiarodriguez_demo'] || friends[5];
+
+  // Pick Justin's shared notes for realistic notification context
+  const dpNote = justinNotes.find(n => n.title.includes('Dynamic Programming')) || justinNotes[0];
+  const osNote = justinNotes.find(n => n.title.includes('Scheduling') || n.title.includes('OS')) || justinNotes[1];
+
+  // Pick a Justin reply comment for like notifications
+  const justinReply = comments.find(c =>
+    c.userId?.toString() === justin._id.toString() && c.parentId
+  ) || comments[0];
+
+  // Pick conversation docs for message notifications
+  const alexConv = conversations.find(c =>
+    alex && c.participants.some(p => p.toString() === alex._id.toString())
+  );
+  const mayaConv = conversations.find(c =>
+    maya && c.participants.some(p => p.toString() === maya._id.toString())
+  );
+
+  const entries = [
+    // Today (unread)
+    alex && dpNote && {
+      userId: justin._id,
+      actorId: alex._id,
+      type: 'comment_added',
+      targetId: dpNote._id,
+      targetType: 'note',
+      message: `Alex commented on your note: "Dynamic Programming: From Recursion to Optimization"`,
+      read: false,
+      createdAt: hoursAgo(1),
+    },
+    marcus && justinReply && {
+      userId: justin._id,
+      actorId: marcus._id,
+      type: 'like_added',
+      targetId: justinReply._id,
+      targetType: 'comment',
+      message: 'Marcus liked your comment',
+      read: false,
+      createdAt: hoursAgo(3),
+    },
+    alex && alexConv && {
+      userId: justin._id,
+      actorId: alex._id,
+      type: 'new_message',
+      targetId: alexConv._id,
+      targetType: 'conversation',
+      message: 'Alex sent you a message',
+      read: false,
+      createdAt: hoursAgo(5),
+    },
+    // This week (mix)
+    maya && osNote && {
+      userId: justin._id,
+      actorId: maya._id,
+      type: 'comment_added',
+      targetId: osNote._id,
+      targetType: 'note',
+      message: `Maya commented on your note: "OS Process Scheduling Algorithms"`,
+      read: false,
+      createdAt: daysAgo(2),
+    },
+    sofia && justinReply && {
+      userId: justin._id,
+      actorId: sofia._id,
+      type: 'like_added',
+      targetId: justinReply._id,
+      targetType: 'comment',
+      message: 'Sofia liked your comment',
+      read: true,
+      readAt: daysAgo(4),
+      createdAt: daysAgo(5),
+    },
+    // This month (read)
+    jordan && dpNote && {
+      userId: justin._id,
+      actorId: jordan._id,
+      type: 'comment_added',
+      targetId: dpNote._id,
+      targetType: 'note',
+      message: `Jordan commented on your note: "Dynamic Programming: From Recursion to Optimization"`,
+      read: true,
+      readAt: daysAgo(12),
+      createdAt: daysAgo(13),
+    },
+    maya && mayaConv && {
+      userId: justin._id,
+      actorId: maya._id,
+      type: 'new_message',
+      targetId: mayaConv?._id || dpNote._id,
+      targetType: mayaConv ? 'conversation' : 'note',
+      message: 'Maya sent you a message',
+      read: true,
+      readAt: daysAgo(10),
+      createdAt: daysAgo(11),
+    },
+    priya && {
+      userId: justin._id,
+      actorId: priya._id,
+      type: 'friend_accepted',
+      targetId: justin._id,
+      targetType: 'friendship',
+      message: 'Priya accepted your friend request',
+      read: true,
+      readAt: daysAgo(14),
+      createdAt: daysAgo(15),
+    },
+    // Earlier (read)
+    jordan && {
+      userId: justin._id,
+      actorId: jordan._id,
+      type: 'friend_request',
+      targetId: justin._id,
+      targetType: 'friendship',
+      message: 'Jordan sent you a friend request',
+      read: true,
+      readAt: daysAgo(46),
+      createdAt: daysAgo(47),
+    },
+  ].filter(Boolean);
+
+  for (const entry of entries) {
+    await Notification.create(entry);
+  }
+
+  console.log(`  Created ${entries.length} notifications for Justin.`);
+}
+
 async function main() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
@@ -1798,6 +1946,10 @@ async function main() {
     await seedReplies(justin, friends, justinNotes, justinSets, friendSetMap, comments);
     await seedExtraComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks);
     await seedActivities(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks, comments);
+
+    // 9.5 Seed notifications
+    const justinConvs = await Conversation.find({ participants: justin._id }).lean();
+    await seedNotifications(justin, friends, justinNotes, comments, justinConvs);
 
     // 10. Update Justin's activity visibility and ensure team role is set
     await User.updateOne({ _id: justin._id }, {

@@ -16,6 +16,7 @@ const mongoose = require('mongoose');
 const {
   User, Note, FlashcardSet, Flashcard, Task, Application,
   Friendship, Conversation, Message, Comment, Activity, StudySession,
+  Notification,
 } = require('../models');
 const Resume = require('../models/Resume');
 const { sendShareMessage } = require('../services/share.service');
@@ -97,6 +98,9 @@ async function cleanJaneData(janeId) {
 
   // Activities
   await Activity.deleteMany({ userId: janeId });
+
+  // Notifications
+  await Notification.deleteMany({ userId: janeId });
 
   // Friendships
   await Friendship.deleteMany({
@@ -1003,6 +1007,156 @@ async function seedStudySessions(jane, janeSets) {
   console.log(`  Created ${created} study sessions (5-day streak)`);
 }
 
+// ─── SECTION 14: Notifications ───────────────────────────────────────────────
+// Seeds realistic in-app notifications for Jane across all four time groups
+// so the bell and /notifications history page look populated on first load.
+
+async function seedNotifications(jane, friends, sharedNotes, allComments, conversations) {
+  console.log("Seeding Jane's notifications...");
+
+  const friendMap = {};
+  for (const f of friends) friendMap[f.username] = f;
+
+  const now = Date.now();
+  const hoursAgo = (h) => new Date(now - h * 3600000);
+  const daysAgo = (d) => new Date(now - d * 86400000);
+
+  // Resolve specific friends used in notification messages
+  const chris = friendMap['chrisnguyen_demo'];
+  const ryan = friendMap['ryanfoster_demo'];
+  const zoe = friendMap['zoeanderson_demo'];
+  const isabella = friendMap['isabellachang_demo'];
+  const logan = friendMap['logancarter_demo'];
+  const caroline = friendMap['carolinehall_demo'];
+  const kian = friendMap['kiananderson_demo'];
+
+  // Pick shared notes by title for realistic message text
+  const urlShortenerNote = sharedNotes.find(n => n.title.includes('URL Shortener')) || sharedNotes[0];
+  const reactHooksNote = sharedNotes.find(n => n.title.includes('React Hooks')) || sharedNotes[2];
+  const a11yNote = sharedNotes.find(n => n.title.includes('Accessibility') || n.title.includes('a11y')) || sharedNotes[7];
+
+  // Pick a Jane reply comment (parentId set) for like notifications
+  const janeReply = allComments.find(c =>
+    c.userId?.toString() === jane._id.toString() && c.parentId
+  ) || allComments[0];
+
+  // Pick a conversation with Chris and with Ryan
+  const chrisConv = conversations.find(c =>
+    chris && c.participants.some(p => p.toString() === chris._id.toString())
+  );
+  const ryanConv = conversations.find(c =>
+    ryan && c.participants.some(p => p.toString() === ryan._id.toString())
+  );
+
+  const entries = [
+    // Today (unread)
+    chris && urlShortenerNote && {
+      userId: jane._id,
+      actorId: chris._id,
+      type: 'comment_added',
+      targetId: urlShortenerNote._id,
+      targetType: 'note',
+      message: `Chris commented on your note: "System Design - URL Shortener"`,
+      read: false,
+      createdAt: hoursAgo(2),
+    },
+    isabella && janeReply && {
+      userId: jane._id,
+      actorId: isabella._id,
+      type: 'like_added',
+      targetId: janeReply._id,
+      targetType: 'comment',
+      message: 'Isabella liked your comment',
+      read: false,
+      createdAt: hoursAgo(3),
+    },
+    chris && chrisConv && {
+      userId: jane._id,
+      actorId: chris._id,
+      type: 'new_message',
+      targetId: chrisConv._id,
+      targetType: 'conversation',
+      message: 'Chris sent you a message',
+      read: false,
+      createdAt: hoursAgo(4),
+    },
+    // This week (mix of read/unread)
+    ryan && reactHooksNote && {
+      userId: jane._id,
+      actorId: ryan._id,
+      type: 'comment_added',
+      targetId: reactHooksNote._id,
+      targetType: 'note',
+      message: `Ryan commented on your note: "React Hooks - Deep Dive"`,
+      read: false,
+      createdAt: daysAgo(3),
+    },
+    logan && janeReply && {
+      userId: jane._id,
+      actorId: logan._id,
+      type: 'like_added',
+      targetId: janeReply._id,
+      targetType: 'comment',
+      message: 'Logan liked your comment',
+      read: true,
+      readAt: daysAgo(3),
+      createdAt: daysAgo(4),
+    },
+    // This month (read)
+    zoe && a11yNote && {
+      userId: jane._id,
+      actorId: zoe._id,
+      type: 'comment_added',
+      targetId: a11yNote._id,
+      targetType: 'note',
+      message: `Zoe commented on your note: "Web Accessibility (a11y) Guide"`,
+      read: true,
+      readAt: daysAgo(12),
+      createdAt: daysAgo(13),
+    },
+    ryan && ryanConv && {
+      userId: jane._id,
+      actorId: ryan._id,
+      type: 'new_message',
+      targetId: ryanConv?._id || urlShortenerNote._id,
+      targetType: ryanConv ? 'conversation' : 'note',
+      message: 'Ryan sent you a message',
+      read: true,
+      readAt: daysAgo(11),
+      createdAt: daysAgo(12),
+    },
+    caroline && {
+      userId: jane._id,
+      actorId: caroline._id,
+      type: 'friend_accepted',
+      targetId: jane._id,
+      targetType: 'friendship',
+      message: 'Caroline accepted your friend request',
+      read: true,
+      readAt: daysAgo(14),
+      createdAt: daysAgo(15),
+    },
+    // Earlier (read)
+    kian && {
+      userId: jane._id,
+      actorId: kian._id,
+      type: 'friend_request',
+      targetId: jane._id,
+      targetType: 'friendship',
+      message: 'Kian sent you a friend request',
+      read: true,
+      readAt: daysAgo(46),
+      createdAt: daysAgo(47),
+    },
+  ].filter(Boolean);
+
+  for (const entry of entries) {
+    await Notification.create(entry);
+  }
+
+  console.log(`  Created ${entries.length} notifications for Jane.`);
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -1053,6 +1207,7 @@ async function main() {
     await seedResume(jane);
 
     // 8. Conversations
+    const convDocs = await Conversation.find({ participants: jane._id }).lean();
     await seedConversations(jane, friends);
 
     // 9. Share messages
@@ -1066,6 +1221,10 @@ async function main() {
 
     // 12. Friend content (shared notes, flashcard sets, shared tasks with Jane)
     await seedFriendContent(jane, friends);
+
+    // 13. Notifications
+    const convDocsAfter = await Conversation.find({ participants: jane._id }).lean();
+    await seedNotifications(jane, friends, sharedNotes, allComments, convDocsAfter);
 
     // Bust Redis activity cache so pages don't show stale data after reseed
     try {
