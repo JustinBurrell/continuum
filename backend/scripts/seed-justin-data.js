@@ -1354,36 +1354,36 @@ const justinNoteComments = {
   0: [
     { username: 'alexchen_cs', content: 'This DP explanation finally clicked for me, especially the memoization table visualization. The Fibonacci call tree diagram really shows why naive recursion is so wasteful.' },
     { username: 'mayapatel_ds', content: 'Do you have practice problems for this? I want to try the tabulation approach on some real problems. The coin change example was especially clear.' },
-    { username: 'jordanwilliams', content: 'Saved this for interview prep. The comparison between top-down and bottom-up is the clearest I have seen anywhere, including textbooks.' },
+    { username: 'jordanwilliams_demo', content: 'Saved this for interview prep. The comparison between top-down and bottom-up is the clearest I have seen anywhere, including textbooks.' },
   ],
   1: [
-    { username: 'jordanwilliams', content: 'Great breakdown of round robin. We covered this in my embedded systems class too — real-time OS schedulers use a modified version with priority levels.' },
-    { username: 'priyasharma', content: 'Even though I am pre-med, I found the scheduling analogy to hospital triage fascinating. Patients are processes, severity is priority, and the ER is the CPU.' },
+    { username: 'jordanwilliams_demo', content: 'Great breakdown of round robin. We covered this in my embedded systems class too — real-time OS schedulers use a modified version with priority levels.' },
+    { username: 'priyasharma_demo', content: 'Even though I am pre-med, I found the scheduling analogy to hospital triage fascinating. Patients are processes, severity is priority, and the ER is the CPU.' },
     { username: 'alexchen_cs', content: 'The MLFQ section is gold. This is exactly what I needed for the OS midterm. The way it automatically adapts to process behavior is elegant.' },
-    { username: 'sofiarod', content: 'The evaluation criteria table at the end is perfect for quick reference. I shared it with a friend in Information Science who is taking OS next semester.' },
+    { username: 'sofiarod_demo', content: 'The evaluation criteria table at the end is perfect for quick reference. I shared it with a friend in Information Science who is taking OS next semester.' },
   ],
   2: [
     { username: 'alexchen_cs', content: 'The HTTP/2 multiplexing section is really well written. I never understood how binary framing eliminates head-of-line blocking until reading this.' },
-    { username: 'marcusjohnson', content: 'I never understood why HTTPS was important until reading your TLS explanation. The certificate chain of trust section made it concrete.' },
-    { username: 'jordanwilliams', content: 'QUIC running over UDP is wild. The performance benefits on mobile networks make a lot of sense when you think about the packet loss patterns on cellular.' },
+    { username: 'marcusjohnson_demo', content: 'I never understood why HTTPS was important until reading your TLS explanation. The certificate chain of trust section made it concrete.' },
+    { username: 'jordanwilliams_demo', content: 'QUIC running over UDP is wild. The performance benefits on mobile networks make a lot of sense when you think about the packet loss patterns on cellular.' },
   ],
   5: [
     { username: 'mayapatel_ds', content: 'This pairs well with my stats notes on gradient descent. The backpropagation explanation connects the math to the intuition better than our ML textbook.' },
-    { username: 'sofiarod', content: 'The cognitive architecture parallels to neural networks are interesting from a psych perspective. The activation function is like the threshold for neuron firing in real brains.' },
+    { username: 'sofiarod_demo', content: 'The cognitive architecture parallels to neural networks are interesting from a psych perspective. The activation function is like the threshold for neuron firing in real brains.' },
     { username: 'alexchen_cs', content: 'Bookmarked the transformer section. Self-attention finally makes sense — every token attending to every other token in parallel is such a clean idea.' },
   ],
   6: [
     { username: 'alexchen_cs', content: 'CAP theorem explanation is the clearest I have seen. The CP vs AP comparison with real-world system examples makes it immediately practical.' },
-    { username: 'jordanwilliams', content: 'Shared this with my study group. Super helpful for our distributed systems project. The Raft section is directly applicable to what we are building.' },
-    { username: 'marcusjohnson', content: 'Even from a finance perspective, the consistency vs availability tradeoff resonates. Trading systems face the exact same tension — do you halt trading on uncertainty or accept stale data?' },
+    { username: 'jordanwilliams_demo', content: 'Shared this with my study group. Super helpful for our distributed systems project. The Raft section is directly applicable to what we are building.' },
+    { username: 'marcusjohnson_demo', content: 'Even from a finance perspective, the consistency vs availability tradeoff resonates. Trading systems face the exact same tension — do you halt trading on uncertainty or accept stale data?' },
   ],
   10: [
-    { username: 'marcusjohnson', content: 'The behavioral question framework works for finance interviews too. STAR method is universal — I used your examples to structure my own IB interview prep.' },
+    { username: 'marcusjohnson_demo', content: 'The behavioral question framework works for finance interviews too. STAR method is universal — I used your examples to structure my own IB interview prep.' },
     { username: 'alexchen_cs', content: 'Added your STAR method examples to my own prep doc. The section on pattern recognition for algorithm problems is exactly what I needed at this stage of prep.' },
-    { username: 'sofiarod', content: 'Your approach to mock interviews is smart. Deliberate practice with immediate feedback is the fastest way to improve at any skill — that is well-established in cognitive psychology.' },
+    { username: 'sofiarod_demo', content: 'Your approach to mock interviews is smart. Deliberate practice with immediate feedback is the fastest way to improve at any skill — that is well-established in cognitive psychology.' },
   ],
   13: [
-    { username: 'jordanwilliams', content: 'Load balancer section is solid. Would love to see more on database sharding strategies — range-based vs hash-based partitioning is a topic I keep getting asked about in interviews.' },
+    { username: 'jordanwilliams_demo', content: 'Load balancer section is solid. Would love to see more on database sharding strategies — range-based vs hash-based partitioning is a topic I keep getting asked about in interviews.' },
     { username: 'alexchen_cs', content: 'Can you add a section on caching strategies? Cache-aside vs write-through is something I always get confused about. The rest of this primer is excellent though.' },
     { username: 'mayapatel_ds', content: 'The message queue section is relevant to my data pipeline project. We use Kafka for streaming sensor data and the producer-consumer decoupling pattern you describe is exactly our architecture.' },
   ],
@@ -1428,32 +1428,32 @@ const flashcardSetComments = [
   // Justin's shared sets
   { setOwner: 'justin', setIndex: 0, username: 'alexchen_cs', content: 'Used this DP set before the midterm and scored 91% on the DP section. The coin change and knapsack cards were exactly what was tested.' },
   { setOwner: 'justin', setIndex: 0, username: 'mayapatel_ds', content: 'These cards helped me review DP concepts in 20 minutes flat. Perfect for quick review sessions between classes.' },
-  { setOwner: 'justin', setIndex: 1, username: 'jordanwilliams', content: 'The scheduling algorithm cards are spot on. I would add a card about the difference between cooperative and preemptive multitasking — it came up on our OS exam.' },
-  { setOwner: 'justin', setIndex: 1, username: 'priyasharma', content: 'I do not understand half of these but the MLFQ card reminded me of hospital triage systems. Cross-discipline connections are the best.' },
+  { setOwner: 'justin', setIndex: 1, username: 'jordanwilliams_demo', content: 'The scheduling algorithm cards are spot on. I would add a card about the difference between cooperative and preemptive multitasking — it came up on our OS exam.' },
+  { setOwner: 'justin', setIndex: 1, username: 'priyasharma_demo', content: 'I do not understand half of these but the MLFQ card reminded me of hospital triage systems. Cross-discipline connections are the best.' },
   { setOwner: 'justin', setIndex: 2, username: 'mayapatel_ds', content: 'The neural network terminology set is exactly what I needed for my ML class. The backpropagation and Adam optimizer cards cleared up confusion I had for weeks.' },
-  { setOwner: 'justin', setIndex: 2, username: 'sofiarod', content: 'Interesting to compare artificial neural network terminology with actual neuroscience. The activation function analogy to biological neuron firing thresholds is apt.' },
+  { setOwner: 'justin', setIndex: 2, username: 'sofiarod_demo', content: 'Interesting to compare artificial neural network terminology with actual neuroscience. The activation function analogy to biological neuron firing thresholds is apt.' },
   { setOwner: 'justin', setIndex: 3, username: 'alexchen_cs', content: 'CAP theorem cards are essential for our distributed systems project. I review these before every group meeting to keep the concepts fresh.' },
-  { setOwner: 'justin', setIndex: 4, username: 'jordanwilliams', content: 'TCP/IP cards are great for quick networking review. The HTTP evolution cards (1.1 vs 2 vs 3) are particularly well-crafted.' },
+  { setOwner: 'justin', setIndex: 4, username: 'jordanwilliams_demo', content: 'TCP/IP cards are great for quick networking review. The HTTP evolution cards (1.1 vs 2 vs 3) are particularly well-crafted.' },
   { setOwner: 'justin', setIndex: 5, username: 'alexchen_cs', content: 'Database cards saved me on the SQL quiz. The B+ tree and MVCC cards are the most important ones for understanding real database performance.' },
-  { setOwner: 'justin', setIndex: 10, username: 'marcusjohnson', content: 'The data structures quick reference set is perfect for last-minute interview prep. I keep coming back to the hash map and BST complexity cards.' },
+  { setOwner: 'justin', setIndex: 10, username: 'marcusjohnson_demo', content: 'The data structures quick reference set is perfect for last-minute interview prep. I keep coming back to the hash map and BST complexity cards.' },
   { setOwner: 'justin', setIndex: 11, username: 'alexchen_cs', content: 'SQL interview questions set covers all the bases. Window functions and CTEs are the ones that trip people up most — good to have cards specifically for those.' },
-  { setOwner: 'justin', setIndex: 14, username: 'jordanwilliams', content: 'Git commands reference is handy. I always forget the difference between git fetch and git pull. This set is staying in my regular rotation.' },
+  { setOwner: 'justin', setIndex: 14, username: 'jordanwilliams_demo', content: 'Git commands reference is handy. I always forget the difference between git fetch and git pull. This set is staying in my regular rotation.' },
   { setOwner: 'justin', setIndex: 15, username: 'mayapatel_ds', content: 'React concepts explained this concisely should be its own tutorial. The Virtual DOM and reconciliation card is the clearest explanation I have seen.' },
-  { setOwner: 'justin', setIndex: 17, username: 'marcusjohnson', content: 'System design patterns are relevant even in finance. The consistent hashing and circuit breaker patterns apply to trading system architecture too.' },
-  { setOwner: 'justin', setIndex: 19, username: 'sofiarod', content: 'Behavioral interview cards using the STAR method are universally useful. I am adapting this format for my grad school interview prep.' },
+  { setOwner: 'justin', setIndex: 17, username: 'marcusjohnson_demo', content: 'System design patterns are relevant even in finance. The consistent hashing and circuit breaker patterns apply to trading system architecture too.' },
+  { setOwner: 'justin', setIndex: 19, username: 'sofiarod_demo', content: 'Behavioral interview cards using the STAR method are universally useful. I am adapting this format for my grad school interview prep.' },
   // Friends' shared sets
   { setOwner: 'alexchen_cs', setIndex: 0, username: 'justin', content: 'Your sorting algorithms set is comprehensive. The Timsort card is a great addition — most sets skip the hybrid algorithms that are actually used in practice.' },
   { setOwner: 'alexchen_cs', setIndex: 1, username: 'justin', content: 'Tree traversal cards are clean and well-organized. The Morris Traversal card is a nice advanced addition for interview prep.' },
   { setOwner: 'mayapatel_ds', setIndex: 0, username: 'justin', content: 'Statistics key terms set is helping me understand the ML papers I am trying to read. The bias-variance tradeoff card is one I keep revisiting.' },
   { setOwner: 'mayapatel_ds', setIndex: 2, username: 'justin', content: 'Python data science toolkit is bookmarked. The train_test_split and cross_val_score cards are immediately applicable to my analytics project.' },
-  { setOwner: 'jordanwilliams', setIndex: 0, username: 'justin', content: 'Digital logic gates set is a great refresher. The universal gate card explaining how NAND alone can build any circuit is a fact I keep forgetting.' },
-  { setOwner: 'jordanwilliams', setIndex: 1, username: 'justin', content: 'Memory hierarchy terms cards are essential for understanding system performance. The three Cs of cache misses is something every CS student should know.' },
-  { setOwner: 'priyasharma', setIndex: 0, username: 'justin', content: 'Organic chemistry reactions set is wild — the amount of conditions you need to memorize is like learning a new programming language. Respect for pre-med students.' },
-  { setOwner: 'priyasharma', setIndex: 2, username: 'justin', content: 'MCAT vocab set covers an insane range of topics. The Hardy-Weinberg and Henderson-Hasselbalch cards show how much math is in medicine.' },
-  { setOwner: 'marcusjohnson', setIndex: 0, username: 'justin', content: 'Finance interview questions set is fascinating from a CS perspective. The DCF walkthrough card maps directly to present value calculations in algorithm analysis.' },
-  { setOwner: 'marcusjohnson', setIndex: 2, username: 'justin', content: 'Valuation methods cards are clear and well-structured. The football field chart card is a concept I had never heard of but makes total sense for presenting analysis.' },
-  { setOwner: 'sofiarod', setIndex: 1, username: 'justin', content: 'Cognitive psychology terms are directly applicable to how I design study tools. The spacing effect and testing effect cards validate the approach in my flashcard app.' },
-  { setOwner: 'sofiarod', setIndex: 2, username: 'justin', content: 'Neuroscience basics cards on LTP and dopamine pathways connect to learning in ways I had not considered. The brain is the original neural network.' },
+  { setOwner: 'jordanwilliams_demo', setIndex: 0, username: 'justin', content: 'Digital logic gates set is a great refresher. The universal gate card explaining how NAND alone can build any circuit is a fact I keep forgetting.' },
+  { setOwner: 'jordanwilliams_demo', setIndex: 1, username: 'justin', content: 'Memory hierarchy terms cards are essential for understanding system performance. The three Cs of cache misses is something every CS student should know.' },
+  { setOwner: 'priyasharma_demo', setIndex: 0, username: 'justin', content: 'Organic chemistry reactions set is wild — the amount of conditions you need to memorize is like learning a new programming language. Respect for pre-med students.' },
+  { setOwner: 'priyasharma_demo', setIndex: 2, username: 'justin', content: 'MCAT vocab set covers an insane range of topics. The Hardy-Weinberg and Henderson-Hasselbalch cards show how much math is in medicine.' },
+  { setOwner: 'marcusjohnson_demo', setIndex: 0, username: 'justin', content: 'Finance interview questions set is fascinating from a CS perspective. The DCF walkthrough card maps directly to present value calculations in algorithm analysis.' },
+  { setOwner: 'marcusjohnson_demo', setIndex: 2, username: 'justin', content: 'Valuation methods cards are clear and well-structured. The football field chart card is a concept I had never heard of but makes total sense for presenting analysis.' },
+  { setOwner: 'sofiarod_demo', setIndex: 1, username: 'justin', content: 'Cognitive psychology terms are directly applicable to how I design study tools. The spacing effect and testing effect cards validate the approach in my flashcard app.' },
+  { setOwner: 'sofiarod_demo', setIndex: 2, username: 'justin', content: 'Neuroscience basics cards on LTP and dopamine pathways connect to learning in ways I had not considered. The brain is the original neural network.' },
 ];
 
 // ─── SECTION 11: Reply Content ────────────────────────────────────────────────
@@ -1468,19 +1468,19 @@ const noteCommentReplies = [
   // Note 0 (DP): mayapatel_ds comment → Justin replies
   { noteIndex: 0, commenterUsername: 'mayapatel_ds', replierUsername: 'justin', content: 'Yes — I recommend LeetCode 322 (Coin Change) and 416 (Partition Equal Subset Sum) as the first two. They cover both approaches really well.' },
   // Note 1 (OS scheduling): jordanwilliams comment → mayapatel_ds replies
-  { noteIndex: 1, commenterUsername: 'jordanwilliams', replierUsername: 'mayapatel_ds', content: 'I did not know embedded systems used modified round robin! Does the priority level change dynamically based on deadline proximity?' },
+  { noteIndex: 1, commenterUsername: 'jordanwilliams_demo', replierUsername: 'mayapatel_ds', content: 'I did not know embedded systems used modified round robin! Does the priority level change dynamically based on deadline proximity?' },
   // Note 1 (OS scheduling): priyasharma comment → Justin replies
-  { noteIndex: 1, commenterUsername: 'priyasharma', replierUsername: 'justin', content: 'That analogy is genuinely better than anything in my textbook. The ER triage framing makes the whole priority queue section make sense.' },
+  { noteIndex: 1, commenterUsername: 'priyasharma_demo', replierUsername: 'justin', content: 'That analogy is genuinely better than anything in my textbook. The ER triage framing makes the whole priority queue section make sense.' },
   // Note 2 (Networking): alexchen_cs comment → jordanwilliams replies
-  { noteIndex: 2, commenterUsername: 'alexchen_cs', replierUsername: 'jordanwilliams', content: 'Binary framing is such an underrated idea. Once you see why text-based framing caused the original head-of-line blocking issue it all clicks.' },
+  { noteIndex: 2, commenterUsername: 'alexchen_cs', replierUsername: 'jordanwilliams_demo', content: 'Binary framing is such an underrated idea. Once you see why text-based framing caused the original head-of-line blocking issue it all clicks.' },
   // Note 5 (ML/Neural nets): mayapatel_ds comment → alexchen_cs replies
   { noteIndex: 5, commenterUsername: 'mayapatel_ds', replierUsername: 'alexchen_cs', content: 'The backprop section is where I keep getting lost too. The chain rule visualized as a computation graph finally made it stick for me.' },
   // Note 6 (Distributed systems): alexchen_cs comment → marcusjohnson replies
-  { noteIndex: 6, commenterUsername: 'alexchen_cs', replierUsername: 'marcusjohnson', content: 'The finance angle is real. Our risk systems literally have to choose between availability and consistency on every tick. We default to AP with eventual reconciliation.' },
+  { noteIndex: 6, commenterUsername: 'alexchen_cs', replierUsername: 'marcusjohnson_demo', content: 'The finance angle is real. Our risk systems literally have to choose between availability and consistency on every tick. We default to AP with eventual reconciliation.' },
   // Note 10 (Interview prep): marcusjohnson comment → sofiarod replies
-  { noteIndex: 10, commenterUsername: 'marcusjohnson', replierUsername: 'sofiarod', content: 'The STAR method is just applied cognitive framing — presenting information in a schema the interviewer can pattern-match. Works for any high-stakes communication.' },
+  { noteIndex: 10, commenterUsername: 'marcusjohnson_demo', replierUsername: 'sofiarod_demo', content: 'The STAR method is just applied cognitive framing — presenting information in a schema the interviewer can pattern-match. Works for any high-stakes communication.' },
   // Note 13 (System design): jordanwilliams comment → Justin replies
-  { noteIndex: 13, commenterUsername: 'jordanwilliams', replierUsername: 'justin', content: 'Adding a sharding section is on my list! Consistent hashing is the key insight — I want to build out the virtual nodes explanation first.' },
+  { noteIndex: 13, commenterUsername: 'jordanwilliams_demo', replierUsername: 'justin', content: 'Adding a sharding section is on my list! Consistent hashing is the key insight — I want to build out the virtual nodes explanation first.' },
   // Note 13 (System design): alexchen_cs comment → Justin replies
   { noteIndex: 13, commenterUsername: 'alexchen_cs', replierUsername: 'justin', content: 'Good call on caching — adding cache-aside vs write-through vs write-behind to the next revision. Write-behind is the tricky one that most guides skip.' },
 ];
@@ -1490,17 +1490,17 @@ const flashcardSetCommentReplies = [
   // Justin's set 0 (DP): alexchen_cs comment → Justin replies
   { setOwner: 'justin', setIndex: 0, commenterUsername: 'alexchen_cs', replierUsername: 'justin', content: 'Nice! Coin change is the gateway drug for DP. Once that clicks, the knapsack variants all feel like the same pattern.' },
   // Justin's set 1 (OS scheduling): jordanwilliams comment → Justin replies
-  { setOwner: 'justin', setIndex: 1, commenterUsername: 'jordanwilliams', replierUsername: 'justin', content: 'Adding that card now — cooperative vs preemptive is a classic exam question and I totally left it out. Good catch.' },
+  { setOwner: 'justin', setIndex: 1, commenterUsername: 'jordanwilliams_demo', replierUsername: 'justin', content: 'Adding that card now — cooperative vs preemptive is a classic exam question and I totally left it out. Good catch.' },
   // Justin's set 2 (ML): mayapatel_ds comment → sofiarod replies
-  { setOwner: 'justin', setIndex: 2, commenterUsername: 'mayapatel_ds', replierUsername: 'sofiarod', content: 'The Adam optimizer card is useful from a psych angle too — the momentum term is basically how habit formation reinforces neural pathways over time.' },
+  { setOwner: 'justin', setIndex: 2, commenterUsername: 'mayapatel_ds', replierUsername: 'sofiarod_demo', content: 'The Adam optimizer card is useful from a psych angle too — the momentum term is basically how habit formation reinforces neural pathways over time.' },
   // Justin's set 3 (Distributed): alexchen_cs comment → jordanwilliams replies
-  { setOwner: 'justin', setIndex: 3, commenterUsername: 'alexchen_cs', replierUsername: 'jordanwilliams', content: 'Same — we review these before every sprint planning meeting now. The partition tolerance framing helps when we debate consistency guarantees for our service.' },
+  { setOwner: 'justin', setIndex: 3, commenterUsername: 'alexchen_cs', replierUsername: 'jordanwilliams_demo', content: 'Same — we review these before every sprint planning meeting now. The partition tolerance framing helps when we debate consistency guarantees for our service.' },
   // Justin's set 10 (DS quick ref): marcusjohnson comment → alexchen_cs replies
-  { setOwner: 'justin', setIndex: 10, commenterUsername: 'marcusjohnson', replierUsername: 'alexchen_cs', content: 'The hash map complexity card is the one I always blank on under pressure. Amortized O(1) for insert trips people up every time.' },
+  { setOwner: 'justin', setIndex: 10, commenterUsername: 'marcusjohnson_demo', replierUsername: 'alexchen_cs', content: 'The hash map complexity card is the one I always blank on under pressure. Amortized O(1) for insert trips people up every time.' },
   // Friends' sets
   { setOwner: 'alexchen_cs', setIndex: 0, commenterUsername: 'justin', replierUsername: 'alexchen_cs', content: 'Timsort is criminally underrepresented in interview prep material. It is literally what Python and Java use under the hood.' },
   { setOwner: 'mayapatel_ds', setIndex: 0, commenterUsername: 'justin', replierUsername: 'mayapatel_ds', content: 'Bias-variance is one of those concepts that only clicks after seeing it from multiple angles. Glad the card format helps.' },
-  { setOwner: 'sofiarod', setIndex: 1, commenterUsername: 'justin', replierUsername: 'sofiarod', content: 'The spacing effect and testing effect are the two most empirically supported learning interventions we know of. Everything else is downstream of those.' },
+  { setOwner: 'sofiarod_demo', setIndex: 1, commenterUsername: 'justin', replierUsername: 'sofiarod_demo', content: 'The spacing effect and testing effect are the two most empirically supported learning interventions we know of. Everything else is downstream of those.' },
 ];
 
 module.exports = {

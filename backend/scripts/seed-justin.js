@@ -1763,7 +1763,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
 
   // Pick Justin's shared notes for realistic notification context
   const dpNote = justinNotes.find(n => n.title.includes('Dynamic Programming')) || justinNotes[0];
-  const osNote = justinNotes.find(n => n.title.includes('Scheduling') || n.title.includes('OS')) || justinNotes[1];
+  const nnNote = justinNotes.find(n => n.title.includes('Neural')) || justinNotes[5];
 
   // Pick a Justin reply comment for like notifications
   const justinReply = comments.find(c =>
@@ -1775,9 +1775,9 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
     c.userId?.toString() === alex._id.toString() &&
     c.targetId?.toString() === dpNote._id.toString()
   );
-  const mayaCommentOnOs = maya && osNote && comments.find(c =>
+  const mayaCommentOnNn = maya && nnNote && comments.find(c =>
     c.userId?.toString() === maya._id.toString() &&
-    c.targetId?.toString() === osNote._id.toString()
+    c.targetId?.toString() === nnNote._id.toString()
   );
   const jordanCommentOnDp = jordan && dpNote && comments.find(c =>
     c.userId?.toString() === jordan._id.toString() &&
@@ -1826,14 +1826,14 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       createdAt: hoursAgo(5),
     },
     // This week (mix)
-    maya && osNote && {
+    maya && nnNote && {
       userId: justin._id,
       actorId: maya._id,
       type: 'comment_added',
-      targetId: osNote._id,
+      targetId: nnNote._id,
       targetType: 'note',
-      message: `Maya commented on your note: "OS Process Scheduling Algorithms"`,
-      metadata: mayaCommentOnOs ? { commentPreview: mayaCommentOnOs.content.slice(0, 120), commentId: mayaCommentOnOs._id.toString() } : undefined,
+      message: `Maya commented on your note: "Neural Networks & Deep Learning: Architecture Overview"`,
+      metadata: mayaCommentOnNn ? { commentPreview: mayaCommentOnNn.content.slice(0, 120), commentId: mayaCommentOnNn._id.toString() } : undefined,
       read: false,
       createdAt: daysAgo(2),
     },
