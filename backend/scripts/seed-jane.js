@@ -657,31 +657,31 @@ async function seedActivities(jane, friends, sharedNotes, allSets, allTasks, all
     return actDate < capDate ? new Date(actDate) : new Date(capDate);
   };
 
-  // Jane's shared notes → note_shared activities
+  // Jane's note_created activities — friends see what she's been building
   for (let i = 0; i < Math.min(data.activityMeta.noteShareCount, sharedNotes.length); i++) {
     const note = sharedNotes[i];
     await Activity.create({
       userId: jane._id,
-      type: 'note_shared',
+      type: 'note_created',
       targetId: note._id,
       targetType: 'note',
       visibleTo: [jane._id, ...allFriendIds],
-      metadata: { noteTitle: note.title, sharedWithAll: true },
+      metadata: { noteTitle: note.title },
       createdAt: bumpDate(),
     });
     count++;
   }
 
-  // Jane's shared flashcard sets → flashcard_shared activities
+  // Jane's flashcard_set_created activities
   const sharedSets = allSets.filter(s => s.visibility === 'friends');
   for (const set of sharedSets) {
     await Activity.create({
       userId: jane._id,
-      type: 'flashcard_shared',
+      type: 'flashcard_set_created',
       targetId: set._id,
       targetType: 'flashcardSet',
       visibleTo: [jane._id, ...allFriendIds],
-      metadata: { setTitle: set.title, sharedWithAll: true },
+      metadata: { setTitle: set.title },
       createdAt: bumpDate(),
     });
     count++;
@@ -745,7 +745,44 @@ async function seedActivities(jane, friends, sharedNotes, allSets, allTasks, all
     count++;
   }
 
-  // Friends' comment activities (friends commenting on Jane's notes)
+  // Friends' note_created and flashcard_set_created activities
+  // Query existing friend content so this works even if seedFriendContent was idempotent
+  const friendNotes = await Note.find({ userId: { $in: allFriendIds }, visibility: 'friends', deletedAt: null }).limit(60);
+  const friendSets  = await FlashcardSet.find({ userId: { $in: allFriendIds }, visibility: 'friends', deletedAt: null }).limit(40);
+
+  for (const fn of friendNotes) {
+    const friend = friends.find(f => f._id.toString() === fn.userId.toString());
+    if (!friend) continue;
+    const isPrivate = friend.settings?.activityVisibility === 'private';
+    const visibleTo = isPrivate
+      ? [friend._id]
+      : [friend._id, jane._id, ...allFriendIds.filter(id => !id.equals(friend._id))];
+    const existing = await Activity.findOne({ userId: friend._id, type: 'note_created', targetId: fn._id });
+    if (existing) continue;
+    await Activity.create({
+      userId: friend._id, type: 'note_created', targetId: fn._id,
+      targetType: 'note', visibleTo, metadata: { noteTitle: fn.title }, createdAt: bumpDate(),
+    });
+    count++;
+  }
+
+  for (const fs of friendSets) {
+    const friend = friends.find(f => f._id.toString() === fs.userId.toString());
+    if (!friend) continue;
+    const isPrivate = friend.settings?.activityVisibility === 'private';
+    const visibleTo = isPrivate
+      ? [friend._id]
+      : [friend._id, jane._id, ...allFriendIds.filter(id => !id.equals(friend._id))];
+    const existing = await Activity.findOne({ userId: friend._id, type: 'flashcard_set_created', targetId: fs._id });
+    if (existing) continue;
+    await Activity.create({
+      userId: friend._id, type: 'flashcard_set_created', targetId: fs._id,
+      targetType: 'flashcardSet', visibleTo, metadata: { setTitle: fs.title }, createdAt: bumpDate(),
+    });
+    count++;
+  }
+
+  // Friends' comment activities (ambient social signal)
   const friendComments = allComments.filter(c => {
     const cId = c.userId?.toString();
     return allFriendIds.some(fid => fid.toString() === cId);
@@ -754,7 +791,10 @@ async function seedActivities(jane, friends, sharedNotes, allSets, allTasks, all
   for (const fc of friendComments) {
     const commenterFriend = friends.find(f => f._id.toString() === fc.userId?.toString());
     if (!commenterFriend) continue;
-    const visibleToAll = [commenterFriend._id, jane._id, ...allFriendIds.filter(id => !id.equals(commenterFriend._id))];
+    const isPrivate = commenterFriend.settings?.activityVisibility === 'private';
+    const visibleToAll = isPrivate
+      ? [commenterFriend._id]
+      : [commenterFriend._id, jane._id, ...allFriendIds.filter(id => !id.equals(commenterFriend._id))];
     await Activity.create({
       userId: commenterFriend._id,
       type: 'comment_added',
@@ -840,7 +880,13 @@ async function seedFriendContent(jane, friends) {
 
     const noteDate = new Date(Date.now() - (60 - i * 2) * 24 * 60 * 60 * 1000);
 
-    await Note.create([
+    // friend's activityVisibility controls who sees their activity in the feed
+    const friendVisibility = friend.settings?.activityVisibility ?? 'friends';
+    const friendVisibleTo = friendVisibility === 'private'
+      ? [friend._id]
+      : [friend._id, jane._id, ...allFriendIds.filter(id => !id.equals(friend._id))];
+
+    const [createdNoteA, createdNoteB] = await Note.create([
       {
         userId: friend._id,
         title: noteA.title,
@@ -864,6 +910,21 @@ async function seedFriendContent(jane, friends) {
     ]);
     noteCount += 2;
 
+    // note_created activities for both notes
+    await Activity.create([
+      {
+        userId: friend._id, type: 'note_created', targetId: createdNoteA._id,
+        targetType: 'note', visibleTo: friendVisibleTo,
+        metadata: { noteTitle: createdNoteA.title }, createdAt: noteDate,
+      },
+      {
+        userId: friend._id, type: 'note_created', targetId: createdNoteB._id,
+        targetType: 'note', visibleTo: friendVisibleTo,
+        metadata: { noteTitle: createdNoteB.title },
+        createdAt: new Date(noteDate.getTime() + 3 * 24 * 60 * 60 * 1000),
+      },
+    ]);
+
     // Flashcard set
     const existingSets = await FlashcardSet.countDocuments({ userId: friend._id, visibility: 'friends' });
     if (existingSets === 0) {
@@ -880,6 +941,13 @@ async function seedFriendContent(jane, friends) {
         await Flashcard.create({ setId: fs._id, front: card.front, back: card.back });
       }
       setCount++;
+
+      // flashcard_set_created activity
+      await Activity.create({
+        userId: friend._id, type: 'flashcard_set_created', targetId: fs._id,
+        targetType: 'flashcardSet', visibleTo: friendVisibleTo,
+        metadata: { setTitle: fs.title }, createdAt: noteDate,
+      });
     }
 
     // Shared task with Jane as participant (first 6 friends only)

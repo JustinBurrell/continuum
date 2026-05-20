@@ -50,7 +50,7 @@ const SEED_FRIENDS = [
     firstName: 'Jordan',
     lastName: 'Williams',
     bio: 'Senior in Computer Engineering. Building embedded systems and debating hardware vs software career paths.',
-    settings: { activityVisibility: 'friends' },
+    settings: { activityVisibility: 'private' },
   },
   {
     username: 'priyasharma_demo',
@@ -68,7 +68,7 @@ const SEED_FRIENDS = [
     firstName: 'Marcus',
     lastName: 'Johnson',
     bio: 'Finance junior eyeing investment banking. Excel wizard, DCF enthusiast, networking machine.',
-    settings: { activityVisibility: 'friends' },
+    settings: { activityVisibility: 'private' },
   },
   {
     username: 'sofiarod_demo',
@@ -1475,7 +1475,24 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
     }
   }
 
-  // Justin's comment activities (pick 5)
+  // Justin's note_created activities for friends-visible notes
+  const friendsNoteIndices = [11, 12, 13, 14]; // React Hooks, Git Workflow, System Design, UNIX
+  for (const i of friendsNoteIndices) {
+    const note = justinNotes[i];
+    if (!note) continue;
+    await Activity.create({
+      userId: justin._id,
+      type: 'note_created',
+      targetId: note._id,
+      targetType: 'note',
+      visibleTo: [justin._id, ...allFriendIds],
+      metadata: { noteTitle: note.title, noteType: 'general' },
+      createdAt: bumpDate(),
+    });
+    count++;
+  }
+
+  // Justin's comment activities (pick 5 — ambient social signal)
   const justinComments = comments.filter(c => c.userId.equals(justin._id)).slice(0, 5);
   for (const comment of justinComments) {
     await Activity.create({
@@ -1490,46 +1507,55 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
     count++;
   }
 
-  // Friends' activities — richer: notes, sets, shared tasks, and comments
+  // Friends' activities — what each friend is CREATING and DOING.
+  // Respects activityVisibility: 'private' friends' activities are only visible to themselves.
+  const friendVisibility = {};
+  for (const sf of SEED_FRIENDS) friendVisibility[sf.username] = sf.settings?.activityVisibility ?? 'friends';
+
   for (const friend of friends) {
     const fNotes = friendNoteMap[friend.username];
     const fSets  = friendSetMap[friend.username];
     const otherFriendIds = allFriendIds.filter(id => !id.equals(friend._id));
-    const visibleToAll = [friend._id, justin._id, ...otherFriendIds];
+    const isPrivate = friendVisibility[friend.username] === 'private';
 
-    // All friend notes shared (not just 2)
+    // If private, activities only go to themselves — Justin won't see them in his feed
+    const visibleToAll = isPrivate
+      ? [friend._id]
+      : [friend._id, justin._id, ...otherFriendIds];
+
+    // note_created: friends see "Alex created a note" (not share — creation)
     if (fNotes) {
       for (const fNote of fNotes) {
         await Activity.create({
           userId: friend._id,
-          type: 'note_shared',
+          type: 'note_created',
           targetId: fNote._id,
           targetType: 'note',
           visibleTo: visibleToAll,
-          metadata: { noteTitle: fNote.title, sharedWithAll: true },
+          metadata: { noteTitle: fNote.title },
           createdAt: bumpDate(),
         });
         count++;
       }
     }
 
-    // All friend flashcard sets shared
+    // flashcard_set_created: friends see "Maya created a flashcard set"
     if (fSets) {
       for (const fSet of fSets) {
         await Activity.create({
           userId: friend._id,
-          type: 'flashcard_shared',
+          type: 'flashcard_set_created',
           targetId: fSet._id,
           targetType: 'flashcardSet',
           visibleTo: visibleToAll,
-          metadata: { setTitle: fSet.title, sharedWithAll: true },
+          metadata: { setTitle: fSet.title },
           createdAt: bumpDate(),
         });
         count++;
       }
     }
 
-    // Task activities for tasks that this friend owns that are shared
+    // task_created: shared tasks created by this friend
     const friendSharedTasks = tasks.filter(t => t.userId.toString() === friend._id.toString() && t.isShared);
     for (const ft of friendSharedTasks) {
       const participantNames = (ft.participants || []).map(p => {
@@ -1546,13 +1572,13 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
         targetId: ft._id,
         targetType: 'task',
         visibleTo: visibleToAll,
-        metadata: { taskTitle: ft.title, sharedWithNames: participantNames, sharedWithAll: false },
+        metadata: { taskTitle: ft.title, sharedWithNames: participantNames },
         createdAt: bumpDate(),
       });
       count++;
     }
 
-    // Comment activities for friends who commented on Justin's notes
+    // comment_added: ambient social signal — friend engaging with content
     const friendComments = comments.filter(c => c.userId.equals(friend._id)).slice(0, 3);
     for (const fc of friendComments) {
       await Activity.create({
@@ -1562,20 +1588,6 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
         targetType: fc.targetType,
         visibleTo: visibleToAll,
         metadata: { commentPreview: fc.content.slice(0, 100), commentId: fc._id.toString() },
-        createdAt: bumpDate(),
-      });
-      count++;
-    }
-
-    // Like activities (2 per friend)
-    if (fNotes && fNotes.length > 0) {
-      await Activity.create({
-        userId: friend._id,
-        type: 'like_added',
-        targetId: fNotes[0]._id,
-        targetType: 'note',
-        visibleTo: visibleToAll,
-        metadata: { noteTitle: fNotes[0].title },
         createdAt: bumpDate(),
       });
       count++;
