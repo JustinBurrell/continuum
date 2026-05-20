@@ -48,7 +48,11 @@ async function notify({ recipientId, actorId, type, targetId, targetType, messag
     // Count total unread for the recipient and push to their socket room
     const unreadCount = await Notification.countDocuments({ userId: recipientId, read: false });
     try {
-        getIO().to(`user:${recipientId}`).emit('new_notification', { unreadCount });
+        getIO().to(`user:${recipientId}`).emit('new_notification', {
+            unreadCount,
+            type,
+            targetId: targetId?.toString(),
+        });
     } catch (_) {}
 }
 

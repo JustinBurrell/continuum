@@ -174,7 +174,12 @@ exports.addComment = async (req, res) => {
                     targetId: parentId,
                     targetType: 'comment',
                     message: `${req.user.firstName} replied to your comment`,
-                    metadata: { commentPreview, commentId: comment._id.toString() },
+                    metadata: {
+                        commentPreview,
+                        commentId: comment._id.toString(),
+                        resourceId: comment.targetId?.toString(),
+                        resourceType: comment.targetType,
+                    },
                     debounceMinutes: 2,
                 }).catch(() => {});
             }
@@ -315,6 +320,11 @@ exports.toggleLike = async (req, res) => {
                 targetId: comment._id,
                 targetType: 'comment',
                 message: `${req.user.firstName} liked your comment`,
+                metadata: {
+                    commentPreview: comment.content?.slice(0, 120),
+                    resourceId: comment.targetId?.toString(),
+                    resourceType: comment.targetType,
+                },
                 debounceMinutes: 2,
             }).catch(() => {});
         }

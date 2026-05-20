@@ -47,7 +47,12 @@ function parseShareMessage(content) {
 }
 
 export default function Conversation({ conversationId }) {
-  const { user } = useAuth();
+  const { user, setActiveConversation } = useAuth();
+
+  useEffect(() => {
+    setActiveConversation(conversationId);
+    return () => setActiveConversation(null);
+  }, [conversationId, setActiveConversation]);
   const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [msgSearch, setMsgSearch] = useState('');
@@ -154,7 +159,6 @@ export default function Conversation({ conversationId }) {
         });
       }
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: msgQueryKey }),
   });
 
   useEffect(() => {

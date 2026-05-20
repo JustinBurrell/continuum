@@ -11,16 +11,18 @@ import {
 } from '@/hooks/useNotifications';
 
 // Returns { to, state } for exact resource navigation.
-// For comment_added / comment_reply: includes commentId so NoteDetail scrolls to the comment.
 export function resolveNav(notif) {
-    const { type, targetType, targetId, metadata } = notif;
+    const { type, targetType, targetId, metadata, actorId } = notif;
     const commentId = metadata?.commentId;
+    const resourceId = metadata?.resourceId;
+    const resourceType = metadata?.resourceType;
 
     if (type === 'new_message') {
         return { to: '/messages', state: { conversationId: targetId } };
     }
     if (type === 'friend_request' || type === 'friend_accepted') {
-        return { to: '/friends', state: null };
+        const actorUserId = actorId?._id ?? actorId;
+        return { to: '/users/view', state: { id: actorUserId } };
     }
     if (type === 'task_assigned') {
         return { to: '/tasks', state: { openTaskId: targetId } };
@@ -36,8 +38,15 @@ export function resolveNav(notif) {
         if (targetType === 'task')         return { to: '/tasks',           state: { openTaskId: targetId, commentId } };
     }
     if (type === 'comment_reply') {
-        // targetId is the parent comment — navigate to activity feed since we
-        // don't store the resource ID on the reply notification
+        if (resourceType === 'note')         return { to: '/notes/view',     state: { id: resourceId, commentId } };
+        if (resourceType === 'flashcardSet') return { to: '/flashcards/view', state: { id: resourceId, commentId } };
+        if (resourceType === 'task')         return { to: '/tasks',           state: { openTaskId: resourceId, commentId } };
+        return { to: '/activity', state: null };
+    }
+    if (type === 'like_added') {
+        if (resourceType === 'note')         return { to: '/notes/view',     state: { id: resourceId } };
+        if (resourceType === 'flashcardSet') return { to: '/flashcards/view', state: { id: resourceId } };
+        if (resourceType === 'task')         return { to: '/tasks',           state: { openTaskId: resourceId } };
         return { to: '/activity', state: null };
     }
     return { to: '/activity', state: null };
