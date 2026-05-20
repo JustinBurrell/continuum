@@ -99,6 +99,7 @@ export default function Notifications() {
     function handleDelete(notif, e) {
         e.stopPropagation();
         deleteNotif({ id: notif._id, type: notif.type });
+        posthog.capture('notification_dismissed', { type: notif.type, target_type: notif.targetType });
     }
 
     return (
