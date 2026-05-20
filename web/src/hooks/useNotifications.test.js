@@ -35,9 +35,9 @@ function makeWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return ({ children }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  // Use createElement instead of JSX so this .js file does not need a .jsx extension
+  return ({ children }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 }
 
 const SAMPLE_NOTIFS = [

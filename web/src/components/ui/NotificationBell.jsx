@@ -217,7 +217,6 @@ export default function NotificationBell() {
                             borderTop: '1px solid #F3F4F6',
                             background: 'none',
                             border: 'none',
-                            borderTop: '1px solid #F3F4F6',
                             cursor: 'pointer',
                             fontSize: 13,
                             fontWeight: 500,

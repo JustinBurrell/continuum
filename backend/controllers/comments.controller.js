@@ -128,9 +128,9 @@ exports.addComment = async (req, res) => {
         metadata: { commentPreview: content.trim().slice(0, 100), commentId: comment._id.toString() },
     }).catch(() => {});
 
-    // Notify the resource owner (if different from commenter)
+    // Resolve the content owner and notify them
+    let ownerId = null;
     try {
-        let ownerId = null;
         if (targetType === 'note') {
             const n = await Note.findById(targetId).select('userId');
             ownerId = n?.userId?.toString();
@@ -141,24 +141,26 @@ exports.addComment = async (req, res) => {
             const t = await Task.findById(targetId).select('userId');
             ownerId = t?.userId?.toString();
         }
-        if (ownerId && ownerId !== req.user._id.toString()) {
-            getIO().to(`user:${ownerId}`).emit('comment_added', {
-                targetType,
-                targetId: targetId.toString(),
-            });
-            notify({
-                recipientId: ownerId,
-                actorId: req.user._id,
-                type: 'comment_added',
-                targetId,
-                targetType,
-                message: `${req.user.firstName} commented on your ${targetType}`,
-                debounceMinutes: 2,
-            }).catch(() => {});
-        }
+    } catch (_) {}
 
-        // Notify the parent comment author on a reply (if different from commenter and content owner)
-        if (parentId) {
+    if (ownerId && ownerId !== req.user._id.toString()) {
+        // Socket emit and notify are independent — socket throws in test env so
+        // keep them in separate try-catch blocks so notify always runs.
+        try { getIO().to(`user:${ownerId}`).emit('comment_added', { targetType, targetId: targetId.toString() }); } catch (_) {}
+        notify({
+            recipientId: ownerId,
+            actorId: req.user._id,
+            type: 'comment_added',
+            targetId,
+            targetType,
+            message: `${req.user.firstName} commented on your ${targetType}`,
+            debounceMinutes: 2,
+        }).catch(() => {});
+    }
+
+    // Notify the parent comment author on a reply
+    if (parentId) {
+        try {
             const parent = await Comment.findById(parentId).select('userId').lean();
             const parentAuthorId = parent?.userId?.toString();
             if (parentAuthorId && parentAuthorId !== req.user._id.toString() && parentAuthorId !== ownerId) {
@@ -172,8 +174,8 @@ exports.addComment = async (req, res) => {
                     debounceMinutes: 2,
                 }).catch(() => {});
             }
-        }
-    } catch (_) {}
+        } catch (_) {}
+    }
 
     res.status(201).json({ success: true, comment });
 };
