@@ -2,6 +2,7 @@ const Task = require('../models/Task');
 const Friendship = require('../models/Friendship');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { sendShareMessage } = require('../services/share.service');
+const { notify } = require('../services/notification.service');
 const { getIO } = require('../lib/socket');
 const { invalidate, invalidatePattern } = require('../lib/cache');
 const posthog = require('../lib/posthog');
@@ -128,9 +129,17 @@ exports.createTask = async (req, res) => {
             recipientIds: validatedParticipants.map(p => p.userId),
         }).catch(() => {});
 
-        // Send auto-message to each participant
+        // Send auto-message and notification bell to each participant
         for (const p of validatedParticipants) {
             sendShareMessage(req.user._id, p.userId, 'task', title, task._id).catch(() => {});
+            notify({
+                recipientId: p.userId,
+                actorId: req.user._id,
+                type: 'task_assigned',
+                targetId: task._id,
+                targetType: 'task',
+                message: `${req.user.firstName} assigned you to a task: "${title}"`,
+            }).catch(() => {});
         }
 
         // Notify participants in real-time — task just appeared in their shared list
@@ -380,9 +389,17 @@ exports.updateParticipants = async (req, res) => {
     task.isShared = updatedParticipants.length > 0;
     await task.save();
 
-    // Send auto-message to newly added participants
+    // Send auto-message and notification bell to newly added participants
     for (const p of newParticipantEntries) {
         sendShareMessage(req.user._id, p.userId, 'task', task.title, task._id).catch(() => {});
+        notify({
+            recipientId: p.userId,
+            actorId: req.user._id,
+            type: 'task_assigned',
+            targetId: task._id,
+            targetType: 'task',
+            message: `${req.user.firstName} added you to a task: "${task.title}"`,
+        }).catch(() => {});
     }
 
     // Fire activity when participants are added

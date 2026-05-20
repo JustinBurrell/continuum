@@ -3,6 +3,7 @@ const User = require('../models/User');
 const { getIO } = require('../lib/socket');
 const posthog = require('../lib/posthog');
 const { invalidatePattern } = require('../lib/cache');
+const { notify } = require('../services/notification.service');
 
 // ============================================================
 // FRIENDS CONTROLLER
@@ -75,6 +76,14 @@ exports.sendRequest = async (req, res) => {
 
     // Notify recipient in real-time
     try { getIO().to(`user:${recipientId}`).emit('friend_request', { friendship }); } catch (_) {}
+    notify({
+        recipientId,
+        actorId: req.user._id,
+        type: 'friend_request',
+        targetId: friendship._id,
+        targetType: 'friendship',
+        message: `${req.user.firstName} sent you a friend request`,
+    }).catch(() => {});
 
     await Promise.all([
         invalidatePattern(`friends:${req.user._id.toString()}`),
@@ -123,6 +132,14 @@ exports.respondToRequest = async (req, res) => {
     if (action === 'accept') {
         posthog.capture(req.user, 'friend_request_accepted', { friendshipId: friendship._id.toString(), fromUserId: friendship.requestedBy.toString() });
         try { getIO().to(`user:${friendship.requestedBy}`).emit('friend_accepted', { friendship }); } catch (_) {}
+        notify({
+            recipientId: friendship.requestedBy,
+            actorId: req.user._id,
+            type: 'friend_accepted',
+            targetId: friendship._id,
+            targetType: 'friendship',
+            message: `${req.user.firstName} accepted your friend request`,
+        }).catch(() => {});
     }
 
     await Promise.all([

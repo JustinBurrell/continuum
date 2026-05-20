@@ -6,6 +6,7 @@ const Friendship = require('../models/Friendship');
 const { createActivity } = require('../services/activity.service');
 const { getIO } = require('../lib/socket');
 const posthog = require('../lib/posthog');
+const { notify } = require('../services/notification.service');
 
 // ============================================================
 // COMMENTS CONTROLLER
@@ -145,6 +146,32 @@ exports.addComment = async (req, res) => {
                 targetType,
                 targetId: targetId.toString(),
             });
+            notify({
+                recipientId: ownerId,
+                actorId: req.user._id,
+                type: 'comment_added',
+                targetId,
+                targetType,
+                message: `${req.user.firstName} commented on your ${targetType}`,
+                debounceMinutes: 2,
+            }).catch(() => {});
+        }
+
+        // Notify the parent comment author on a reply (if different from commenter and content owner)
+        if (parentId) {
+            const parent = await Comment.findById(parentId).select('userId').lean();
+            const parentAuthorId = parent?.userId?.toString();
+            if (parentAuthorId && parentAuthorId !== req.user._id.toString() && parentAuthorId !== ownerId) {
+                notify({
+                    recipientId: parentAuthorId,
+                    actorId: req.user._id,
+                    type: 'comment_reply',
+                    targetId: parentId,
+                    targetType: 'comment',
+                    message: `${req.user.firstName} replied to your comment`,
+                    debounceMinutes: 2,
+                }).catch(() => {});
+            }
         }
     } catch (_) {}
 
@@ -275,6 +302,15 @@ exports.toggleLike = async (req, res) => {
             try {
                 getIO().to(`user:${commentAuthorId}`).emit('like_added');
             } catch (_) {}
+            notify({
+                recipientId: commentAuthorId,
+                actorId: userId,
+                type: 'like_added',
+                targetId: comment._id,
+                targetType: 'comment',
+                message: `${req.user.firstName} liked your comment`,
+                debounceMinutes: 2,
+            }).catch(() => {});
         }
     }
 

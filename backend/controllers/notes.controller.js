@@ -9,6 +9,7 @@ const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { sendShareMessage } = require('../services/share.service');
+const { notify } = require('../services/notification.service');
 const { PDFParse } = require('pdf-parse');
 
 // ============================================================
@@ -748,9 +749,17 @@ exports.shareNote = async (req, res) => {
             metadata: { noteTitle: note.title },
             recipientIds: sharedWith,
         }).catch(() => {});
-        // Send auto-message to each specific friend
+        // Send auto-message and notification bell to each specific friend
         for (const recipientId of sharedWith) {
             sendShareMessage(req.user._id, recipientId, 'note', note.title, note._id).catch(() => {});
+            notify({
+                recipientId,
+                actorId: req.user._id,
+                type: 'share_received',
+                targetId: note._id,
+                targetType: 'note',
+                message: `${req.user.firstName} shared a note with you: "${note.title}"`,
+            }).catch(() => {});
         }
         // Notify shared users in real-time + bust their caches
         const keys = sharedWith.map(uid => `shared-notes:${uid}`);

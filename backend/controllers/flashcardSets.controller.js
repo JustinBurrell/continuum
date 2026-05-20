@@ -6,6 +6,7 @@ const posthog = require('../lib/posthog');
 const { createActivity, createShareActivities } = require('../services/activity.service');
 const { getIO } = require('../lib/socket');
 const { sendShareMessage } = require('../services/share.service');
+const { notify } = require('../services/notification.service');
 const { invalidate, invalidatePattern } = require('../lib/cache');
 
 // ============================================================
@@ -554,9 +555,17 @@ exports.shareSet = async (req, res) => {
             metadata: { setTitle: set.title },
             recipientIds: sharedWith,
         }).catch(() => {});
-        // Send auto-message to each specific friend
+        // Send auto-message and notification bell to each specific friend
         for (const recipientId of sharedWith) {
             sendShareMessage(req.user._id, recipientId, 'flashcardSet', set.title, set._id).catch(() => {});
+            notify({
+                recipientId,
+                actorId: req.user._id,
+                type: 'share_received',
+                targetId: set._id,
+                targetType: 'flashcardSet',
+                message: `${req.user.firstName} shared a flashcard set with you: "${set.title}"`,
+            }).catch(() => {});
         }
         // Notify specific recipients in real-time
         try {

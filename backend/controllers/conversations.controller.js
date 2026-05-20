@@ -4,6 +4,7 @@ const Friendship = require('../models/Friendship');
 const { getIO } = require('../lib/socket');
 const posthog = require('../lib/posthog');
 const { invalidatePattern } = require('../lib/cache');
+const { notify } = require('../services/notification.service');
 
 // ============================================================
 // CONVERSATIONS CONTROLLER
@@ -211,7 +212,7 @@ exports.sendMessage = async (req, res) => {
 
     await message.populate('senderId', 'username firstName lastName avatarUrl roles');
 
-    // Notify the recipient in real-time
+    // Notify the recipient in real-time (socket) and via notification bell
     if (otherParticipantId) {
         try {
             getIO().to(`user:${otherParticipantId}`).emit('new_message', {
@@ -219,6 +220,16 @@ exports.sendMessage = async (req, res) => {
                 message,
             });
         } catch (_) {}
+
+        notify({
+            recipientId: otherParticipantId,
+            actorId: userId,
+            type: 'new_message',
+            targetId: conversationId,
+            targetType: 'conversation',
+            message: `${req.user.firstName} sent you a message`,
+            debounceMinutes: 5,
+        }).catch(() => {});
     }
 
     await Promise.all([
