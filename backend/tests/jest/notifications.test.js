@@ -364,9 +364,20 @@ describe('notify() integration via controller actions', () => {
     expect(count).toBe(0);
   });
 
-  it('creates a mention notification when a comment contains @username', async () => {
+  it('creates a mention notification when a comment @mentions a friend', async () => {
     const { alice, bob } = await makeFriends();
+    // Carol is also friends with bob so bob can @mention carol
     const carol = await registerAndLogin({ username: 'carol_test' });
+    // Make bob and carol friends
+    const reqRes = await request(app)
+      .post('/api/friends/request')
+      .set('Authorization', `Bearer ${bob.token}`)
+      .send({ recipientId: carol.userId });
+    await request(app)
+      .put(`/api/friends/request/${reqRes.body.friendship._id}`)
+      .set('Authorization', `Bearer ${carol.token}`)
+      .send({ action: 'accept' });
+
     const noteId = await createNote(alice.token);
 
     await request(app)
@@ -383,6 +394,22 @@ describe('notify() integration via controller actions', () => {
     expect(notif.metadata.resourceId).toBe(noteId);
     expect(notif.metadata.resourceType).toBe('note');
     expect(notif.metadata.commentId).toBeDefined();
+  });
+
+  it('does not send a mention notification when mentioning a non-friend', async () => {
+    const { alice, bob } = await makeFriends();
+    const stranger = await registerAndLogin({ username: 'stranger_test' });
+    const noteId = await createNote(alice.token);
+
+    await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${bob.token}`)
+      .send({ targetId: noteId, targetType: 'note', content: `@stranger_test check this` });
+
+    await new Promise(r => setTimeout(r, 50));
+
+    const count = await Notification.countDocuments({ userId: stranger.userId, type: 'mention' });
+    expect(count).toBe(0);
   });
 
   it('does not send a mention notification to self', async () => {

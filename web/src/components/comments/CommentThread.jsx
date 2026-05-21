@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, Heart, Trash, Send } from 'lucide-react';
 import api from '@/lib/api';
@@ -13,9 +13,12 @@ const fullName = (u) =>
   [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'Unknown';
 
 export default function CommentThread({ targetType, targetId, user, isDemo, scrollToCommentId }) {
+  const navigate = useNavigate();
   const [commentText, setCommentText] = useState('');
   const [replyTo, setReplyTo] = useState(null); // { commentId, username } | null
   const [expandedReplies, setExpandedReplies] = useState({}); // { [commentId]: bool }
+  const [mentionQuery, setMentionQuery] = useState(null); // null = no active @mention
+  const [mentionStart, setMentionStart] = useState(0);   // char index where @ began
   const inputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -81,6 +84,16 @@ export default function CommentThread({ targetType, targetId, user, isDemo, scro
     onSuccess: () => invalidateComments(),
   });
 
+  const { data: mentionData } = useQuery({
+    queryKey: ['mention-search', mentionQuery],
+    queryFn: () =>
+      api.get('/api/users/search', { params: { q: mentionQuery, friendsOnly: 'true' } })
+        .then(r => r.data),
+    enabled: typeof mentionQuery === 'string' && mentionQuery.length >= 2,
+    staleTime: 10000,
+  });
+  const mentionSuggestions = mentionData?.users || [];
+
   const handleSubmit = () => {
     const trimmed = commentText.trim();
     if (!trimmed) return;
@@ -91,7 +104,65 @@ export default function CommentThread({ targetType, targetId, user, isDemo, scro
     const username = comment.userSnapshot?.username || 'user';
     setReplyTo({ commentId: comment._id, username });
     setCommentText(`@${username} `);
+    setMentionQuery(null);
     inputRef.current?.focus();
+  };
+
+  const handleMentionInputChange = (e) => {
+    const val = e.target.value;
+    setCommentText(val);
+    const cursor = e.target.selectionStart;
+    const before = val.slice(0, cursor);
+    const m = before.match(/@([a-zA-Z0-9_]*)$/);
+    if (m) {
+      setMentionQuery(m[1]);
+      setMentionStart(m.index);
+    } else {
+      setMentionQuery(null);
+    }
+  };
+
+  const handleSelectMention = (user) => {
+    const cursor = inputRef.current?.selectionStart ?? commentText.length;
+    const before = commentText.slice(0, mentionStart);
+    const after = commentText.slice(cursor);
+    const inserted = `@${user.username} `;
+    setCommentText(`${before}${inserted}${after}`);
+    setMentionQuery(null);
+    setTimeout(() => {
+      const pos = mentionStart + inserted.length;
+      inputRef.current?.focus();
+      inputRef.current?.setSelectionRange(pos, pos);
+    }, 0);
+  };
+
+  const renderContent = (content) => {
+    const parts = content.split(/(@[a-zA-Z0-9_]+)/g);
+    if (parts.length === 1) return content;
+    return parts.map((part, i) => {
+      if (/^@[a-zA-Z0-9_]+$/.test(part)) {
+        const username = part.slice(1);
+        return (
+          <span
+            key={i}
+            onClick={async e => {
+              e.stopPropagation();
+              try {
+                const { data } = await api.get('/api/users/search', { params: { q: username } });
+                const match = data.users?.find(u => u.username === username);
+                if (match) navigate('/users/view', { state: { id: match._id } });
+              } catch (_) {}
+            }}
+            style={{ color: '#6b21a8', fontWeight: 600, cursor: 'pointer' }}
+            onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; }}
+            onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none'; }}
+          >
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
   };
 
   const renderCommentRow = (c, isReply = false) => {
@@ -192,7 +263,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo, scro
               )}
             </div>
           </div>
-          <p style={{ fontSize: '0.875rem', color: '#1f2937', lineHeight: 1.5 }}>{c.content}</p>
+          <p style={{ fontSize: '0.875rem', color: '#1f2937', lineHeight: 1.5 }}>{renderContent(c.content)}</p>
         </div>
       </div>
     );
@@ -342,29 +413,66 @@ export default function CommentThread({ targetType, targetId, user, isDemo, scro
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <AppAvatar name={fullName(user)} src={user?.avatarUrl} size="sm" />
             <div style={{ flex: 1, display: 'flex', gap: 8 }}>
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder={replyTo ? `Reply to @${replyTo.username}...` : 'Write a comment...'}
-                value={commentText}
-                onChange={e => setCommentText(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey && commentText.trim()) {
-                    e.preventDefault();
-                    handleSubmit();
-                  }
-                }}
-                style={{
-                  flex: 1,
-                  background: 'white',
-                  border: '1px solid #E5E7EB',
-                  borderRadius: 12,
-                  padding: '9px 14px',
-                  fontSize: '0.875rem',
-                  color: '#111827',
-                  outline: 'none',
-                }}
-              />
+              <div style={{ flex: 1, position: 'relative' }}>
+                {mentionSuggestions.length > 0 && mentionQuery !== null && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 'calc(100% + 4px)',
+                    left: 0,
+                    right: 0,
+                    background: 'white',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: 8,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    zIndex: 200,
+                    maxHeight: 200,
+                    overflowY: 'auto',
+                  }}>
+                    {mentionSuggestions.map(u => (
+                      <div
+                        key={u._id}
+                        onMouseDown={e => { e.preventDefault(); handleSelectMention(u); }}
+                        style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', gap: 8, alignItems: 'center' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#F9F5FF'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <AppAvatar name={`${u.firstName} ${u.lastName}`} src={u.avatarUrl} size="sm" />
+                        <div>
+                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>
+                            {u.firstName} {u.lastName}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>@{u.username}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder={replyTo ? `Reply to @${replyTo.username}...` : 'Write a comment...'}
+                  value={commentText}
+                  onChange={handleMentionInputChange}
+                  onKeyDown={e => {
+                    if (e.key === 'Escape') { setMentionQuery(null); return; }
+                    if (e.key === 'Enter' && !e.shiftKey && commentText.trim() && !mentionQuery) {
+                      e.preventDefault();
+                      handleSubmit();
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    background: 'white',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: 12,
+                    padding: '9px 14px',
+                    fontSize: '0.875rem',
+                    color: '#111827',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
               <Button
                 size="sm"
                 onClick={handleSubmit}

@@ -111,13 +111,31 @@ Pre-FCM correctness audit ensuring every notification type and activity event is
 **Known issue filed — fix in NOTIF-3:**
 - `like_added` message reads "Alex liked your comment" — should be "Alex liked a comment on your note" to match Instagram/Twitter/LinkedIn convention. Impacts FCM and email. See `docs/bugs/like-added-notification-wrong-subject.md`.
 
-### 4b. Notification & Activity Audit Fix (NOTIF-3)
-Fix the `like_added` message copy to match industry standard before FCM and email are wired.
-- [ ] `backend/controllers/comments.controller.js` — update `message` to "X liked a comment on your note/flashcard set/task"
-- [ ] `backend/scripts/seed-justin.js` + `seed-jane.js` — update `like_added` message strings to match
-- [ ] Web + Android display unchanged (both render `message` directly, fix is backend-only)
-- [ ] Re-run both seed scripts `--clean --no-ai`
-- [ ] Regression test: verify `like_added` notification shows correct text on both platforms
+### 4b. Notification & Activity Audit Fix (NOTIF-3) ✅
+Fixed `like_added` message copy and completed the full notification correctness pass.
+- [x] `like_added` message updated: "X liked a comment on your note/flashcard set/task"
+- [x] All `notify()` calls across all controllers updated to use full name (firstName + lastName)
+- [x] `comment_added` message now says "flashcard set" instead of "flashcardSet" when targetType is flashcardSet
+- [x] Actor name rendered as inline clickable link in notification items (web + Android) — name and action text flow as one paragraph
+- [x] Web + Android name-stripping logic falls back to firstName when message uses only firstName
+- [x] Re-ran both seed scripts `--clean --no-ai`; verified correct text in browser via Playwright
+
+### 4c. Notification & Activity Completeness ✅
+Full coverage of all notification types and activity events across web, Android, backend, and seed data.
+- [x] `task_completed` activity type added to Activity model, fires from `tasks.controller.js → updateStatus` when status transitions to `'completed'`
+- [x] Web `ActivityFeedItem.jsx` and Android `Social.kt` + `ActivityFeedScreen.kt` handle `task_completed`
+- [x] `mention` notification type added to Notification model; `addComment` detects `@username` patterns, looks up users, fires `mention` notifications (skips self + content owner already notified via `comment_added`)
+- [x] `mention` routing added to `resolveNav()` on web and Android — navigates to the parent resource with `commentId` for scroll-to
+- [x] All 8 notification types + `task_completed` + `mention` seeded for Justin and Jane
+- [x] Real `@username` comment documents created in seed for mention notifications (Marcus → Justin, Logan → Jane)
+- [x] Em dashes removed from all seed data files (seed-justin.js, seed-jane.js, seed-justin-data.js)
+- [x] 4 new notification tests (mention detection, no-self, no-duplicate-owner, full-name); all 25 pass
+
+### 4d. @Mention UX — Autocomplete + Clickable Rendering ✅
+Instagram-style @mention experience in comment threads.
+- [x] Backend `users/search` expanded to match firstName and lastName in addition to username and email
+- [x] Web `CommentThread.jsx`: typing `@` opens a live dropdown (name or username match); selecting inserts `@username`; `@username` in rendered comments is a clickable purple link that navigates to the user's profile
+- [x] Android `CommentThread.kt`: `@username` in rendered comments styled purple/bold and tappable via `ClickableText`; typing `@` shows a suggestion list (requires caller to pass `onSearchUsers`)
 
 ### 5. FCM Push Notifications
 Android only. Requires notification bell infrastructure above.

@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Note = require('../models/Note');
 const FlashcardSet = require('../models/FlashcardSet');
+const Friendship = require('../models/Friendship');
 const { getCachedStreak } = require('../services/studyStreak.service');
 
 // ============================================================
@@ -69,12 +70,24 @@ exports.searchUsers = async (req, res) => {
 
     const regex = new RegExp(escapeRegex(q.trim().slice(0, 100)), 'i');
 
-    const users = await User.find({
+    let baseFilter = {
         _id: { $ne: req.user._id },
         deletedAt: null,
         isSeedUser: { $ne: true },
-        $or: [{ username: regex }, { email: regex }],
-    })
+        $or: [{ username: regex }, { firstName: regex }, { lastName: regex }, { email: regex }],
+    };
+
+    if (req.query.friendsOnly === 'true') {
+        const friendships = await Friendship.find({
+            $or: [{ user1: req.user._id, status: 'accepted' }, { user2: req.user._id, status: 'accepted' }],
+        }).select('user1 user2').lean();
+        const friendIds = friendships.map(f =>
+            f.user1.toString() === req.user._id.toString() ? f.user2 : f.user1
+        );
+        baseFilter._id = { $ne: req.user._id, $in: friendIds };
+    }
+
+    const users = await User.find(baseFilter)
         .select('username firstName lastName avatarUrl roles')
         .limit(20);
 

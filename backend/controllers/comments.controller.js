@@ -193,13 +193,22 @@ exports.addComment = async (req, res) => {
     )];
     if (mentionedUsernames.length > 0) {
         try {
+            const friendships = await Friendship.find({
+                $or: [
+                    { user1: req.user._id, status: 'accepted' },
+                    { user2: req.user._id, status: 'accepted' },
+                ],
+            }).select('user1 user2').lean();
+            const friendIds = friendships.map(f =>
+                f.user1.toString() === req.user._id.toString() ? f.user2 : f.user1
+            );
             const mentionedUsers = await User.find({
                 username: { $in: mentionedUsernames },
-                _id: { $ne: req.user._id },
+                _id: { $in: friendIds },
             }).select('_id').lean();
             const alreadyNotified = new Set([
-                req.user._id.toString(),
-                ...(ownerId ? [ownerId] : []),
+                req.user._id.toString(),  // never mention yourself
+                ...(ownerId ? [ownerId] : []),  // owner already got comment_added
             ]);
             for (const u of mentionedUsers) {
                 if (alreadyNotified.has(u._id.toString())) continue;
