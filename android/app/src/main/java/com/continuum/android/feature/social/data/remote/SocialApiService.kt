@@ -40,6 +40,17 @@ interface SocialApiService {
     suspend fun searchUsers(@Query("q") query: String): UserSearchResponseDto
 
     @GET("users/search")
+    suspend fun searchFriends(
+        @Query("q") query: String,
+        @Query("friendsOnly") friendsOnly: Boolean = true
+    ): UserSearchResponseDto
+
+    @GET("users/search")
+    suspend fun searchFriendsAll(
+        @Query("friendsOnly") friendsOnly: Boolean = true
+    ): UserSearchResponseDto
+
+    @GET("users/search")
     suspend fun lookupByUsername(@Query("exactUsername") username: String): UserSearchResponseDto
 
     @GET("users/{userId}")

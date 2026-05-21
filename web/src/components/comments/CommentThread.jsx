@@ -86,10 +86,12 @@ export default function CommentThread({ targetType, targetId, user, isDemo, scro
 
   const { data: mentionData } = useQuery({
     queryKey: ['mention-search', mentionQuery],
-    queryFn: () =>
-      api.get('/users/search', { params: { q: mentionQuery, friendsOnly: 'true' } })
-        .then(r => r.data),
-    enabled: typeof mentionQuery === 'string' && mentionQuery.length >= 2,
+    queryFn: () => {
+      const params = { friendsOnly: 'true' };
+      if (mentionQuery) params.q = mentionQuery;
+      return api.get('/users/search', { params }).then(r => r.data);
+    },
+    enabled: mentionQuery !== null, // show immediately on @, no minimum
     staleTime: 10000,
   });
   const mentionSuggestions = mentionData?.users || [];

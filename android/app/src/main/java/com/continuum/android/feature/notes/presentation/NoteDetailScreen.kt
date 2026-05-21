@@ -318,6 +318,8 @@ fun NoteDetailScreen(
                             onLikeComment = { commentId -> socialViewModel.likeThreadComment(commentId) },
                             onDeleteComment = if (isDemo) null else { commentId -> socialViewModel.deleteThreadComment(commentId) },
                             onUserClick = onUserProfileClick,
+                            onSearchUsers = { q -> socialViewModel.searchFriendsForMention(q) },
+                            onLookupUsername = { u -> socialViewModel.lookupUserByUsername(u) },
                             isSending = commentsState.isSending,
                             readOnly = isDemo,
                             highlightCommentId = scrollToCommentId,

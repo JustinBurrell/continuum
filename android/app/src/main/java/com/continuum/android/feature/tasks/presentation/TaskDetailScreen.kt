@@ -156,6 +156,8 @@ fun TaskDetailScreen(
                         onLikeComment = { commentId -> socialVm.likeThreadComment(commentId) },
                         onDeleteComment = null,
                         onUserClick = { uid -> onUserProfileClick(uid) },
+                        onSearchUsers = { q -> socialVm.searchFriendsForMention(q) },
+                        onLookupUsername = { u -> socialVm.lookupUserByUsername(u) },
                         isSending = threadComments.isSending,
                         readOnly = isDemo,
                         modifier = Modifier.fillMaxWidth()

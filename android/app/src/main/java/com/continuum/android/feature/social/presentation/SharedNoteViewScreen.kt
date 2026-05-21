@@ -139,6 +139,8 @@ fun SharedNoteViewScreen(
                             onLikeComment = { commentId -> viewModel.likeThreadComment(commentId) },
                             onDeleteComment = if (isDemo) null else { commentId -> viewModel.deleteThreadComment(commentId) },
                             onUserClick = { userId -> onCommentAuthorClick(userId) },
+                            onSearchUsers = { q -> viewModel.searchFriendsForMention(q) },
+                            onLookupUsername = { u -> viewModel.lookupUserByUsername(u) },
                             isSending = commentsState.isSending,
                             readOnly = isDemo,
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)

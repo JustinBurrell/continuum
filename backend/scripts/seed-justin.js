@@ -1194,7 +1194,7 @@ async function seedReplies(justin, friends, justinNotes, justinSets, friendSetMa
       targetId: note._id,
       targetType: 'note',
       userId: replier._id,
-      content: r.content,
+      content: `@${commenter.username} ${r.content}`,
       parentId,
     });
 
@@ -1232,7 +1232,7 @@ async function seedReplies(justin, friends, justinNotes, justinSets, friendSetMa
       targetId: targetSet._id,
       targetType: 'flashcardSet',
       userId: replier._id,
-      content: r.content,
+      content: `@${commenter.username} ${r.content}`,
       parentId,
     });
 

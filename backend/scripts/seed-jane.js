@@ -622,12 +622,14 @@ async function seedComments(jane, friends, sharedNotes) {
 
     // Jane replies to the first comment on her shared notes (proper threaded reply)
     if (i < 8 && firstComment) {
+      const firstCommenter = friends.find(f => f._id.toString() === firstComment.userId.toString());
+      const mentionPrefix = firstCommenter ? `@${firstCommenter.username} ` : '';
       const reply = await Comment.create({
         targetId: note._id,
         targetType: 'note',
         userId: jane._id,
         parentId: firstComment._id,
-        content: noteCommentBank[Math.floor(Math.random() * noteCommentBank.length)].replace('These notes', 'Glad this helps').replace('Thank you', 'Of course'),
+        content: `${mentionPrefix}${noteCommentBank[Math.floor(Math.random() * noteCommentBank.length)].replace('These notes', 'Glad this helps').replace('Thank you', 'Of course')}`,
       });
       const replyLikers = allFriendIds.slice(0, 2);
       if (replyLikers.length) {

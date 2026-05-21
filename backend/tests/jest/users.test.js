@@ -246,6 +246,18 @@ describe('GET /api/users/search?friendsOnly=true (mention autocomplete)', () => 
     expect(usernames).toContain(bob.username);
   });
 
+  it('returns all friends with no query (Instagram-style immediate @mention list)', async () => {
+    const { alice, bob } = await makeFriends();
+
+    const res = await request(app)
+      .get('/api/users/search?friendsOnly=true')
+      .set('Authorization', `Bearer ${alice.token}`);
+
+    expect(res.statusCode).toBe(200);
+    const usernames = res.body.users.map(u => u.username);
+    expect(usernames).toContain(bob.username);
+  });
+
   it('excludes non-friends even if they match the query', async () => {
     const alice = await registerAndLogin({ username: 'aliceonly' });
     const stranger = await registerAndLogin({ username: 'alicestranger' });

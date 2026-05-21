@@ -242,6 +242,12 @@ class SocialViewModel @Inject constructor(
         _threadCommentsState.value = ThreadCommentsUiState()
     }
 
+    suspend fun searchFriendsForMention(query: String) =
+        repository.searchFriendsForMention(query)
+
+    suspend fun lookupUserByUsername(username: String) =
+        repository.lookupUserByUsername(username)
+
     fun addThreadComment(content: String, parentId: String?) {
         val t = _threadCommentsState.value.targetType ?: return
         val id = _threadCommentsState.value.targetId ?: return

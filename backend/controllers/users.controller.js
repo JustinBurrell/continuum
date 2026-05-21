@@ -72,22 +72,27 @@ exports.searchUsers = async (req, res) => {
     }
 
     const { q } = req.query;
+    const isFriendsOnly = req.query.friendsOnly === 'true';
+    const trimmedQ = (q || '').trim();
 
-    if (!q || q.trim().length < 2) {
+    // Non-friends search requires at least 2 chars; friends search works with any length
+    if (!isFriendsOnly && trimmedQ.length < 2) {
         return res.status(400).json({ success: false, error: 'Search query must be at least 2 characters' });
     }
-
-    const regex = new RegExp(escapeRegex(q.trim().slice(0, 100)), 'i');
-    const isFriendsOnly = req.query.friendsOnly === 'true';
 
     let baseFilter = {
         _id: { $ne: req.user._id },
         deletedAt: null,
         // Only filter out seed users in general search — friends-only search
-        // must include seed users since demo friends are seeded accounts
+        // must include seed friends (demo accounts are seeded)
         ...(!isFriendsOnly && { isSeedUser: { $ne: true } }),
-        $or: [{ username: regex }, { firstName: regex }, { lastName: regex }, { email: regex }],
     };
+
+    // Add text filter only when there is a query
+    if (trimmedQ.length >= 1) {
+        const regex = new RegExp(escapeRegex(trimmedQ.slice(0, 100)), 'i');
+        baseFilter.$or = [{ username: regex }, { firstName: regex }, { lastName: regex }, { email: regex }];
+    }
 
     if (isFriendsOnly) {
         const friendships = await Friendship.find({

@@ -78,9 +78,14 @@ class SocialRepository @Inject constructor(
         api.searchUsers(query).users.map { it.toDomain() }
     }
 
-    suspend fun lookupUserByUsername(username: String): Result<List<UserSearchResult>> = runCatching {
+    suspend fun searchFriendsForMention(query: String): List<UserSearchResult> = runCatching {
+        if (query.isBlank()) api.searchFriendsAll().users.map { it.toDomain() }
+        else api.searchFriends(query).users.map { it.toDomain() }
+    }.getOrDefault(emptyList())
+
+    suspend fun lookupUserByUsername(username: String): List<UserSearchResult> = runCatching {
         api.lookupByUsername(username).users.map { it.toDomain() }
-    }
+    }.getOrDefault(emptyList())
 
     suspend fun getSharedNote(noteId: String): Result<SharedNote> = runCatching {
         val note = notesApi.getNoteById(noteId).note
