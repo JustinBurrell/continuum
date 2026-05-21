@@ -768,7 +768,7 @@ exports.shareNote = async (req, res) => {
                 type: 'share_received',
                 targetId: note._id,
                 targetType: 'note',
-                message: `${req.user.firstName} shared a note with you: "${note.title}"`,
+                message: `${req.user.firstName} ${req.user.lastName} shared a note with you: "${note.title}"`,
             }).catch(() => {});
         }
         // Notify shared users in real-time + bust their caches

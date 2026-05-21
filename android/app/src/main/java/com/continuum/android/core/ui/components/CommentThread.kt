@@ -1,8 +1,11 @@
 package com.continuum.android.core.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -11,15 +14,25 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.social.domain.Comment
+import com.continuum.android.feature.social.domain.UserSearchResult
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CommentThread(
     comments: List<Comment>,
@@ -27,6 +40,8 @@ fun CommentThread(
     onLikeComment: (commentId: String) -> Unit,
     onDeleteComment: ((commentId: String) -> Unit)? = null,
     onUserClick: ((userId: String) -> Unit)? = null,
+    onSearchUsers: (suspend (String) -> List<UserSearchResult>)? = null,
+    onLookupUsername: (suspend (String) -> List<UserSearchResult>)? = null,
     isSending: Boolean = false,
     readOnly: Boolean = false,
     highlightCommentId: String? = null,
@@ -35,6 +50,29 @@ fun CommentThread(
 ) {
     var newComment by remember { mutableStateOf("") }
     var replyingTo by remember { mutableStateOf<String?>(null) }
+    var replyingToUsername by remember { mutableStateOf<String?>(null) }
+    var mentionQuery by remember { mutableStateOf<String?>(null) }
+    var mentionStart by remember { mutableStateOf(0) }
+    var mentionSuggestions by remember { mutableStateOf<List<UserSearchResult>>(emptyList()) }
+    val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+
+    // When reply is activated, focus the input and scroll it into view
+    LaunchedEffect(replyingTo) {
+        if (replyingTo != null) {
+            focusRequester.requestFocus()
+            delay(100) // allow keyboard animation to begin
+            bringIntoViewRequester.bringIntoView()
+        }
+    }
+
+    LaunchedEffect(mentionQuery) {
+        val q = mentionQuery
+        mentionSuggestions = if (q != null && onSearchUsers != null) {
+            onSearchUsers(q)
+        } else emptyList()
+    }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         Text(
@@ -48,9 +86,18 @@ fun CommentThread(
             CommentItem(
                 comment = comment,
                 onLike = { onLikeComment(comment.id) },
-                onReply = if (readOnly) null else { { replyingTo = comment.id } },
+                onReply = if (readOnly) null else { {
+                    replyingTo = comment.id
+                    replyingToUsername = comment.authorUsername
+                    if (comment.authorUsername != null) {
+                        newComment = "@${comment.authorUsername} "
+                    }
+                } },
                 onDelete = if (readOnly) null else onDeleteComment?.let { { it(comment.id) } },
                 onUserClick = onUserClick?.let { nav -> comment.authorId?.let { { nav(it) } } },
+                onMentionUserClick = onUserClick,
+                onSearchUsers = onSearchUsers,
+                onLookupUsername = onLookupUsername,
                 readOnly = readOnly,
                 depth = 0,
                 isHighlighted = highlightCommentId == comment.id,
@@ -63,6 +110,9 @@ fun CommentThread(
                     onReply = null,
                     onDelete = if (readOnly) null else onDeleteComment?.let { { it(reply.id) } },
                     onUserClick = onUserClick?.let { nav -> reply.authorId?.let { { nav(it) } } },
+                    onMentionUserClick = onUserClick,
+                    onSearchUsers = onSearchUsers,
+                    onLookupUsername = onLookupUsername,
                     readOnly = readOnly,
                     depth = 1,
                     isHighlighted = highlightCommentId == reply.id,
@@ -77,9 +127,13 @@ fun CommentThread(
                     Modifier.padding(horizontal = Spacing.sm, vertical = Spacing.xs),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Replying to comment", style = MaterialTheme.typography.labelSmall, color = BrandPurple)
+                    Text(
+                        if (replyingToUsername != null) "Replying to @$replyingToUsername" else "Replying to comment",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = BrandPurple
+                    )
                     Spacer(Modifier.width(Spacing.xs))
-                    IconButton(onClick = { replyingTo = null }, modifier = Modifier.size(16.dp)) {
+                    IconButton(onClick = { replyingTo = null; replyingToUsername = null; newComment = "" }, modifier = Modifier.size(16.dp)) {
                         Icon(Icons.Default.Close, "Cancel reply", tint = BrandPurple, modifier = Modifier.size(14.dp))
                     }
                 }
@@ -87,15 +141,70 @@ fun CommentThread(
         }
 
         if (!readOnly) {
+            // Mention suggestion list
+            if (mentionSuggestions.isNotEmpty() && mentionQuery != null) {
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    tonalElevation = 4.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column {
+                        mentionSuggestions.take(5).forEach { user ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        val before = newComment.slice(0 until mentionStart)
+                                        val inserted = "@${user.username} "
+                                        newComment = before + inserted
+                                        mentionQuery = null
+                                        mentionSuggestions = emptyList()
+                                    }
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                AvatarInitials(name = user.fullName, size = 28.dp)
+                                Column {
+                                    Text(user.fullName, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                                    Text("@${user.username}", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 OutlinedTextField(
                     value = newComment,
-                    onValueChange = { newComment = it },
+                    onValueChange = { newValue ->
+                        newComment = newValue
+                        val lastAt = newValue.lastIndexOf('@')
+                        if (lastAt >= 0) {
+                            val afterAt = newValue.substring(lastAt + 1)
+                            if (afterAt.none { it.isWhitespace() } &&
+                                afterAt.all { it.isLetterOrDigit() || it == '_' }
+                            ) {
+                                mentionQuery = afterAt
+                                mentionStart = lastAt
+                            } else {
+                                mentionQuery = null
+                                mentionSuggestions = emptyList()
+                            }
+                        } else {
+                            mentionQuery = null
+                            mentionSuggestions = emptyList()
+                        }
+                    },
                     placeholder = { Text("Add a comment…") },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(focusRequester)
+                        .bringIntoViewRequester(bringIntoViewRequester),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = BrandPurple,
@@ -109,6 +218,7 @@ fun CommentThread(
                             onAddComment(newComment.trim(), replyingTo)
                             newComment = ""
                             replyingTo = null
+                            replyingToUsername = null
                         }
                     },
                     enabled = newComment.isNotBlank() && !isSending
@@ -131,11 +241,15 @@ private fun CommentItem(
     onReply: (() -> Unit)?,
     onDelete: (() -> Unit)?,
     onUserClick: (() -> Unit)?,
+    onMentionUserClick: ((userId: String) -> Unit)? = null,
+    onSearchUsers: (suspend (String) -> List<UserSearchResult>)? = null,
+    onLookupUsername: (suspend (String) -> List<UserSearchResult>)? = null,
     readOnly: Boolean,
     depth: Int,
     isHighlighted: Boolean = false,
     onPositioned: ((commentId: String, absoluteY: Float) -> Unit)? = null
 ) {
+    val scope = rememberCoroutineScope()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -174,7 +288,42 @@ private fun CommentItem(
                 }
                 Text(comment.createdAt.toDisplayDate(), style = MaterialTheme.typography.labelSmall, color = TextMuted)
             }
-            Text(comment.content, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            val mentionRegex = Regex("@([a-zA-Z0-9_]+)")
+            val hasMentions = mentionRegex.containsMatchIn(comment.content)
+            if (hasMentions) {
+                val annotated = buildAnnotatedString {
+                    var lastEnd = 0
+                    for (match in mentionRegex.findAll(comment.content)) {
+                        if (match.range.first > lastEnd)
+                            append(comment.content.substring(lastEnd, match.range.first))
+                        pushStringAnnotation("mention", match.groupValues[1])
+                        withStyle(SpanStyle(color = BrandPurple, fontWeight = FontWeight.SemiBold)) {
+                            append(match.value)
+                        }
+                        pop()
+                        lastEnd = match.range.last + 1
+                    }
+                    if (lastEnd < comment.content.length)
+                        append(comment.content.substring(lastEnd))
+                }
+                ClickableText(
+                    text = annotated,
+                    style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary),
+                    onClick = { offset ->
+                        annotated.getStringAnnotations("mention", offset, offset)
+                            .firstOrNull()?.let { ann ->
+                                scope.launch {
+                                    val lookup = onLookupUsername ?: onSearchUsers ?: return@launch
+                                    val results = lookup(ann.item)
+                                    results.firstOrNull()?.id
+                                        ?.let { onMentionUserClick?.invoke(it) }
+                                }
+                            }
+                    }
+                )
+            } else {
+                Text(comment.content, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (readOnly) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

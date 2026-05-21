@@ -78,6 +78,15 @@ class SocialRepository @Inject constructor(
         api.searchUsers(query).users.map { it.toDomain() }
     }
 
+    suspend fun searchFriendsForMention(query: String): List<UserSearchResult> = runCatching {
+        if (query.isBlank()) api.searchFriendsAll().users.map { it.toDomain() }
+        else api.searchFriends(query).users.map { it.toDomain() }
+    }.getOrDefault(emptyList())
+
+    suspend fun lookupUserByUsername(username: String): List<UserSearchResult> = runCatching {
+        api.lookupByUsername(username).users.map { it.toDomain() }
+    }.getOrDefault(emptyList())
+
     suspend fun getSharedNote(noteId: String): Result<SharedNote> = runCatching {
         val note = notesApi.getNoteById(noteId).note
         val flat = api.getComments("note", noteId).comments
@@ -315,6 +324,7 @@ class SocialRepository @Inject constructor(
             id = id,
             authorId = userId,
             authorName = authorName,
+            authorUsername = snap?.username,
             authorAvatar = snap?.avatarUrl,
             authorRoles = snap?.roles ?: emptyList(),
             content = content,

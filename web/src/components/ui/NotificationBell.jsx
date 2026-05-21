@@ -49,6 +49,12 @@ export function resolveNav(notif) {
         if (resourceType === 'task')         return { to: '/tasks',           state: { openTaskId: resourceId, commentId } };
         return { to: '/activity', state: null };
     }
+    if (type === 'mention') {
+        if (resourceType === 'note')         return { to: '/notes/view',     state: { id: resourceId, commentId } };
+        if (resourceType === 'flashcardSet') return { to: '/flashcards/view', state: { id: resourceId, commentId } };
+        if (resourceType === 'task')         return { to: '/tasks',           state: { openTaskId: resourceId, commentId } };
+        return { to: '/activity', state: null };
+    }
     return { to: '/activity', state: null };
 }
 
@@ -306,30 +312,29 @@ function NotifItem({ notif, onClick }) {
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
-                {/* Actor name — clickable link to profile */}
-                {actor && (
-                    <span
-                        onClick={e => e.stopPropagation()}
-                        style={{ display: 'block', marginBottom: 2 }}
-                    >
-                        <Link
-                            to="/users/view"
-                            state={{ id: actor._id }}
-                            style={{
-                                fontSize: 12,
-                                fontWeight: 600,
-                                color: '#6b21a8',
-                                textDecoration: 'none',
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
-                            onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
-                        >
-                            {actorName}
-                        </Link>
-                    </span>
-                )}
                 <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.4 }}>
-                    {notif.message}
+                    {actor ? (
+                        <>
+                            <span onClick={e => e.stopPropagation()}>
+                                <Link
+                                    to="/users/view"
+                                    state={{ id: actor._id }}
+                                    style={{
+                                        fontWeight: 600,
+                                        color: '#6b21a8',
+                                        textDecoration: 'none',
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                                    onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+                                >
+                                    {actorName}
+                                </Link>
+                            </span>
+                            {notif.message.startsWith(actorName)
+                                ? notif.message.slice(actorName.length)
+                                : notif.message.slice((actor.firstName || '').length)}
+                        </>
+                    ) : notif.message}
                 </p>
                 {(notif.metadata?.commentPreview || notif.metadata?.messagePreview) && (
                     <p style={{

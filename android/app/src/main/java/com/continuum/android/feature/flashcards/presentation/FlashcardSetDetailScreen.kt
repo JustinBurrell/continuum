@@ -304,6 +304,8 @@ fun FlashcardSetDetailScreen(
                                 onLikeComment = { commentId -> socialViewModel.likeThreadComment(commentId) },
                                 onDeleteComment = { commentId -> socialViewModel.deleteThreadComment(commentId) },
                                 onUserClick = onUserProfileClick,
+                                onSearchUsers = { q -> socialViewModel.searchFriendsForMention(q) },
+                                onLookupUsername = { u -> socialViewModel.lookupUserByUsername(u) },
                                 isSending = commentsState.isSending,
                                 highlightCommentId = scrollToCommentId,
                                 onCommentPositioned = { _, y ->

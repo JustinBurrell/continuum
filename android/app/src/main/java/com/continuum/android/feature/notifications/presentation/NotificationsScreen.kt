@@ -3,6 +3,7 @@ package com.continuum.android.feature.notifications.presentation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,7 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -82,6 +86,16 @@ fun resolveNav(notification: Notification): String {
             when (notification.resourceType) {
                 "note" -> NavRoutes.Notes.detail(resourceId, commentId = notification.commentId)
                 "flashcardSet" -> NavRoutes.Flashcards.setDetail(resourceId, commentId = notification.commentId)
+                else -> ""
+            }
+        }
+        "mention" -> {
+            // targetId is the comment; resourceId/resourceType hold the parent resource
+            val resourceId = notification.resourceId ?: return ""
+            when (notification.resourceType) {
+                "note" -> NavRoutes.Notes.detail(resourceId, commentId = notification.commentId)
+                "flashcardSet" -> NavRoutes.Flashcards.setDetail(resourceId, commentId = notification.commentId)
+                "task" -> NavRoutes.Tasks.detail(resourceId)
                 else -> ""
             }
         }
@@ -282,29 +296,37 @@ private fun NotificationItemRow(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(3.dp)
             ) {
-                // Actor name row with role badges
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = notification.actorName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = BrandPurple,
-                        modifier = Modifier.clickable(onClick = onActorClick)
-                    )
-                    if (notification.actorRoles.isNotEmpty()) {
-                        VerifiedRoleBadges(roles = notification.actorRoles, expanded = false)
+                // Actor name (tappable) + action text as a single flowing text block
+                val firstName = notification.actorName.substringBefore(' ')
+                val actionText = notification.message.run {
+                    when {
+                        startsWith(notification.actorName) -> removePrefix(notification.actorName).trimStart()
+                        startsWith(firstName) -> removePrefix(firstName).trimStart()
+                        else -> this
                     }
                 }
-
-                // Message text (action description)
-                Text(
-                    text = notification.message,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (!notification.read) TextPrimary else TextSecondary
+                val annotatedMessage = buildAnnotatedString {
+                    pushStringAnnotation("actor", "click")
+                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = BrandPurple)) {
+                        append(notification.actorName)
+                    }
+                    pop()
+                    append(' ')
+                    append(actionText)
+                }
+                ClickableText(
+                    text = annotatedMessage,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = if (!notification.read) TextPrimary else TextSecondary
+                    ),
+                    onClick = { offset ->
+                        annotatedMessage.getStringAnnotations("actor", offset, offset)
+                            .firstOrNull()?.let { onActorClick() }
+                    }
                 )
+                if (notification.actorRoles.isNotEmpty()) {
+                    VerifiedRoleBadges(roles = notification.actorRoles, expanded = false)
+                }
 
                 // Preview text: comment content or actual message body
                 val previewText = notification.commentPreview ?: notification.messagePreview

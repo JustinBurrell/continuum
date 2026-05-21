@@ -1,9 +1,9 @@
 // =============================================================================
-// seed.js — Demo data seeder for Continuum
+// seed.js - Demo data seeder for Continuum
 // =============================================================================
 //
 // Usage:
-//   node backend/scripts/seed.js           # idempotent — skips if data exists
+//   node backend/scripts/seed.js           # idempotent - skips if data exists
 //   node backend/scripts/seed.js --clean   # wipes seed data and reseeds
 //   node backend/scripts/seed.js --no-ai   # skips Groq calls, uses fallbacks
 // =============================================================================
@@ -237,7 +237,7 @@ const JANE_FRIEND_USERNAMES = [
 async function cleanSeedData(justinId) {
   console.log('Cleaning seed data...');
 
-  // Find ALL seed users by flag — works regardless of current username, handling
+  // Find ALL seed users by flag - works regardless of current username, handling
   // migration from old usernames (e.g. 'sofiarod' → 'sofiarod_demo').
   // Exclude Justin and Jane's friends (identified by their stable emails).
   const janeFriendEmails = JANE_FRIEND_USERNAMES.map(u => `${u}@example.com`);
@@ -264,7 +264,7 @@ async function cleanSeedData(justinId) {
   await Task.deleteMany({ userId: justinId });
   // Delete all friend-owned tasks where Justin is a participant.
   // Targeting by participant covers orphans from prior seed runs where friend
-  // users were recreated with new _ids — seedIds only holds current users.
+  // users were recreated with new _ids - seedIds only holds current users.
   await Task.deleteMany({ 'participants.userId': justinId, userId: { $ne: justinId } });
   await Application.deleteMany({ userId: justinId });
   await Comment.deleteMany({ userId: { $in: allIds } });
@@ -527,7 +527,7 @@ async function seedJustinFlashcardSets(justin, justinNotes) {
   console.log('Seeding Justin\'s flashcard sets...');
   const allSets = [];
 
-  // AI-generated sets (10) — linked to notes
+  // AI-generated sets (10) - linked to notes
   const aiSetDefs = [
     { title: 'Dynamic Programming Concepts', noteIndex: 0, visibility: 'friends' },
     { title: 'OS Scheduling Algorithms', noteIndex: 1, visibility: 'friends' },
@@ -589,7 +589,7 @@ async function seedJustinFlashcardSets(justin, justinNotes) {
     console.log(`  AI Set ${i}: ${def.title} (${cards.length} cards)`);
   }
 
-  // Manual sets (10) — no linked note
+  // Manual sets (10) - no linked note
   for (let i = 0; i < seedData.manualFlashcardSets.length; i++) {
     const ms = seedData.manualFlashcardSets[i];
 
@@ -891,7 +891,7 @@ async function seedApplications(justin) {
     { company: 'Twitter/X', position: 'Software Engineering Intern', location: 'San Francisco, CA', status: 'draft', notes: 'Research recent engineering blog posts.' },
     { company: 'Salesforce', position: 'Software Engineering Intern', location: 'San Francisco, CA', status: 'draft', notes: 'Check if they have a cloud infrastructure team.' },
     { company: 'Adobe', position: 'Software Engineering Intern', location: 'San Jose, CA', status: 'draft', notes: 'Creative Cloud or Document Cloud team preferred.' },
-    { company: 'Robinhood', position: 'Software Engineering Intern', location: 'Menlo Park, CA', status: 'draft', notes: 'Fintech angle — mention Marcus finance connection.' },
+    { company: 'Robinhood', position: 'Software Engineering Intern', location: 'Menlo Park, CA', status: 'draft', notes: 'Fintech angle, mention Marcus finance connection.' },
     // applied (8)
     { company: 'Meta', position: 'Software Engineering Intern', location: 'Menlo Park, CA', status: 'applied', appliedAt: '2026-02-02', notes: 'Applied to Infrastructure team. Heard back takes 2-4 weeks.' },
     { company: 'Microsoft', position: 'Software Engineering Intern', location: 'Redmond, WA', status: 'applied', appliedAt: '2026-02-05', notes: 'Applied to Azure team. Got auto-confirmation email.' },
@@ -1116,16 +1116,16 @@ async function seedComments(justin, friends, justinNotes, friendNoteMap, justinS
   // Comments on shared tasks (from participants + Justin)
   const sharedTasks = tasks.filter(t => t.isShared);
   const taskCommentPool = [
-    "Making solid progress on this — let's sync before the due date.",
+    "Making solid progress on this. Let's sync before the due date.",
     "I added some notes to the shared doc. Check the third section.",
     "This is due sooner than I thought. Can we meet Tuesday evening?",
     "Just pushed my part. Needs review before we submit.",
     "Anyone want to do a quick 30-min call to divide the remaining work?",
     "I finished my section. Going to take another pass tonight.",
-    "Looking great so far — I think we're ahead of schedule!",
+    "Looking great so far, I think we're ahead of schedule!",
     "Left some comments inline. Nothing major, just a few suggestions.",
     "Can we move the deadline back by two days? I have an exam Thursday.",
-    "This is actually really interesting work — glad we teamed up.",
+    "This is actually really interesting work, glad we teamed up.",
     "Let's use the library room Friday at 3pm to finish this up.",
     "I created a shared doc for the outline. Dropping the link in DM.",
   ];
@@ -1194,7 +1194,7 @@ async function seedReplies(justin, friends, justinNotes, justinSets, friendSetMa
       targetId: note._id,
       targetType: 'note',
       userId: replier._id,
-      content: r.content,
+      content: `@${commenter.username} ${r.content}`,
       parentId,
     });
 
@@ -1232,7 +1232,7 @@ async function seedReplies(justin, friends, justinNotes, justinSets, friendSetMa
       targetId: targetSet._id,
       targetType: 'flashcardSet',
       userId: replier._id,
-      content: r.content,
+      content: `@${commenter.username} ${r.content}`,
       parentId,
     });
 
@@ -1249,7 +1249,7 @@ async function seedReplies(justin, friends, justinNotes, justinSets, friendSetMa
   console.log(`  Created ${count} replies.`);
 }
 
-// ─── SECTION 10b: Extra Comments — ensures every visible piece of content ────
+// ─── SECTION 10b: Extra Comments - ensures every visible piece of content ────
 // has at least some engagement (comments from Justin and/or friends)
 
 async function seedExtraComments(justin, friends, justinNotes, friendNoteMap, justinSets, friendSetMap, tasks) {
@@ -1389,7 +1389,7 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
     const ts = bumpDate();
 
     if (specificNoteIndices.includes(i)) {
-      // Specific friends — sharer sees names, each recipient sees "with you"
+      // Specific friends - sharer sees names, each recipient sees "with you"
       await Activity.create({
         userId: justin._id,
         type: 'note_shared',
@@ -1413,7 +1413,7 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
         count++;
       }
     } else {
-      // Friends visibility — single activity with sharedWithAll
+      // Friends visibility - single activity with sharedWithAll
       await Activity.create({
         userId: justin._id,
         type: 'note_shared',
@@ -1444,7 +1444,7 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
     count++;
   }
 
-  // Shared task activity — shared with Alex Chen specifically
+  // Shared task activity - shared with Alex Chen specifically
   const sharedTask = tasks.find(t => t.isShared);
   if (sharedTask) {
     const alex = friends.find(f => f.username === 'alexchen_cs');
@@ -1475,6 +1475,21 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
     }
   }
 
+  // Justin's task_completed activities - completed tasks visible to friends
+  const completedTasks = tasks.filter(t => t.status === 'completed').slice(0, 3);
+  for (const task of completedTasks) {
+    await Activity.create({
+      userId: justin._id,
+      type: 'task_completed',
+      targetId: task._id,
+      targetType: 'task',
+      visibleTo: [justin._id, ...allFriendIds],
+      metadata: { taskTitle: task.title },
+      createdAt: bumpDate(),
+    });
+    count++;
+  }
+
   // Justin's note_created activities for friends-visible notes
   const friendsNoteIndices = [11, 12, 13, 14]; // React Hooks, Git Workflow, System Design, UNIX
   for (const i of friendsNoteIndices) {
@@ -1492,7 +1507,7 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
     count++;
   }
 
-  // Justin's comment activities (pick 5 — ambient social signal)
+  // Justin's comment activities (pick 5 - ambient social signal)
   const justinComments = comments.filter(c => c.userId.equals(justin._id)).slice(0, 5);
   for (const comment of justinComments) {
     await Activity.create({
@@ -1507,7 +1522,7 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
     count++;
   }
 
-  // Friends' activities — what each friend is CREATING and DOING.
+  // Friends' activities - what each friend is CREATING and DOING.
   // Respects activityVisibility: 'private' friends' activities are only visible to themselves.
   const friendVisibility = {};
   for (const sf of SEED_FRIENDS) friendVisibility[sf.username] = sf.settings?.activityVisibility ?? 'friends';
@@ -1518,12 +1533,12 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
     const otherFriendIds = allFriendIds.filter(id => !id.equals(friend._id));
     const isPrivate = friendVisibility[friend.username] === 'private';
 
-    // If private, activities only go to themselves — Justin won't see them in his feed
+    // If private, activities only go to themselves - Justin won't see them in his feed
     const visibleToAll = isPrivate
       ? [friend._id]
       : [friend._id, justin._id, ...otherFriendIds];
 
-    // note_created: friends see "Alex created a note" (not share — creation)
+    // note_created: friends see "Alex created a note" (not share - creation)
     if (fNotes) {
       for (const fNote of fNotes) {
         await Activity.create({
@@ -1578,7 +1593,7 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
       count++;
     }
 
-    // comment_added: ambient social signal — friend engaging with content
+    // comment_added: ambient social signal - friend engaging with content
     const friendComments = comments.filter(c => c.userId.equals(friend._id)).slice(0, 3);
     for (const fc of friendComments) {
       await Activity.create({
@@ -1718,7 +1733,7 @@ async function seedStudySessions(justin, justinSets) {
     const cards = await Flashcard.find({ setId: set._id, deletedAt: null }).lean();
     if (!cards.length) continue;
 
-    // Build card results — slightly improving performance over days
+    // Build card results - slightly improving performance over days
     const correctRate = 0.5 + (i / sessionDays.length) * 0.4; // 50% → 90%
     const cardResults = cards.slice(0, Math.min(cards.length, 8)).map(card => ({
       cardId: card._id,
@@ -1804,6 +1819,25 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
     maya && c.participants.some(p => p.toString() === maya._id.toString())
   );
 
+  // Extra lookups for full 8-type notification coverage
+  const alexNote = alex && await Note.findOne({ userId: alex._id, visibility: { $in: ['friends', 'specific'] } }).lean();
+  const mayaSet = maya && await FlashcardSet.findOne({ userId: maya._id, visibility: { $in: ['friends', 'specific'] } }).lean();
+  const sharedTask = await Task.findOne({ userId: justin._id, 'participants.0': { $exists: true } }).lean();
+  const justinOwnComments = await Comment.find({ userId: justin._id, parentId: { $exists: false } }, '_id targetId targetType content').lean().limit(20);
+  const replyToJustin = justinOwnComments.length > 0
+    ? await Comment.findOne({ parentId: { $in: justinOwnComments.map(c => c._id) }, userId: { $ne: justin._id } }).lean()
+    : null;
+  const replyToJustinParent = replyToJustin && justinOwnComments.find(c => c._id.toString() === replyToJustin.parentId?.toString());
+  const replyAuthor = replyToJustin && friends.find(f => f._id.toString() === replyToJustin.userId?.toString());
+
+  // Create a real comment from Marcus that @mentions Justin, for the mention notification
+  const marcusMentionComment = marcus && dpNote && await Comment.create({
+    targetId: dpNote._id,
+    targetType: 'note',
+    userId: marcus._id,
+    content: `@${justin.username} this approach is exactly what I was looking for, thanks for sharing.`,
+  }).catch(() => null);
+
   const entries = [
     // Today (unread)
     alex && dpNote && {
@@ -1812,7 +1846,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'comment_added',
       targetId: dpNote._id,
       targetType: 'note',
-      message: `Alex commented on your note: "Dynamic Programming: From Recursion to Optimization"`,
+      message: `Alex Chen commented on your note: "Dynamic Programming: From Recursion to Optimization"`,
       metadata: alexCommentOnDp ? { commentPreview: alexCommentOnDp.content.slice(0, 120), commentId: alexCommentOnDp._id.toString() } : undefined,
       read: false,
       createdAt: hoursAgo(1),
@@ -1823,7 +1857,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'like_added',
       targetId: justinReply._id,
       targetType: 'comment',
-      message: 'Marcus liked your comment',
+      message: 'Marcus Johnson liked a comment on your note',
       metadata: justinReply ? { commentPreview: justinReply.content?.slice(0, 120), commentId: justinReply._id.toString(), resourceId: justinReply.targetId?.toString(), resourceType: justinReply.targetType } : undefined,
       read: false,
       createdAt: hoursAgo(3),
@@ -1834,10 +1868,53 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'new_message',
       targetId: alexConv._id,
       targetType: 'conversation',
-      message: 'Alex sent you a message',
+      message: 'Alex Chen sent you a message',
       metadata: { messagePreview: 'Hey! Did you finish reviewing the dynamic programming notes?' },
       read: false,
       createdAt: hoursAgo(5),
+    },
+    // comment_reply - a friend replied to one of Justin's comments
+    (replyAuthor && replyToJustin && replyToJustinParent) ? {
+      userId: justin._id,
+      actorId: replyAuthor._id,
+      type: 'comment_reply',
+      targetId: replyToJustin.parentId,
+      targetType: 'comment',
+      message: `${replyAuthor.firstName} ${replyAuthor.lastName} replied to your comment`,
+      metadata: {
+        commentPreview: replyToJustin.content?.slice(0, 120),
+        commentId: replyToJustin._id.toString(),
+        resourceId: replyToJustinParent.targetId?.toString(),
+        resourceType: replyToJustinParent.targetType,
+      },
+      read: false,
+      createdAt: hoursAgo(7),
+    } : sofia && justinReply && {
+      userId: justin._id,
+      actorId: sofia._id,
+      type: 'comment_reply',
+      targetId: justinReply.parentId || justinReply._id,
+      targetType: 'comment',
+      message: 'Sofia Rodriguez replied to your comment',
+      metadata: {
+        commentPreview: 'Totally agree, the base case breakdown here is the clearest I have seen.',
+        commentId: justinReply._id.toString(),
+        resourceId: justinReply.targetId?.toString(),
+        resourceType: justinReply.targetType,
+      },
+      read: false,
+      createdAt: hoursAgo(7),
+    },
+    // task_assigned - a shared task attributed to Alex
+    alex && sharedTask && {
+      userId: justin._id,
+      actorId: alex._id,
+      type: 'task_assigned',
+      targetId: sharedTask._id,
+      targetType: 'task',
+      message: `${alex.firstName} ${alex.lastName} assigned you to a task: "${sharedTask.title}"`,
+      read: false,
+      createdAt: hoursAgo(9),
     },
     // This week (mix)
     maya && nnNote && {
@@ -1846,10 +1923,21 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'comment_added',
       targetId: nnNote._id,
       targetType: 'note',
-      message: `Maya commented on your note: "Neural Networks & Deep Learning: Architecture Overview"`,
+      message: `Maya Patel commented on your note: "Neural Networks & Deep Learning: Architecture Overview"`,
       metadata: mayaCommentOnNn ? { commentPreview: mayaCommentOnNn.content.slice(0, 120), commentId: mayaCommentOnNn._id.toString() } : undefined,
       read: false,
       createdAt: daysAgo(2),
+    },
+    // share_received (note) - Alex shared a note with Justin
+    alex && alexNote && {
+      userId: justin._id,
+      actorId: alex._id,
+      type: 'share_received',
+      targetId: alexNote._id,
+      targetType: 'note',
+      message: `${alex.firstName} ${alex.lastName} shared a note with you: "${alexNote.title}"`,
+      read: false,
+      createdAt: daysAgo(3),
     },
     sofia && justinReply && {
       userId: justin._id,
@@ -1857,20 +1945,32 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'like_added',
       targetId: justinReply._id,
       targetType: 'comment',
-      message: 'Sofia liked your comment',
+      message: 'Sofia Rodriguez liked a comment on your note',
       metadata: justinReply ? { commentPreview: justinReply.content?.slice(0, 120), commentId: justinReply._id.toString(), resourceId: justinReply.targetId?.toString(), resourceType: justinReply.targetType } : undefined,
       read: true,
       readAt: daysAgo(4),
       createdAt: daysAgo(5),
     },
     // This month (read)
+    // share_received (flashcardSet) - Maya shared a flashcard set with Justin
+    maya && mayaSet && {
+      userId: justin._id,
+      actorId: maya._id,
+      type: 'share_received',
+      targetId: mayaSet._id,
+      targetType: 'flashcardSet',
+      message: `${maya.firstName} ${maya.lastName} shared a flashcard set with you: "${mayaSet.title}"`,
+      read: true,
+      readAt: daysAgo(8),
+      createdAt: daysAgo(9),
+    },
     jordan && dpNote && {
       userId: justin._id,
       actorId: jordan._id,
       type: 'comment_added',
       targetId: dpNote._id,
       targetType: 'note',
-      message: `Jordan commented on your note: "Dynamic Programming: From Recursion to Optimization"`,
+      message: `Jordan Williams commented on your note: "Dynamic Programming: From Recursion to Optimization"`,
       metadata: jordanCommentOnDp ? { commentPreview: jordanCommentOnDp.content.slice(0, 120), commentId: jordanCommentOnDp._id.toString() } : undefined,
       read: true,
       readAt: daysAgo(12),
@@ -1882,7 +1982,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'new_message',
       targetId: mayaConv?._id || dpNote._id,
       targetType: mayaConv ? 'conversation' : 'note',
-      message: 'Maya sent you a message',
+      message: 'Maya Patel sent you a message',
       metadata: { messagePreview: 'The neural network architecture section is really well explained!' },
       read: true,
       readAt: daysAgo(10),
@@ -1894,10 +1994,28 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'friend_accepted',
       targetId: justin._id,
       targetType: 'friendship',
-      message: 'Priya accepted your friend request',
+      message: 'Priya Sharma accepted your friend request',
       read: true,
       readAt: daysAgo(14),
       createdAt: daysAgo(15),
+    },
+    // mention - Marcus mentioned Justin in a comment
+    marcus && marcusMentionComment && dpNote && {
+      userId: justin._id,
+      actorId: marcus._id,
+      type: 'mention',
+      targetId: marcusMentionComment._id,
+      targetType: 'comment',
+      message: 'Marcus Johnson mentioned you in a comment',
+      metadata: {
+        commentPreview: marcusMentionComment.content.slice(0, 120),
+        commentId: marcusMentionComment._id.toString(),
+        resourceId: dpNote._id.toString(),
+        resourceType: 'note',
+      },
+      read: true,
+      readAt: daysAgo(20),
+      createdAt: daysAgo(21),
     },
     // Earlier (read)
     jordan && {
@@ -1906,7 +2024,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'friend_request',
       targetId: justin._id,
       targetType: 'friendship',
-      message: 'Jordan sent you a friend request',
+      message: 'Jordan Williams sent you a friend request',
       read: true,
       readAt: daysAgo(46),
       createdAt: daysAgo(47),
@@ -1928,7 +2046,7 @@ async function main() {
     // 1. Find Justin
     const justin = await User.findOne({ email: 'justinburrell715@gmail.com' });
     if (!justin) {
-      console.error('Justin not found — register with justinburrell715@gmail.com first.');
+      console.error('Justin not found - register with justinburrell715@gmail.com first.');
       process.exit(1);
     }
     console.log(`Found Justin: ${justin._id}`);

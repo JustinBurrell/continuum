@@ -580,7 +580,7 @@ exports.shareSet = async (req, res) => {
                 type: 'share_received',
                 targetId: set._id,
                 targetType: 'flashcardSet',
-                message: `${req.user.firstName} shared a flashcard set with you: "${set.title}"`,
+                message: `${req.user.firstName} ${req.user.lastName} shared a flashcard set with you: "${set.title}"`,
             }).catch(() => {});
         }
         // Notify specific recipients in real-time

@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Note = require('../models/Note');
 const FlashcardSet = require('../models/FlashcardSet');
+const Friendship = require('../models/Friendship');
 const { getCachedStreak } = require('../services/studyStreak.service');
 
 // ============================================================
@@ -61,20 +62,49 @@ exports.getUserStreak = async (req, res) => {
 };
 
 exports.searchUsers = async (req, res) => {
-    const { q } = req.query;
+    // Exact username lookup for @mention click navigation — bypasses all filters
+    if (req.query.exactUsername) {
+        const user = await User.findOne({
+            username: req.query.exactUsername.trim(),
+            deletedAt: null,
+        }).select('username firstName lastName avatarUrl roles');
+        return res.status(200).json({ success: true, users: user ? [user] : [] });
+    }
 
-    if (!q || q.trim().length < 2) {
+    const { q } = req.query;
+    const isFriendsOnly = req.query.friendsOnly === 'true';
+    const trimmedQ = (q || '').trim();
+
+    // Non-friends search requires at least 2 chars; friends search works with any length
+    if (!isFriendsOnly && trimmedQ.length < 2) {
         return res.status(400).json({ success: false, error: 'Search query must be at least 2 characters' });
     }
 
-    const regex = new RegExp(escapeRegex(q.trim().slice(0, 100)), 'i');
-
-    const users = await User.find({
+    let baseFilter = {
         _id: { $ne: req.user._id },
         deletedAt: null,
-        isSeedUser: { $ne: true },
-        $or: [{ username: regex }, { email: regex }],
-    })
+        // Only filter out seed users in general search — friends-only search
+        // must include seed friends (demo accounts are seeded)
+        ...(!isFriendsOnly && { isSeedUser: { $ne: true } }),
+    };
+
+    // Add text filter only when there is a query
+    if (trimmedQ.length >= 1) {
+        const regex = new RegExp(escapeRegex(trimmedQ.slice(0, 100)), 'i');
+        baseFilter.$or = [{ username: regex }, { firstName: regex }, { lastName: regex }, { email: regex }];
+    }
+
+    if (isFriendsOnly) {
+        const friendships = await Friendship.find({
+            $or: [{ user1: req.user._id, status: 'accepted' }, { user2: req.user._id, status: 'accepted' }],
+        }).select('user1 user2').lean();
+        const friendIds = friendships.map(f =>
+            f.user1.toString() === req.user._id.toString() ? f.user2 : f.user1
+        );
+        baseFilter._id = { $ne: req.user._id, $in: friendIds };
+    }
+
+    const users = await User.find(baseFilter)
         .select('username firstName lastName avatarUrl roles')
         .limit(20);
 

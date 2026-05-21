@@ -138,7 +138,7 @@ exports.createTask = async (req, res) => {
                 type: 'task_assigned',
                 targetId: task._id,
                 targetType: 'task',
-                message: `${req.user.firstName} assigned you to a task: "${title}"`,
+                message: `${req.user.firstName} ${req.user.lastName} assigned you to a task: "${title}"`,
             }).catch(() => {});
         }
 
@@ -288,8 +288,19 @@ exports.updateStatus = async (req, res) => {
 
     // Set the new status and call .save() to trigger the pre-save hook
     // The hook will: set completedAt if completed, generate next recurrence if recurring
+    const wasCompleted = task.status === 'completed';
     task.status = status;
     await task.save();
+
+    if (status === 'completed' && !wasCompleted) {
+        createActivity({
+            actorId: req.user._id,
+            type: 'task_completed',
+            targetId: task._id,
+            targetType: 'task',
+            metadata: { taskTitle: task.title },
+        }).catch(() => {});
+    }
 
     emitTaskUpdate(task, req.user._id);
     invalidateSharedTasksCache(task);
@@ -398,7 +409,7 @@ exports.updateParticipants = async (req, res) => {
             type: 'task_assigned',
             targetId: task._id,
             targetType: 'task',
-            message: `${req.user.firstName} added you to a task: "${task.title}"`,
+            message: `${req.user.firstName} ${req.user.lastName} added you to a task: "${task.title}"`,
         }).catch(() => {});
     }
 

@@ -108,16 +108,73 @@ Pre-FCM correctness audit ensuring every notification type and activity event is
 - ActivityFeed: `flashcard_shared`, `task_created`, `friend_accepted` now navigate correctly with back button (was no-op before)
 - ActivityFeed timestamps use smart format ("10:30 AM" / "May 5") instead of raw date string
 
-**Known issue filed — fix in NOTIF-3:**
-- `like_added` message reads "Alex liked your comment" — should be "Alex liked a comment on your note" to match Instagram/Twitter/LinkedIn convention. Impacts FCM and email. See `docs/bugs/like-added-notification-wrong-subject.md`.
+**Known issue resolved in NOTIF-3 (4b):**
+- `like_added` message now reads "Alex Chen liked a comment on your note" — full name, correct context. Bug spec deleted.
 
-### 4b. Notification & Activity Audit Fix (NOTIF-3)
-Fix the `like_added` message copy to match industry standard before FCM and email are wired.
-- [ ] `backend/controllers/comments.controller.js` — update `message` to "X liked a comment on your note/flashcard set/task"
-- [ ] `backend/scripts/seed-justin.js` + `seed-jane.js` — update `like_added` message strings to match
-- [ ] Web + Android display unchanged (both render `message` directly, fix is backend-only)
-- [ ] Re-run both seed scripts `--clean --no-ai`
-- [ ] Regression test: verify `like_added` notification shows correct text on both platforms
+### 4b. Notification & Activity Audit Fix (NOTIF-3) ✅
+Fixed `like_added` message copy and completed the full notification correctness pass.
+- [x] `like_added` message updated: "X liked a comment on your note/flashcard set/task"
+- [x] All `notify()` calls across all controllers updated to use full name (firstName + lastName)
+- [x] `comment_added` message now says "flashcard set" instead of "flashcardSet" when targetType is flashcardSet
+- [x] Actor name rendered as inline clickable link in notification items (web + Android) — name and action text flow as one paragraph
+- [x] Web + Android name-stripping logic falls back to firstName when message uses only firstName
+- [x] Re-ran both seed scripts `--clean --no-ai`; verified correct text in browser via Playwright
+
+### 4c. Notification & Activity Completeness ✅
+Full coverage of all notification types and activity events across web, Android, backend, and seed data.
+- [x] `task_completed` activity type added to Activity model, fires from `tasks.controller.js → updateStatus` when status transitions to `'completed'`
+- [x] Web `ActivityFeedItem.jsx` and Android `Social.kt` + `ActivityFeedScreen.kt` handle `task_completed`
+- [x] `mention` notification type added to Notification model; `addComment` detects `@username` patterns, looks up users, fires `mention` notifications (skips self + content owner already notified via `comment_added`)
+- [x] `mention` routing added to `resolveNav()` on web and Android — navigates to the parent resource with `commentId` for scroll-to
+- [x] All 8 notification types + `task_completed` + `mention` seeded for Justin and Jane
+- [x] Real `@username` comment documents created in seed for mention notifications (Marcus → Justin, Logan → Jane)
+- [x] Em dashes removed from all seed data files (seed-justin.js, seed-jane.js, seed-justin-data.js)
+- [x] 4 new notification tests (mention detection, no-self, no-duplicate-owner, full-name); all 25 pass
+
+### 4d. @Mention UX — Autocomplete + Clickable Rendering ✅
+Instagram-style @mention experience in comment threads.
+- [x] Backend `users/search` expanded to match firstName and lastName in addition to username and email
+- [x] `friendsOnly=true` query param restricts search to accepted friends; empty `q` with `friendsOnly=true` returns all friends instantly (shown immediately on `@`)
+- [x] `exactUsername` query param for exact-match lookup, bypasses all filters (used for @mention click navigation)
+- [x] Web `CommentThread.jsx`: typing `@` opens a live dropdown (name or username match); selecting inserts `@username`; `@username` in rendered comments is a clickable purple link that navigates to the user's profile
+- [x] Android `CommentThread.kt`: `@username` in rendered comments styled purple/bold and tappable via `ClickableText`; typing `@` shows a suggestion list; all four caller screens wired with `onSearchUsers` / `onLookupUsername` from `SocialViewModel`
+- [x] Seed reply comments prepend `@username` for realistic mention data; 20 users tests + 26 notification tests passing
+
+### 4e. Reply UX — Auto-focus + Prefill ✅
+Tapping Reply behaves like Instagram: input focuses immediately and keyboard appears without manual scrolling.
+- [x] `authorUsername` added to `Comment` domain model and mapped from API `userSnapshot`
+- [x] Tapping Reply prefills the input with `@username ` and shows "Replying to @username" banner
+- [x] `FocusRequester` + `BringIntoViewRequester` auto-focus the input and scroll it into view when Reply is tapped — no manual scrolling required
+- [x] Cancel clears the prefilled input and dismisses the banner
+- [x] `CommentThreadTest` (Compose UI, androidTest): 7 tests covering prefill, banner with/without username, cancel, send with parentId, auto-focus, and default state
+
+### Bug Fix: Google OAuth CCT Doesn't Close After Login
+Android CCT and web mobile popup stay open after completing Google OAuth. Spec: `docs/bugs/google_oauth_pop_up_bug.md`.
+- [ ] Android `GoogleDriveStep.kt` + `IntegrationsStep.kt`: append `?source=android-linking` to CCT URL
+- [ ] Web `AuthCallback.jsx`: add `source === 'android-linking'` branch — redirect to `continuum://oauth-callback?linked=true` (before the existing `source === 'linking'` check)
+- [ ] Backend `passport.js`: verify `source=android-linking` round-trips through OAuth `state` parameter
+- [ ] Android NavGraph / `AndroidManifest.xml`: register `continuum://oauth-callback` deep link; handle `linked=true` to refresh profile and call `onContinue()`
+- [ ] Web `AuthCallback.jsx:76–88`: add "Close this tab" button to the fallback "Google connected!" screen for mobile browsers where `window.close()` is blocked
+- [ ] Tests: Jest (OAuth state round-trip), Playwright (desktop popup closes; full-page sign-in regression), Android unit (param appended, deep link registered, profile refresh on `linked=true`)
+
+### Bug Fix: Google Android Drive & Unlink Issues
+Three Android-only issues with the Google Drive integration. Spec: `docs/bugs/google-android-unlink-bug.md`.
+- [ ] Android `ProfileViewModel.kt`: verify `unlinkGoogle()` calls `DELETE /api/auth/me/google/link`; surface 400 error ("Set a password before unlinking") as Snackbar with "Set Password" action
+- [ ] Android `GoogleDriveImportScreen.kt`: add `isGoogleLinked` pre-flight check — show in-app "not connected" card instead of opening CCT when not linked
+- [ ] Android `GoogleDriveImportScreen.kt`: add `trailingIcon` clear button to the URL `OutlinedTextField` (show only when non-empty)
+- [ ] Backend `google.controller.js:203–207`: replace bare `<p>Google account not linked</p>` 403 response with a styled HTML page including a `continuum://` deep link button
+- [ ] Tests: Jest (unlink password guard, 200 on valid unlink, styled 403 HTML); Android unit (`unlinkError` state on 400, `isGoogleLinked` pre-flight, clear button Compose UI test)
+
+### Bug Fix: Active Sessions Accuracy & UX
+Sessions list has wrong device labels, stale entries, and UX gaps vs. Instagram/GitHub standard. Spec: `docs/bugs/active-sessions-not-being-specific.md`.
+- [ ] Backend `auth.controller.js`: replace custom `parseDeviceLabel()` with `ua-parser-js` + `Sec-CH-UA-Platform` Client Hints — fixes iPad shown as macOS
+- [ ] Backend (login handler): revoke same-`deviceId` non-revoked tokens before creating a new one — prevents duplicate sessions on re-login
+- [ ] Backend sessions endpoint: add `expiresAt > now` filter alongside `revokedAt == null`
+- [ ] Web `Profile.jsx:452–457`: fix `doLogoutAll` to call `logout()` (clears `AuthContext.user`) before `navigate('/login')` — currently redirects back to dashboard
+- [ ] Web `Profile.jsx:998–1048`: sort current session first; add device-type icon (phone/tablet/desktop); show `lastUsedAt` as relative time with absolute on hover
+- [ ] Android `ProfileViewModel.kt`: sort sessions so `isCurrent == true` is first
+- [ ] Android `ProfileScreen.kt:431–468` `SessionRow`: add leading device-type icon; split timestamp into two-row subtitle (location + last active)
+- [ ] Tests: Jest (iPad UA label, deduplication on login, expired token filter, logout-all revoking); Playwright (current session badge, logout-all → `/login`, re-login shows 1 session); Android unit (sorted sessions, logout-all triggers `onLogout`)
 
 ### 5. FCM Push Notifications
 Android only. Requires notification bell infrastructure above.
@@ -168,4 +225,4 @@ Quick win — needed before real support traffic comes in.
 
 ---
 
-*Last updated: May 21, 2026*
+*Last updated: May 21, 2026 — 4d, 4e complete; activity/notification work done through FCM*

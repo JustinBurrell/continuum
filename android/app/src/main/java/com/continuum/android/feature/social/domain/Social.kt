@@ -16,6 +16,7 @@ data class ActivityItem(
             "note_shared" -> "$actorName shared a note${resourceTitle?.let { ": $it" } ?: ""}"
             "flashcard_shared" -> "$actorName shared a flashcard set${resourceTitle?.let { ": $it" } ?: ""}"
             "task_created" -> "$actorName created a task${resourceTitle?.let { ": $it" } ?: ""}"
+            "task_completed" -> "$actorName completed a task${resourceTitle?.let { ": $it" } ?: ""}"
             "comment_added" -> "$actorName commented${resourceTitle?.let { ": $it" } ?: ""}"
             "like_added" -> "$actorName liked a comment"
             "friend_accepted" -> "$actorName accepted your friend request"
@@ -66,6 +67,7 @@ data class Comment(
     val id: String,
     val authorId: String?,
     val authorName: String,
+    val authorUsername: String?,
     val authorAvatar: String?,
     val authorRoles: List<String> = emptyList(),
     val content: String,

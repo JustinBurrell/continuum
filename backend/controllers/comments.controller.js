@@ -3,6 +3,7 @@ const Note = require('../models/Note');
 const FlashcardSet = require('../models/FlashcardSet');
 const Task = require('../models/Task');
 const Friendship = require('../models/Friendship');
+const User = require('../models/User');
 const { createActivity } = require('../services/activity.service');
 const { getIO } = require('../lib/socket');
 const posthog = require('../lib/posthog');
@@ -155,7 +156,7 @@ exports.addComment = async (req, res) => {
             type: 'comment_added',
             targetId,
             targetType,
-            message: `${req.user.firstName} commented on your ${targetType}`,
+            message: `${req.user.firstName} ${req.user.lastName} commented on your ${targetType === 'flashcardSet' ? 'flashcard set' : targetType}`,
             metadata: { commentPreview, commentId: comment._id.toString() },
             debounceMinutes: 2,
         }).catch(() => {});
@@ -173,12 +174,56 @@ exports.addComment = async (req, res) => {
                     type: 'comment_reply',
                     targetId: parentId,
                     targetType: 'comment',
-                    message: `${req.user.firstName} replied to your comment`,
+                    message: `${req.user.firstName} ${req.user.lastName} replied to your comment`,
                     metadata: {
                         commentPreview,
                         commentId: comment._id.toString(),
                         resourceId: comment.targetId?.toString(),
                         resourceType: comment.targetType,
+                    },
+                    debounceMinutes: 2,
+                }).catch(() => {});
+            }
+        } catch (_) {}
+    }
+
+    // Detect @username mentions and notify each mentioned user
+    const mentionedUsernames = [...new Set(
+        (content.match(/@([a-zA-Z0-9_]+)/g) || []).map(m => m.slice(1).toLowerCase())
+    )];
+    if (mentionedUsernames.length > 0) {
+        try {
+            const friendships = await Friendship.find({
+                $or: [
+                    { user1: req.user._id, status: 'accepted' },
+                    { user2: req.user._id, status: 'accepted' },
+                ],
+            }).select('user1 user2').lean();
+            const friendIds = friendships.map(f =>
+                f.user1.toString() === req.user._id.toString() ? f.user2 : f.user1
+            );
+            const mentionedUsers = await User.find({
+                username: { $in: mentionedUsernames },
+                _id: { $in: friendIds },
+            }).select('_id').lean();
+            const alreadyNotified = new Set([
+                req.user._id.toString(),  // never mention yourself
+                ...(ownerId ? [ownerId] : []),  // owner already got comment_added
+            ]);
+            for (const u of mentionedUsers) {
+                if (alreadyNotified.has(u._id.toString())) continue;
+                notify({
+                    recipientId: u._id,
+                    actorId: req.user._id,
+                    type: 'mention',
+                    targetId: comment._id,
+                    targetType: 'comment',
+                    message: `${req.user.firstName} ${req.user.lastName} mentioned you in a comment`,
+                    metadata: {
+                        commentPreview,
+                        commentId: comment._id.toString(),
+                        resourceId: targetId.toString(),
+                        resourceType: targetType,
                     },
                     debounceMinutes: 2,
                 }).catch(() => {});
@@ -301,13 +346,18 @@ exports.toggleLike = async (req, res) => {
             try {
                 getIO().to(`user:${commentAuthorId}`).emit('like_added');
             } catch (_) {}
+            const resourceLabel = comment.targetType === 'note'
+                ? 'note'
+                : comment.targetType === 'flashcardSet'
+                    ? 'flashcard set'
+                    : comment.targetType;
             notify({
                 recipientId: commentAuthorId,
                 actorId: userId,
                 type: 'like_added',
                 targetId: comment._id,
                 targetType: 'comment',
-                message: `${req.user.firstName} liked your comment`,
+                message: `${req.user.firstName} ${req.user.lastName} liked a comment on your ${resourceLabel}`,
                 metadata: {
                     commentPreview: comment.content?.slice(0, 120),
                     commentId: comment._id.toString(),

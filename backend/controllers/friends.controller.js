@@ -82,7 +82,7 @@ exports.sendRequest = async (req, res) => {
         type: 'friend_request',
         targetId: friendship._id,
         targetType: 'friendship',
-        message: `${req.user.firstName} sent you a friend request`,
+        message: `${req.user.firstName} ${req.user.lastName} sent you a friend request`,
     }).catch(() => {});
 
     await Promise.all([
@@ -138,7 +138,7 @@ exports.respondToRequest = async (req, res) => {
             type: 'friend_accepted',
             targetId: friendship._id,
             targetType: 'friendship',
-            message: `${req.user.firstName} accepted your friend request`,
+            message: `${req.user.firstName} ${req.user.lastName} accepted your friend request`,
         }).catch(() => {});
     }
 

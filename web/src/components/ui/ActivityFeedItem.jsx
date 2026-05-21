@@ -66,7 +66,8 @@ function getRowNav(item) {
     case 'note_shared':    return { to: '/notes/view', state: { id: item.targetId } };
     case 'flashcard_set_created':
     case 'flashcard_shared': return { to: '/flashcards/view', state: { id: item.targetId } };
-    case 'task_created':   return { to: '/tasks', state: { openTaskId: item.targetId } };
+    case 'task_created':
+    case 'task_completed': return { to: '/tasks', state: { openTaskId: item.targetId } };
     case 'comment_added': {
       const base = resourceNav(item.targetType, item.targetId);
       if (!base) return null;
@@ -105,6 +106,8 @@ export function getActivitySentence(item, actor) {
       return <>{bold} shared a flashcard set {m.setTitle && contentLink('/flashcards/view', { id: item.targetId }, m.setTitle)}{suffix}</>;
     case 'task_created':
       return <>{bold} shared a task {m.taskTitle && contentLink('/tasks', { openTaskId: item.targetId }, m.taskTitle)}{suffix}</>;
+    case 'task_completed':
+      return <>{bold} completed a task {m.taskTitle && contentLink('/tasks', { openTaskId: item.targetId }, m.taskTitle)}</>;
     case 'comment_added': {
       const base = resourceNav(item.targetType, item.targetId);
       const nav = base && m.commentId ? { to: base.to, state: { ...base.state, commentId: m.commentId } } : base;
