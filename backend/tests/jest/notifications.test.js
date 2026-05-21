@@ -363,4 +363,73 @@ describe('notify() integration via controller actions', () => {
     const count = await Notification.countDocuments({ userId, type: 'comment_added' });
     expect(count).toBe(0);
   });
+
+  it('creates a mention notification when a comment contains @username', async () => {
+    const { alice, bob } = await makeFriends();
+    const carol = await registerAndLogin({ username: 'carol_test' });
+    const noteId = await createNote(alice.token);
+
+    await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${bob.token}`)
+      .send({ targetId: noteId, targetType: 'note', content: `Hey @carol_test check this out` });
+
+    await new Promise(r => setTimeout(r, 50));
+
+    const notif = await Notification.findOne({ userId: carol.userId, type: 'mention' });
+    expect(notif).not.toBeNull();
+    expect(notif.message).toMatch(/mentioned you in a comment/);
+    expect(notif.metadata.commentPreview).toContain('@carol_test');
+    expect(notif.metadata.resourceId).toBe(noteId);
+    expect(notif.metadata.resourceType).toBe('note');
+    expect(notif.metadata.commentId).toBeDefined();
+  });
+
+  it('does not send a mention notification to self', async () => {
+    const { alice, bob } = await makeFriends();
+    const noteId = await createNote(alice.token);
+
+    await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${bob.token}`)
+      .send({ targetId: noteId, targetType: 'note', content: `@${bob.username} reminding myself` });
+
+    await new Promise(r => setTimeout(r, 50));
+
+    const count = await Notification.countDocuments({ userId: bob.userId, type: 'mention' });
+    expect(count).toBe(0);
+  });
+
+  it('does not send duplicate mention to content owner already notified via comment_added', async () => {
+    const { alice, bob } = await makeFriends();
+    const noteId = await createNote(alice.token);
+
+    await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${bob.token}`)
+      .send({ targetId: noteId, targetType: 'note', content: `@${alice.username} great note` });
+
+    await new Promise(r => setTimeout(r, 50));
+
+    const mentionCount = await Notification.countDocuments({ userId: alice.userId, type: 'mention' });
+    const commentCount = await Notification.countDocuments({ userId: alice.userId, type: 'comment_added' });
+    expect(mentionCount).toBe(0);
+    expect(commentCount).toBe(1);
+  });
+
+  it('notification messages include full name (first + last)', async () => {
+    const { alice, bob } = await makeFriends();
+    const noteId = await createNote(alice.token);
+
+    await request(app)
+      .post('/api/comments')
+      .set('Authorization', `Bearer ${bob.token}`)
+      .send({ targetId: noteId, targetType: 'note', content: 'Test comment' });
+
+    await new Promise(r => setTimeout(r, 50));
+
+    const notif = await Notification.findOne({ userId: alice.userId, type: 'comment_added' });
+    expect(notif).not.toBeNull();
+    expect(notif.message).toMatch(/^Test User commented/);
+  });
 });

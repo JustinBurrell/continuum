@@ -28,7 +28,7 @@
 | Someone comments on your note / flashcard set / task | Content owner | `comments.controller.js → addComment` |
 | Someone replies to your comment | Comment author | `comments.controller.js → addComment` (when `parentId` is set) |
 | Someone likes your comment | Comment author | `comments.controller.js → toggleLike` |
-| Someone mentions you (`@username`) in a comment | Mentioned user | `comments.controller.js → addComment` (mention detection) |
+| Someone mentions you (`@username`) in a comment | Mentioned user | `comments.controller.js → addComment` — regex `/@([a-zA-Z0-9_]+)/g`, looks up `User.username`, skips self + content owner (already notified via `comment_added`) |
 | Someone shares a note / flashcard set / task with you | Recipient user(s) | `share.service.js → sendShareMessage` (already fires auto-DM — extend this) |
 | Someone sends you a message | Recipient | `messages.controller.js` (or wherever messages are created) |
 | Friend request accepted | Requester | `friends.controller.js` (on accepting a request) |

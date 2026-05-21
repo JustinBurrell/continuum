@@ -3,6 +3,7 @@ const Note = require('../models/Note');
 const FlashcardSet = require('../models/FlashcardSet');
 const Task = require('../models/Task');
 const Friendship = require('../models/Friendship');
+const User = require('../models/User');
 const { createActivity } = require('../services/activity.service');
 const { getIO } = require('../lib/socket');
 const posthog = require('../lib/posthog');
@@ -179,6 +180,41 @@ exports.addComment = async (req, res) => {
                         commentId: comment._id.toString(),
                         resourceId: comment.targetId?.toString(),
                         resourceType: comment.targetType,
+                    },
+                    debounceMinutes: 2,
+                }).catch(() => {});
+            }
+        } catch (_) {}
+    }
+
+    // Detect @username mentions and notify each mentioned user
+    const mentionedUsernames = [...new Set(
+        (content.match(/@([a-zA-Z0-9_]+)/g) || []).map(m => m.slice(1).toLowerCase())
+    )];
+    if (mentionedUsernames.length > 0) {
+        try {
+            const mentionedUsers = await User.find({
+                username: { $in: mentionedUsernames },
+                _id: { $ne: req.user._id },
+            }).select('_id').lean();
+            const alreadyNotified = new Set([
+                req.user._id.toString(),
+                ...(ownerId ? [ownerId] : []),
+            ]);
+            for (const u of mentionedUsers) {
+                if (alreadyNotified.has(u._id.toString())) continue;
+                notify({
+                    recipientId: u._id,
+                    actorId: req.user._id,
+                    type: 'mention',
+                    targetId: comment._id,
+                    targetType: 'comment',
+                    message: `${req.user.firstName} ${req.user.lastName} mentioned you in a comment`,
+                    metadata: {
+                        commentPreview,
+                        commentId: comment._id.toString(),
+                        resourceId: targetId.toString(),
+                        resourceType: targetType,
                     },
                     debounceMinutes: 2,
                 }).catch(() => {});

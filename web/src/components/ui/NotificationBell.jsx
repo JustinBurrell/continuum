@@ -49,6 +49,12 @@ export function resolveNav(notif) {
         if (resourceType === 'task')         return { to: '/tasks',           state: { openTaskId: resourceId, commentId } };
         return { to: '/activity', state: null };
     }
+    if (type === 'mention') {
+        if (resourceType === 'note')         return { to: '/notes/view',     state: { id: resourceId, commentId } };
+        if (resourceType === 'flashcardSet') return { to: '/flashcards/view', state: { id: resourceId, commentId } };
+        if (resourceType === 'task')         return { to: '/tasks',           state: { openTaskId: resourceId, commentId } };
+        return { to: '/activity', state: null };
+    }
     return { to: '/activity', state: null };
 }
 

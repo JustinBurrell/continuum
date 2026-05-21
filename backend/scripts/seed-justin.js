@@ -1991,6 +1991,24 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       readAt: daysAgo(14),
       createdAt: daysAgo(15),
     },
+    // mention — Marcus mentioned Justin in a comment
+    marcus && dpNote && {
+      userId: justin._id,
+      actorId: marcus._id,
+      type: 'mention',
+      targetId: justinReply._id,
+      targetType: 'comment',
+      message: 'Marcus Johnson mentioned you in a comment',
+      metadata: {
+        commentPreview: `@${justin.username} this approach is exactly what I was looking for, thanks for sharing.`,
+        commentId: justinReply._id.toString(),
+        resourceId: dpNote._id.toString(),
+        resourceType: 'note',
+      },
+      read: true,
+      readAt: daysAgo(20),
+      createdAt: daysAgo(21),
+    },
     // Earlier (read)
     jordan && {
       userId: justin._id,

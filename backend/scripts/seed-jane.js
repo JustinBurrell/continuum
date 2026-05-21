@@ -1317,6 +1317,24 @@ async function seedNotifications(jane, friends, sharedNotes, allComments, conver
       readAt: daysAgo(14),
       createdAt: daysAgo(15),
     },
+    // mention — Logan mentioned Jane in a comment
+    logan && urlShortenerNote && {
+      userId: jane._id,
+      actorId: logan._id,
+      type: 'mention',
+      targetId: janeReply._id,
+      targetType: 'comment',
+      message: 'Logan Carter mentioned you in a comment',
+      metadata: {
+        commentPreview: `@${jane.username} do you have notes on the rate limiting part? This design is really clean.`,
+        commentId: janeReply._id.toString(),
+        resourceId: urlShortenerNote._id.toString(),
+        resourceType: 'note',
+      },
+      read: true,
+      readAt: daysAgo(20),
+      createdAt: daysAgo(21),
+    },
     // Earlier (read)
     kian && {
       userId: jane._id,

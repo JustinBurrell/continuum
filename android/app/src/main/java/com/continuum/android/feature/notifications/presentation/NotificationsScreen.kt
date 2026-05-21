@@ -89,6 +89,16 @@ fun resolveNav(notification: Notification): String {
                 else -> ""
             }
         }
+        "mention" -> {
+            // targetId is the comment; resourceId/resourceType hold the parent resource
+            val resourceId = notification.resourceId ?: return ""
+            when (notification.resourceType) {
+                "note" -> NavRoutes.Notes.detail(resourceId, commentId = notification.commentId)
+                "flashcardSet" -> NavRoutes.Flashcards.setDetail(resourceId, commentId = notification.commentId)
+                "task" -> NavRoutes.Tasks.detail(resourceId)
+                else -> ""
+            }
+        }
         "friend_request", "friend_accepted" -> NavRoutes.Social.userProfile(actorId)
         else -> ""
     }

@@ -26,6 +26,7 @@ const notificationSchema = new mongoose.Schema({
             'comment_added',
             'comment_reply',
             'like_added',
+            'mention',
             'friend_request',
             'friend_accepted',
         ],
