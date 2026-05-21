@@ -4,6 +4,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.continuum.android.feature.social.domain.Comment
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -111,15 +112,44 @@ class CommentThreadTest {
 
         composeTestRule.onNodeWithText("Reply").performClick()
 
-        // Verify the prefill is there and send it
         composeTestRule.onNode(hasSetTextAction()).assertTextContains("@alicesmith ")
         composeTestRule.onNodeWithContentDescription("Send").performClick()
 
-        assert(sent.size == 1)
-        assert(sent[0].first == "@alicesmith")
-        assert(sent[0].second == "c1")
+        assertTrue(sent.size == 1)
+        assertTrue(sent[0].first == "@alicesmith")
+        assertTrue(sent[0].second == "c1")
 
-        // Input cleared after send
+        composeTestRule.onNode(hasSetTextAction()).assertTextEquals("")
+    }
+
+    @Test
+    fun replyInputReceivesFocusAutomatically() {
+        composeTestRule.setContent {
+            CommentThread(
+                comments = listOf(makeComment()),
+                onAddComment = { _, _ -> },
+                onLikeComment = {}
+            )
+        }
+
+        composeTestRule.onNodeWithText("Reply").performClick()
+
+        // Input should be focused so keyboard is shown and user can type immediately
+        composeTestRule.onNode(hasSetTextAction() and isFocused()).assertExists()
+    }
+
+    @Test
+    fun replyNotActivatedByDefault() {
+        composeTestRule.setContent {
+            CommentThread(
+                comments = listOf(makeComment()),
+                onAddComment = { _, _ -> },
+                onLikeComment = {}
+            )
+        }
+
+        // No reply banner before tapping Reply
+        composeTestRule.onNodeWithText("Replying to @alicesmith").assertDoesNotExist()
         composeTestRule.onNode(hasSetTextAction()).assertTextEquals("")
     }
 }

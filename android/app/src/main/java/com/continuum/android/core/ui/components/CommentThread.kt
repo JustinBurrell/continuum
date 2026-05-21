@@ -1,8 +1,11 @@
 package com.continuum.android.core.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -11,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.foundation.text.ClickableText
@@ -24,8 +29,10 @@ import com.continuum.android.core.ui.theme.*
 import com.continuum.android.core.ui.utils.toDisplayDate
 import com.continuum.android.feature.social.domain.Comment
 import com.continuum.android.feature.social.domain.UserSearchResult
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CommentThread(
     comments: List<Comment>,
@@ -48,10 +55,21 @@ fun CommentThread(
     var mentionStart by remember { mutableStateOf(0) }
     var mentionSuggestions by remember { mutableStateOf<List<UserSearchResult>>(emptyList()) }
     val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+
+    // When reply is activated, focus the input and scroll it into view
+    LaunchedEffect(replyingTo) {
+        if (replyingTo != null) {
+            focusRequester.requestFocus()
+            delay(100) // allow keyboard animation to begin
+            bringIntoViewRequester.bringIntoView()
+        }
+    }
 
     LaunchedEffect(mentionQuery) {
         val q = mentionQuery
-        mentionSuggestions = if (q != null && q.length >= 2 && onSearchUsers != null) {
+        mentionSuggestions = if (q != null && onSearchUsers != null) {
             onSearchUsers(q)
         } else emptyList()
     }
@@ -183,7 +201,10 @@ fun CommentThread(
                         }
                     },
                     placeholder = { Text("Add a comment…") },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(focusRequester)
+                        .bringIntoViewRequester(bringIntoViewRequester),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = BrandPurple,

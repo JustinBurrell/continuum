@@ -108,8 +108,8 @@ Pre-FCM correctness audit ensuring every notification type and activity event is
 - ActivityFeed: `flashcard_shared`, `task_created`, `friend_accepted` now navigate correctly with back button (was no-op before)
 - ActivityFeed timestamps use smart format ("10:30 AM" / "May 5") instead of raw date string
 
-**Known issue filed — fix in NOTIF-3:**
-- `like_added` message reads "Alex liked your comment" — should be "Alex liked a comment on your note" to match Instagram/Twitter/LinkedIn convention. Impacts FCM and email. See `docs/bugs/like-added-notification-wrong-subject.md`.
+**Known issue resolved in NOTIF-3 (4b):**
+- `like_added` message now reads "Alex Chen liked a comment on your note" — full name, correct context. Bug spec deleted.
 
 ### 4b. Notification & Activity Audit Fix (NOTIF-3) ✅
 Fixed `like_added` message copy and completed the full notification correctness pass.
@@ -134,8 +134,19 @@ Full coverage of all notification types and activity events across web, Android,
 ### 4d. @Mention UX — Autocomplete + Clickable Rendering ✅
 Instagram-style @mention experience in comment threads.
 - [x] Backend `users/search` expanded to match firstName and lastName in addition to username and email
+- [x] `friendsOnly=true` query param restricts search to accepted friends; empty `q` with `friendsOnly=true` returns all friends instantly (shown immediately on `@`)
+- [x] `exactUsername` query param for exact-match lookup, bypasses all filters (used for @mention click navigation)
 - [x] Web `CommentThread.jsx`: typing `@` opens a live dropdown (name or username match); selecting inserts `@username`; `@username` in rendered comments is a clickable purple link that navigates to the user's profile
-- [x] Android `CommentThread.kt`: `@username` in rendered comments styled purple/bold and tappable via `ClickableText`; typing `@` shows a suggestion list (requires caller to pass `onSearchUsers`)
+- [x] Android `CommentThread.kt`: `@username` in rendered comments styled purple/bold and tappable via `ClickableText`; typing `@` shows a suggestion list; all four caller screens wired with `onSearchUsers` / `onLookupUsername` from `SocialViewModel`
+- [x] Seed reply comments prepend `@username` for realistic mention data; 20 users tests + 26 notification tests passing
+
+### 4e. Reply UX — Auto-focus + Prefill ✅
+Tapping Reply behaves like Instagram: input focuses immediately and keyboard appears without manual scrolling.
+- [x] `authorUsername` added to `Comment` domain model and mapped from API `userSnapshot`
+- [x] Tapping Reply prefills the input with `@username ` and shows "Replying to @username" banner
+- [x] `FocusRequester` + `BringIntoViewRequester` auto-focus the input and scroll it into view when Reply is tapped — no manual scrolling required
+- [x] Cancel clears the prefilled input and dismisses the banner
+- [x] `CommentThreadTest` (Compose UI, androidTest): 7 tests covering prefill, banner with/without username, cancel, send with parentId, auto-focus, and default state
 
 ### 5. FCM Push Notifications
 Android only. Requires notification bell infrastructure above.
@@ -186,4 +197,4 @@ Quick win — needed before real support traffic comes in.
 
 ---
 
-*Last updated: May 21, 2026*
+*Last updated: May 21, 2026 — 4d, 4e complete; activity/notification work done through FCM*
