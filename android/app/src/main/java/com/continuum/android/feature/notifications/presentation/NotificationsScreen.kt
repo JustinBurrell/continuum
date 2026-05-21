@@ -34,11 +34,14 @@ import com.continuum.android.core.ui.components.ContinuumPullToRefresh
 import com.continuum.android.core.ui.components.EmptyState
 import com.continuum.android.core.ui.components.MinimalTopBar
 import com.continuum.android.core.ui.components.SkeletonLoader
+import com.continuum.android.core.ui.components.VerifiedRoleBadges
 import com.continuum.android.core.ui.navigation.NavRoutes
 import com.continuum.android.core.ui.theme.BrandPurple
 import com.continuum.android.core.ui.theme.ErrorRed
+import com.continuum.android.core.ui.theme.PurpleTint
 import com.continuum.android.core.ui.theme.TextMuted
 import com.continuum.android.core.ui.theme.TextPrimary
+import com.continuum.android.core.ui.theme.TextSecondary
 import com.continuum.android.core.ui.utils.notificationTimeGroup
 import com.continuum.android.core.ui.utils.toNotificationTime
 import com.continuum.android.feature.notifications.domain.Notification
@@ -87,6 +90,7 @@ private fun groupNotifications(items: List<Notification>): Map<String, List<Noti
 fun NotificationsScreen(
     onNavigateBack: () -> Unit,
     onNavigateTo: (String) -> Unit,
+    onActorClick: (String) -> Unit = {},
     viewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -169,6 +173,7 @@ fun NotificationsScreen(
                                 NotificationItemRow(
                                     notification = notification,
                                     onDelete = { viewModel.deleteNotification(notification.id) },
+                                    onActorClick = { onActorClick(notification.actorId) },
                                     onClick = {
                                         viewModel.markOneRead(notification.id)
                                         val route = resolveNav(notification)
@@ -189,7 +194,7 @@ fun NotificationsScreen(
 }
 
 // ---------------------------------------------------------------------------
-// NotificationItemRow
+// NotificationItemRow — Instagram-style: avatar, name+roles, message, preview, timestamp
 // ---------------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -197,6 +202,7 @@ fun NotificationsScreen(
 private fun NotificationItemRow(
     notification: Notification,
     onDelete: () -> Unit,
+    onActorClick: () -> Unit,
     onClick: () -> Unit
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
@@ -226,43 +232,82 @@ private fun NotificationItemRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface)
+                .background(
+                    if (!notification.read) PurpleTint.copy(alpha = 0.25f)
+                    else MaterialTheme.colorScheme.surface
+                )
                 .clickable(onClick = onClick)
                 .padding(vertical = 12.dp, horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
+            // Unread accent bar
             Box(
                 modifier = Modifier
                     .width(3.dp)
-                    .height(40.dp)
+                    .height(44.dp)
                     .background(
                         color = if (!notification.read) BrandPurple else Color.Transparent,
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(2.dp)
                     )
             )
 
+            // Avatar — tapping navigates to actor profile
             AvatarInitials(
                 name = notification.actorName,
                 imageUrl = notification.actorAvatarUrl,
+                size = 44.dp,
                 modifier = Modifier
-                    .size(40.dp)
                     .clip(CircleShape)
+                    .clickable(onClick = onActorClick)
             )
 
+            // Content column
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                verticalArrangement = Arrangement.spacedBy(3.dp)
             ) {
+                // Actor name row with role badges
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = notification.actorName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = BrandPurple,
+                        modifier = Modifier.clickable(onClick = onActorClick)
+                    )
+                    if (notification.actorRoles.isNotEmpty()) {
+                        VerifiedRoleBadges(roles = notification.actorRoles, expanded = false)
+                    }
+                }
+
+                // Message text (action description)
                 Text(
                     text = notification.message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextPrimary,
-                    fontWeight = if (!notification.read) FontWeight.SemiBold else FontWeight.Normal
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (!notification.read) TextPrimary else TextSecondary
                 )
+
+                // Comment preview (italic) — only for comment/reply types
+                if (!notification.commentPreview.isNullOrBlank()) {
+                    Text(
+                        text = "\"${notification.commentPreview}\"",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                        ),
+                        color = TextMuted,
+                        maxLines = 2,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
+
+                // Timestamp
                 Text(
                     text = notification.createdAt.toNotificationTime(),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = TextMuted
                 )
             }

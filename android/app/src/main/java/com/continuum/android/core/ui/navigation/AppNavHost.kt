@@ -587,6 +587,9 @@ private fun NavGraph(
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateTo = { route ->
                         if (route.isNotBlank()) navController.navigate(route)
+                    },
+                    onActorClick = { userId ->
+                        navController.navigate(NavRoutes.Social.userProfile(userId))
                     }
                 )
             }

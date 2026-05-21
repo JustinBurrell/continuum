@@ -22,7 +22,7 @@ import com.continuum.android.core.network.NetworkMonitor
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.components.*
 import com.continuum.android.core.ui.theme.*
-import com.continuum.android.core.ui.utils.toDisplayDate
+import com.continuum.android.core.ui.utils.toNotificationTime
 import com.continuum.android.feature.social.domain.ActivityItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import com.continuum.android.core.ui.components.ContinuumPullToRefresh
@@ -179,7 +179,7 @@ private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: (
                         )
                     }
                 }
-                Text(item.createdAt.toDisplayDate(), style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                Text(item.createdAt.toNotificationTime(), style = MaterialTheme.typography.bodySmall, color = TextMuted)
             }
             Icon(
                 imageVector = when (item.type) {

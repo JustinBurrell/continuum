@@ -51,7 +51,7 @@ exports.getNotifications = async (req, res) => {
         Notification.find(pagedFilter)
             .sort({ createdAt: -1, _id: -1 })
             .limit(limit + 1)
-            .populate('actorId', 'firstName lastName avatarUrl'),
+            .populate('actorId', 'firstName lastName avatarUrl roles'),
         Notification.countDocuments({ userId, read: false }),
     ]);
 

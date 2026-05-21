@@ -98,7 +98,7 @@ class NotificationsViewModel @Inject constructor(
                 .onSuccess {
                     _state.update { s ->
                         s.copy(
-                            items = s.items.map { it.copy(read = true, readAt = it.readAt ?: "") },
+                            items = s.items.map { it.copy(read = true) },
                             unreadCount = 0,
                             isMarkingAllRead = false
                         )
