@@ -79,13 +79,15 @@ object NavRoutes {
     object Notes {
         const val ROOT = "notes"
         const val LIST = "notes/list"
-        const val DETAIL = "notes/detail/{noteId}"
+        const val DETAIL = "notes/detail/{noteId}?commentId={commentId}"
         const val EDITOR = "notes/editor/{noteId}"
         const val DRIVE_IMPORT = "notes/drive-import"
         // Receives the result of the Google Picker (via continuum://drive-pick deep link)
         const val DRIVE_PICK = "notes/drive-pick?id={id}&name={name}&url={url}"
 
-        fun detail(noteId: String) = "notes/detail/$noteId"
+        fun detail(noteId: String, commentId: String? = null) =
+            if (commentId != null) "notes/detail/$noteId?commentId=${android.net.Uri.encode(commentId)}"
+            else "notes/detail/$noteId"
         fun editor(noteId: String = "new") = "notes/editor/$noteId"
     }
 
@@ -93,10 +95,12 @@ object NavRoutes {
         const val ROOT = "flashcards"
         const val LIST = "flashcards/list"
         const val HISTORY = "flashcards/history"
-        const val SET_DETAIL = "flashcards/set/{setId}"
+        const val SET_DETAIL = "flashcards/set/{setId}?commentId={commentId}"
         const val STUDY_MODE = "flashcards/study/{setId}"
 
-        fun setDetail(setId: String) = "flashcards/set/$setId"
+        fun setDetail(setId: String, commentId: String? = null) =
+            if (commentId != null) "flashcards/set/$setId?commentId=${android.net.Uri.encode(commentId)}"
+            else "flashcards/set/$setId"
         fun studyMode(setId: String) = "flashcards/study/$setId"
     }
 
@@ -609,13 +613,18 @@ private fun NavGraph(
             }
             composable(
                 route = NavRoutes.Notes.DETAIL,
-                arguments = listOf(navArgument("noteId") { type = NavType.StringType })
+                arguments = listOf(
+                    navArgument("noteId") { type = NavType.StringType },
+                    navArgument("commentId") { type = NavType.StringType; nullable = true; defaultValue = null }
+                )
             ) { backStackEntry ->
                 val networkMonitor = LocalNetworkMonitor.current
                 val noteId = backStackEntry.arguments?.getString("noteId") ?: return@composable
+                val commentId = backStackEntry.arguments?.getString("commentId")
                 val noteTokenManager = LocalTokenManager.current
                 NoteDetailScreen(
                     noteId = noteId,
+                    scrollToCommentId = commentId,
                     onNavigateBack = { navController.popBackStack() },
                     onEdit = { id -> navController.navigate(NavRoutes.Notes.editor(id)) },
                     networkMonitor = networkMonitor,
@@ -694,11 +703,16 @@ private fun NavGraph(
             }
             composable(
                 route = NavRoutes.Flashcards.SET_DETAIL,
-                arguments = listOf(navArgument("setId") { type = NavType.StringType })
+                arguments = listOf(
+                    navArgument("setId") { type = NavType.StringType },
+                    navArgument("commentId") { type = NavType.StringType; nullable = true; defaultValue = null }
+                )
             ) { backStackEntry ->
                 val setId = backStackEntry.arguments?.getString("setId") ?: return@composable
+                val commentId = backStackEntry.arguments?.getString("commentId")
                 FlashcardSetDetailScreen(
                     setId = setId,
+                    scrollToCommentId = commentId,
                     onNavigateBack = { navController.popBackStack() },
                     onStudy = { navController.navigate(NavRoutes.Flashcards.studyMode(setId)) },
                     onUserProfileClick = { uid -> navController.navigate(NavRoutes.Social.userProfile(uid)) }

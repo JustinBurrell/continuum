@@ -32,6 +32,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun NoteDetailScreen(
     noteId: String,
+    scrollToCommentId: String? = null,
     onNavigateBack: () -> Unit,
     onEdit: (String) -> Unit,
     networkMonitor: NetworkMonitor,
@@ -51,6 +52,14 @@ fun NoteDetailScreen(
     val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
+    var commentScrollTarget by remember(scrollToCommentId) { mutableStateOf<Float?>(null) }
+
+    LaunchedEffect(commentScrollTarget) {
+        val y = commentScrollTarget ?: return@LaunchedEffect
+        // Subtract ~80px so the comment sits just below the top bar instead of flush against it
+        scrollState.animateScrollTo((y - 80f).toInt().coerceAtLeast(0))
+    }
 
     // Download PDF to device Downloads folder when URL is ready
     LaunchedEffect(driveState.pdfDownloadUrl) {
@@ -158,7 +167,7 @@ fun NoteDetailScreen(
                 }
 
                 note != null -> {
-                    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                    Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
                         if (!isOnline) OfflineBanner()
 
                         // "Created by" attribution (shown only for notes owned by someone else)
@@ -305,6 +314,12 @@ fun NoteDetailScreen(
                             onUserClick = onUserProfileClick,
                             isSending = commentsState.isSending,
                             readOnly = isDemo,
+                            highlightCommentId = scrollToCommentId,
+                            onCommentPositioned = { _, y ->
+                                if (commentScrollTarget == null) {
+                                    commentScrollTarget = y + scrollState.value
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                         )
 

@@ -62,7 +62,21 @@ fun resolveNav(notification: Notification): String {
             else -> ""
         }
         "task_assigned" -> NavRoutes.Tasks.detail(targetId)
-        "comment_added", "comment_reply", "like_added" -> when (targetType) {
+        "comment_added" -> when (targetType) {
+            "note" -> NavRoutes.Notes.detail(targetId, commentId = notification.commentId)
+            "flashcardSet" -> NavRoutes.Flashcards.setDetail(targetId, commentId = notification.commentId)
+            else -> ""
+        }
+        "comment_reply" -> {
+            // targetId is the parent comment; resourceId/resourceType hold the actual resource
+            val resourceId = notification.resourceId ?: return ""
+            when (notification.resourceType) {
+                "note" -> NavRoutes.Notes.detail(resourceId, commentId = notification.commentId)
+                "flashcardSet" -> NavRoutes.Flashcards.setDetail(resourceId, commentId = notification.commentId)
+                else -> ""
+            }
+        }
+        "like_added" -> when (targetType) {
             "note" -> NavRoutes.Notes.detail(targetId)
             "flashcardSet" -> NavRoutes.Flashcards.setDetail(targetId)
             else -> ""
