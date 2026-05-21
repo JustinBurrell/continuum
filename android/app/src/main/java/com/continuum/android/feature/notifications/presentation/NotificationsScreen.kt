@@ -298,7 +298,14 @@ private fun NotificationItemRow(
                         VerifiedRoleBadges(roles = notification.actorRoles, expanded = false)
                     }
                     Text(
-                        text = notification.message.removePrefix(notification.actorName).trimStart(),
+                        text = notification.message.run {
+                            val firstName = notification.actorName.substringBefore(' ')
+                            when {
+                                startsWith(notification.actorName) -> removePrefix(notification.actorName).trimStart()
+                                startsWith(firstName) -> removePrefix(firstName).trimStart()
+                                else -> this
+                            }
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = if (!notification.read) TextPrimary else TextSecondary
                     )

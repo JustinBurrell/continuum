@@ -324,7 +324,9 @@ function NotifItem({ notif, onClick }) {
                                     {actorName}
                                 </Link>
                             </span>
-                            {notif.message.slice(actorName.length)}
+                            {notif.message.startsWith(actorName)
+                                ? notif.message.slice(actorName.length)
+                                : notif.message.slice((actor.firstName || '').length)}
                         </>
                     ) : notif.message}
                 </p>

@@ -252,7 +252,9 @@ function PageNotifItem({ notif, isLast, onClick, onDelete }) {
                                     {actorName}
                                 </Link>
                             </span>
-                            {notif.message.slice(actorName.length)}
+                            {notif.message.startsWith(actorName)
+                                ? notif.message.slice(actorName.length)
+                                : notif.message.slice((actor.firstName || '').length)}
                         </>
                     ) : notif.message}
                 </p>
