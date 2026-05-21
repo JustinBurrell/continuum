@@ -46,6 +46,7 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onFriends: () -> Unit = {},
     onMessages: () -> Unit = {},
+    onNotifications: () -> Unit = {},
     onActivity: () -> Unit = {},
     onCalendar: () -> Unit = {},
     onTasks: () -> Unit = {},
@@ -262,6 +263,8 @@ fun ProfileScreen(
                     ProfileRow(icon = Icons.Default.People, label = "Friends", onClick = onFriends)
                     HorizontalDivider(color = Border)
                     ProfileRow(icon = Icons.Default.ChatBubbleOutline, label = "Messages", onClick = onMessages)
+                    HorizontalDivider(color = Border)
+                    ProfileRow(icon = Icons.Default.Notifications, label = "Notifications", onClick = onNotifications)
                     HorizontalDivider(color = Border)
                     ProfileRow(icon = Icons.Default.NotificationsNone, label = "Activity", onClick = onActivity)
                     HorizontalDivider(color = Border)

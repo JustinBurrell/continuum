@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import com.continuum.android.core.ui.theme.*
-import com.continuum.android.feature.notifications.presentation.NotificationBell
 
 /**
  * Instagram-style top header for the Dashboard screen.

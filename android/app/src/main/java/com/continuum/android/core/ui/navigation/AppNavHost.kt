@@ -947,6 +947,7 @@ private fun NavGraph(
                     },
                     onFriends = { navController.navigate(NavRoutes.Social.FRIENDS_LIST) },
                     onMessages = { navController.navigate(NavRoutes.Social.CONVERSATIONS) },
+                    onNotifications = { navController.navigate(NavRoutes.Notifications.ROOT) },
                     onActivity = { navController.navigate(NavRoutes.Social.ACTIVITY_FEED) },
                     onCalendar = { navController.navigate(NavRoutes.Calendar.ROOT) },
                     onTasks = { navController.navigate(NavRoutes.Tasks.ROOT) },

@@ -10,7 +10,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +38,6 @@ import com.continuum.android.core.ui.theme.BrandPurple
 import com.continuum.android.core.ui.theme.ErrorRed
 import com.continuum.android.core.ui.theme.TextMuted
 import com.continuum.android.core.ui.theme.TextPrimary
-import com.continuum.android.core.ui.theme.TextSecondary
 import com.continuum.android.core.ui.utils.notificationTimeGroup
 import com.continuum.android.core.ui.utils.toNotificationTime
 import com.continuum.android.feature.notifications.domain.Notification
@@ -59,36 +65,6 @@ fun resolveNav(notification: Notification): String {
         }
         "friend_request", "friend_accepted" -> NavRoutes.Social.userProfile(actorId)
         else -> ""
-    }
-}
-
-// ---------------------------------------------------------------------------
-// NotificationBell: badge icon for use in the dashboard header
-// ---------------------------------------------------------------------------
-
-@Composable
-fun NotificationBell(
-    unreadCount: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    BadgedBox(
-        badge = {
-            if (unreadCount > 0) {
-                Badge(containerColor = ErrorRed) {
-                    Text(
-                        text = if (unreadCount > 9) "9+" else "$unreadCount",
-                        color = Color.White,
-                        fontSize = 9.sp
-                    )
-                }
-            }
-        },
-        modifier = modifier
-    ) {
-        IconButton(onClick = onClick) {
-            Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = TextPrimary)
-        }
     }
 }
 
