@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 import javax.inject.Inject
 
 data class NotificationsUiState(
@@ -39,9 +38,8 @@ class NotificationsViewModel @Inject constructor(
     private fun subscribeToSocket() {
         viewModelScope.launch {
             socketManager.newNotificationFlow.collect { raw ->
-                val unread = runCatching {
-                    JSONObject(raw).optInt("unreadCount", -1)
-                }.getOrDefault(-1)
+                val unread = Regex(""""unreadCount"\s*:\s*(\d+)""")
+                    .find(raw)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: -1
                 if (unread >= 0) {
                     _state.update { it.copy(unreadCount = unread) }
                 }

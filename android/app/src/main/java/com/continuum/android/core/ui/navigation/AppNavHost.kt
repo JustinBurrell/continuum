@@ -86,7 +86,7 @@ object NavRoutes {
         const val DRIVE_PICK = "notes/drive-pick?id={id}&name={name}&url={url}"
 
         fun detail(noteId: String, commentId: String? = null) =
-            if (commentId != null) "notes/detail/$noteId?commentId=${android.net.Uri.encode(commentId)}"
+            if (commentId != null) "notes/detail/$noteId?commentId=${java.net.URLEncoder.encode(commentId, "UTF-8")}"
             else "notes/detail/$noteId"
         fun editor(noteId: String = "new") = "notes/editor/$noteId"
     }
@@ -99,7 +99,7 @@ object NavRoutes {
         const val STUDY_MODE = "flashcards/study/{setId}"
 
         fun setDetail(setId: String, commentId: String? = null) =
-            if (commentId != null) "flashcards/set/$setId?commentId=${android.net.Uri.encode(commentId)}"
+            if (commentId != null) "flashcards/set/$setId?commentId=${java.net.URLEncoder.encode(commentId, "UTF-8")}"
             else "flashcards/set/$setId"
         fun studyMode(setId: String) = "flashcards/study/$setId"
     }
@@ -148,8 +148,8 @@ object NavRoutes {
             participantName: String = "",
             participantId: String = ""
         ) =
-            "social/conversations/$conversationId?participantName=${android.net.Uri.encode(participantName)}&participantId=${
-                android.net.Uri.encode(participantId)
+            "social/conversations/$conversationId?participantName=${java.net.URLEncoder.encode(participantName, "UTF-8")}&participantId=${
+                java.net.URLEncoder.encode(participantId, "UTF-8")
             }"
     }
 
