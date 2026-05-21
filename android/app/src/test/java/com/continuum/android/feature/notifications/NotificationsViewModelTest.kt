@@ -47,6 +47,7 @@ class NotificationsViewModelTest {
         targetType = "note",
         message = "Jane commented on your note",
         commentPreview = null,
+        messagePreview = null,
         commentId = null,
         resourceId = null,
         resourceType = null,
