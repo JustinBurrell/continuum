@@ -148,6 +148,34 @@ Tapping Reply behaves like Instagram: input focuses immediately and keyboard app
 - [x] Cancel clears the prefilled input and dismisses the banner
 - [x] `CommentThreadTest` (Compose UI, androidTest): 7 tests covering prefill, banner with/without username, cancel, send with parentId, auto-focus, and default state
 
+### Bug Fix: Google OAuth CCT Doesn't Close After Login
+Android CCT and web mobile popup stay open after completing Google OAuth. Spec: `docs/bugs/google_oauth_pop_up_bug.md`.
+- [ ] Android `GoogleDriveStep.kt` + `IntegrationsStep.kt`: append `?source=android-linking` to CCT URL
+- [ ] Web `AuthCallback.jsx`: add `source === 'android-linking'` branch — redirect to `continuum://oauth-callback?linked=true` (before the existing `source === 'linking'` check)
+- [ ] Backend `passport.js`: verify `source=android-linking` round-trips through OAuth `state` parameter
+- [ ] Android NavGraph / `AndroidManifest.xml`: register `continuum://oauth-callback` deep link; handle `linked=true` to refresh profile and call `onContinue()`
+- [ ] Web `AuthCallback.jsx:76–88`: add "Close this tab" button to the fallback "Google connected!" screen for mobile browsers where `window.close()` is blocked
+- [ ] Tests: Jest (OAuth state round-trip), Playwright (desktop popup closes; full-page sign-in regression), Android unit (param appended, deep link registered, profile refresh on `linked=true`)
+
+### Bug Fix: Google Android Drive & Unlink Issues
+Three Android-only issues with the Google Drive integration. Spec: `docs/bugs/google-android-unlink-bug.md`.
+- [ ] Android `ProfileViewModel.kt`: verify `unlinkGoogle()` calls `DELETE /api/auth/me/google/link`; surface 400 error ("Set a password before unlinking") as Snackbar with "Set Password" action
+- [ ] Android `GoogleDriveImportScreen.kt`: add `isGoogleLinked` pre-flight check — show in-app "not connected" card instead of opening CCT when not linked
+- [ ] Android `GoogleDriveImportScreen.kt`: add `trailingIcon` clear button to the URL `OutlinedTextField` (show only when non-empty)
+- [ ] Backend `google.controller.js:203–207`: replace bare `<p>Google account not linked</p>` 403 response with a styled HTML page including a `continuum://` deep link button
+- [ ] Tests: Jest (unlink password guard, 200 on valid unlink, styled 403 HTML); Android unit (`unlinkError` state on 400, `isGoogleLinked` pre-flight, clear button Compose UI test)
+
+### Bug Fix: Active Sessions Accuracy & UX
+Sessions list has wrong device labels, stale entries, and UX gaps vs. Instagram/GitHub standard. Spec: `docs/bugs/active-sessions-not-being-specific.md`.
+- [ ] Backend `auth.controller.js`: replace custom `parseDeviceLabel()` with `ua-parser-js` + `Sec-CH-UA-Platform` Client Hints — fixes iPad shown as macOS
+- [ ] Backend (login handler): revoke same-`deviceId` non-revoked tokens before creating a new one — prevents duplicate sessions on re-login
+- [ ] Backend sessions endpoint: add `expiresAt > now` filter alongside `revokedAt == null`
+- [ ] Web `Profile.jsx:452–457`: fix `doLogoutAll` to call `logout()` (clears `AuthContext.user`) before `navigate('/login')` — currently redirects back to dashboard
+- [ ] Web `Profile.jsx:998–1048`: sort current session first; add device-type icon (phone/tablet/desktop); show `lastUsedAt` as relative time with absolute on hover
+- [ ] Android `ProfileViewModel.kt`: sort sessions so `isCurrent == true` is first
+- [ ] Android `ProfileScreen.kt:431–468` `SessionRow`: add leading device-type icon; split timestamp into two-row subtitle (location + last active)
+- [ ] Tests: Jest (iPad UA label, deduplication on login, expired token filter, logout-all revoking); Playwright (current session badge, logout-all → `/login`, re-login shows 1 session); Android unit (sorted sessions, logout-all triggers `onLogout`)
+
 ### 5. FCM Push Notifications
 Android only. Requires notification bell infrastructure above.
 - [ ] Add Firebase to the project (`google-services.json`, Firebase SDK)
