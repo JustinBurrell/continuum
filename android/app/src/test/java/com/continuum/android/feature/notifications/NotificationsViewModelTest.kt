@@ -145,12 +145,14 @@ class NotificationsViewModelTest {
 
     @Test
     fun `socket new_notification updates unreadCount`() = runTest {
-        viewModel.loadNotifications()
+        // ViewModel must be created inside runTest so the socket subscription
+        // coroutine is launched within the test's coroutine scope.
+        val vm = NotificationsViewModel(repository, socketManager)
         advanceUntilIdle()
 
         fakeSocketFlow.emit("""{"unreadCount": 5}""")
         advanceUntilIdle()
 
-        assertEquals(5, viewModel.state.value.unreadCount)
+        assertEquals(5, vm.state.value.unreadCount)
     }
 }
