@@ -148,14 +148,14 @@ Tapping Reply behaves like Instagram: input focuses immediately and keyboard app
 - [x] Cancel clears the prefilled input and dismisses the banner
 - [x] `CommentThreadTest` (Compose UI, androidTest): 7 tests covering prefill, banner with/without username, cancel, send with parentId, auto-focus, and default state
 
-### Bug Fix: Google OAuth CCT Doesn't Close After Login
-Android CCT and web mobile popup stay open after completing Google OAuth. Spec: `docs/bugs/google_oauth_pop_up_bug.md`.
-- [ ] Android `GoogleDriveStep.kt` + `IntegrationsStep.kt`: append `?source=android-linking` to CCT URL
-- [ ] Web `AuthCallback.jsx`: add `source === 'android-linking'` branch — redirect to `continuum://oauth-callback?linked=true` (before the existing `source === 'linking'` check)
-- [ ] Backend `passport.js`: verify `source=android-linking` round-trips through OAuth `state` parameter
-- [ ] Android NavGraph / `AndroidManifest.xml`: register `continuum://oauth-callback` deep link; handle `linked=true` to refresh profile and call `onContinue()`
-- [ ] Web `AuthCallback.jsx:76–88`: add "Close this tab" button to the fallback "Google connected!" screen for mobile browsers where `window.close()` is blocked
-- [ ] Tests: Jest (OAuth state round-trip), Playwright (desktop popup closes; full-page sign-in regression), Android unit (param appended, deep link registered, profile refresh on `linked=true`)
+### Bug Fix: Google OAuth CCT Doesn't Close After Login ✅
+Android CCT and web mobile popup stay open after completing Google OAuth. Spec: `docs/bugs/google_oauth_pop_up_bug.md`. PR #233.
+- [x] Android `GoogleDriveStep.kt` + `IntegrationsStep.kt`: append `?source=android-linking` to CCT URL; `GoogleDriveStep` swaps unreliable 1-second delay for `LifecycleEventEffect(ON_RESUME)`
+- [x] Web `AuthCallback.jsx`: add `source === 'android-linking'` branch — redirect to `continuum://oauth-callback?linked=true` (before the existing `source === 'linking'` check)
+- [x] Backend `auth.routes.js` + `auth.controller.js`: `source=android-linking` round-trips through `oauth_source` cookie the same way `linking` does
+- [x] Android `AndroidManifest.xml`: register `continuum://oauth-callback` intent filter; `AppNavHost.kt` registers `OAUTH_CALLBACK` route + deep link composable that pops back to the onboarding step
+- [x] Web `AuthCallback.jsx:76–88`: "Close this tab" button (user-gesture `window.close()`) + improved copy; `IntegrationsStep.jsx` adds `visibilitychange` listener so original tab refreshes when user returns from a stuck popup
+- [x] Tests: Jest OAuth state round-trip (9 tests in `oauth-state.test.js`), Playwright (login regression, fallback UI on desktop + mobile), Android unit (`GoogleOAuthUrlTest`)
 
 ### Bug Fix: Google Android Drive & Unlink Issues
 Three Android-only issues with the Google Drive integration. Spec: `docs/bugs/google-android-unlink-bug.md`.
@@ -225,4 +225,4 @@ Quick win — needed before real support traffic comes in.
 
 ---
 
-*Last updated: May 21, 2026 — 4d, 4e complete; activity/notification work done through FCM*
+*Last updated: May 21, 2026 — 4d, 4e complete; Google OAuth CCT bug fix complete (PR #233)*
