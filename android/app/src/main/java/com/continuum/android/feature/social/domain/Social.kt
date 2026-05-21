@@ -67,6 +67,7 @@ data class Comment(
     val id: String,
     val authorId: String?,
     val authorName: String,
+    val authorUsername: String?,
     val authorAvatar: String?,
     val authorRoles: List<String> = emptyList(),
     val content: String,

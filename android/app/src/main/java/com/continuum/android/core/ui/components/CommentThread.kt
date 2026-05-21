@@ -43,6 +43,7 @@ fun CommentThread(
 ) {
     var newComment by remember { mutableStateOf("") }
     var replyingTo by remember { mutableStateOf<String?>(null) }
+    var replyingToUsername by remember { mutableStateOf<String?>(null) }
     var mentionQuery by remember { mutableStateOf<String?>(null) }
     var mentionStart by remember { mutableStateOf(0) }
     var mentionSuggestions by remember { mutableStateOf<List<UserSearchResult>>(emptyList()) }
@@ -67,7 +68,13 @@ fun CommentThread(
             CommentItem(
                 comment = comment,
                 onLike = { onLikeComment(comment.id) },
-                onReply = if (readOnly) null else { { replyingTo = comment.id } },
+                onReply = if (readOnly) null else { {
+                    replyingTo = comment.id
+                    replyingToUsername = comment.authorUsername
+                    if (comment.authorUsername != null) {
+                        newComment = "@${comment.authorUsername} "
+                    }
+                } },
                 onDelete = if (readOnly) null else onDeleteComment?.let { { it(comment.id) } },
                 onUserClick = onUserClick?.let { nav -> comment.authorId?.let { { nav(it) } } },
                 onMentionUserClick = onUserClick,
@@ -102,9 +109,13 @@ fun CommentThread(
                     Modifier.padding(horizontal = Spacing.sm, vertical = Spacing.xs),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Replying to comment", style = MaterialTheme.typography.labelSmall, color = BrandPurple)
+                    Text(
+                        if (replyingToUsername != null) "Replying to @$replyingToUsername" else "Replying to comment",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = BrandPurple
+                    )
                     Spacer(Modifier.width(Spacing.xs))
-                    IconButton(onClick = { replyingTo = null }, modifier = Modifier.size(16.dp)) {
+                    IconButton(onClick = { replyingTo = null; replyingToUsername = null; newComment = "" }, modifier = Modifier.size(16.dp)) {
                         Icon(Icons.Default.Close, "Cancel reply", tint = BrandPurple, modifier = Modifier.size(14.dp))
                     }
                 }
@@ -186,6 +197,7 @@ fun CommentThread(
                             onAddComment(newComment.trim(), replyingTo)
                             newComment = ""
                             replyingTo = null
+                            replyingToUsername = null
                         }
                     },
                     enabled = newComment.isNotBlank() && !isSending

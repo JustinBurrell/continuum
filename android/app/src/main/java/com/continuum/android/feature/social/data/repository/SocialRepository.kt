@@ -324,6 +324,7 @@ class SocialRepository @Inject constructor(
             id = id,
             authorId = userId,
             authorName = authorName,
+            authorUsername = snap?.username,
             authorAvatar = snap?.avatarUrl,
             authorRoles = snap?.roles ?: emptyList(),
             content = content,
