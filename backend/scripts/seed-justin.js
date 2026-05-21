@@ -1830,6 +1830,14 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
   const replyToJustinParent = replyToJustin && justinOwnComments.find(c => c._id.toString() === replyToJustin.parentId?.toString());
   const replyAuthor = replyToJustin && friends.find(f => f._id.toString() === replyToJustin.userId?.toString());
 
+  // Create a real comment from Marcus that @mentions Justin, for the mention notification
+  const marcusMentionComment = marcus && dpNote && await Comment.create({
+    targetId: dpNote._id,
+    targetType: 'note',
+    userId: marcus._id,
+    content: `@${justin.username} this approach is exactly what I was looking for, thanks for sharing.`,
+  }).catch(() => null);
+
   const entries = [
     // Today (unread)
     alex && dpNote && {
@@ -1992,16 +2000,16 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       createdAt: daysAgo(15),
     },
     // mention — Marcus mentioned Justin in a comment
-    marcus && dpNote && {
+    marcus && marcusMentionComment && dpNote && {
       userId: justin._id,
       actorId: marcus._id,
       type: 'mention',
-      targetId: justinReply._id,
+      targetId: marcusMentionComment._id,
       targetType: 'comment',
       message: 'Marcus Johnson mentioned you in a comment',
       metadata: {
-        commentPreview: `@${justin.username} this approach is exactly what I was looking for, thanks for sharing.`,
-        commentId: justinReply._id.toString(),
+        commentPreview: marcusMentionComment.content.slice(0, 120),
+        commentId: marcusMentionComment._id.toString(),
         resourceId: dpNote._id.toString(),
         resourceType: 'note',
       },

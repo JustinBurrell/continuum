@@ -1156,6 +1156,14 @@ async function seedNotifications(jane, friends, sharedNotes, allComments, conver
   const replyToJaneParent = replyToJane && janeOwnComments.find(c => c._id.toString() === replyToJane.parentId?.toString());
   const janeReplyAuthor = replyToJane && friends.find(f => f._id.toString() === replyToJane.userId?.toString());
 
+  // Create a real comment from Logan that @mentions Jane, for the mention notification
+  const loganMentionComment = logan && urlShortenerNote && await Comment.create({
+    targetId: urlShortenerNote._id,
+    targetType: 'note',
+    userId: logan._id,
+    content: `@${jane.username} do you have notes on the rate limiting part? This design is really clean.`,
+  }).catch(() => null);
+
   const entries = [
     // Today (unread)
     chris && urlShortenerNote && {
@@ -1318,16 +1326,16 @@ async function seedNotifications(jane, friends, sharedNotes, allComments, conver
       createdAt: daysAgo(15),
     },
     // mention — Logan mentioned Jane in a comment
-    logan && urlShortenerNote && {
+    logan && loganMentionComment && urlShortenerNote && {
       userId: jane._id,
       actorId: logan._id,
       type: 'mention',
-      targetId: janeReply._id,
+      targetId: loganMentionComment._id,
       targetType: 'comment',
       message: 'Logan Carter mentioned you in a comment',
       metadata: {
-        commentPreview: `@${jane.username} do you have notes on the rate limiting part? This design is really clean.`,
-        commentId: janeReply._id.toString(),
+        commentPreview: loganMentionComment.content.slice(0, 120),
+        commentId: loganMentionComment._id.toString(),
         resourceId: urlShortenerNote._id.toString(),
         resourceType: 'note',
       },
