@@ -38,7 +38,6 @@ import com.continuum.android.core.ui.components.VerifiedRoleBadges
 import com.continuum.android.core.ui.navigation.NavRoutes
 import com.continuum.android.core.ui.theme.BrandPurple
 import com.continuum.android.core.ui.theme.ErrorRed
-import com.continuum.android.core.ui.theme.PurpleTint
 import com.continuum.android.core.ui.theme.TextMuted
 import com.continuum.android.core.ui.theme.TextPrimary
 import com.continuum.android.core.ui.theme.TextSecondary
@@ -250,10 +249,7 @@ private fun NotificationItemRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    if (!notification.read) PurpleTint.copy(alpha = 0.25f)
-                    else MaterialTheme.colorScheme.surface
-                )
+                .background(MaterialTheme.colorScheme.surface)
                 .clickable(onClick = onClick)
                 .padding(vertical = 12.dp, horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),

@@ -25,6 +25,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.R
 import com.continuum.android.core.network.NetworkMonitor
@@ -84,6 +87,19 @@ fun DashboardScreen(
     }
     LaunchedEffect(Unit) {
         viewModel.navigateToOnboarding.collect { onNavigateToOnboarding() }
+    }
+
+    // Refresh the unread badge each time the Dashboard comes back into focus
+    // (e.g. after returning from NotificationsScreen having marked items read).
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                notificationsViewModel.loadUnreadCount()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
