@@ -227,7 +227,7 @@ exports.sendMessage = async (req, res) => {
             type: 'new_message',
             targetId: conversationId,
             targetType: 'conversation',
-            message: `${req.user.firstName} sent you a message`,
+            message: `${req.user.firstName} ${req.user.lastName} sent you a message`,
             metadata: { messagePreview: content.trim().slice(0, 120) },
             debounceMinutes: 5,
         }).catch(() => {});

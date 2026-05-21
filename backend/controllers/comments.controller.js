@@ -155,7 +155,7 @@ exports.addComment = async (req, res) => {
             type: 'comment_added',
             targetId,
             targetType,
-            message: `${req.user.firstName} commented on your ${targetType}`,
+            message: `${req.user.firstName} ${req.user.lastName} commented on your ${targetType === 'flashcardSet' ? 'flashcard set' : targetType}`,
             metadata: { commentPreview, commentId: comment._id.toString() },
             debounceMinutes: 2,
         }).catch(() => {});
@@ -173,7 +173,7 @@ exports.addComment = async (req, res) => {
                     type: 'comment_reply',
                     targetId: parentId,
                     targetType: 'comment',
-                    message: `${req.user.firstName} replied to your comment`,
+                    message: `${req.user.firstName} ${req.user.lastName} replied to your comment`,
                     metadata: {
                         commentPreview,
                         commentId: comment._id.toString(),

@@ -138,7 +138,7 @@ exports.createTask = async (req, res) => {
                 type: 'task_assigned',
                 targetId: task._id,
                 targetType: 'task',
-                message: `${req.user.firstName} assigned you to a task: "${title}"`,
+                message: `${req.user.firstName} ${req.user.lastName} assigned you to a task: "${title}"`,
             }).catch(() => {});
         }
 
@@ -398,7 +398,7 @@ exports.updateParticipants = async (req, res) => {
             type: 'task_assigned',
             targetId: task._id,
             targetType: 'task',
-            message: `${req.user.firstName} added you to a task: "${task.title}"`,
+            message: `${req.user.firstName} ${req.user.lastName} added you to a task: "${task.title}"`,
         }).catch(() => {});
     }
 
