@@ -1475,7 +1475,7 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
     }
   }
 
-  // Justin's task_completed activities — completed tasks visible to friends
+  // Justin's task_completed activities - completed tasks visible to friends
   const completedTasks = tasks.filter(t => t.status === 'completed').slice(0, 3);
   for (const task of completedTasks) {
     await Activity.create({
@@ -1846,7 +1846,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'comment_added',
       targetId: dpNote._id,
       targetType: 'note',
-      message: `Alex commented on your note: "Dynamic Programming: From Recursion to Optimization"`,
+      message: `Alex Chen commented on your note: "Dynamic Programming: From Recursion to Optimization"`,
       metadata: alexCommentOnDp ? { commentPreview: alexCommentOnDp.content.slice(0, 120), commentId: alexCommentOnDp._id.toString() } : undefined,
       read: false,
       createdAt: hoursAgo(1),
@@ -1868,7 +1868,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'new_message',
       targetId: alexConv._id,
       targetType: 'conversation',
-      message: 'Alex sent you a message',
+      message: 'Alex Chen sent you a message',
       metadata: { messagePreview: 'Hey! Did you finish reviewing the dynamic programming notes?' },
       read: false,
       createdAt: hoursAgo(5),
@@ -1880,7 +1880,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'comment_reply',
       targetId: replyToJustin.parentId,
       targetType: 'comment',
-      message: `${replyAuthor.firstName} replied to your comment`,
+      message: `${replyAuthor.firstName} ${replyAuthor.lastName} replied to your comment`,
       metadata: {
         commentPreview: replyToJustin.content?.slice(0, 120),
         commentId: replyToJustin._id.toString(),
@@ -1895,7 +1895,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'comment_reply',
       targetId: justinReply.parentId || justinReply._id,
       targetType: 'comment',
-      message: 'Sofia replied to your comment',
+      message: 'Sofia Rodriguez replied to your comment',
       metadata: {
         commentPreview: 'Totally agree, the base case breakdown here is the clearest I have seen.',
         commentId: justinReply._id.toString(),
@@ -1912,7 +1912,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'task_assigned',
       targetId: sharedTask._id,
       targetType: 'task',
-      message: `Alex assigned you to a task: "${sharedTask.title}"`,
+      message: `${alex.firstName} ${alex.lastName} assigned you to a task: "${sharedTask.title}"`,
       read: false,
       createdAt: hoursAgo(9),
     },
@@ -1923,7 +1923,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'comment_added',
       targetId: nnNote._id,
       targetType: 'note',
-      message: `Maya commented on your note: "Neural Networks & Deep Learning: Architecture Overview"`,
+      message: `Maya Patel commented on your note: "Neural Networks & Deep Learning: Architecture Overview"`,
       metadata: mayaCommentOnNn ? { commentPreview: mayaCommentOnNn.content.slice(0, 120), commentId: mayaCommentOnNn._id.toString() } : undefined,
       read: false,
       createdAt: daysAgo(2),
@@ -1935,7 +1935,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'share_received',
       targetId: alexNote._id,
       targetType: 'note',
-      message: `Alex shared a note with you: "${alexNote.title}"`,
+      message: `${alex.firstName} ${alex.lastName} shared a note with you: "${alexNote.title}"`,
       read: false,
       createdAt: daysAgo(3),
     },
@@ -1959,7 +1959,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'share_received',
       targetId: mayaSet._id,
       targetType: 'flashcardSet',
-      message: `Maya shared a flashcard set with you: "${mayaSet.title}"`,
+      message: `${maya.firstName} ${maya.lastName} shared a flashcard set with you: "${mayaSet.title}"`,
       read: true,
       readAt: daysAgo(8),
       createdAt: daysAgo(9),
@@ -1970,7 +1970,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'comment_added',
       targetId: dpNote._id,
       targetType: 'note',
-      message: `Jordan commented on your note: "Dynamic Programming: From Recursion to Optimization"`,
+      message: `Jordan Williams commented on your note: "Dynamic Programming: From Recursion to Optimization"`,
       metadata: jordanCommentOnDp ? { commentPreview: jordanCommentOnDp.content.slice(0, 120), commentId: jordanCommentOnDp._id.toString() } : undefined,
       read: true,
       readAt: daysAgo(12),
@@ -1982,7 +1982,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'new_message',
       targetId: mayaConv?._id || dpNote._id,
       targetType: mayaConv ? 'conversation' : 'note',
-      message: 'Maya sent you a message',
+      message: 'Maya Patel sent you a message',
       metadata: { messagePreview: 'The neural network architecture section is really well explained!' },
       read: true,
       readAt: daysAgo(10),
@@ -1994,12 +1994,12 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'friend_accepted',
       targetId: justin._id,
       targetType: 'friendship',
-      message: 'Priya accepted your friend request',
+      message: 'Priya Sharma accepted your friend request',
       read: true,
       readAt: daysAgo(14),
       createdAt: daysAgo(15),
     },
-    // mention — Marcus mentioned Justin in a comment
+    // mention - Marcus mentioned Justin in a comment
     marcus && marcusMentionComment && dpNote && {
       userId: justin._id,
       actorId: marcus._id,
@@ -2024,7 +2024,7 @@ async function seedNotifications(justin, friends, justinNotes, comments, convers
       type: 'friend_request',
       targetId: justin._id,
       targetType: 'friendship',
-      message: 'Jordan sent you a friend request',
+      message: 'Jordan Williams sent you a friend request',
       read: true,
       readAt: daysAgo(46),
       createdAt: daysAgo(47),
