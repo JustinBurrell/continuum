@@ -259,7 +259,7 @@ function PageNotifItem({ notif, isLast, onClick, onDelete }) {
                 <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.4 }}>
                     {notif.message}
                 </p>
-                {notif.metadata?.commentPreview && (
+                {(notif.metadata?.commentPreview || notif.metadata?.messagePreview) && (
                     <p style={{
                         fontSize: 12,
                         color: '#6B7280',
@@ -271,7 +271,7 @@ function PageNotifItem({ notif, isLast, onClick, onDelete }) {
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
                     }}>
-                        "{notif.metadata.commentPreview}"
+                        "{notif.metadata.commentPreview ?? notif.metadata.messagePreview}"
                     </p>
                 )}
                 <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0' }}>

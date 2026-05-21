@@ -44,9 +44,9 @@ export function resolveNav(notif) {
         return { to: '/activity', state: null };
     }
     if (type === 'like_added') {
-        if (resourceType === 'note')         return { to: '/notes/view',     state: { id: resourceId } };
-        if (resourceType === 'flashcardSet') return { to: '/flashcards/view', state: { id: resourceId } };
-        if (resourceType === 'task')         return { to: '/tasks',           state: { openTaskId: resourceId } };
+        if (resourceType === 'note')         return { to: '/notes/view',     state: { id: resourceId, commentId } };
+        if (resourceType === 'flashcardSet') return { to: '/flashcards/view', state: { id: resourceId, commentId } };
+        if (resourceType === 'task')         return { to: '/tasks',           state: { openTaskId: resourceId, commentId } };
         return { to: '/activity', state: null };
     }
     return { to: '/activity', state: null };
@@ -331,7 +331,7 @@ function NotifItem({ notif, onClick }) {
                 <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.4 }}>
                     {notif.message}
                 </p>
-                {notif.metadata?.commentPreview && (
+                {(notif.metadata?.commentPreview || notif.metadata?.messagePreview) && (
                     <p style={{
                         fontSize: 12,
                         color: '#6B7280',
@@ -343,7 +343,7 @@ function NotifItem({ notif, onClick }) {
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
                     }}>
-                        "{notif.metadata.commentPreview}"
+                        "{notif.metadata.commentPreview ?? notif.metadata.messagePreview}"
                     </p>
                 )}
                 <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0', lineHeight: 1.3 }}>
