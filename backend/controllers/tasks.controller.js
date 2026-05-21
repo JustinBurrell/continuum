@@ -288,8 +288,19 @@ exports.updateStatus = async (req, res) => {
 
     // Set the new status and call .save() to trigger the pre-save hook
     // The hook will: set completedAt if completed, generate next recurrence if recurring
+    const wasCompleted = task.status === 'completed';
     task.status = status;
     await task.save();
+
+    if (status === 'completed' && !wasCompleted) {
+        createActivity({
+            actorId: req.user._id,
+            type: 'task_completed',
+            targetId: task._id,
+            targetType: 'task',
+            metadata: { taskTitle: task.title },
+        }).catch(() => {});
+    }
 
     emitTaskUpdate(task, req.user._id);
     invalidateSharedTasksCache(task);

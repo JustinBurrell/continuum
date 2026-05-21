@@ -1475,6 +1475,21 @@ async function seedActivities(justin, friends, justinNotes, friendNoteMap, justi
     }
   }
 
+  // Justin's task_completed activities — completed tasks visible to friends
+  const completedTasks = tasks.filter(t => t.status === 'completed').slice(0, 3);
+  for (const task of completedTasks) {
+    await Activity.create({
+      userId: justin._id,
+      type: 'task_completed',
+      targetId: task._id,
+      targetType: 'task',
+      visibleTo: [justin._id, ...allFriendIds],
+      metadata: { taskTitle: task.title },
+      createdAt: bumpDate(),
+    });
+    count++;
+  }
+
   // Justin's note_created activities for friends-visible notes
   const friendsNoteIndices = [11, 12, 13, 14]; // React Hooks, Git Workflow, System Design, UNIX
   for (const i of friendsNoteIndices) {

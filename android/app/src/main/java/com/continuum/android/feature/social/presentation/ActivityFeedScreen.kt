@@ -111,7 +111,8 @@ fun ActivityFeedScreen(
                                     when (item.type) {
                                         "note_shared" -> item.resourceId?.let(onSharedNoteClick)
                                         "flashcard_shared" -> item.resourceId?.let(onFlashcardSetClick)
-                                        "task_created" -> item.resourceId?.let(onTaskClick)
+                                        "task_created",
+                                        "task_completed" -> item.resourceId?.let(onTaskClick)
                                         "friend_accepted" -> item.actorId?.let(onUserClick)
                                         else -> Unit
                                     }
@@ -126,7 +127,7 @@ fun ActivityFeedScreen(
     }
 }
 
-private val clickableTypes = setOf("note_shared", "flashcard_shared", "task_created", "friend_accepted")
+private val clickableTypes = setOf("note_shared", "flashcard_shared", "task_created", "task_completed", "friend_accepted")
 
 @Composable
 private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: () -> Unit) {
@@ -185,7 +186,8 @@ private fun ActivityCard(item: ActivityItem, onClick: () -> Unit, onUserClick: (
                 imageVector = when (item.type) {
                     "note_shared" -> Icons.Default.Article
                     "flashcard_shared" -> Icons.Default.Style
-                    "task_created" -> Icons.Default.CheckBox
+                    "task_created",
+                    "task_completed" -> Icons.Default.CheckBox
                     "friend_accepted" -> Icons.Default.People
                     else -> Icons.Default.Notifications
                 },

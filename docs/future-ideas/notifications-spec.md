@@ -28,9 +28,22 @@
 | Someone comments on your note / flashcard set / task | Content owner | `comments.controller.js → addComment` |
 | Someone replies to your comment | Comment author | `comments.controller.js → addComment` (when `parentId` is set) |
 | Someone likes your comment | Comment author | `comments.controller.js → toggleLike` |
+| Someone mentions you (`@username`) in a comment | Mentioned user | `comments.controller.js → addComment` (mention detection) |
 | Someone shares a note / flashcard set / task with you | Recipient user(s) | `share.service.js → sendShareMessage` (already fires auto-DM — extend this) |
 | Someone sends you a message | Recipient | `messages.controller.js` (or wherever messages are created) |
 | Friend request accepted | Requester | `friends.controller.js` (on accepting a request) |
+
+### Activity Feed Events (in-app feed, not notification bell)
+
+| Event | Visible to | Trigger location |
+|---|---|---|
+| User creates a note | Actor + friends | `notes.controller.js` |
+| User shares a note | Actor + friends / specific recipients | `notes.controller.js` |
+| User creates a flashcard set | Actor + friends | `flashcardSets.controller.js` |
+| User shares a flashcard set | Actor + friends / specific recipients | `flashcardSets.controller.js` |
+| User creates / shares a task | Actor + friends / participants | `tasks.controller.js` |
+| **User completes a task** | Actor + friends | `tasks.controller.js → updateStatus` (when status → `'completed'`) |
+| User adds a comment | Actor + friends | `comments.controller.js` |
 
 ### System
 

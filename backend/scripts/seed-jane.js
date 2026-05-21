@@ -730,6 +730,21 @@ async function seedActivities(jane, friends, sharedNotes, allSets, allTasks, all
     }
   }
 
+  // Jane's task_completed activities
+  const janeCompletedTasks = allTasks.filter(t => t.status === 'completed' && t.userId?.toString() === jane._id.toString()).slice(0, 3);
+  for (const task of janeCompletedTasks) {
+    await Activity.create({
+      userId: jane._id,
+      type: 'task_completed',
+      targetId: task._id,
+      targetType: 'task',
+      visibleTo: [jane._id, ...allFriendIds],
+      metadata: { taskTitle: task.title },
+      createdAt: bumpDate(),
+    });
+    count++;
+  }
+
   // Comment activities (Jane's comments on friends' content)
   const janeComments = allComments.filter(c => c.userId?.toString() === jane._id.toString()).slice(0, 5);
   for (const comment of janeComments) {

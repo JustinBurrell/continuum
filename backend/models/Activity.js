@@ -27,7 +27,7 @@ const activitySchema = new mongoose.Schema({
      */
     type: {
         type: String,
-        enum: ['note_created', 'note_shared', 'flashcard_set_created', 'flashcard_shared', 'task_created', 'comment_added'],
+        enum: ['note_created', 'note_shared', 'flashcard_set_created', 'flashcard_shared', 'task_created', 'task_completed', 'comment_added'],
         required: true,
         index: true,
     },
