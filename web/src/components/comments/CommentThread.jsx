@@ -87,7 +87,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo, scro
   const { data: mentionData } = useQuery({
     queryKey: ['mention-search', mentionQuery],
     queryFn: () =>
-      api.get('/api/users/search', { params: { q: mentionQuery, friendsOnly: 'true' } })
+      api.get('/users/search', { params: { q: mentionQuery, friendsOnly: 'true' } })
         .then(r => r.data),
     enabled: typeof mentionQuery === 'string' && mentionQuery.length >= 2,
     staleTime: 10000,
@@ -148,7 +148,7 @@ export default function CommentThread({ targetType, targetId, user, isDemo, scro
             onClick={async e => {
               e.stopPropagation();
               try {
-                const { data } = await api.get('/api/users/search', { params: { q: username } });
+                const { data } = await api.get('/users/search', { params: { q: username } });
                 const match = data.users?.find(u => u.username === username);
                 if (match) navigate('/users/view', { state: { id: match._id } });
               } catch (_) {}
