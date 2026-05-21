@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.delay
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -51,11 +52,16 @@ fun FlashcardSetDetailScreen(
     var cardToDelete by remember { mutableStateOf<Flashcard?>(null) }
     var tab by remember(setId) { mutableStateOf(if (scrollToCommentId != null) SetDetailTab.Comments else SetDetailTab.Cards) }
     val commentScrollState = rememberScrollState()
-    var commentScrollTarget by remember(scrollToCommentId) { mutableStateOf<Float?>(null) }
+    var commentScrollY by remember(scrollToCommentId) { mutableStateOf<Float?>(null) }
+    var hasScrolled by remember(scrollToCommentId) { mutableStateOf(false) }
 
-    LaunchedEffect(commentScrollTarget) {
-        val y = commentScrollTarget ?: return@LaunchedEffect
-        commentScrollState.animateScrollTo((y - 80f).toInt().coerceAtLeast(0))
+    LaunchedEffect(commentsState.comments.size, commentScrollY) {
+        val y = commentScrollY
+        if (scrollToCommentId != null && !hasScrolled && y != null && commentsState.comments.isNotEmpty()) {
+            delay(100)
+            commentScrollState.animateScrollTo((y - 80f).toInt().coerceAtLeast(0))
+            hasScrolled = true
+        }
     }
     var showMoreMenu by remember { mutableStateOf(false) }
     var showEditSheet by remember { mutableStateOf(false) }
@@ -301,8 +307,8 @@ fun FlashcardSetDetailScreen(
                                 isSending = commentsState.isSending,
                                 highlightCommentId = scrollToCommentId,
                                 onCommentPositioned = { _, y ->
-                                    if (commentScrollTarget == null) {
-                                        commentScrollTarget = y + commentScrollState.value
+                                    if (!hasScrolled) {
+                                        commentScrollY = y + commentScrollState.value
                                     }
                                 },
                                 modifier = Modifier

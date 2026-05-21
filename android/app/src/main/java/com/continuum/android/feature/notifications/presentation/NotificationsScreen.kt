@@ -76,10 +76,14 @@ fun resolveNav(notification: Notification): String {
                 else -> ""
             }
         }
-        "like_added" -> when (targetType) {
-            "note" -> NavRoutes.Notes.detail(targetId)
-            "flashcardSet" -> NavRoutes.Flashcards.setDetail(targetId)
-            else -> ""
+        "like_added" -> {
+            // targetId is the liked comment; resourceId/resourceType hold the parent resource
+            val resourceId = notification.resourceId ?: return ""
+            when (notification.resourceType) {
+                "note" -> NavRoutes.Notes.detail(resourceId, commentId = notification.commentId)
+                "flashcardSet" -> NavRoutes.Flashcards.setDetail(resourceId, commentId = notification.commentId)
+                else -> ""
+            }
         }
         "friend_request", "friend_accepted" -> NavRoutes.Social.userProfile(actorId)
         else -> ""
@@ -305,10 +309,11 @@ private fun NotificationItemRow(
                     color = if (!notification.read) TextPrimary else TextSecondary
                 )
 
-                // Comment preview (italic) — only for comment/reply types
-                if (!notification.commentPreview.isNullOrBlank()) {
+                // Preview text: comment content or actual message body
+                val previewText = notification.commentPreview ?: notification.messagePreview
+                if (!previewText.isNullOrBlank()) {
                     Text(
-                        text = "\"${notification.commentPreview}\"",
+                        text = "\"$previewText\"",
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                         ),

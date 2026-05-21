@@ -16,6 +16,7 @@ data class NotificationActorDto(
 @JsonClass(generateAdapter = true)
 data class NotificationMetadataDto(
     val commentPreview: String? = null,
+    val messagePreview: String? = null,
     val commentId: String? = null,
     val resourceId: String? = null,
     val resourceType: String? = null
@@ -58,6 +59,7 @@ fun NotificationDto.toDomain(): Notification {
         targetType = targetType,
         message = message,
         commentPreview = metadata?.commentPreview,
+        messagePreview = metadata?.messagePreview,
         commentId = metadata?.commentId,
         resourceId = metadata?.resourceId,
         resourceType = metadata?.resourceType,

@@ -11,6 +11,7 @@ data class Notification(
     val targetType: String,
     val message: String,
     val commentPreview: String?,
+    val messagePreview: String?,
     val commentId: String?,
     val resourceId: String?,
     val resourceType: String?,
