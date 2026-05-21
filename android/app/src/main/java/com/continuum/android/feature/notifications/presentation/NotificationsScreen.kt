@@ -1,6 +1,7 @@
 package com.continuum.android.feature.notifications.presentation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -255,26 +256,26 @@ private fun NotificationItemRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.Top
         ) {
-            // Unread accent bar
-            Box(
-                modifier = Modifier
-                    .width(3.dp)
-                    .height(44.dp)
-                    .background(
-                        color = if (!notification.read) BrandPurple else Color.Transparent,
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(2.dp)
+            // Avatar with unread dot overlaid at bottom-end corner
+            Box {
+                AvatarInitials(
+                    name = notification.actorName,
+                    imageUrl = notification.actorAvatarUrl,
+                    size = 44.dp,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable(onClick = onActorClick)
+                )
+                if (!notification.read) {
+                    Box(
+                        modifier = Modifier
+                            .size(11.dp)
+                            .align(Alignment.BottomEnd)
+                            .background(BrandPurple, CircleShape)
+                            .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
                     )
-            )
-
-            // Avatar — tapping navigates to actor profile
-            AvatarInitials(
-                name = notification.actorName,
-                imageUrl = notification.actorAvatarUrl,
-                size = 44.dp,
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .clickable(onClick = onActorClick)
-            )
+                }
+            }
 
             // Content column
             Column(
