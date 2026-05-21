@@ -62,6 +62,15 @@ exports.getUserStreak = async (req, res) => {
 };
 
 exports.searchUsers = async (req, res) => {
+    // Exact username lookup for @mention click navigation — bypasses all filters
+    if (req.query.exactUsername) {
+        const user = await User.findOne({
+            username: req.query.exactUsername.trim(),
+            deletedAt: null,
+        }).select('username firstName lastName avatarUrl roles');
+        return res.status(200).json({ success: true, users: user ? [user] : [] });
+    }
+
     const { q } = req.query;
 
     if (!q || q.trim().length < 2) {
@@ -69,15 +78,18 @@ exports.searchUsers = async (req, res) => {
     }
 
     const regex = new RegExp(escapeRegex(q.trim().slice(0, 100)), 'i');
+    const isFriendsOnly = req.query.friendsOnly === 'true';
 
     let baseFilter = {
         _id: { $ne: req.user._id },
         deletedAt: null,
-        isSeedUser: { $ne: true },
+        // Only filter out seed users in general search — friends-only search
+        // must include seed users since demo friends are seeded accounts
+        ...(!isFriendsOnly && { isSeedUser: { $ne: true } }),
         $or: [{ username: regex }, { firstName: regex }, { lastName: regex }, { email: regex }],
     };
 
-    if (req.query.friendsOnly === 'true') {
+    if (isFriendsOnly) {
         const friendships = await Friendship.find({
             $or: [{ user1: req.user._id, status: 'accepted' }, { user2: req.user._id, status: 'accepted' }],
         }).select('user1 user2').lean();

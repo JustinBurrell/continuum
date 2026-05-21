@@ -78,6 +78,10 @@ class SocialRepository @Inject constructor(
         api.searchUsers(query).users.map { it.toDomain() }
     }
 
+    suspend fun lookupUserByUsername(username: String): Result<List<UserSearchResult>> = runCatching {
+        api.lookupByUsername(username).users.map { it.toDomain() }
+    }
+
     suspend fun getSharedNote(noteId: String): Result<SharedNote> = runCatching {
         val note = notesApi.getNoteById(noteId).note
         val flat = api.getComments("note", noteId).comments

@@ -34,6 +34,7 @@ fun CommentThread(
     onDeleteComment: ((commentId: String) -> Unit)? = null,
     onUserClick: ((userId: String) -> Unit)? = null,
     onSearchUsers: (suspend (String) -> List<UserSearchResult>)? = null,
+    onLookupUsername: (suspend (String) -> List<UserSearchResult>)? = null,
     isSending: Boolean = false,
     readOnly: Boolean = false,
     highlightCommentId: String? = null,
@@ -71,6 +72,7 @@ fun CommentThread(
                 onUserClick = onUserClick?.let { nav -> comment.authorId?.let { { nav(it) } } },
                 onMentionUserClick = onUserClick,
                 onSearchUsers = onSearchUsers,
+                onLookupUsername = onLookupUsername,
                 readOnly = readOnly,
                 depth = 0,
                 isHighlighted = highlightCommentId == comment.id,
@@ -85,6 +87,7 @@ fun CommentThread(
                     onUserClick = onUserClick?.let { nav -> reply.authorId?.let { { nav(it) } } },
                     onMentionUserClick = onUserClick,
                     onSearchUsers = onSearchUsers,
+                    onLookupUsername = onLookupUsername,
                     readOnly = readOnly,
                     depth = 1,
                     isHighlighted = highlightCommentId == reply.id,
@@ -207,6 +210,7 @@ private fun CommentItem(
     onUserClick: (() -> Unit)?,
     onMentionUserClick: ((userId: String) -> Unit)? = null,
     onSearchUsers: (suspend (String) -> List<UserSearchResult>)? = null,
+    onLookupUsername: (suspend (String) -> List<UserSearchResult>)? = null,
     readOnly: Boolean,
     depth: Int,
     isHighlighted: Boolean = false,
@@ -276,8 +280,9 @@ private fun CommentItem(
                         annotated.getStringAnnotations("mention", offset, offset)
                             .firstOrNull()?.let { ann ->
                                 scope.launch {
-                                    val results = onSearchUsers?.invoke(ann.item) ?: return@launch
-                                    results.find { it.username == ann.item }?.id
+                                    val lookup = onLookupUsername ?: onSearchUsers ?: return@launch
+                                    val results = lookup(ann.item)
+                                    results.firstOrNull()?.id
                                         ?.let { onMentionUserClick?.invoke(it) }
                                 }
                             }
