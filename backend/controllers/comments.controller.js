@@ -310,6 +310,7 @@ exports.toggleLike = async (req, res) => {
                 message: `${req.user.firstName} liked your comment`,
                 metadata: {
                     commentPreview: comment.content?.slice(0, 120),
+                    commentId: comment._id.toString(),
                     resourceId: comment.targetId?.toString(),
                     resourceType: comment.targetType,
                 },
