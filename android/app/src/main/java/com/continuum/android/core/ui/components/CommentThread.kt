@@ -69,6 +69,7 @@ fun CommentThread(
                 onReply = if (readOnly) null else { { replyingTo = comment.id } },
                 onDelete = if (readOnly) null else onDeleteComment?.let { { it(comment.id) } },
                 onUserClick = onUserClick?.let { nav -> comment.authorId?.let { { nav(it) } } },
+                onMentionUserClick = onUserClick,
                 onSearchUsers = onSearchUsers,
                 readOnly = readOnly,
                 depth = 0,
@@ -82,6 +83,7 @@ fun CommentThread(
                     onReply = null,
                     onDelete = if (readOnly) null else onDeleteComment?.let { { it(reply.id) } },
                     onUserClick = onUserClick?.let { nav -> reply.authorId?.let { { nav(it) } } },
+                    onMentionUserClick = onUserClick,
                     onSearchUsers = onSearchUsers,
                     readOnly = readOnly,
                     depth = 1,
@@ -203,6 +205,7 @@ private fun CommentItem(
     onReply: (() -> Unit)?,
     onDelete: (() -> Unit)?,
     onUserClick: (() -> Unit)?,
+    onMentionUserClick: ((userId: String) -> Unit)? = null,
     onSearchUsers: (suspend (String) -> List<UserSearchResult>)? = null,
     readOnly: Boolean,
     depth: Int,
@@ -275,7 +278,7 @@ private fun CommentItem(
                                 scope.launch {
                                     val results = onSearchUsers?.invoke(ann.item) ?: return@launch
                                     results.find { it.username == ann.item }?.id
-                                        ?.let { onUserClick?.invoke(it) }
+                                        ?.let { onMentionUserClick?.invoke(it) }
                                 }
                             }
                     }
