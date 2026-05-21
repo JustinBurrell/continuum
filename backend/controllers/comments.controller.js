@@ -301,13 +301,18 @@ exports.toggleLike = async (req, res) => {
             try {
                 getIO().to(`user:${commentAuthorId}`).emit('like_added');
             } catch (_) {}
+            const resourceLabel = comment.targetType === 'note'
+                ? 'note'
+                : comment.targetType === 'flashcardSet'
+                    ? 'flashcard set'
+                    : comment.targetType;
             notify({
                 recipientId: commentAuthorId,
                 actorId: userId,
                 type: 'like_added',
                 targetId: comment._id,
                 targetType: 'comment',
-                message: `${req.user.firstName} liked your comment`,
+                message: `${req.user.firstName} ${req.user.lastName} liked a comment on your ${resourceLabel}`,
                 metadata: {
                     commentPreview: comment.content?.slice(0, 120),
                     commentId: comment._id.toString(),

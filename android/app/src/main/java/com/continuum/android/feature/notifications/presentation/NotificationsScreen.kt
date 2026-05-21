@@ -282,14 +282,14 @@ private fun NotificationItemRow(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(3.dp)
             ) {
-                // Actor name row with role badges
+                // Actor name inline with message, name is tappable
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
                         text = notification.actorName,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold,
                         color = BrandPurple,
                         modifier = Modifier.clickable(onClick = onActorClick)
@@ -297,14 +297,12 @@ private fun NotificationItemRow(
                     if (notification.actorRoles.isNotEmpty()) {
                         VerifiedRoleBadges(roles = notification.actorRoles, expanded = false)
                     }
+                    Text(
+                        text = notification.message.removePrefix(notification.actorName).trimStart(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (!notification.read) TextPrimary else TextSecondary
+                    )
                 }
-
-                // Message text (action description)
-                Text(
-                    text = notification.message,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (!notification.read) TextPrimary else TextSecondary
-                )
 
                 // Preview text: comment content or actual message body
                 val previewText = notification.commentPreview ?: notification.messagePreview

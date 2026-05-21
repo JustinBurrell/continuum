@@ -306,30 +306,27 @@ function NotifItem({ notif, onClick }) {
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
-                {/* Actor name — clickable link to profile */}
-                {actor && (
-                    <span
-                        onClick={e => e.stopPropagation()}
-                        style={{ display: 'block', marginBottom: 2 }}
-                    >
-                        <Link
-                            to="/users/view"
-                            state={{ id: actor._id }}
-                            style={{
-                                fontSize: 12,
-                                fontWeight: 600,
-                                color: '#6b21a8',
-                                textDecoration: 'none',
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
-                            onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
-                        >
-                            {actorName}
-                        </Link>
-                    </span>
-                )}
                 <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.4 }}>
-                    {notif.message}
+                    {actor ? (
+                        <>
+                            <span onClick={e => e.stopPropagation()}>
+                                <Link
+                                    to="/users/view"
+                                    state={{ id: actor._id }}
+                                    style={{
+                                        fontWeight: 600,
+                                        color: '#6b21a8',
+                                        textDecoration: 'none',
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                                    onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+                                >
+                                    {actorName}
+                                </Link>
+                            </span>
+                            {notif.message.slice(actorName.length)}
+                        </>
+                    ) : notif.message}
                 </p>
                 {(notif.metadata?.commentPreview || notif.metadata?.messagePreview) && (
                     <p style={{
