@@ -176,3 +176,4 @@ test.describe('Legal pages (desktop UA)', () => {
     await expect(page.locator('nav img[alt="Continuum"]')).not.toBeVisible();
   });
 });
+

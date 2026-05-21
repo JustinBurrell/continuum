@@ -57,6 +57,14 @@
                 <data android:scheme="continuum" android:host="drive-pick" />
             </intent-filter>
 
+            <!-- Deep link: Google OAuth CCT callback — closes the CCT and returns to app -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="continuum" android:host="oauth-callback" />
+            </intent-filter>
+
             <!-- App Links: shared notes, user profiles, tasks
                  Verified against https://usecontinuum.dev/.well-known/assetlinks.json
                  android:autoVerify triggers Digital Asset Links verification on install/update -->

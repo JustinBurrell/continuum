@@ -60,6 +60,26 @@ export default function IntegrationsStep({ onContinue, onSkip }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // When the popup can't close itself (window.close() blocked), the original tab
+  // never detects the connection because popup.closed stays false. Re-check on
+  // visibility: fires when the user closes the popup tab and returns here.
+  useEffect(() => {
+    if (!linking) return;
+    const handleVisibility = async () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const res = await api.get('/auth/me');
+        const updated = res.data.user || res.data.data;
+        if (updated?.googleId) {
+          setLinking(false);
+          updateUser({ googleId: updated.googleId });
+        }
+      } catch (_) {}
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [linking]);
+
   const handleConnectGoogle = () => {
     setLinking(true);
     const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5001';

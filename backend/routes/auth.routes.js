@@ -157,8 +157,8 @@ router.post('/refresh', authLimiter, authController.refresh);
  *         description: Redirect to Google
  */
 router.get('/google', (req, res, next) => {
-    if (req.query.source === 'linking') {
-        res.cookie('oauth_source', 'linking', { httpOnly: true, maxAge: 120_000, sameSite: 'lax' });
+    if (req.query.source === 'linking' || req.query.source === 'android-linking') {
+        res.cookie('oauth_source', req.query.source, { httpOnly: true, maxAge: 120_000, sameSite: 'lax' });
     }
     passport.authenticate('google', { session: false, scope: ['profile', 'email', 'https://www.googleapis.com/auth/drive.file'], accessType: 'offline', prompt: 'consent' })(req, res, next);
 });

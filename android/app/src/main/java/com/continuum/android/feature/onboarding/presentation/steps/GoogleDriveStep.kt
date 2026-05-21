@@ -8,6 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.continuum.android.core.ui.components.ContinuumButton
 import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
@@ -60,21 +62,23 @@ fun GoogleDriveStep(
             loading = linking,
             onClick = {
                 linking = true
-                // Open Google OAuth in a Chrome Custom Tab.
-                // After the user completes the flow and returns, re-check auth/me.
                 val intent = CustomTabsIntent.Builder().build()
-                intent.launchUrl(context, "$apiBaseUrl/api/auth/google".toUri())
-                // After Custom Tab closes, re-check profile
-                scope.launch {
-                    kotlinx.coroutines.delay(1000)
-                    val refreshed = profileRepository.getProfile().getOrNull()
-                    linking = false
-                    if (refreshed?.isGoogleLinked == true) onContinue()
-                    // If not linked, the user can skip manually
-                }
+                intent.launchUrl(context, "$apiBaseUrl/api/auth/google?source=android-linking".toUri())
             },
             modifier = Modifier.fillMaxWidth(),
         )
+
+        // ON_RESUME fires when the CCT closes (deep link auto-close or user back-press).
+        // Re-check the profile here instead of using a fixed delay.
+        LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+            if (linking) {
+                scope.launch {
+                    val refreshed = profileRepository.getProfile().getOrNull()
+                    linking = false
+                    if (refreshed?.isGoogleLinked == true) onContinue()
+                }
+            }
+        }
         Spacer(Modifier.height(8.dp))
         TextButton(onClick = onSkip, modifier = Modifier.fillMaxWidth()) {
             Text("Skip for now", color = TextMuted)
