@@ -25,6 +25,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.continuum.android.R
 import com.continuum.android.core.network.NetworkMonitor
@@ -38,6 +41,7 @@ import com.continuum.android.feature.career.domain.Application
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
 import com.continuum.android.feature.notes.domain.Note
 import com.continuum.android.feature.social.domain.ActivityItem
+import com.continuum.android.feature.notifications.presentation.NotificationsViewModel
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.feature.tasks.domain.Task
 import java.util.Calendar
@@ -54,6 +58,7 @@ fun DashboardScreen(
     onTasksClick: () -> Unit,
     onApplicationsClick: () -> Unit,
     onActivityClick: () -> Unit,
+    onNotificationsClick: () -> Unit = {},
     onActivityActorClick: (String) -> Unit = {},
     onMessagesClick: () -> Unit,
     onCalendarClick: () -> Unit = {},
@@ -64,9 +69,11 @@ fun DashboardScreen(
     networkMonitor: NetworkMonitor,
     profileRepository: ProfileRepository,
     onNavigateToOnboarding: () -> Unit = {},
-    viewModel: DashboardViewModel = hiltViewModel()
+    viewModel: DashboardViewModel = hiltViewModel(),
+    notificationsViewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val notifState by notificationsViewModel.state.collectAsStateWithLifecycle()
     val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
     val isDemo = LocalIsDemo.current
     val listState = rememberLazyListState()
@@ -82,12 +89,26 @@ fun DashboardScreen(
         viewModel.navigateToOnboarding.collect { onNavigateToOnboarding() }
     }
 
+    // Refresh the unread badge each time the Dashboard comes back into focus
+    // (e.g. after returning from NotificationsScreen having marked items read).
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                notificationsViewModel.loadUnreadCount()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         if (!isOnline) OfflineBanner()
 
         ContinuumTopHeader(
             onCalendarClick = onCalendarClick,
-            onActivityClick = onActivityClick,
+            onNotificationsClick = onNotificationsClick,
+            notificationUnreadCount = notifState.unreadCount,
             onMessagesClick = onMessagesClick,
         )
 

@@ -48,6 +48,9 @@ class SocketManager @Inject constructor(
     private val _noteUpdatedFlow = MutableSharedFlow<String>(extraBufferCapacity = 64)
     val noteUpdatedFlow: SharedFlow<String> = _noteUpdatedFlow.asSharedFlow()
 
+    private val _newNotificationFlow = MutableSharedFlow<String>(extraBufferCapacity = 32)
+    val newNotificationFlow: SharedFlow<String> = _newNotificationFlow.asSharedFlow()
+
     // ---------------------------------------------------------------------------
     // Lifecycle
     // ---------------------------------------------------------------------------
@@ -91,6 +94,9 @@ class SocketManager @Inject constructor(
             }
             on("note_updated") { args ->
                 args.firstOrNull()?.let { _noteUpdatedFlow.tryEmit(it.toString()) }
+            }
+            on("new_notification") { args ->
+                args.firstOrNull()?.let { _newNotificationFlow.tryEmit(it.toString()) }
             }
 
             connect()

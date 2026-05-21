@@ -1,5 +1,6 @@
 package com.continuum.android.core.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -10,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -26,6 +29,8 @@ fun CommentThread(
     onUserClick: ((userId: String) -> Unit)? = null,
     isSending: Boolean = false,
     readOnly: Boolean = false,
+    highlightCommentId: String? = null,
+    onCommentPositioned: ((commentId: String, absoluteY: Float) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var newComment by remember { mutableStateOf("") }
@@ -47,7 +52,9 @@ fun CommentThread(
                 onDelete = if (readOnly) null else onDeleteComment?.let { { it(comment.id) } },
                 onUserClick = onUserClick?.let { nav -> comment.authorId?.let { { nav(it) } } },
                 readOnly = readOnly,
-                depth = 0
+                depth = 0,
+                isHighlighted = highlightCommentId == comment.id,
+                onPositioned = if (highlightCommentId == comment.id) onCommentPositioned else null
             )
             comment.replies.forEach { reply ->
                 CommentItem(
@@ -57,7 +64,9 @@ fun CommentThread(
                     onDelete = if (readOnly) null else onDeleteComment?.let { { it(reply.id) } },
                     onUserClick = onUserClick?.let { nav -> reply.authorId?.let { { nav(it) } } },
                     readOnly = readOnly,
-                    depth = 1
+                    depth = 1,
+                    isHighlighted = highlightCommentId == reply.id,
+                    onPositioned = if (highlightCommentId == reply.id) onCommentPositioned else null
                 )
             }
         }
@@ -123,11 +132,24 @@ private fun CommentItem(
     onDelete: (() -> Unit)?,
     onUserClick: (() -> Unit)?,
     readOnly: Boolean,
-    depth: Int
+    depth: Int,
+    isHighlighted: Boolean = false,
+    onPositioned: ((commentId: String, absoluteY: Float) -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .then(
+                if (isHighlighted) Modifier.background(BrandPurple.copy(alpha = 0.08f))
+                else Modifier
+            )
+            .then(
+                if (onPositioned != null) {
+                    Modifier.onGloballyPositioned { coords ->
+                        onPositioned(comment.id, coords.positionInRoot().y)
+                    }
+                } else Modifier
+            )
             .padding(start = (depth * 32).dp),
         horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
     ) {

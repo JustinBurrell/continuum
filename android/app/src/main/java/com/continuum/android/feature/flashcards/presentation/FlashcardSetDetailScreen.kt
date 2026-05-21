@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -14,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.delay
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -32,6 +35,7 @@ private enum class SetDetailTab { Cards, History, Comments }
 @Composable
 fun FlashcardSetDetailScreen(
     setId: String,
+    scrollToCommentId: String? = null,
     onNavigateBack: () -> Unit,
     onStudy: () -> Unit,
     onUserProfileClick: ((String) -> Unit)? = null,
@@ -46,7 +50,19 @@ fun FlashcardSetDetailScreen(
     var showAddSheet by remember { mutableStateOf(false) }
     var editingCard by remember { mutableStateOf<Flashcard?>(null) }
     var cardToDelete by remember { mutableStateOf<Flashcard?>(null) }
-    var tab by remember(setId) { mutableStateOf(SetDetailTab.Cards) }
+    var tab by remember(setId) { mutableStateOf(if (scrollToCommentId != null) SetDetailTab.Comments else SetDetailTab.Cards) }
+    val commentScrollState = rememberScrollState()
+    var commentScrollY by remember(scrollToCommentId) { mutableStateOf<Float?>(null) }
+    var hasScrolled by remember(scrollToCommentId) { mutableStateOf(false) }
+
+    LaunchedEffect(commentsState.comments.size, commentScrollY) {
+        val y = commentScrollY
+        if (scrollToCommentId != null && !hasScrolled && y != null && commentsState.comments.isNotEmpty()) {
+            delay(100)
+            commentScrollState.animateScrollTo((y - 80f).toInt().coerceAtLeast(0))
+            hasScrolled = true
+        }
+    }
     var showMoreMenu by remember { mutableStateOf(false) }
     var showEditSheet by remember { mutableStateOf(false) }
     var showShareSheet by remember { mutableStateOf(false) }
@@ -277,17 +293,29 @@ fun FlashcardSetDetailScreen(
                     }
 
                     SetDetailTab.Comments -> {
-                        CommentThread(
-                            comments = commentsState.comments,
-                            onAddComment = { content, parentId -> socialViewModel.addThreadComment(content, parentId) },
-                            onLikeComment = { commentId -> socialViewModel.likeThreadComment(commentId) },
-                            onDeleteComment = { commentId -> socialViewModel.deleteThreadComment(commentId) },
-                            onUserClick = onUserProfileClick,
-                            isSending = commentsState.isSending,
+                        Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(horizontal = 16.dp)
-                        )
+                                .verticalScroll(commentScrollState)
+                        ) {
+                            CommentThread(
+                                comments = commentsState.comments,
+                                onAddComment = { content, parentId -> socialViewModel.addThreadComment(content, parentId) },
+                                onLikeComment = { commentId -> socialViewModel.likeThreadComment(commentId) },
+                                onDeleteComment = { commentId -> socialViewModel.deleteThreadComment(commentId) },
+                                onUserClick = onUserProfileClick,
+                                isSending = commentsState.isSending,
+                                highlightCommentId = scrollToCommentId,
+                                onCommentPositioned = { _, y ->
+                                    if (!hasScrolled) {
+                                        commentScrollY = y + commentScrollState.value
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                            )
+                        }
                     }
                 }
             }

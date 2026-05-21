@@ -26,12 +26,14 @@ import com.continuum.android.core.ui.theme.*
 import com.continuum.android.feature.social.presentation.SocialViewModel
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteDetailScreen(
     noteId: String,
+    scrollToCommentId: String? = null,
     onNavigateBack: () -> Unit,
     onEdit: (String) -> Unit,
     networkMonitor: NetworkMonitor,
@@ -51,6 +53,19 @@ fun NoteDetailScreen(
     val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
+    var commentScrollY by remember(scrollToCommentId) { mutableStateOf<Float?>(null) }
+    var hasScrolled by remember(scrollToCommentId) { mutableStateOf(false) }
+
+    // Fire when comments load or the captured Y changes; only scroll once per commentId.
+    LaunchedEffect(commentsState.comments.size, commentScrollY) {
+        val y = commentScrollY
+        if (scrollToCommentId != null && !hasScrolled && y != null && commentsState.comments.isNotEmpty()) {
+            delay(100)
+            scrollState.animateScrollTo((y - 80f).toInt().coerceAtLeast(0))
+            hasScrolled = true
+        }
+    }
 
     // Download PDF to device Downloads folder when URL is ready
     LaunchedEffect(driveState.pdfDownloadUrl) {
@@ -158,7 +173,7 @@ fun NoteDetailScreen(
                 }
 
                 note != null -> {
-                    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                    Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
                         if (!isOnline) OfflineBanner()
 
                         // "Created by" attribution (shown only for notes owned by someone else)
@@ -305,6 +320,12 @@ fun NoteDetailScreen(
                             onUserClick = onUserProfileClick,
                             isSending = commentsState.isSending,
                             readOnly = isDemo,
+                            highlightCommentId = scrollToCommentId,
+                            onCommentPositioned = { _, y ->
+                                if (!hasScrolled) {
+                                    commentScrollY = y + scrollState.value
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                         )
 

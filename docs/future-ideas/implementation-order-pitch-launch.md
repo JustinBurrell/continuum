@@ -75,7 +75,7 @@ Shared notes, user profiles (friend requests), and tasks open in the app from iM
 - [ ] **⚠️ You must do:** Test on Android emulator via `adb shell am start` (see PR description for commands)
 - [ ] Test OG preview by pasting a share URL into Slack
 
-### 4. In-App Notification Bell (PR #229)
+### 4. In-App Notification Bell (PR #229, PR #231) ✅
 Foundation for everything below.
 - [x] `Notification` model + `notification.service.js` with `notify()` dispatcher and debounce
 - [x] Wire into `comments.controller.js`, `friends.controller.js`, `conversations.controller.js`, `notes.controller.js`, `flashcardSets.controller.js`, `tasks.controller.js`
@@ -87,7 +87,37 @@ Foundation for everything below.
 - [x] PostHog events: bell open, item click, mark all read (bell + page), see all, dismiss, page view
 - [x] Seed notifications for Jane and Justin across all time groups
 - [x] Backend Jest suite + Vitest component and hook tests
-- [ ] Android: notification bell in top bar; `socket.on('new_notification')` handler (follow-up PR)
+- [x] Android: bell icon (custom badge, purple dot unread indicator) in Dashboard top bar; `socket.on('new_notification')` live badge updates; `NotificationsScreen` with time grouping, cursor pagination, swipe-to-delete, mark all read, actor name + photo + role badges, comment preview, message preview, scroll-to-comment (PR #231)
+- [x] Android: `NotificationBell` component in `core/ui/components`; `NotificationsViewModel` + `NotificationsRepository` with MockK unit tests; `ResolveNavTest` covering all 8 types
+- [x] Android: `like_added` and `comment_reply` correctly resolve resource via `metadata.resourceId/resourceType`; `commentId` passed through nav route for scroll-to
+- [x] Android: `GET /api/users/:id` now returns `notesCount` and `setsCount` — UserProfileScreen no longer shows 0 stats
+- [x] Android: Dashboard badge refreshes on `ON_RESUME` lifecycle event so marking all read and returning clears the badge
+- [x] `metadata.messagePreview` added to `new_message` notifications (backend + seed) — shown on both web and Android
+- [x] `metadata.commentId` added to `like_added` notifications (backend + seed) — enables scroll-to-comment on both platforms
+
+### 4a. Notification & Activity Audit ✅
+Pre-FCM correctness audit ensuring every notification type and activity event is accurate, actionable, and consistent across web and Android. Required before FCM and email so the message text and routing are correct from day one on all delivery channels.
+
+**What was audited and verified:**
+- Every notification type navigates to the exact correct resource with back-stack preserved to NotificationsScreen
+- `comment_added` and `comment_reply` scroll to the specific comment on NoteDetail and FlashcardSetDetail
+- `like_added` now scrolls to the liked comment (via `metadata.commentId`)
+- Actor name, profile photo, and role badges shown on every notification row (web + Android)
+- `messagePreview` shown in italic for `new_message` on both platforms
+- `commentPreview` shown in italic for comment and like notifications on both platforms
+- ActivityFeed: `flashcard_shared`, `task_created`, `friend_accepted` now navigate correctly with back button (was no-op before)
+- ActivityFeed timestamps use smart format ("10:30 AM" / "May 5") instead of raw date string
+
+**Known issue filed — fix in NOTIF-3:**
+- `like_added` message reads "Alex liked your comment" — should be "Alex liked a comment on your note" to match Instagram/Twitter/LinkedIn convention. Impacts FCM and email. See `docs/bugs/like-added-notification-wrong-subject.md`.
+
+### 4b. Notification & Activity Audit Fix (NOTIF-3)
+Fix the `like_added` message copy to match industry standard before FCM and email are wired.
+- [ ] `backend/controllers/comments.controller.js` — update `message` to "X liked a comment on your note/flashcard set/task"
+- [ ] `backend/scripts/seed-justin.js` + `seed-jane.js` — update `like_added` message strings to match
+- [ ] Web + Android display unchanged (both render `message` directly, fix is backend-only)
+- [ ] Re-run both seed scripts `--clean --no-ai`
+- [ ] Regression test: verify `like_added` notification shows correct text on both platforms
 
 ### 5. FCM Push Notifications
 Android only. Requires notification bell infrastructure above.
@@ -138,4 +168,4 @@ Quick win — needed before real support traffic comes in.
 
 ---
 
-*Last updated: May 18, 2026*
+*Last updated: May 21, 2026*

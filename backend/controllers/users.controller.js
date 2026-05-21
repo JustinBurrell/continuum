@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const Note = require('../models/Note');
+const FlashcardSet = require('../models/FlashcardSet');
 const { getCachedStreak } = require('../services/studyStreak.service');
 
 // ============================================================
@@ -23,14 +25,19 @@ const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // ----------------------------------------
 exports.getUserProfile = async (req, res) => {
     try {
-        const user = await User.findOne({ _id: req.params.id, deletedAt: null })
-            .select('username firstName lastName avatarUrl bio createdAt roles linkedinUrl instagramHandle');
+        const userId = req.params.id;
+        const [user, notesCount, setsCount] = await Promise.all([
+            User.findOne({ _id: userId, deletedAt: null })
+                .select('username firstName lastName avatarUrl bio createdAt roles linkedinUrl instagramHandle'),
+            Note.countDocuments({ userId, deletedAt: null }),
+            FlashcardSet.countDocuments({ userId }),
+        ]);
 
         if (!user) {
             return res.status(404).json({ success: false, error: 'User not found' });
         }
 
-        res.status(200).json({ success: true, user });
+        res.status(200).json({ success: true, user: { ...user.toObject(), notesCount, setsCount } });
     } catch (err) {
         if (err.name === 'CastError') {
             return res.status(404).json({ success: false, error: 'User not found' });

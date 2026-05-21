@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChatBubbleOutline
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,7 +22,8 @@ import com.continuum.android.core.ui.theme.*
 @Composable
 fun ContinuumTopHeader(
     onCalendarClick: () -> Unit = {},
-    onActivityClick: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    notificationUnreadCount: Int = 0,
     onMessagesClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -60,9 +60,10 @@ fun ContinuumTopHeader(
                 IconButton(onClick = onCalendarClick) {
                     Icon(Icons.Default.CalendarMonth, "Calendar", tint = TextPrimary)
                 }
-                IconButton(onClick = onActivityClick) {
-                    Icon(Icons.Default.Notifications, "Activity", tint = TextPrimary)
-                }
+                NotificationBell(
+                    unreadCount = notificationUnreadCount,
+                    onClick = onNotificationsClick
+                )
                 IconButton(onClick = onMessagesClick) {
                     Icon(Icons.Default.ChatBubbleOutline, "Messages", tint = TextPrimary)
                 }
