@@ -176,3 +176,34 @@ test.describe('Legal pages (desktop UA)', () => {
     await expect(page.locator('nav img[alt="Continuum"]')).not.toBeVisible();
   });
 });
+
+// ─── OAuth fallback UI on mobile ─────────────────────────────────────────────
+
+test.describe('Google OAuth fallback UI (mobile)', () => {
+  test.use(IPHONE_14);
+
+  test('AuthCallback shows Close this tab button on mobile after source=linking OAuth', async ({ page }) => {
+    await page.route('**/api/auth/google/exchange', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ token: 'fake-token' }) })
+    );
+    await page.route('**/api/auth/me', (route) =>
+      route.fulfill({
+        status: 200, contentType: 'application/json',
+        body: JSON.stringify({ user: { _id: '1', email: 'test@test.com', googleId: 'g1', onboardingCompleted: false, tourCompleted: false } }),
+      })
+    );
+    await page.addInitScript(() => {
+      window.close = () => {};
+      window.BroadcastChannel = class {
+        constructor() {}
+        postMessage() {}
+        close() {}
+      };
+    });
+
+    await page.goto('/auth/callback?code=fake-code&source=linking');
+
+    await expect(page.locator('button:has-text("Close this tab")')).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('text=return to the app')).toBeVisible();
+  });
+});

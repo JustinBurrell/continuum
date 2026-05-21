@@ -99,7 +99,7 @@ fun IntegrationsStep(
                             val intent = CustomTabsIntent.Builder().build()
                             // source=linking tells AuthCallback this is a linking flow so it
                             // shows a 'Connected' screen instead of navigating to onboarding
-                            intent.launchUrl(context, "$apiBaseUrl/api/auth/google?source=linking".toUri())
+                            intent.launchUrl(context, "$apiBaseUrl/api/auth/google?source=android-linking".toUri())
                         },
                         enabled = !linking,
                         colors = ButtonDefaults.buttonColors(containerColor = BrandPurple),

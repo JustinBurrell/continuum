@@ -40,6 +40,12 @@ export default function AuthCallback() {
         // Broadcast the result to the parent tab, then close. If window.close() is blocked
         // (e.g. Android CCT), render a success screen instead of navigating to /onboarding.
         const source = searchParams.get('source');
+
+        if (source === 'android-linking') {
+          window.location.href = 'continuum://oauth-callback?linked=true';
+          return;
+        }
+
         if (source === 'linking') {
           const channel = new BroadcastChannel('continuum_oauth');
           channel.postMessage({ type: 'GOOGLE_OAUTH_SUCCESS', googleId: user.googleId });
@@ -81,7 +87,17 @@ export default function AuthCallback() {
             <span style={{ fontSize: 24 }}>✓</span>
           </div>
           <p className="text-sm font-semibold" style={{ color: '#059669' }}>Google connected!</p>
-          <p className="text-xs" style={{ color: '#6B7280' }}>You can close this tab.</p>
+          <p className="text-xs" style={{ color: '#6B7280' }}>You can now close this tab and return to the app.</p>
+          <button
+            onClick={() => window.close()}
+            style={{
+              marginTop: 4, padding: '8px 20px', background: '#059669', color: '#fff',
+              border: 'none', borderRadius: 8, fontSize: '0.8125rem', fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Close this tab
+          </button>
         </div>
       </div>
     );

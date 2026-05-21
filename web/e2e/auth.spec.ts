@@ -80,3 +80,53 @@ test.describe('Auth', () => {
     await expect(page).toHaveURL(/\/dashboard/);
   });
 });
+
+// ─── Google OAuth regressions ─────────────────────────────────────────────────
+
+test.describe('Google OAuth — login flow regression', () => {
+  test('Continue with Google uses full-page redirect, not a popup', async ({ page, context }) => {
+    await page.goto('/login');
+
+    const popupPromise = context.waitForEvent('page', { timeout: 2_000 }).catch(() => null);
+
+    // Intercept the OAuth redirect so we don't actually hit Google
+    await page.route('**/api/auth/google', (route) => route.fulfill({ status: 302, headers: { Location: '/login?error=oauth_failed' } }));
+
+    await page.click('button:has-text("Continue with Google")');
+
+    const popup = await popupPromise;
+    // No popup/new tab should have opened — this is a full-page redirect flow
+    expect(popup).toBeNull();
+  });
+});
+
+test.describe('Google OAuth — AuthCallback fallback UI', () => {
+  test('/auth/callback?source=linking shows Close this tab button when window.close() is blocked', async ({ page }) => {
+    // Stub the exchange and /auth/me endpoints so AuthCallback can complete the flow
+    await page.route('**/api/auth/google/exchange', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ token: 'fake-token' }) })
+    );
+    await page.route('**/api/auth/me', (route) =>
+      route.fulfill({
+        status: 200, contentType: 'application/json',
+        body: JSON.stringify({ user: { _id: '1', email: 'test@test.com', googleId: 'g1', onboardingCompleted: false, tourCompleted: false } }),
+      })
+    );
+
+    // Stub window.close so it never actually closes — simulates the blocked case
+    await page.addInitScript(() => {
+      window.close = () => {};
+      window.BroadcastChannel = class {
+        constructor() {}
+        postMessage() {}
+        close() {}
+      };
+    });
+
+    await page.goto('/auth/callback?code=fake-code&source=linking');
+
+    await expect(page.locator('text=Google connected!')).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('button:has-text("Close this tab")')).toBeVisible();
+    await expect(page.locator('text=return to the app')).toBeVisible();
+  });
+});

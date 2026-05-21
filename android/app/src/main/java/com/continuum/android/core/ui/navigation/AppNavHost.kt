@@ -69,6 +69,7 @@ object NavRoutes {
     object Onboarding {
         const val ROOT = "onboarding"
         const val SCREEN = "onboarding/main"
+        const val OAUTH_CALLBACK = "onboarding/oauth-callback"
     }
 
     object Dashboard {
@@ -535,6 +536,24 @@ private fun NavGraph(
                     },
                     profileRepository = profileRepository,
                 )
+            }
+            // Receives the continuum://oauth-callback deep link fired by AuthCallback.jsx
+            // after Android Google OAuth via CCT. Popping back resumes the onboarding step
+            // whose LifecycleEventEffect(ON_RESUME) then refreshes the profile and advances.
+            composable(
+                route = NavRoutes.Onboarding.OAUTH_CALLBACK,
+                arguments = listOf(
+                    navArgument("linked") { type = NavType.StringType; defaultValue = "false" }
+                ),
+                deepLinks = listOf(
+                    navDeepLink { uriPattern = "continuum://oauth-callback?linked={linked}" }
+                )
+            ) {
+                LaunchedEffect(Unit) {
+                    val popped = navController.popBackStack()
+                    if (!popped) navController.navigate(NavRoutes.Onboarding.SCREEN)
+                }
+                Box(modifier = Modifier.fillMaxSize())
             }
         }
 

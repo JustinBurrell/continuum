@@ -378,7 +378,9 @@ exports.googleCallback = async (req, res) => {
 
     const oauthSource = req.cookies?.oauth_source || '';
     res.clearCookie('oauth_source');
-    const sourcePart = oauthSource === 'linking' ? '&source=linking' : '';
+    const sourcePart = (oauthSource === 'linking' || oauthSource === 'android-linking')
+        ? `&source=${oauthSource}`
+        : '';
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback?code=${rawCode}${sourcePart}`);
 };
 
