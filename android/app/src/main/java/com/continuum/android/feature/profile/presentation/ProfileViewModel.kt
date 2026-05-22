@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.continuum.android.core.data.ProfileUpdateNotifier
 import com.continuum.android.core.data.local.TokenManager
+import com.continuum.android.core.network.friendlyError
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.feature.profile.domain.Profile
 import com.continuum.android.feature.profile.domain.Session
@@ -22,6 +23,7 @@ data class ProfileUiState(
     val sessionsLoading: Boolean = false,
     val error: String? = null,
     val successMessage: String? = null,
+    val unlinkError: String? = null,
     val isSaving: Boolean = false,
     val verificationSent: Boolean = false,
     val logoutAllLoading: Boolean = false,
@@ -197,11 +199,13 @@ class ProfileViewModel @Inject constructor(
                     load()
                 },
                 onFailure = { e ->
-                    _state.update { it.copy(isSaving = false, error = e.message) }
+                    _state.update { it.copy(isSaving = false, unlinkError = friendlyError(e)) }
                 }
             )
         }
     }
+
+    fun clearUnlinkError() = _state.update { it.copy(unlinkError = null) }
 
     fun clearMessage() = _state.update { it.copy(successMessage = null, error = null) }
 

@@ -44,7 +44,32 @@ exports.getAccessToken = async (req, res) => {
 // ----------------------------------------
 exports.getPickerPage = async (req, res) => {
     if (!req.user.googleId) {
-        return res.status(403).send('<p>Google account not linked</p>');
+        return res.status(403).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Not Connected</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex;
+           align-items: center; justify-content: center; min-height: 100vh; margin: 0;
+           background: #f5f3ff; }
+    .card { background: white; border-radius: 16px; padding: 32px 24px; max-width: 340px;
+            text-align: center; box-shadow: 0 4px 24px rgba(107,33,168,0.12); }
+    h2 { color: #6B21A8; font-size: 1.2rem; margin: 0 0 12px; }
+    p { color: #6B7280; font-size: 0.9rem; line-height: 1.5; margin: 0 0 24px; }
+    a { display: inline-block; background: #6B21A8; color: white; padding: 12px 24px;
+        border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.875rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Google Account Not Connected</h2>
+    <p>Connect your Google account in Continuum to use Drive import.</p>
+    <a href="continuum://">Return to app</a>
+  </div>
+</body>
+</html>`);
     }
 
     // Auto-refresh token if expired, then read the fresh decrypted value
@@ -154,7 +179,32 @@ exports.getPickerPageCCT = async (req, res) => {
 
     const user = await User.findById(decoded.userId).select('+googleId +googleTokenExpiry');
     if (!user || !user.googleId) {
-        return res.status(403).send('<p>Google account not linked</p>');
+        return res.status(403).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Not Connected</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex;
+           align-items: center; justify-content: center; min-height: 100vh; margin: 0;
+           background: #f5f3ff; }
+    .card { background: white; border-radius: 16px; padding: 32px 24px; max-width: 340px;
+            text-align: center; box-shadow: 0 4px 24px rgba(107,33,168,0.12); }
+    h2 { color: #6B21A8; font-size: 1.2rem; margin: 0 0 12px; }
+    p { color: #6B7280; font-size: 0.9rem; line-height: 1.5; margin: 0 0 24px; }
+    a { display: inline-block; background: #6B21A8; color: white; padding: 12px 24px;
+        border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.875rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Google Account Not Connected</h2>
+    <p>Connect your Google account in Continuum to use Drive import.</p>
+    <a href="continuum://">Return to app</a>
+  </div>
+</body>
+</html>`);
     }
 
     const apiKey    = process.env.GOOGLE_PICKER_API_KEY;

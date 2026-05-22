@@ -58,6 +58,7 @@ fun ProfileScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showLogoutAllDialog by remember { mutableStateOf(false) }
+    var showUnlinkErrorDialog by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val scrollToTopNotifier = LocalScrollToTopNotifier.current
     val scrollToTopCount by remember(scrollToTopNotifier) {
@@ -73,6 +74,34 @@ fun ProfileScreen(
         if (state.successMessage != null || state.error != null) {
             viewModel.clearMessage()
         }
+    }
+
+    LaunchedEffect(state.unlinkError) {
+        if (state.unlinkError != null) showUnlinkErrorDialog = true
+    }
+
+    if (showUnlinkErrorDialog && state.unlinkError != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showUnlinkErrorDialog = false
+                viewModel.clearUnlinkError()
+            },
+            title = { Text("Cannot Unlink Google") },
+            text = { Text(state.unlinkError!!) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showUnlinkErrorDialog = false
+                    viewModel.clearUnlinkError()
+                    showPasswordDialog = true
+                }) { Text("Set Password") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showUnlinkErrorDialog = false
+                    viewModel.clearUnlinkError()
+                }) { Text("Dismiss") }
+            }
+        )
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
