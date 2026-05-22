@@ -33,11 +33,13 @@ test.describe('Active Sessions', () => {
     await expect(page.locator('text=This device')).toBeVisible({ timeout: 12_000 });
   });
 
-  test('sessions list shows "Last active" text on each session row', async ({ page }) => {
+  test('sessions list shows "Signed in" timestamp on each session row', async ({ page }) => {
     await registerUser(page);
     await goToSecurityTab(page);
     await expect(page.locator('text=This device')).toBeVisible({ timeout: 12_000 });
-    await expect(page.locator('text=/Last active/i').first()).toBeVisible({ timeout: 8_000 });
+    // lastUsedAt is null on a fresh session — only populated after a token refresh.
+    // Verify the always-present "Signed in" label instead.
+    await expect(page.locator('text=/Signed in/i').first()).toBeVisible({ timeout: 8_000 });
   });
 
   test('current session delete button is disabled', async ({ page }) => {
