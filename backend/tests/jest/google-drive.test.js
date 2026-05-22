@@ -294,3 +294,28 @@ describe('GET /api/google/files (removed)', () => {
         expect(res.statusCode).toBe(404);
     });
 });
+
+// ─── GET /api/google/picker-page-cct — 403 HTML when not linked ──────────────
+
+describe('GET /api/google/picker-page-cct (not connected)', () => {
+    it('returns 403 with styled HTML containing continuum:// deep link when user has no googleId', async () => {
+        // Register a standard user (no Google account linked)
+        const { token } = await registerAndLogin();
+
+        const res = await request(app)
+            .get(`/api/google/picker-page-cct?token=${token}`);
+
+        expect(res.statusCode).toBe(403);
+        expect(res.headers['content-type']).toMatch(/html/);
+        // Must contain the continuum:// deep-link so the CCT can close itself
+        expect(res.text).toContain('continuum://');
+        // Must not be a bare <p> tag — should be a proper HTML document
+        expect(res.text).toContain('<!DOCTYPE html>');
+    });
+
+    it('returns 401 when no token query param is provided', async () => {
+        const res = await request(app).get('/api/google/picker-page-cct');
+
+        expect(res.statusCode).toBe(401);
+    });
+});

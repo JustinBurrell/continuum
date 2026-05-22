@@ -552,3 +552,77 @@ describe('Device label capture', () => {
     expect(token.deviceId).toContain('iOS 17');
   });
 });
+
+// ─── DELETE /api/auth/me/google/link ─────────────────────────────────────────
+
+describe('DELETE /api/auth/me/google/link (Google unlink)', () => {
+  async function registerAndLoginUser(overrides = {}) {
+    const user = {
+      email: overrides.email || 'unlinktest@continuum.test',
+      username: overrides.username || 'unlinktest',
+      password: 'Test@1234',
+      firstName: 'Unlink',
+      lastName: 'Test',
+    };
+    const res = await request(app).post('/api/auth/register').send(user);
+    return { token: res.body.token, userId: res.body.user?._id || res.body.user?.id };
+  }
+
+  it('returns 400 when no Google account is linked', async () => {
+    const { token } = await registerAndLoginUser();
+
+    const res = await request(app)
+      .delete('/api/auth/me/google/link')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ keepNotes: true });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toMatch(/no google account/i);
+  });
+
+  it('returns 400 with password guard message for Google-only accounts', async () => {
+    const { token, userId } = await registerAndLoginUser();
+
+    // Simulate a Google-only account: set googleId but clear password
+    await User.findByIdAndUpdate(userId, {
+      googleId: 'google-only-id-123',
+      googleAccessToken: 'enc-access',
+      googleRefreshToken: 'enc-refresh',
+      googleTokenExpiry: new Date(Date.now() + 3600 * 1000),
+    });
+    // Remove the password to simulate a Google-only account
+    await User.updateOne({ _id: userId }, { $unset: { password: '' } });
+
+    const res = await request(app)
+      .delete('/api/auth/me/google/link')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ keepNotes: true });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBe('Set a password before unlinking Google');
+  });
+
+  it('returns 200 and clears Google fields for an account with a password', async () => {
+    const { token, userId } = await registerAndLoginUser();
+
+    await User.findByIdAndUpdate(userId, {
+      googleId: 'linked-google-id-456',
+      googleAccessToken: 'enc-access-token',
+      googleRefreshToken: 'enc-refresh-token',
+      googleTokenExpiry: new Date(Date.now() + 3600 * 1000),
+    });
+
+    const res = await request(app)
+      .delete('/api/auth/me/google/link')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ keepNotes: true });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+
+    const updated = await User.findById(userId).select('+googleId +googleAccessToken +googleRefreshToken');
+    expect(updated.googleId).toBeUndefined();
+    expect(updated.googleAccessToken).toBeUndefined();
+    expect(updated.googleRefreshToken).toBeUndefined();
+  });
+});
