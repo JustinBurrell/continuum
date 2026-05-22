@@ -459,14 +459,28 @@ fun ProfileScreen(
 
 @Composable
 private fun SessionRow(session: Session, onRevoke: () -> Unit) {
+    val deviceLabel = session.deviceId.ifBlank { "Unknown device" }
+    val dl = deviceLabel.lowercase()
+    val deviceIcon = when {
+        "iphone" in dl || "android" in dl -> Icons.Default.Smartphone
+        "ipad" in dl || "tablet" in dl -> Icons.Default.TabletAndroid
+        else -> Icons.Default.Computer
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        Icon(
+            imageVector = deviceIcon,
+            contentDescription = null,
+            tint = TextMuted,
+            modifier = Modifier.size(20.dp)
+        )
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(session.deviceId, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                Text(deviceLabel, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                 if (session.isCurrent) {
                     Surface(
                         color = PurpleTint,
@@ -481,11 +495,10 @@ private fun SessionRow(session: Session, onRevoke: () -> Unit) {
                     }
                 }
             }
-            val signedIn = "Signed in ${formatShortDate(session.createdAt)}"
-            val lastActive = session.lastUsedAt?.let { " · Last active ${formatRelativeTime(it)}" } ?: ""
+            val lastActive = session.lastUsedAt?.let { "Last active ${formatRelativeTime(it)}" } ?: "Signed in ${formatShortDate(session.createdAt)}"
             val location = session.ipLocation?.let { " · $it" } ?: ""
             Text(
-                "$signedIn$lastActive$location",
+                "$lastActive$location",
                 style = MaterialTheme.typography.bodySmall,
                 color = TextMuted
             )

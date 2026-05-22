@@ -1,5 +1,7 @@
 # BUG: Active Sessions — Inaccurate Device Labels & UX Issues
 
+> **Status: RESOLVED** — Fixed in PR `fix/SESS-active-sessions-fixes`. All five issues addressed.
+
 **Affects:** Web + Android (both have an Active Sessions UI) + Backend (shared device parsing)
 
 ---
