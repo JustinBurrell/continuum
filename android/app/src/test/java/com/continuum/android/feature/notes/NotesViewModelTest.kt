@@ -5,6 +5,7 @@ import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.notes.data.repository.NotesRepository
 import com.continuum.android.feature.notes.domain.Note
 import com.continuum.android.feature.notes.presentation.NotesViewModel
+import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -29,6 +30,7 @@ class NotesViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val repository: NotesRepository = mockk()
+    private val profileRepository: ProfileRepository = mockk(relaxed = true)
     private val notifier = DataRefreshNotifier()
     private val tokenManager: TokenManager = mockk(relaxed = true)
     private lateinit var viewModel: NotesViewModel
@@ -72,7 +74,8 @@ class NotesViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = NotesViewModel(repository, notifier, tokenManager)
+        coEvery { profileRepository.getProfile() } returns Result.failure(Exception("not needed in this test"))
+        viewModel = NotesViewModel(repository, profileRepository, notifier, tokenManager)
     }
 
     @After
