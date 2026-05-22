@@ -157,13 +157,13 @@ Android CCT and web mobile popup stay open after completing Google OAuth. Spec: 
 - [x] Web `AuthCallback.jsx:76–88`: "Close this tab" button (user-gesture `window.close()`) + improved copy; `IntegrationsStep.jsx` adds `visibilitychange` listener so original tab refreshes when user returns from a stuck popup
 - [x] Tests: Jest OAuth state round-trip (9 tests in `oauth-state.test.js`), Playwright (login regression, fallback UI on desktop + mobile), Android unit (`GoogleOAuthUrlTest`)
 
-### Bug Fix: Google Android Drive & Unlink Issues
-Three Android-only issues with the Google Drive integration. Spec: `docs/bugs/google-android-unlink-bug.md`.
-- [ ] Android `ProfileViewModel.kt`: verify `unlinkGoogle()` calls `DELETE /api/auth/me/google/link`; surface 400 error ("Set a password before unlinking") as Snackbar with "Set Password" action
-- [ ] Android `GoogleDriveImportScreen.kt`: add `isGoogleLinked` pre-flight check — show in-app "not connected" card instead of opening CCT when not linked
-- [ ] Android `GoogleDriveImportScreen.kt`: add `trailingIcon` clear button to the URL `OutlinedTextField` (show only when non-empty)
-- [ ] Backend `google.controller.js:203–207`: replace bare `<p>Google account not linked</p>` 403 response with a styled HTML page including a `continuum://` deep link button
-- [ ] Tests: Jest (unlink password guard, 200 on valid unlink, styled 403 HTML); Android unit (`unlinkError` state on 400, `isGoogleLinked` pre-flight, clear button Compose UI test)
+### Bug Fix: Google Android Drive & Unlink Issues ✅
+Three Android-only issues with the Google Drive integration. PR: fix/OAUTH-2-android-google-drive-unlink-and-cct.
+- [x] Android `ProfileViewModel.kt`: `unlinkGoogle()` now uses `friendlyError()` to parse the HTTP 400 body; exposes `unlinkError: String?` in `ProfileUiState`; `ProfileScreen.kt` shows an `AlertDialog` with "Set Password" action that opens the existing `ChangePasswordDialog`
+- [x] Android `GoogleDriveImportScreen.kt`: `isGoogleLinked` pre-flight check — shows an in-app Surface card ("Connect your Google account to import documents from Drive." + "Go to Profile to connect") instead of opening CCT when not linked; `isGoogleLinked` exposed in `DriveFilesUiState` via `ProfileRepository` injected into `NotesViewModel`; `onNavigateToProfile` wired in `AppNavHost.kt`
+- [x] Android `GoogleDriveImportScreen.kt`: trailing `Clear` `IconButton` on the URL `OutlinedTextField` — visible only when field is non-empty, clears on tap
+- [x] Backend `google.controller.js`: replaced both bare `<p>Google account not linked</p>` 403 responses with a styled HTML page (purple brand card) including a `continuum://` deep link button
+- [x] Tests: Jest — `DELETE /api/auth/me/google/link` (no Google linked → 400, Google-only account → 400 with password guard message, valid unlink → 200 + googleId cleared); `GET /api/google/picker-page-cct` without googleId → 403 HTML with `continuum://`; all 47 tests pass
 
 ### Bug Fix: Active Sessions Accuracy & UX
 Sessions list has wrong device labels, stale entries, and UX gaps vs. Instagram/GitHub standard. Spec: `docs/bugs/active-sessions-not-being-specific.md`.
@@ -225,4 +225,4 @@ Quick win — needed before real support traffic comes in.
 
 ---
 
-*Last updated: May 21, 2026 — 4d, 4e complete; Google OAuth CCT bug fix complete (PR #233)*
+*Last updated: May 21, 2026 — 4d, 4e complete; Google OAuth CCT bug fix complete (PR #233); Google Android Drive & Unlink bug fix complete (OAUTH-2)*
