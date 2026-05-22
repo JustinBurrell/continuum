@@ -416,23 +416,18 @@ describe('POST /api/auth/logout-all — refresh tokens revoked', () => {
 // ─── GET /auth/sessions ─────────────────────────────────────────────────────
 
 describe('GET /api/auth/sessions', () => {
-  it('returns active sessions with new fields and isCurrent for the current user', async () => {
+  it('returns active sessions with required fields and marks isCurrent for the requesting session', async () => {
+    // Register creates exactly one session; use that token immediately so req.sessionId matches
     const reg = await request(app).post('/api/auth/register').send(validUser);
-    const tokenA = reg.body.token;
-
-    // Create a second session via login
-    await request(app)
-      .post('/api/auth/login')
-      .send({ email: validUser.email, password: validUser.password });
+    const token = reg.body.token;
 
     const res = await request(app)
       .get('/api/auth/sessions')
-      .set('Authorization', `Bearer ${tokenA}`);
+      .set('Authorization', `Bearer ${token}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
     expect(Array.isArray(res.body.sessions)).toBe(true);
-    // register + login with the same UA = same deviceId = deduplication collapses to 1 session
     expect(res.body.sessions.length).toBe(1);
 
     const session = res.body.sessions[0];
@@ -443,9 +438,8 @@ describe('GET /api/auth/sessions', () => {
     expect(session).toHaveProperty('lastUsedAt');
     expect(session).toHaveProperty('isCurrent');
 
-    // Exactly one session should be marked as current (the one that issued tokenA)
-    const currentSessions = res.body.sessions.filter((s) => s.isCurrent);
-    expect(currentSessions).toHaveLength(1);
+    // The single session is the one that issued the token — must be marked current
+    expect(session.isCurrent).toBe(true);
   });
 });
 
@@ -711,7 +705,8 @@ describe('Session deduplication — login revokes same-device prior session', ()
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:125.0) Gecko/20100101 Firefox/125.0';
 
   it('keeps exactly 1 active session when logging in twice on the same device', async () => {
-    await request(app).post('/api/auth/register').send(validUser);
+    // Register with the same UA so all three calls share the same deviceId
+    await request(app).post('/api/auth/register').set('User-Agent', CHROME_UA).send(validUser);
 
     await request(app)
       .post('/api/auth/login')
