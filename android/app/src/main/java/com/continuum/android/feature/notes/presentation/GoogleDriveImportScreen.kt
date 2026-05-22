@@ -4,11 +4,14 @@ import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -56,6 +59,7 @@ internal fun extractGoogleDocId(url: String): String? =
 fun GoogleDriveImportScreen(
     onNavigateBack: () -> Unit,
     onImportSuccess: (noteId: String) -> Unit,
+    onNavigateToProfile: () -> Unit = {},
     viewModel: NotesViewModel = hiltViewModel()
 ) {
     val driveState by viewModel.driveState.collectAsStateWithLifecycle()
@@ -128,21 +132,57 @@ fun GoogleDriveImportScreen(
                     }
                 }
             } else {
-                // Primary: Google Picker via CCT + GIS (production / HTTPS)
-                ContinuumButton(
-                    text = "Choose from Google Drive",
-                    onClick = {
-                        if (!isDemo) {
-                            val token = viewModel.getJwtToken() ?: return@ContinuumButton
-                            val url = "${BuildConfig.BASE_URL}google/picker-page-cct?token=$token"
-                            CustomTabsIntent.Builder()
-                                .build()
-                                .launchUrl(context, Uri.parse(url))
+                when (driveState.isGoogleLinked) {
+                    null -> {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                    false -> {
+                        // Not connected — show in-app card, do NOT open CCT
+                        Surface(
+                            shape = MaterialTheme.shapes.medium,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(20.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Text(
+                                    "Google Drive",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    "Connect your Google account to import documents from Drive.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = TextSecondary
+                                )
+                                ContinuumButton(
+                                    text = "Go to Profile to connect",
+                                    onClick = onNavigateToProfile,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !isDemo
-                )
+                    }
+                    true -> {
+                        // Connected — Primary: Google Picker via CCT + GIS (production / HTTPS)
+                        ContinuumButton(
+                            text = "Choose from Google Drive",
+                            onClick = {
+                                if (!isDemo) {
+                                    val token = viewModel.getJwtToken() ?: return@ContinuumButton
+                                    val url = "${BuildConfig.BASE_URL}google/picker-page-cct?token=$token"
+                                    CustomTabsIntent.Builder()
+                                        .build()
+                                        .launchUrl(context, Uri.parse(url))
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isDemo
+                        )
+                    }
+                }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -160,6 +200,13 @@ fun GoogleDriveImportScreen(
                     onValueChange = { docUrl = it },
                     label = { Text("Google Doc link") },
                     placeholder = { Text("https://docs.google.com/document/d/…") },
+                    trailingIcon = {
+                        if (docUrl.isNotBlank()) {
+                            IconButton(onClick = { docUrl = "" }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Clear")
+                            }
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(

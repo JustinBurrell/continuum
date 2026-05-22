@@ -667,6 +667,7 @@ private fun NavGraph(
             composable(NavRoutes.Notes.DRIVE_IMPORT) {
                 GoogleDriveImportScreen(
                     onNavigateBack = { navController.popBackStack() },
+                    onNavigateToProfile = { navController.navigate(NavRoutes.Profile.ROOT) },
                     onImportSuccess = { noteId ->
                         navController.navigate(NavRoutes.Notes.detail(noteId)) {
                             popUpTo(NavRoutes.Notes.DRIVE_IMPORT) { inclusive = true }

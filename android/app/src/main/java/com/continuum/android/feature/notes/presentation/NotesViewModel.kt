@@ -7,6 +7,7 @@ import com.continuum.android.core.data.RefreshScope
 import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.notes.data.repository.NotesRepository
 import com.continuum.android.feature.notes.domain.Note
+import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -40,15 +41,20 @@ data class DriveFilesUiState(
     val isImporting: Boolean = false,
     val importedNoteId: String? = null,
     /** Fetched signed PDF download URL, cleared after use. */
-    val pdfDownloadUrl: String? = null
+    val pdfDownloadUrl: String? = null,
+    /** null = unknown (loading); false = not linked; true = linked */
+    val isGoogleLinked: Boolean? = null
 )
 
 @HiltViewModel
 class NotesViewModel @Inject constructor(
     private val repository: NotesRepository,
+    private val profileRepository: ProfileRepository,
     private val dataRefreshNotifier: DataRefreshNotifier,
     private val tokenManager: TokenManager
 ) : ViewModel() {
+
+    init { loadGoogleLinkState() }
 
     private val _listState = MutableStateFlow(NotesUiState())
     val listState: StateFlow<NotesUiState> = _listState.asStateFlow()
@@ -236,6 +242,14 @@ class NotesViewModel @Inject constructor(
     }
 
     fun clearImportedNoteId() { _driveState.update { it.copy(importedNoteId = null) } }
+
+    private fun loadGoogleLinkState() {
+        viewModelScope.launch {
+            profileRepository.getProfile().onSuccess { profile ->
+                _driveState.update { it.copy(isGoogleLinked = profile.isGoogleLinked) }
+            }
+        }
+    }
 
     /** Returns the JWT access token for use as a Bearer token in the WebView picker-page request. */
     fun getJwtToken(): String? = tokenManager.getAccessToken()
