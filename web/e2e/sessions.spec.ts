@@ -1,24 +1,26 @@
 import { test, expect } from '@playwright/test';
 import { registerUser, loginUser } from './helpers/auth';
 
-/** Navigate to the Profile Security tab and wait for the sessions list to be ready. */
+/** Navigate to the Profile Security tab and wait for the sessions section to be ready. */
 async function goToSecurityTab(page: import('@playwright/test').Page) {
   await page.goto('/profile');
   await page.waitForURL('**/profile', { timeout: 8_000 });
+  // Wait for the profile page's initial data fetch to finish before interacting
+  await page.waitForLoadState('networkidle', { timeout: 10_000 });
   await page.locator('button:has-text("Security")').click();
-  // Wait for the sessions section header — it renders immediately when the tab activates
-  await expect(page.locator('text=Active sessions')).toBeVisible({ timeout: 10_000 });
+  // Use exact match — 'text=Active sessions' is a substring match that also hits
+  // "Revokes all active sessions" in the danger zone, causing ambiguous results
+  await expect(page.getByText('Active sessions', { exact: true })).toBeVisible({ timeout: 10_000 });
 }
 
 /** Open the "Sign out all" confirm dialog and click the confirm button inside it.
- *  Both the trigger and confirm buttons share the same label, so we:
- *  1. Click the trigger (first match, in the danger zone)
- *  2. Wait for the dialog message to appear
- *  3. Click the last matching button — the confirm button is rendered via portal
- *     at the bottom of document.body, so it is always the last in the DOM.
+ *  Both the danger-zone trigger and the ConfirmModal confirm button share the same
+ *  label. The modal renders via createPortal at the bottom of document.body, so the
+ *  confirm button is always the LAST matching element in the DOM.
  */
 async function clickSignOutAllAndConfirm(page: import('@playwright/test').Page) {
   await page.locator('button:has-text("Sign out all")').first().click();
+  // Wait for the dialog message to confirm the modal is open
   await page.waitForSelector('text=You will be signed out of all devices', { timeout: 5_000 });
   await page.locator('button:has-text("Sign out all")').last().click();
 }
@@ -27,7 +29,7 @@ test.describe('Active Sessions', () => {
   test('sessions list shows at least one session with a "This device" badge', async ({ page }) => {
     await registerUser(page);
     await goToSecurityTab(page);
-    // React Query fetches sessions asynchronously — allow enough time for the API call
+    // React Query fetches sessions asynchronously — allow time for the API round-trip
     await expect(page.locator('text=This device')).toBeVisible({ timeout: 12_000 });
   });
 
@@ -42,7 +44,6 @@ test.describe('Active Sessions', () => {
     await registerUser(page);
     await goToSecurityTab(page);
     await page.waitForSelector('text=This device', { timeout: 12_000 });
-    // The title attribute is set to "Cannot remove your current session" for the current session's button
     await expect(
       page.locator('button[title="Cannot remove your current session"]')
     ).toBeDisabled({ timeout: 5_000 });
@@ -84,7 +85,7 @@ test.describe('Session deduplication after re-login', () => {
     await goToSecurityTab(page);
     await page.waitForSelector('text=This device', { timeout: 12_000 });
 
-    // After re-login on the same browser the old session is revoked — exactly one should show
+    // After re-login the old session is revoked — exactly one "This device" badge
     await expect(page.locator('text=This device')).toHaveCount(1, { timeout: 8_000 });
   });
 });
