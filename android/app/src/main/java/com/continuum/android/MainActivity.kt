@@ -18,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.core.network.NetworkMonitor
+import com.continuum.android.core.notification.InAppNotificationController
 import com.continuum.android.core.notification.NotificationRouter
 import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.core.ui.LocalProfileRepository
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var networkMonitor: NetworkMonitor
     @Inject lateinit var profileRepository: ProfileRepository
     @Inject lateinit var notificationRouter: NotificationRouter
+    @Inject lateinit var inAppNotificationController: InAppNotificationController
 
     private val mainViewModel: MainViewModel by viewModels()
 
@@ -105,6 +107,7 @@ class MainActivity : ComponentActivity() {
                     AppNavHost(
                         isAuthenticated = isAuthenticated,
                         notificationRouter = notificationRouter,
+                        inAppNotificationController = inAppNotificationController,
                         navController = navController,
                         onSensitiveScreenEntered = {
                             window.setFlags(

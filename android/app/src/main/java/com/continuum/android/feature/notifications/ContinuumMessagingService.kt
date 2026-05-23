@@ -8,6 +8,7 @@ import androidx.core.app.RemoteInput
 import com.continuum.android.MainActivity
 import com.continuum.android.R
 import com.continuum.android.core.data.local.TokenManager
+import com.continuum.android.core.notification.InAppNotificationController
 import com.continuum.android.feature.users.data.repository.UsersRepository
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -23,6 +24,7 @@ class ContinuumMessagingService : FirebaseMessagingService() {
 
     @Inject lateinit var usersRepository: UsersRepository
     @Inject lateinit var tokenManager: TokenManager
+    @Inject lateinit var inAppNotificationController: InAppNotificationController
 
     override fun onNewToken(token: String) {
         if (!tokenManager.isLoggedIn()) return
@@ -34,9 +36,18 @@ class ContinuumMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         val data = message.data
         val type = data["type"] ?: return
-        // Only new_message is data-only — show a custom notification with Reply action.
-        // All other types use notification+data; FCM auto-shows them in the background.
-        if (type == "new_message") showMessageNotification(data)
+
+        if (type == "new_message") {
+            // Data-only: fires in all app states — we own display entirely.
+            // If backgrounded, show system notification with Reply action.
+            // If foregrounded, delegate to in-app banner (or suppress if already in that conversation).
+            val showSystem = inAppNotificationController.handle(data)
+            if (showSystem) showMessageNotification(data)
+        } else {
+            // notification+data: FCM auto-shows in background; onMessageReceived only fires in foreground.
+            // Delegate to controller — emits banner or suppresses if already on target screen.
+            inAppNotificationController.handle(data)
+        }
     }
 
     private fun showMessageNotification(data: Map<String, String>) {
