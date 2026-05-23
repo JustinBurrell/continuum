@@ -32,6 +32,7 @@ richeditor = "1.0.0-rc08"
 accompanist = "0.36.0"
 workmanager = "2.10.0"
 mockk = "1.13.13"
+turbine = "1.2.0"
 lottie = "6.6.2"
 coreSplashscreen = "1.0.1"
 firebase-bom = "33.7.0"
@@ -135,6 +136,7 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 kotlinx-coroutines-test-lib = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
