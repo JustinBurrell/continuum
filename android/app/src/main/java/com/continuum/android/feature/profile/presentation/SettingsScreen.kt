@@ -1,5 +1,7 @@
 package com.continuum.android.feature.profile.presentation
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -8,7 +10,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
@@ -25,16 +29,32 @@ fun SettingsScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val profile = state.profile
 
+    val context = LocalContext.current
     var emailNotifications by remember { mutableStateOf(true) }
-    var pushNotifications by remember { mutableStateOf(true) }
+    var pushMessages       by remember { mutableStateOf(true) }
+    var pushComments       by remember { mutableStateOf(true) }
+    var pushLikes          by remember { mutableStateOf(true) }
+    var pushFriendRequests by remember { mutableStateOf(true) }
+    var pushTasks          by remember { mutableStateOf(true) }
+    var pushSharedContent  by remember { mutableStateOf(true) }
     var activityVisibility by remember { mutableStateOf("friends") }
+
+    val osNotificationsEnabled by remember {
+        derivedStateOf { NotificationManagerCompat.from(context).areNotificationsEnabled() }
+    }
 
     LaunchedEffect(Unit) { viewModel.load() }
 
     LaunchedEffect(profile) {
         val p = profile ?: return@LaunchedEffect
+        val pn = p.pushNotifications
         emailNotifications = p.emailNotifications
-        pushNotifications = p.pushNotifications
+        pushMessages       = pn.messages
+        pushComments       = pn.comments
+        pushLikes          = pn.likes
+        pushFriendRequests = pn.friendRequests
+        pushTasks          = pn.tasks
+        pushSharedContent  = pn.sharedContent
         activityVisibility = p.activityVisibility.ifBlank { "friends" }
     }
 
@@ -48,9 +68,14 @@ fun SettingsScreen(
     fun saveSettings() {
         viewModel.updateProfileFields(
             mapOf(
-                "settings.emailNotifications" to emailNotifications.toString(),
-                "settings.pushNotifications" to pushNotifications.toString(),
-                "settings.activityVisibility" to activityVisibility
+                "settings.emailNotifications"                  to emailNotifications.toString(),
+                "settings.pushNotifications.messages"          to pushMessages.toString(),
+                "settings.pushNotifications.comments"          to pushComments.toString(),
+                "settings.pushNotifications.likes"             to pushLikes.toString(),
+                "settings.pushNotifications.friendRequests"    to pushFriendRequests.toString(),
+                "settings.pushNotifications.tasks"             to pushTasks.toString(),
+                "settings.pushNotifications.sharedContent"     to pushSharedContent.toString(),
+                "settings.activityVisibility"                  to activityVisibility,
             )
         )
     }
@@ -129,14 +154,86 @@ fun SettingsScreen(
                     switchesEnabled = !isDemo
                 )
             }
+
+            item { SettingsSectionLabel("Push notifications") }
+
+            if (!osNotificationsEnabled) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.NotificationsOff, contentDescription = null, tint = TextMuted, modifier = Modifier.size(18.dp))
+                        Text("Notifications are disabled in device settings.", style = MaterialTheme.typography.bodySmall, color = TextMuted, modifier = Modifier.weight(1f))
+                        TextButton(onClick = {
+                            context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                            })
+                        }) { Text("Enable", color = BrandPurple) }
+                    }
+                }
+            }
+
+            val pushEnabled = !isDemo && osNotificationsEnabled
             item {
                 SettingsToggleRow(
-                    icon = Icons.Default.Notifications,
-                    label = "Push notifications",
-                    description = "Receive push notifications on this device",
-                    checked = pushNotifications,
-                    onCheckedChange = { if (!isDemo) pushNotifications = it },
-                    switchesEnabled = !isDemo
+                    icon = Icons.Default.Message,
+                    label = "Direct messages",
+                    description = "New message notifications",
+                    checked = pushMessages,
+                    onCheckedChange = { if (pushEnabled) pushMessages = it },
+                    switchesEnabled = pushEnabled
+                )
+            }
+            item {
+                SettingsToggleRow(
+                    icon = Icons.Default.Comment,
+                    label = "Comments & mentions",
+                    description = "Comments, replies, and mentions",
+                    checked = pushComments,
+                    onCheckedChange = { if (pushEnabled) pushComments = it },
+                    switchesEnabled = pushEnabled
+                )
+            }
+            item {
+                SettingsToggleRow(
+                    icon = Icons.Default.Favorite,
+                    label = "Likes",
+                    description = "Likes on your notes and comments",
+                    checked = pushLikes,
+                    onCheckedChange = { if (pushEnabled) pushLikes = it },
+                    switchesEnabled = pushEnabled
+                )
+            }
+            item {
+                SettingsToggleRow(
+                    icon = Icons.Default.PersonAdd,
+                    label = "Friend requests",
+                    description = "Friend requests and acceptances",
+                    checked = pushFriendRequests,
+                    onCheckedChange = { if (pushEnabled) pushFriendRequests = it },
+                    switchesEnabled = pushEnabled
+                )
+            }
+            item {
+                SettingsToggleRow(
+                    icon = Icons.Default.Task,
+                    label = "Task assignments",
+                    description = "When a task is assigned to you",
+                    checked = pushTasks,
+                    onCheckedChange = { if (pushEnabled) pushTasks = it },
+                    switchesEnabled = pushEnabled
+                )
+            }
+            item {
+                SettingsToggleRow(
+                    icon = Icons.Default.Share,
+                    label = "Shared notes & content",
+                    description = "When someone shares content with you",
+                    checked = pushSharedContent,
+                    onCheckedChange = { if (pushEnabled) pushSharedContent = it },
+                    switchesEnabled = pushEnabled
                 )
             }
 

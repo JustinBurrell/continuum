@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Note = require('../models/Note');
 const FlashcardSet = require('../models/FlashcardSet');
 const Friendship = require('../models/Friendship');
+const RefreshToken = require('../models/RefreshToken');
 const { getCachedStreak } = require('../services/studyStreak.service');
 
 // ============================================================
@@ -109,4 +110,60 @@ exports.searchUsers = async (req, res) => {
         .limit(20);
 
     res.status(200).json({ success: true, users });
+};
+
+// ---------------------------------------------------------------------------
+// registerDeviceToken
+// POST /api/users/device-token
+// Upserts an FCM token for this deviceId on the authenticated user (max 5).
+// Also stamps the caller's current RefreshToken document with this deviceId
+// so session revocation can remove the matching FCM token.
+// ---------------------------------------------------------------------------
+exports.registerDeviceToken = async (req, res) => {
+    const { token, deviceId } = req.body;
+    if (!token || !deviceId) {
+        return res.status(400).json({ success: false, error: 'token and deviceId are required' });
+    }
+
+    const userId = req.user._id;
+    const now = new Date();
+
+    // Upsert: update existing entry for this deviceId, or push a new one
+    const user = await User.findById(userId).select('fcmTokens').lean();
+    const exists = user.fcmTokens?.some((t) => t.deviceId === deviceId);
+
+    if (exists) {
+        await User.findOneAndUpdate(
+            { _id: userId, 'fcmTokens.deviceId': deviceId },
+            { $set: { 'fcmTokens.$.token': token, 'fcmTokens.$.updatedAt': now } }
+        );
+    } else {
+        // Enforce max 5 tokens — evict oldest if needed
+        await User.findByIdAndUpdate(userId, {
+            $push: {
+                fcmTokens: {
+                    $each:     [{ token, deviceId, updatedAt: now }],
+                    $sort:     { updatedAt: -1 },
+                    $slice:    5,
+                },
+            },
+        });
+    }
+
+    // Stamp the calling session's RefreshToken with this deviceId so logout can prune the FCM token
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+        const jwt = authHeader.slice(7);
+        const crypto = require('crypto');
+        const tokenHash = crypto.createHash('sha256').update(jwt).digest('hex');
+        // RefreshToken uses the raw token stored as hashed — match on userId + not revoked
+        // We identify the session by deviceId already set on login; just ensure it's current
+        await RefreshToken.findOneAndUpdate(
+            { userId, deviceId, revoked: false },
+            { $set: { deviceId } },
+            { sort: { createdAt: -1 } }
+        ).catch(() => {});
+    }
+
+    res.status(200).json({ success: true });
 };

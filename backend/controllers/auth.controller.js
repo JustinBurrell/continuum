@@ -583,6 +583,13 @@ exports.updateProfile = async (req, res) => {
     if (req.body['settings.pushNotifications'] !== undefined) {
         updates['settings.pushNotifications'] = req.body['settings.pushNotifications'] === 'true';
     }
+    // Per-type push notification toggles (settings.pushNotifications.messages, etc.)
+    for (const pType of ['messages', 'comments', 'likes', 'friendRequests', 'tasks', 'sharedContent']) {
+        const key = `settings.pushNotifications.${pType}`;
+        if (req.body[key] !== undefined) {
+            updates[key] = req.body[key] === 'true';
+        }
+    }
     if (req.body['settings.activityVisibility'] !== undefined) {
         const validVisibility = ['private', 'friends', 'public'];
         if (!validVisibility.includes(req.body['settings.activityVisibility'])) {
@@ -704,10 +711,16 @@ exports.mobileLogout = async (req, res) => {
 
     if (refreshToken) {
         const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
-        await RefreshToken.findOneAndUpdate(
+        const session = await RefreshToken.findOneAndUpdate(
             { tokenHash, revokedAt: null },
             { revokedAt: new Date() }
         );
+        // Prune the FCM token for this device
+        if (session?.deviceId) {
+            await User.findByIdAndUpdate(req.user._id, {
+                $pull: { fcmTokens: { deviceId: session.deviceId } },
+            }).catch(() => {});
+        }
     }
 
     res.status(200).json({ success: true, message: 'Logged out' });
@@ -719,7 +732,10 @@ exports.mobileLogout = async (req, res) => {
 //          rejected by auth middleware on the next request, then revokes all refresh tokens
 // ----------------------------------------
 exports.logoutAll = async (req, res) => {
-    await User.updateOne({ _id: req.user._id }, { $inc: { tokenVersion: 1 } });
+    await User.updateOne(
+        { _id: req.user._id },
+        { $inc: { tokenVersion: 1 }, $set: { fcmTokens: [] } }
+    );
     await invalidate(`user:${req.user._id}`);
     await RefreshToken.updateMany(
         { userId: req.user._id, revokedAt: null },
@@ -775,6 +791,13 @@ exports.revokeSession = async (req, res) => {
     // TTL matches JWT expiry (default 1 day). Fail-open: skip if Redis unavailable.
     const jwtTtlSeconds = parseInt(process.env.JWT_EXPIRES_SECONDS, 10) || 86400;
     await setKey(`revoked_session:${session._id}`, jwtTtlSeconds);
+
+    // Prune the FCM token for this device so it stops receiving push notifications
+    if (session.deviceId) {
+        await User.findByIdAndUpdate(req.user._id, {
+            $pull: { fcmTokens: { deviceId: session.deviceId } },
+        }).catch(() => {});
+    }
 
     res.status(200).json({ success: true });
 };

@@ -2,17 +2,19 @@
 
 ## Current State
 
-- `User.settings.emailNotifications` and `User.settings.pushNotifications` exist in the schema but are not enforced anywhere in business logic (noted in the model as "MVP uses in-app notifications only")
-- `Resend` is already integrated (`resend` v6.9.2 in `package.json`) and used for password reset and email verification — the infrastructure exists
-- An in-app activity feed exists (`GET /api/activity`) and is the only notification mechanism today
-- Auto-DMs via `sendShareMessage` in `share.service.js` notify users when something is shared with them, but only through the Messages inbox
+- **In-app notifications** (bell icon) are fully implemented: `Notification` model, `notify()` service, real-time Socket.io push, mark-read/delete API, web + Android notification screens.
+- **FCM push notifications** are implemented (Android): `firebase-admin` initialized, `sendPush()` in `notification.service.js` fires alongside every `notify()` call, data-only for `new_message`, `notification+data` for all other types.
+- `User.settings.pushNotifications` is now a per-type nested object (messages, comments, likes, friendRequests, tasks, sharedContent) — Instagram model, iOS-ready. The legacy Boolean is handled via backward-compat guard.
+- `User.fcmTokens` array stores up to 5 FCM tokens per device. Session-FCM linkage: revoking a session also removes that device's FCM token.
+- `Resend` is already integrated (`resend` v6.9.2 in `package.json`) and used for password reset and email verification — the infrastructure exists.
+- An in-app activity feed exists (`GET /api/activity`) as a secondary notification surface.
 
 ---
 
 ## Goals
 
 1. Notify users of social events in real time or near-real time
-2. Respect per-user channel preferences (`emailNotifications`, `pushNotifications`)
+2. Respect per-user channel preferences (`emailNotifications`, and per-type `pushNotifications`: messages, comments, likes, friendRequests, tasks, sharedContent)
 3. Use **Resend** for email delivery
 4. Use **Firebase Cloud Messaging (FCM)** for push notifications on mobile (iOS + Android)
 5. Do not send duplicate notifications across channels for the same event

@@ -34,7 +34,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.continuum.android.core.data.local.LogoutReason
+import com.continuum.android.core.notification.InAppNotificationController
+import com.continuum.android.core.notification.NotificationRouter
 import com.continuum.android.core.ui.components.DemoBanner
+import com.continuum.android.core.ui.components.InAppNotificationBanner
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.core.ui.LocalProfileRepository
@@ -205,6 +208,8 @@ val sensitiveRoutes = setOf(
 @Composable
 fun AppNavHost(
     isAuthenticated: Boolean,
+    notificationRouter: NotificationRouter,
+    inAppNotificationController: InAppNotificationController,
     navController: NavHostController = rememberNavController(),
     onSensitiveScreenEntered: () -> Unit = {},
     onSensitiveScreenExited: () -> Unit = {}
@@ -250,8 +255,25 @@ fun AppNavHost(
         }
     }
 
+    LaunchedEffect(Unit) {
+        notificationRouter.destination.collect { route ->
+            navController.navigate(route) { launchSingleTop = true }
+        }
+    }
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+
+    // Keep InAppNotificationController in sync with the current route so it can
+    // suppress banners when the user is already on the target screen.
+    LaunchedEffect(currentRoute) {
+        inAppNotificationController.updateCurrentRoute(currentRoute ?: "")
+    }
+
+    var inAppNotification by remember { mutableStateOf<com.continuum.android.core.notification.InAppNotification?>(null) }
+    LaunchedEffect(Unit) {
+        inAppNotificationController.banner.collect { inAppNotification = it }
+    }
 
     val isSensitive = sensitiveRoutes.any { currentRoute?.startsWith(it.substringBefore("{")) == true }
     if (isSensitive) onSensitiveScreenEntered() else onSensitiveScreenExited()
@@ -366,6 +388,17 @@ fun AppNavHost(
                 }
             }
         }
+        // In-app notification banner — slides in from top when foregrounded on a different screen
+        if (isMainScreen) {
+            InAppNotificationBanner(
+                notification = inAppNotification,
+                onClick = { notif ->
+                    inAppNotification = null
+                    notificationRouter.routeFromFcmData(notif.data)
+                },
+            )
+        }
+
         // First-run section feature card — shown after activation CTA navigation
         if (isMainScreen && !tourActive) {
             FirstRunCoachMark(navController = navController)

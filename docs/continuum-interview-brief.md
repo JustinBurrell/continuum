@@ -26,7 +26,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | Frontend screens (Android) | 30+ |
 | Web UI components | 27 |
 | Android composables | 40+ (reusable + screen-level) |
-| Backend tests | 314 Jest + Supertest across 20 suites |
+| Backend tests | 355 Jest + Supertest across 24 suites |
 | Web unit tests | 76 Vitest tests -- utils, error helpers, hooks, components |
 | Web E2E tests | Playwright -- auth, notes, flashcards, tasks, career, mobile gate |
 | Android unit tests | 176 MockK tests -- 10 ViewModels, 6 repositories, 2 utility modules |
@@ -61,7 +61,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 - **Flashcards** — study mode with flip cards, per-card progress tracking, AI extraction from notes or PDFs, study history screen, infinite-scroll pagination
 - **Tasks** — kanban board with shared tasks, per-participant status tracking, recurrence support, infinite-scroll pagination
 - **Calendar** — month and week views sharing a single `selected` state in the parent component; clicking a day in either view updates a bounded right sidebar (max-height, scrollable) rather than an inline expansion panel; overdue tasks in a fixed-height scrollable container so they never push content off screen
-- **Notifications** -- in-app notification bell (sidebar header + marketing nav when logged in) with unread badge, dropdown showing the 10 most recent, and a full history page (`/notifications`) grouped by Today / This week / This month / Earlier with IntersectionObserver infinite scroll. 8 event types: `new_message`, `share_received`, `task_assigned`, `comment_added`, `comment_reply`, `like_added`, `friend_request`, `friend_accepted`. Real-time badge updates via Socket.io `new_notification` event (payload includes `type` + `targetId` for suppression decisions). Bell is suppressed when the user is already viewing the active conversation -- matching Slack, Discord, and iMessage's pattern. `friend_request` notifications navigate to `/users/view` so you can accept/decline directly from the notification. `like_added` and `comment_reply` include `resourceId`/`resourceType` metadata so they navigate to the actual note/task, not just `/activity`. Duplicate message fix: socket handlers call `socket.off()` before `socket.on()` to prevent listener stacking on re-renders and React StrictMode double-invoke; messages append (not prepend) with `_id` dedup guard. 90-day TTL. Debouncing per actor+target. PostHog events on every interaction.
+- **Notifications** -- in-app notification bell (sidebar header + marketing nav when logged in) with unread badge, dropdown showing the 10 most recent, and a full history page (`/notifications`) grouped by Today / This week / This month / Earlier with IntersectionObserver infinite scroll. 8 event types: `new_message`, `share_received`, `task_assigned`, `comment_added`, `comment_reply`, `like_added`, `friend_request`, `friend_accepted`. Real-time badge updates via Socket.io `new_notification` event (payload includes `type` + `targetId` for suppression decisions). Bell is suppressed when the user is already viewing the active conversation -- matching Slack, Discord, and iMessage's pattern. `friend_request` notifications navigate to `/users/view` so you can accept/decline directly from the notification. `like_added` and `comment_reply` include `resourceId`/`resourceType` metadata so they navigate to the actual note/task, not just `/activity`. Duplicate message fix: socket handlers call `socket.off()` before `socket.on()` to prevent listener stacking on re-renders and React StrictMode double-invoke; messages append (not prepend) with `_id` dedup guard. 90-day TTL. Debouncing per actor+target. PostHog events on every interaction. **FCM push notifications (Android)** with per-type controls (Direct messages, Comments & mentions, Likes, Friend requests, Task assignments, Shared content) — matching Instagram's notification preference model. Notification body enriched with content preview (e.g. "Alex Chen: Hey, free to study?"). Tap-to-navigate: tapping a push notification opens the exact resource, with scroll-to-comment for comment types. Quick reply: inline reply from a DM notification without opening the app. Session-FCM linkage: revoking a session in Security settings also removes that device's FCM token.
 - **Social** -- friend requests, activity feed revamped to show what friends are *creating* (research-backed: Instagram, LinkedIn, Canvas all separate "ambient friend activity" from "directed notifications"). Activity shows `note_created`, `note_shared`, `flashcard_set_created`, `flashcard_shared`, `task_created`, `comment_added` -- creator actions that provide study-group motivation. `like_added` removed from activity (micro-reaction, lives only in notifications). `activityVisibility` setting respected: `private` users are completely absent from friends' feeds; historical activities from before a user went private remain visible. Direct messaging with real-time socket delivery (no polling), profile photos in feed and comments.
 - **Career** — job application tracker with status pipeline, AI resume feedback (scored section-by-section), contacts and reminders per application, inline PDF resume viewer (iframe modal matching Android's in-app viewer)
 - **Auth** — email/password and Google OAuth (`drive.file` scope — non-sensitive, no CASA assessment required) with JWT + httpOnly refresh cookie rotation
@@ -534,7 +534,7 @@ A formal security audit lives at `docs/security/backend_security_audit.md`.
 
 Continuum has three test layers, all running in parallel on every PR via GitHub Actions.
 
-### 1. Backend — 314 Jest + Supertest integration tests across 20 suites
+### 1. Backend — 355 Jest + Supertest integration tests across 24 suites
 
 | Suite | What it covers |
 |-------|----------------|
@@ -558,6 +558,10 @@ Continuum has three test layers, all running in parallel on every PR via GitHub 
 | Share | Note/flashcard/task share flows, permission checks |
 | Onboarding | Goal-personalized step computation, completion, replay |
 | Google Drive | Import flow, file picker, auth scope verification |
+| FCM (`fcm.test.js`) | `sendPush()` data-only payload for `new_message`, `notification+data` for others, per-type category gating, stale token pruning, legacy Boolean compat |
+| Device Token (`deviceToken.test.js`) | `POST /api/users/device-token` — upsert by deviceId, max-5 eviction, auth guard |
+| Session-FCM Linkage (`sessionFcmLinkage.test.js`) | `DELETE /api/auth/sessions/:id`, `POST /api/auth/logout-all`, `POST /api/auth/mobile/logout` all prune FCM tokens |
+| Push Settings (`pushSettings.test.js`) | Per-type PATCH persists, `sendPush()` respects each category flag, undefined treated as enabled, legacy Boolean `false` blocks all push |
 
 **No real database needed.** `mongodb-memory-server` spins up a real MongoDB process in RAM. Tests run offline, in CI, with zero Atlas configuration.
 

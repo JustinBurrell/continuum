@@ -10,6 +10,7 @@ import com.continuum.android.feature.notes.data.repository.NotesRepository
 import com.continuum.android.feature.notes.domain.Note
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.feature.profile.domain.Profile
+import com.continuum.android.feature.profile.domain.PushNotificationSettings
 import com.continuum.android.feature.social.data.remote.SocialApiService
 import com.continuum.android.feature.social.data.remote.dto.ActivityResponseDto
 import com.continuum.android.feature.tasks.data.repository.TasksRepository
@@ -70,7 +71,7 @@ class DashboardViewModelTest {
         email = "j@test.com", bio = null, avatarUrl = null, linkedinUrl = null,
         instagramHandle = null, isEmailVerified = true, isGoogleLinked = false, isDemo = false,
         pendingDeletion = false, scheduledDeletionAt = null, activityVisibility = "friends",
-        emailNotifications = true, pushNotifications = true, createdAt = "2025-01-01",
+        emailNotifications = true, pushNotifications = PushNotificationSettings(), createdAt = "2025-01-01",
         onboardingCompleted = onboardingCompleted
     )
 

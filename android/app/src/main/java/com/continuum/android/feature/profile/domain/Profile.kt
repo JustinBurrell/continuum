@@ -1,5 +1,14 @@
 package com.continuum.android.feature.profile.domain
 
+data class PushNotificationSettings(
+    val messages: Boolean = true,
+    val comments: Boolean = true,
+    val likes: Boolean = true,
+    val friendRequests: Boolean = true,
+    val tasks: Boolean = true,
+    val sharedContent: Boolean = true,
+)
+
 data class Profile(
     val id: String,
     val firstName: String,
@@ -17,7 +26,7 @@ data class Profile(
     val scheduledDeletionAt: String?,
     val activityVisibility: String,
     val emailNotifications: Boolean,
-    val pushNotifications: Boolean,
+    val pushNotifications: PushNotificationSettings,
     val createdAt: String,
     val roles: List<String> = emptyList(),
     val lastViewedActivityAt: String? = null,

@@ -3,6 +3,7 @@ package com.continuum.android.feature.profile.data.repository
 import com.continuum.android.feature.profile.data.remote.ProfileApiService
 import com.continuum.android.feature.profile.data.remote.dto.*
 import com.continuum.android.feature.profile.domain.Profile
+import com.continuum.android.feature.profile.domain.PushNotificationSettings
 import com.continuum.android.feature.profile.domain.Session
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -43,7 +44,16 @@ class ProfileRepository @Inject constructor(
             scheduledDeletionAt = dto.scheduledDeletionAt,
             activityVisibility = dto.settings?.activityVisibility ?: "friends",
             emailNotifications = dto.settings?.emailNotifications ?: true,
-            pushNotifications = dto.settings?.pushNotifications ?: true,
+            pushNotifications = dto.settings?.pushNotifications?.let { p ->
+                PushNotificationSettings(
+                    messages       = p.messages       ?: true,
+                    comments       = p.comments       ?: true,
+                    likes          = p.likes          ?: true,
+                    friendRequests = p.friendRequests ?: true,
+                    tasks          = p.tasks          ?: true,
+                    sharedContent  = p.sharedContent  ?: true,
+                )
+            } ?: PushNotificationSettings(),
             createdAt = dto.createdAt,
             roles = dto.roles,
             lastViewedActivityAt = dto.lastViewedActivityAt,

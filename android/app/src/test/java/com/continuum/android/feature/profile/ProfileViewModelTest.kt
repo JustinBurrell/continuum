@@ -4,6 +4,7 @@ import com.continuum.android.core.data.ProfileUpdateNotifier
 import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.feature.profile.domain.Profile
+import com.continuum.android.feature.profile.domain.PushNotificationSettings
 import com.continuum.android.feature.profile.domain.Session
 import com.continuum.android.feature.profile.presentation.ProfileViewModel
 import io.mockk.coEvery
@@ -40,7 +41,7 @@ class ProfileViewModelTest {
         email = "j@test.com", bio = "Bio", avatarUrl = null, linkedinUrl = null,
         instagramHandle = null, isEmailVerified = true, isGoogleLinked = false, isDemo = isDemo,
         pendingDeletion = false, scheduledDeletionAt = null, activityVisibility = "friends",
-        emailNotifications = true, pushNotifications = true, createdAt = "2025-01-01"
+        emailNotifications = true, pushNotifications = PushNotificationSettings(), createdAt = "2025-01-01"
     )
 
     private fun fakeSession(id: String = "s1", isCurrent: Boolean = true) = Session(

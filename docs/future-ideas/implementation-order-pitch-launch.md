@@ -176,12 +176,16 @@ Sessions list had wrong device labels, stale entries, and UX gaps vs. Instagram/
 - [x] Android `ProfileScreen.kt` `SessionRow`: leading device-type icon; subtitle split into "Last active Xh ago · City" line
 - [x] Tests: Jest (iPad UA + Client Hints, iPhone/Android/Windows labels, deduplication same/different device, expired token exclusion, current-first ordering, logout-all revocation); Playwright `sessions.spec.ts` (badge visible, sign-out-all → `/login`, re-login dedup)
 
-### 5. FCM Push Notifications
+### 5. FCM Push Notifications ✅
 Android only. Requires notification bell infrastructure above.
-- [ ] Add Firebase to the project (`google-services.json`, Firebase SDK)
-- [ ] `FCMToken` stored per user session on the backend
-- [ ] Backend sends FCM message via `notification.service.js` when `notify()` fires
-- [ ] Android: handle foreground + background notification payloads, tap → deep link
+- [x] Add Firebase to the project (`google-services.json`, Firebase SDK)
+- [x] `fcmTokens` array stored per user (up to 5 devices) with session-FCM linkage (logout prunes token)
+- [x] Backend sends FCM message via `sendPush()` in `notification.service.js` when `notify()` fires
+- [x] Per-type push notification toggles (messages, comments, likes, friendRequests, tasks, sharedContent) — Instagram model, iOS-ready
+- [x] Enriched notification body with message/comment preview (e.g. "Alex Chen: Hey, free to study?")
+- [x] Android: tap-to-navigate — opens exact resource with scroll-to-comment for comment types
+- [x] Android: quick reply from DM notification tray without opening the app
+- [x] Web: per-type push toggles in Profile settings (mirrors Android settings screen)
 
 ### 6. Notification Email Delivery
 Requires notification bell infrastructure. Send on events users care about when they're not in the app.

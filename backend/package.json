@@ -21,7 +21,8 @@
     ],
     "moduleNameMapper": {
       "^cloudinary$": "<rootDir>/tests/jest/__mocks__/cloudinary.js",
-      "^resend$": "<rootDir>/tests/jest/__mocks__/resend.js"
+      "^resend$": "<rootDir>/tests/jest/__mocks__/resend.js",
+      "^firebase-admin$": "<rootDir>/tests/jest/__mocks__/firebase-admin.js"
     }
   },
   "keywords": [],
@@ -39,6 +40,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.1",
+    "firebase-admin": "^13.10.0",
     "geoip-lite": "^1.4.10",
     "google-auth-library": "^10.6.2",
     "googleapis": "^171.4.0",

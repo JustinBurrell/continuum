@@ -79,6 +79,18 @@
 
         </activity>
 
+        <service
+            android:name=".feature.notifications.ContinuumMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name=".feature.notifications.QuickReplyReceiver"
+            android:exported="false" />
+
     </application>
 
 </manifest>
