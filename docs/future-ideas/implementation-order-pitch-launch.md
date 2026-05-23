@@ -165,16 +165,16 @@ Three Android-only issues with the Google Drive integration. PR: fix/OAUTH-2-and
 - [x] Backend `google.controller.js`: replaced both bare `<p>Google account not linked</p>` 403 responses with a styled HTML page (purple brand card) including a `continuum://` deep link button
 - [x] Tests: Jest — `DELETE /api/auth/me/google/link` (no Google linked → 400, Google-only account → 400 with password guard message, valid unlink → 200 + googleId cleared); `GET /api/google/picker-page-cct` without googleId → 403 HTML with `continuum://`; all 47 tests pass
 
-### Bug Fix: Active Sessions Accuracy & UX
-Sessions list has wrong device labels, stale entries, and UX gaps vs. Instagram/GitHub standard. Spec: `docs/bugs/active-sessions-not-being-specific.md`.
-- [ ] Backend `auth.controller.js`: replace custom `parseDeviceLabel()` with `ua-parser-js` + `Sec-CH-UA-Platform` Client Hints — fixes iPad shown as macOS
-- [ ] Backend (login handler): revoke same-`deviceId` non-revoked tokens before creating a new one — prevents duplicate sessions on re-login
-- [ ] Backend sessions endpoint: add `expiresAt > now` filter alongside `revokedAt == null`
-- [ ] Web `Profile.jsx:452–457`: fix `doLogoutAll` to call `logout()` (clears `AuthContext.user`) before `navigate('/login')` — currently redirects back to dashboard
-- [ ] Web `Profile.jsx:998–1048`: sort current session first; add device-type icon (phone/tablet/desktop); show `lastUsedAt` as relative time with absolute on hover
-- [ ] Android `ProfileViewModel.kt`: sort sessions so `isCurrent == true` is first
-- [ ] Android `ProfileScreen.kt:431–468` `SessionRow`: add leading device-type icon; split timestamp into two-row subtitle (location + last active)
-- [ ] Tests: Jest (iPad UA label, deduplication on login, expired token filter, logout-all revoking); Playwright (current session badge, logout-all → `/login`, re-login shows 1 session); Android unit (sorted sessions, logout-all triggers `onLogout`)
+### Bug Fix: Active Sessions Accuracy & UX ✅
+Sessions list had wrong device labels, stale entries, and UX gaps vs. Instagram/GitHub standard. PR #235.
+- [x] Backend `auth.controller.js`: replaced custom `parseDeviceLabel()` with `ua-parser-js` + `Sec-CH-UA-Platform` Client Hints — iPad now correctly identified instead of showing as macOS
+- [x] Backend (login/register/googleExchange): revoke same-`deviceId` non-revoked tokens before creating a new one — eliminates duplicate sessions on re-login
+- [x] Backend sessions endpoint: sort response so `isCurrent` session is always first
+- [x] Web `Profile.jsx`: fix `doLogoutAll` to call `logout()` (clears `AuthContext.user`) before `navigate('/login')` — no longer bounces back to dashboard
+- [x] Web `Profile.jsx`: device-type icon (Smartphone/Tablet/Monitor) inferred from `deviceId`; absolute datetime as `title` tooltip on "Last active"
+- [x] Android `ProfileViewModel.kt`: sessions sorted `sortedByDescending { it.isCurrent }` before UI state update
+- [x] Android `ProfileScreen.kt` `SessionRow`: leading device-type icon; subtitle split into "Last active Xh ago · City" line
+- [x] Tests: Jest (iPad UA + Client Hints, iPhone/Android/Windows labels, deduplication same/different device, expired token exclusion, current-first ordering, logout-all revocation); Playwright `sessions.spec.ts` (badge visible, sign-out-all → `/login`, re-login dedup)
 
 ### 5. FCM Push Notifications
 Android only. Requires notification bell infrastructure above.
@@ -225,4 +225,4 @@ Quick win — needed before real support traffic comes in.
 
 ---
 
-*Last updated: May 21, 2026 — 4d, 4e complete; Google OAuth CCT bug fix complete (PR #233); Google Android Drive & Unlink bug fix complete (OAUTH-2)*
+*Last updated: May 22, 2026 — Active Sessions bug fix complete (PR #235)*

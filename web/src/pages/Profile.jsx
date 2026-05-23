@@ -8,6 +8,7 @@ import {
   CheckSquare, Users, AtSign, Calendar as CalendarIcon,
   ChevronRight, ShieldCheck, ShieldAlert, Mail,
   Edit3, Shield, User, Eye, EyeOff, KeyRound,
+  Smartphone, Tablet, Monitor,
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '@/lib/api';
@@ -453,7 +454,7 @@ export default function Profile() {
     setShowLogoutAllConfirm(false);
     setLogoutAllLoading(true);
     try { await api.post('/auth/logout-all'); } catch (_) {}
-    finally { localStorage.clear(); navigate('/login'); }
+    finally { logout(); navigate('/login'); }
   };
 
   const handleDeleteAccount = () => setShowDeleteModal(true);
@@ -1005,43 +1006,56 @@ export default function Profile() {
                 <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>No active sessions found.</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {sessionsData.map((s) => (
-                    <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', background: s.isCurrent ? 'rgba(107,33,168,0.04)' : '#FFFFFF', borderRadius: 8, border: s.isCurrent ? '1px solid rgba(107,33,168,0.12)' : '1px solid transparent' }}>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                          <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{s.deviceId || 'Unknown device'}</p>
-                          {s.isCurrent && (
-                            <span style={{ fontSize: 10, fontWeight: 600, color: '#6b21a8', background: '#E5E7EB', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
-                              This device
-                            </span>
-                          )}
+                  {sessionsData.map((s) => {
+                    const deviceLabel = s.deviceId || 'Unknown device';
+                    const dl = deviceLabel.toLowerCase();
+                    const DeviceIcon = /iphone|android/.test(dl) ? Smartphone : /ipad|tablet/.test(dl) ? Tablet : Monitor;
+                    const relativeTime = (() => {
+                      if (!s.lastUsedAt) return null;
+                      const diff = Date.now() - new Date(s.lastUsedAt).getTime();
+                      const mins = Math.floor(diff / 60000);
+                      if (mins < 1) return 'just now';
+                      if (mins < 60) return `${mins}m ago`;
+                      const hrs = Math.floor(mins / 60);
+                      if (hrs < 24) return `${hrs}h ago`;
+                      return `${Math.floor(hrs / 24)}d ago`;
+                    })();
+                    const absoluteTime = s.lastUsedAt
+                      ? new Date(s.lastUsedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+                      : null;
+                    return (
+                      <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', background: s.isCurrent ? 'rgba(107,33,168,0.04)' : '#FFFFFF', borderRadius: 8, border: s.isCurrent ? '1px solid rgba(107,33,168,0.12)' : '1px solid transparent' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, minWidth: 0 }}>
+                          <DeviceIcon size={16} style={{ color: '#6B7280', flexShrink: 0, marginTop: 2 }} />
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{deviceLabel}</p>
+                              {s.isCurrent && (
+                                <span style={{ fontSize: 10, fontWeight: 600, color: '#6b21a8', background: '#E5E7EB', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                                  This device
+                                </span>
+                              )}
+                            </div>
+                            <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0' }}>
+                              <span>Signed in {new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                              {relativeTime && (
+                                <> &middot; <span title={absoluteTime}>Last active {relativeTime}</span></>
+                              )}
+                              {s.ipLocation && <> &middot; {s.ipLocation}</>}
+                            </p>
+                          </div>
                         </div>
-                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
-                          Signed in {new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                          {s.lastUsedAt && (
-                            <> &middot; Last active {(() => {
-                              const diff = Date.now() - new Date(s.lastUsedAt).getTime();
-                              const mins = Math.floor(diff / 60000);
-                              if (mins < 1) return 'just now';
-                              if (mins < 60) return `${mins}m ago`;
-                              const hrs = Math.floor(mins / 60);
-                              if (hrs < 24) return `${hrs}h ago`;
-                              return `${Math.floor(hrs / 24)}d ago`;
-                            })()}</>
-                          )}
-                          {s.ipLocation && <> &middot; {s.ipLocation}</>}
-                        </p>
+                        <button
+                          onClick={() => !s.isCurrent && revokeSessionMutation.mutate(s._id)}
+                          disabled={s.isCurrent || revokeSessionMutation.isPending}
+                          title={s.isCurrent ? 'Cannot remove your current session' : 'Revoke session'}
+                          style={{ background: 'none', border: 'none', cursor: s.isCurrent ? 'not-allowed' : 'pointer', color: s.isCurrent ? '#d1d5db' : '#dc2626', padding: 4, display: 'flex', alignItems: 'center', borderRadius: 6, flexShrink: 0 }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => !s.isCurrent && revokeSessionMutation.mutate(s._id)}
-                        disabled={s.isCurrent || revokeSessionMutation.isPending}
-                        title={s.isCurrent ? 'Cannot remove your current session' : 'Revoke session'}
-                        style={{ background: 'none', border: 'none', cursor: s.isCurrent ? 'not-allowed' : 'pointer', color: s.isCurrent ? '#d1d5db' : '#dc2626', padding: 4, display: 'flex', alignItems: 'center', borderRadius: 6, flexShrink: 0 }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

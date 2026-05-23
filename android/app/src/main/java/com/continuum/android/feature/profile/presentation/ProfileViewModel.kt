@@ -61,7 +61,8 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             repository.getSessions().fold(
                 onSuccess = { sessions ->
-                    _state.update { it.copy(sessions = sessions, sessionsLoading = false) }
+                    val sorted = sessions.sortedByDescending { it.isCurrent }
+                    _state.update { it.copy(sessions = sorted, sessionsLoading = false) }
                 },
                 onFailure = {
                     _state.update { it.copy(sessionsLoading = false) }

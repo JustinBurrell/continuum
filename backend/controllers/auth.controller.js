@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const geoip = require('geoip-lite');
+const { UAParser } = require('ua-parser-js');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const Note = require('../models/Note');
@@ -95,57 +96,46 @@ const generateRefreshToken = async (userId, deviceId, ipAddress = null, ipLocati
 };
 
 // ----------------------------------------
-// HELPER: Parse a human-readable device label from a User-Agent string
-// e.g. "Chrome 120 on macOS", "Safari 17 on iPhone (iOS 17)", "Firefox 121 on Windows"
+// HELPER: Parse a human-readable device label from a User-Agent string + optional Client Hints headers
+// e.g. "Chrome 124 on iPad (iPadOS 17)", "Safari 17 on iPhone (iOS 17)", "Firefox 121 on Windows"
+// Uses ua-parser-js for accurate detection, supplemented by Sec-CH-UA-Platform Client Hints to
+// correctly identify iPadOS 13+ devices (which send a macOS UA for desktop-site compatibility).
 // ----------------------------------------
-const parseDeviceLabel = (ua = '') => {
+const parseDeviceLabel = (ua = '', headers = {}) => {
     if (!ua) return 'Unknown device';
 
-    // Browser + major version
-    let browser = 'Browser';
-    let browserMatch;
-    if (/Edg\/(\d+)/.test(ua)) {
-        browser = `Edge ${ua.match(/Edg\/(\d+)/)[1]}`;
-    } else if (/OPR\/(\d+)|Opera\/(\d+)/.test(ua)) {
-        browserMatch = ua.match(/OPR\/(\d+)/) || ua.match(/Opera\/(\d+)/);
-        browser = `Opera ${browserMatch[1]}`;
-    } else if (/Firefox\/(\d+)/.test(ua)) {
-        browser = `Firefox ${ua.match(/Firefox\/(\d+)/)[1]}`;
-    } else if (/Chrome\/(\d+)/.test(ua) && !/Chromium/.test(ua)) {
-        browser = `Chrome ${ua.match(/Chrome\/(\d+)/)[1]}`;
-    } else if (/Version\/(\d+).*Safari/.test(ua) && !/Chrome/.test(ua)) {
-        browser = `Safari ${ua.match(/Version\/(\d+)/)[1]}`;
-    } else if (/Safari\//.test(ua) && !/Chrome/.test(ua)) {
-        browser = 'Safari';
+    const parser = new UAParser(ua);
+    const result = parser.getResult();
+
+    const browserName = result.browser.name || 'Browser';
+    const browserMajor = result.browser.major;
+    const browser = browserMajor ? `${browserName} ${browserMajor}` : browserName;
+
+    // Sec-CH-UA-Platform is sent by Chromium browsers and explicitly identifies the real platform,
+    // overriding the spoofed macOS UA that iPadOS 13+ sends for desktop-site compatibility.
+    const chPlatform = (headers['sec-ch-ua-platform'] || '').replace(/"/g, '').trim();
+
+    if (chPlatform === 'iOS' || chPlatform === 'iPadOS') {
+        const osVersion = result.os.version || '';
+        const osLabel = osVersion ? `iPadOS ${osVersion}` : 'iPadOS';
+        return `${browser} on iPad (${osLabel})`;
     }
 
-    // Device type + OS
-    let device = '';
-    let os = 'Unknown OS';
-    if (/iPhone/.test(ua)) {
-        device = 'iPhone';
-        const iosMatch = ua.match(/CPU iPhone OS ([\d_]+)/);
-        os = iosMatch ? `iOS ${iosMatch[1].replace(/_/g, '.')}` : 'iOS';
-    } else if (/iPad/.test(ua)) {
-        device = 'iPad';
-        const iosMatch = ua.match(/CPU OS ([\d_]+)/);
-        os = iosMatch ? `iOS ${iosMatch[1].replace(/_/g, '.')}` : 'iPadOS';
-    } else if (/Android/.test(ua)) {
-        const androidMatch = ua.match(/Android ([\d.]+)/);
-        os = androidMatch ? `Android ${androidMatch[1]}` : 'Android';
-    } else if (/Windows NT ([\d.]+)/.test(ua)) {
-        const ntMap = { '10.0': '10/11', '6.3': '8.1', '6.2': '8', '6.1': '7' };
-        const ntVer = ua.match(/Windows NT ([\d.]+)/)[1];
-        os = `Windows ${ntMap[ntVer] || ntVer}`;
-    } else if (/Mac OS X ([\d_]+)/.test(ua)) {
-        const macMatch = ua.match(/Mac OS X ([\d_]+)/);
-        os = `macOS ${macMatch[1].replace(/_/g, '.')}`;
-    } else if (/Linux/.test(ua)) {
-        os = 'Linux';
-    }
+    const deviceType = result.device.type;
+    const deviceModel = result.device.model;
+    const osName = result.os.name || 'Unknown OS';
+    const osVersion = result.os.version ? ` ${result.os.version}` : '';
+    const osLabel = `${osName}${osVersion}`;
 
-    if (device) return `${browser} on ${device} (${os})`;
-    return `${browser} on ${os}`;
+    if (deviceType === 'mobile') {
+        const label = deviceModel || 'Phone';
+        return `${browser} on ${label} (${osLabel})`;
+    }
+    if (deviceType === 'tablet') {
+        const label = deviceModel || 'Tablet';
+        return `${browser} on ${label} (${osLabel})`;
+    }
+    return `${browser} on ${osLabel}`;
 };
 
 // ----------------------------------------
@@ -189,9 +179,14 @@ exports.register = async (req, res) => {
     }
 
     const regIp = req.ip || null;
+    const regDeviceId = parseDeviceLabel(req.headers['user-agent'], req.headers);
+    await RefreshToken.updateMany(
+        { userId: user._id, deviceId: regDeviceId, revokedAt: null },
+        { revokedAt: new Date() }
+    );
     const { rawToken: refreshToken, sessionId } = await generateRefreshToken(
         user._id,
-        parseDeviceLabel(req.headers['user-agent']),
+        regDeviceId,
         regIp,
         resolveLocation(regIp)
     );
@@ -264,9 +259,14 @@ exports.login = async (req, res) => {
     await user.save();
 
     const loginIp = req.ip || null;
+    const loginDeviceId = parseDeviceLabel(req.headers['user-agent'], req.headers);
+    await RefreshToken.updateMany(
+        { userId: user._id, deviceId: loginDeviceId, revokedAt: null },
+        { revokedAt: new Date() }
+    );
     const { rawToken: refreshToken, sessionId } = await generateRefreshToken(
         user._id,
-        parseDeviceLabel(req.headers['user-agent']),
+        loginDeviceId,
         loginIp,
         resolveLocation(loginIp)
     );
@@ -416,9 +416,14 @@ exports.googleExchange = async (req, res) => {
     }
 
     const oauthIp = req.ip || null;
+    const oauthDeviceId = parseDeviceLabel(req.headers['user-agent'], req.headers);
+    await RefreshToken.updateMany(
+        { userId: record.userId, deviceId: oauthDeviceId, revokedAt: null },
+        { revokedAt: new Date() }
+    );
     const { rawToken: refreshToken, sessionId } = await generateRefreshToken(
         record.userId,
-        parseDeviceLabel(req.headers['user-agent']),
+        oauthDeviceId,
         oauthIp,
         resolveLocation(oauthIp)
     );
@@ -735,14 +740,16 @@ exports.getSessions = async (req, res) => {
         expiresAt: { $gt: new Date() },
     }).select('_id deviceId ipAddress ipLocation lastUsedAt createdAt').sort({ createdAt: -1 });
 
-    const sessions = tokens.map((t) => ({
-        _id: t._id,
-        deviceId: t.deviceId,
-        ipLocation: t.ipLocation,
-        lastUsedAt: t.lastUsedAt,
-        createdAt: t.createdAt,
-        isCurrent: req.sessionId ? String(t._id) === req.sessionId : false,
-    }));
+    const sessions = tokens
+        .map((t) => ({
+            _id: t._id,
+            deviceId: t.deviceId,
+            ipLocation: t.ipLocation,
+            lastUsedAt: t.lastUsedAt,
+            createdAt: t.createdAt,
+            isCurrent: req.sessionId ? String(t._id) === req.sessionId : false,
+        }))
+        .sort((a, b) => (b.isCurrent ? 1 : 0) - (a.isCurrent ? 1 : 0));
 
     res.status(200).json({ success: true, sessions });
 };
