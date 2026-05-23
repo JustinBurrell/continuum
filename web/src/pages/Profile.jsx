@@ -221,6 +221,33 @@ function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading 
   );
 }
 
+function NotifToggleRow({ label, desc, checked, onChange }) {
+  return (
+    <label style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '12px 0', borderBottom: '1px solid #E5E7EB', cursor: 'pointer', gap: 12,
+    }}>
+      <div>
+        <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{label}</p>
+        <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{desc}</p>
+      </div>
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <div onClick={onChange} style={{
+          width: 40, height: 22, borderRadius: 11,
+          background: checked ? '#6b21a8' : '#e5e7eb',
+          transition: 'background 0.2s', cursor: 'pointer', position: 'relative',
+        }}>
+          <div style={{
+            position: 'absolute', top: 3, left: checked ? 21 : 3,
+            width: 16, height: 16, borderRadius: '50%', background: '#fff',
+            transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
+          }} />
+        </div>
+      </div>
+    </label>
+  );
+}
+
 export default function Profile() {
   const { user, updateUser, logout, setForceOnboardingOpen } = useAuth();
   const toast = useToast();
@@ -301,8 +328,13 @@ export default function Profile() {
   // Notifications form
   const notifForm = useForm({
     defaultValues: {
-      emailNotifications: user?.settings?.emailNotifications ?? true,
-      pushNotifications: user?.settings?.pushNotifications ?? true,
+      emailNotifications:       user?.settings?.emailNotifications ?? true,
+      pushMessages:             user?.settings?.pushNotifications?.messages       ?? true,
+      pushComments:             user?.settings?.pushNotifications?.comments       ?? true,
+      pushLikes:                user?.settings?.pushNotifications?.likes          ?? true,
+      pushFriendRequests:       user?.settings?.pushNotifications?.friendRequests ?? true,
+      pushTasks:                user?.settings?.pushNotifications?.tasks          ?? true,
+      pushSharedContent:        user?.settings?.pushNotifications?.sharedContent  ?? true,
     },
   });
 
@@ -328,9 +360,15 @@ export default function Profile() {
         instagramHandle: fresh.instagramHandle || '',
         'settings.activityVisibility': fresh.settings?.activityVisibility || 'friends',
       });
+      const pn = fresh.settings?.pushNotifications;
       notifForm.reset({
-        emailNotifications: fresh.settings?.emailNotifications ?? true,
-        pushNotifications: fresh.settings?.pushNotifications ?? true,
+        emailNotifications:   fresh.settings?.emailNotifications ?? true,
+        pushMessages:         (typeof pn === 'object' ? pn?.messages       : pn) ?? true,
+        pushComments:         (typeof pn === 'object' ? pn?.comments       : pn) ?? true,
+        pushLikes:            (typeof pn === 'object' ? pn?.likes          : pn) ?? true,
+        pushFriendRequests:   (typeof pn === 'object' ? pn?.friendRequests : pn) ?? true,
+        pushTasks:            (typeof pn === 'object' ? pn?.tasks          : pn) ?? true,
+        pushSharedContent:    (typeof pn === 'object' ? pn?.sharedContent  : pn) ?? true,
       });
     }
   }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -378,8 +416,13 @@ export default function Profile() {
   const notifMutation = useMutation({
     mutationFn: (vals) => {
       const fd = new FormData();
-      fd.append('settings.emailNotifications', vals.emailNotifications);
-      fd.append('settings.pushNotifications', vals.pushNotifications);
+      fd.append('settings.emailNotifications',                vals.emailNotifications);
+      fd.append('settings.pushNotifications.messages',        vals.pushMessages);
+      fd.append('settings.pushNotifications.comments',        vals.pushComments);
+      fd.append('settings.pushNotifications.likes',           vals.pushLikes);
+      fd.append('settings.pushNotifications.friendRequests',  vals.pushFriendRequests);
+      fd.append('settings.pushNotifications.tasks',           vals.pushTasks);
+      fd.append('settings.pushNotifications.sharedContent',   vals.pushSharedContent);
       return api.patch('/auth/me/profile', fd);
     },
     onSuccess: (res) => {
@@ -1093,42 +1136,34 @@ export default function Profile() {
         <div>
 
           <div style={card}>
-            <p style={sectionLabel}>Email & push</p>
             <form onSubmit={notifForm.handleSubmit(vals => notifMutation.mutate(vals))}>
+              {/* Email */}
+              <p style={sectionLabel}>Email</p>
               {[
                 { key: 'emailNotifications', label: 'Email notifications', desc: 'Receive activity updates via email' },
-                { key: 'pushNotifications', label: 'Push notifications', desc: 'Browser notifications for real-time updates' },
               ].map(({ key, label, desc }) => (
-                <label
-                  key={key}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '14px 0', borderBottom: '1px solid #E5E7EB', cursor: 'pointer', gap: 12,
-                  }}
-                >
-                  <div>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{label}</p>
-                    <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{desc}</p>
-                  </div>
-                  <div style={{ position: 'relative', flexShrink: 0 }}>
-                    <input type="checkbox" style={{ display: 'none' }} {...notifForm.register(key)} />
-                    <div
-                      onClick={() => notifForm.setValue(key, !notifForm.watch(key), { shouldDirty: true })}
-                      style={{
-                        width: 40, height: 22, borderRadius: 11,
-                        background: notifForm.watch(key) ? '#6b21a8' : '#e5e7eb',
-                        transition: 'background 0.2s', cursor: 'pointer', position: 'relative',
-                      }}
-                    >
-                      <div style={{
-                        position: 'absolute', top: 3, left: notifForm.watch(key) ? 21 : 3,
-                        width: 16, height: 16, borderRadius: '50%', background: '#fff',
-                        transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
-                      }} />
-                    </div>
-                  </div>
-                </label>
+                <NotifToggleRow key={key} label={label} desc={desc}
+                  checked={!!notifForm.watch(key)}
+                  onChange={() => notifForm.setValue(key, !notifForm.watch(key), { shouldDirty: true })}
+                />
               ))}
+
+              {/* Push notifications */}
+              <p style={{ ...sectionLabel, marginTop: 20 }}>Push notifications</p>
+              {[
+                { key: 'pushMessages',       label: 'Direct messages',       desc: 'New message notifications' },
+                { key: 'pushComments',       label: 'Comments & mentions',   desc: 'Comments, replies, and @mentions' },
+                { key: 'pushLikes',          label: 'Likes',                 desc: 'Likes on your notes and comments' },
+                { key: 'pushFriendRequests', label: 'Friend requests',       desc: 'Friend requests and acceptances' },
+                { key: 'pushTasks',          label: 'Task assignments',      desc: 'When a task is assigned to you' },
+                { key: 'pushSharedContent',  label: 'Shared notes & content',desc: 'When someone shares content with you' },
+              ].map(({ key, label, desc }) => (
+                <NotifToggleRow key={key} label={label} desc={desc}
+                  checked={!!notifForm.watch(key)}
+                  onChange={() => notifForm.setValue(key, !notifForm.watch(key), { shouldDirty: true })}
+                />
+              ))}
+
               <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Button type="submit" loading={notifMutation.isPending}>Save</Button>
                 {notifSaved && <span style={{ fontSize: 12, color: '#059669' }}>Saved!</span>}
