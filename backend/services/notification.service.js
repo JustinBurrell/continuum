@@ -92,6 +92,8 @@ function buildFcmBody(type, message, metadata) {
         case 'comment_reply':
         case 'mention':
             return message + ': "' + preview + '"';
+        case 'like_added':
+            return message + ': "' + preview + '"';
         default:
             return message;
     }

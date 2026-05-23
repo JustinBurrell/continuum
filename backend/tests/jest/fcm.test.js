@@ -35,7 +35,17 @@ async function createUserWithToken(fcmToken = 'test-fcm-token', pushPrefs = null
 
 describe('buildFcmBody', () => {
     it('returns message as-is when no preview', () => {
-        expect(buildFcmBody('like_added', 'Alex liked a comment', {})).toBe('Alex liked a comment');
+        expect(buildFcmBody('like_added', 'Alex liked a comment on your note', {})).toBe('Alex liked a comment on your note');
+    });
+
+    it('formats like_added with quoted comment preview', () => {
+        const body = buildFcmBody('like_added', 'Alex liked a comment on your note', { commentPreview: 'Great write-up!' });
+        expect(body).toBe('Alex liked a comment on your note: "Great write-up!"');
+    });
+
+    it('returns share_received message as-is (title already in message)', () => {
+        const body = buildFcmBody('share_received', 'Alex shared a note with you: "Biology Notes Ch 5"', {});
+        expect(body).toBe('Alex shared a note with you: "Biology Notes Ch 5"');
     });
 
     it('formats new_message with colon separator', () => {
