@@ -1,9 +1,11 @@
 package com.continuum.android.feature.auth
 
+import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.feature.auth.data.repository.AuthRepository
 import com.continuum.android.feature.auth.domain.User
 import com.continuum.android.feature.auth.presentation.AuthUiState
 import com.continuum.android.feature.auth.presentation.AuthViewModel
+import com.continuum.android.feature.users.data.repository.UsersRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -24,6 +26,8 @@ class AuthViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val repository: AuthRepository = mockk()
+    private val usersRepository: UsersRepository = mockk(relaxed = true)
+    private val tokenManager: TokenManager = mockk(relaxed = true)
     private lateinit var viewModel: AuthViewModel
 
     private val fakeUser = User(
@@ -39,7 +43,7 @@ class AuthViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = AuthViewModel(repository)
+        viewModel = AuthViewModel(repository, usersRepository, tokenManager)
     }
 
     @After
