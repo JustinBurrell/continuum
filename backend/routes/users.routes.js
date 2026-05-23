@@ -36,6 +36,32 @@ router.get('/search', usersController.searchUsers);
 
 /**
  * @swagger
+ * /api/users/device-token:
+ *   post:
+ *     summary: Register or refresh an FCM device token for push notifications
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token, deviceId]
+ *             properties:
+ *               token:    { type: string, description: FCM registration token }
+ *               deviceId: { type: string, description: Stable device UUID }
+ *     responses:
+ *       200:
+ *         description: Token registered or updated
+ *       400:
+ *         description: Missing token or deviceId
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+router.post('/device-token', usersController.registerDeviceToken);
+
+/**
+ * @swagger
  * /api/users/{id}/streak:
  *   get:
  *     summary: Get another user's current study streak

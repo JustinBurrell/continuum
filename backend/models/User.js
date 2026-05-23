@@ -131,8 +131,7 @@ const userSchema = new mongoose.Schema({
     /**
      * Settings
      * Purpose: Store user preferences (embedded — small, always needed with user)
-     * Fields: emailNotifications, pushNotifications
-     * Note: email/push notifications are schema-ready but not implemented yet. MVP uses in-app notifications only
+     * Fields: emailNotifications, pushNotifications (per-type), activityVisibility
      * Note: note privacy (private/friends) is set per-note on the Note model, not globally here
      */
     settings: {
@@ -141,8 +140,12 @@ const userSchema = new mongoose.Schema({
             default: true,
         },
         pushNotifications: {
-            type: Boolean,
-            default: true,
+            messages:       { type: Boolean, default: true },
+            comments:       { type: Boolean, default: true },
+            likes:          { type: Boolean, default: true },
+            friendRequests: { type: Boolean, default: true },
+            tasks:          { type: Boolean, default: true },
+            sharedContent:  { type: Boolean, default: true },
         },
         activityVisibility: {
             type: String,
@@ -150,6 +153,19 @@ const userSchema = new mongoose.Schema({
             default: 'private',
         },
     },
+
+    /**
+     * FCM device tokens
+     * Purpose: Store FCM push token per device (up to 5 per user)
+     * Fields: token, deviceId (stable UUID per device), updatedAt
+     */
+    fcmTokens: [
+        {
+            token:     { type: String, required: true },
+            deviceId:  { type: String, required: true },
+            updatedAt: { type: Date, default: Date.now },
+        },
+    ],
 
     /**
      * Metadata      
