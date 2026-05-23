@@ -1,7 +1,7 @@
 package com.continuum.android.feature.notifications
 
+import com.continuum.android.core.ui.navigation.resolveNav
 import com.continuum.android.feature.notifications.domain.Notification
-import com.continuum.android.feature.notifications.presentation.resolveNav
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
