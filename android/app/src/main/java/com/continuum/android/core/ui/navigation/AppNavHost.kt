@@ -34,6 +34,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.continuum.android.core.data.local.LogoutReason
+import com.continuum.android.core.notification.NotificationRouter
 import com.continuum.android.core.ui.components.DemoBanner
 import com.continuum.android.core.ui.LocalIsDemo
 import com.continuum.android.core.ui.LocalNetworkMonitor
@@ -205,6 +206,7 @@ val sensitiveRoutes = setOf(
 @Composable
 fun AppNavHost(
     isAuthenticated: Boolean,
+    notificationRouter: NotificationRouter,
     navController: NavHostController = rememberNavController(),
     onSensitiveScreenEntered: () -> Unit = {},
     onSensitiveScreenExited: () -> Unit = {}
@@ -247,6 +249,12 @@ fun AppNavHost(
                     popUpTo(0) { inclusive = true }
                 }
             }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        notificationRouter.destination.collect { route ->
+            navController.navigate(route) { launchSingleTop = true }
         }
     }
 

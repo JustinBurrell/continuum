@@ -41,16 +41,21 @@ import com.continuum.android.feature.career.domain.Application
 import com.continuum.android.feature.flashcards.domain.FlashcardSet
 import com.continuum.android.feature.notes.domain.Note
 import com.continuum.android.feature.social.domain.ActivityItem
+import android.Manifest
+import android.os.Build
 import com.continuum.android.feature.notifications.presentation.NotificationsViewModel
 import com.continuum.android.feature.profile.data.repository.ProfileRepository
 import com.continuum.android.feature.tasks.domain.Task
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import java.util.Calendar
 
 /** Appended to dashboard empty-state subtext when the demo account is active. */
 private fun dashboardEmptySubtext(isDemo: Boolean, base: String): String =
     if (isDemo) "${base.trimEnd()} — Demo: read-only preview; register to add your own data." else base
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun DashboardScreen(
     onNotesClick: () -> Unit,
@@ -82,6 +87,14 @@ fun DashboardScreen(
         scrollToTopNotifier?.counter ?: MutableStateFlow(0)
     }.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.load() }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val notifPermission = rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+        LaunchedEffect(Unit) {
+            if (!notifPermission.status.isGranted) notifPermission.launchPermissionRequest()
+        }
+    }
+
     LaunchedEffect(scrollToTopCount) {
         if (scrollToTopCount > 0) listState.animateScrollToItem(0)
     }

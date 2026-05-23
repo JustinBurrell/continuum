@@ -4,10 +4,20 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
+data class PushNotificationSettingsDto(
+    val messages: Boolean? = null,
+    val comments: Boolean? = null,
+    val likes: Boolean? = null,
+    val friendRequests: Boolean? = null,
+    val tasks: Boolean? = null,
+    val sharedContent: Boolean? = null,
+)
+
+@JsonClass(generateAdapter = true)
 data class ProfileSettingsDto(
     val activityVisibility: String? = null,
     val emailNotifications: Boolean? = null,
-    val pushNotifications: Boolean? = null
+    val pushNotifications: PushNotificationSettingsDto? = null,
 )
 
 @JsonClass(generateAdapter = true)

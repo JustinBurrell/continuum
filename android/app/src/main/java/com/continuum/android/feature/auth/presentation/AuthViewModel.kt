@@ -2,9 +2,12 @@ package com.continuum.android.feature.auth.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.core.network.friendlyError
 import com.continuum.android.feature.auth.data.repository.AuthRepository
 import com.continuum.android.feature.auth.domain.User
+import com.continuum.android.feature.users.data.repository.UsersRepository
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +26,9 @@ sealed class AuthUiState {
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val usersRepository: UsersRepository,
+    private val tokenManager: TokenManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
@@ -42,7 +47,10 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
             authRepository.login(email, password)
-                .onSuccess { user -> _uiState.value = AuthUiState.Success(user) }
+                .onSuccess { user ->
+                    _uiState.value = AuthUiState.Success(user)
+                    registerFcmToken()
+                }
                 .onFailure { e -> _uiState.value = AuthUiState.Error(errorMessage(e)) }
         }
     }
@@ -51,7 +59,10 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
             authRepository.loginWithGoogle(idToken)
-                .onSuccess { user -> _uiState.value = AuthUiState.Success(user) }
+                .onSuccess { user ->
+                    _uiState.value = AuthUiState.Success(user)
+                    registerFcmToken()
+                }
                 .onFailure { e -> _uiState.value = AuthUiState.Error(errorMessage(e)) }
         }
     }
@@ -66,8 +77,19 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
             authRepository.register(firstName, lastName, username, email, password)
-                .onSuccess { user -> _uiState.value = AuthUiState.Success(user) }
+                .onSuccess { user ->
+                    _uiState.value = AuthUiState.Success(user)
+                    registerFcmToken()
+                }
                 .onFailure { e -> _uiState.value = AuthUiState.Error(errorMessage(e)) }
+        }
+    }
+
+    private fun registerFcmToken() {
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { fcmToken ->
+            viewModelScope.launch {
+                usersRepository.registerFcmToken(fcmToken, tokenManager.getOrCreateDeviceId())
+            }
         }
     }
 

@@ -41,6 +41,7 @@ import com.continuum.android.core.ui.components.MinimalTopBar
 import com.continuum.android.core.ui.components.SkeletonLoader
 import com.continuum.android.core.ui.components.VerifiedRoleBadges
 import com.continuum.android.core.ui.navigation.NavRoutes
+import com.continuum.android.core.ui.navigation.resolveNav
 import com.continuum.android.core.ui.theme.BrandPurple
 import com.continuum.android.core.ui.theme.ErrorRed
 import com.continuum.android.core.ui.theme.TextMuted
@@ -49,60 +50,6 @@ import com.continuum.android.core.ui.theme.TextSecondary
 import com.continuum.android.core.ui.utils.notificationTimeGroup
 import com.continuum.android.core.ui.utils.toNotificationTime
 import com.continuum.android.feature.notifications.domain.Notification
-
-// ---------------------------------------------------------------------------
-// resolveNav: maps a notification to an Android nav route string
-// ---------------------------------------------------------------------------
-
-fun resolveNav(notification: Notification): String {
-    val targetId = notification.targetId
-    val targetType = notification.targetType
-    val actorId = notification.actorId
-    return when (notification.type) {
-        "new_message" -> NavRoutes.Social.conversationDetail(targetId)
-        "share_received" -> when (targetType) {
-            "note" -> NavRoutes.Social.sharedNote(targetId)
-            "flashcardSet" -> NavRoutes.Flashcards.setDetail(targetId)
-            else -> ""
-        }
-        "task_assigned" -> NavRoutes.Tasks.detail(targetId)
-        "comment_added" -> when (targetType) {
-            "note" -> NavRoutes.Notes.detail(targetId, commentId = notification.commentId)
-            "flashcardSet" -> NavRoutes.Flashcards.setDetail(targetId, commentId = notification.commentId)
-            else -> ""
-        }
-        "comment_reply" -> {
-            // targetId is the parent comment; resourceId/resourceType hold the actual resource
-            val resourceId = notification.resourceId ?: return ""
-            when (notification.resourceType) {
-                "note" -> NavRoutes.Notes.detail(resourceId, commentId = notification.commentId)
-                "flashcardSet" -> NavRoutes.Flashcards.setDetail(resourceId, commentId = notification.commentId)
-                else -> ""
-            }
-        }
-        "like_added" -> {
-            // targetId is the liked comment; resourceId/resourceType hold the parent resource
-            val resourceId = notification.resourceId ?: return ""
-            when (notification.resourceType) {
-                "note" -> NavRoutes.Notes.detail(resourceId, commentId = notification.commentId)
-                "flashcardSet" -> NavRoutes.Flashcards.setDetail(resourceId, commentId = notification.commentId)
-                else -> ""
-            }
-        }
-        "mention" -> {
-            // targetId is the comment; resourceId/resourceType hold the parent resource
-            val resourceId = notification.resourceId ?: return ""
-            when (notification.resourceType) {
-                "note" -> NavRoutes.Notes.detail(resourceId, commentId = notification.commentId)
-                "flashcardSet" -> NavRoutes.Flashcards.setDetail(resourceId, commentId = notification.commentId)
-                "task" -> NavRoutes.Tasks.detail(resourceId)
-                else -> ""
-            }
-        }
-        "friend_request", "friend_accepted" -> NavRoutes.Social.userProfile(actorId)
-        else -> ""
-    }
-}
 
 // ---------------------------------------------------------------------------
 // NotificationsScreen

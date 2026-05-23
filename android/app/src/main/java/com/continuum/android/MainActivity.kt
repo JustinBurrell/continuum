@@ -2,6 +2,7 @@ package com.continuum.android
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
@@ -17,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.continuum.android.core.data.local.TokenManager
 import com.continuum.android.core.network.NetworkMonitor
+import com.continuum.android.core.notification.NotificationRouter
 import com.continuum.android.core.ui.LocalNetworkMonitor
 import com.continuum.android.core.ui.LocalProfileRepository
 import com.continuum.android.core.ui.LocalTokenManager
@@ -32,8 +34,23 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var tokenManager: TokenManager
     @Inject lateinit var networkMonitor: NetworkMonitor
     @Inject lateinit var profileRepository: ProfileRepository
+    @Inject lateinit var notificationRouter: NotificationRouter
 
     private val mainViewModel: MainViewModel by viewModels()
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleFcmIntent(intent)
+    }
+
+    private fun handleFcmIntent(intent: Intent?) {
+        val type = intent?.extras?.getString("type") ?: return
+        val data = intent.extras!!.keySet()
+            .filterNotNull()
+            .associateWith { intent.extras!!.getString(it) ?: "" }
+        notificationRouter.routeFromFcmData(data)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -74,6 +91,8 @@ class MainActivity : ComponentActivity() {
             iconView.postDelayed({ provider.remove() }, 560L)
         }
 
+        handleFcmIntent(intent)
+
         setContent {
             val isAuthenticated by tokenManager.isLoggedIn.collectAsStateWithLifecycle()
             ContinuumTheme {
@@ -85,6 +104,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     AppNavHost(
                         isAuthenticated = isAuthenticated,
+                        notificationRouter = notificationRouter,
                         navController = navController,
                         onSensitiveScreenEntered = {
                             window.setFlags(
