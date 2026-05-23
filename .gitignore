@@ -6,3 +6,7 @@ package-lock.json
 screenshots/
 !web/public/screenshots/
 test-results/
+
+# Firebase — contains real credentials, never commit
+android/app/google-services.json
+backend/firebase-service-account.json
