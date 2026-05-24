@@ -17,8 +17,9 @@ const FROM_DIGEST        = process.env.EMAIL_FROM_DIGEST        || 'Continuum <h
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-const deepLink     = (path) => `${process.env.APP_BASE_URL}${path}`;
-const authDeepLink = (path) => `${process.env.APP_BASE_URL}/login?next=${encodeURIComponent(path)}`;
+const BASE_URL     = () => process.env.APP_BASE_URL || process.env.FRONTEND_URL || '';
+const deepLink     = (path) => `${BASE_URL()}${path}`;
+const authDeepLink = (path) => `${BASE_URL()}/login?next=${encodeURIComponent(path)}`;
 
 function signUnsubscribeToken(userId, type) {
     return jwt.sign({ userId: String(userId), type }, process.env.EMAIL_UNSUBSCRIBE_SECRET, { expiresIn: '30d' });
@@ -41,7 +42,7 @@ async function send({ to, from, subject, html, text }) {
 
 async function sendVerificationEmail(user, rawToken) {
     try {
-        const verifyUrl = deepLink(`/verify-email?token=${rawToken}`);
+        const verifyUrl = deepLink(`/auth/verify-email?token=${rawToken}`);
         // Re-use the existing template shape already in auth.controller.js
         // (plain inline HTML, not a named template file — kept here for migration path)
         const html = require('../templates/email/base.layout').baseLayout({
@@ -127,13 +128,13 @@ async function sendNewDeviceLoginEmail(user, { deviceDescription, ipLocation, ti
     }
 }
 
-async function sendAccountDeletionEmail(user, variant) {
+async function sendAccountDeletionEmail(user, variant, restoreUrl) {
     try {
         const { subject, html, text } = accountDeletionEmail({
             firstName:          user.firstName,
             variant,
             scheduledDeletionAt: user.scheduledDeletionAt,
-            restoreUrl:         user._restoreUrl || deepLink('/login'),
+            restoreUrl:         restoreUrl || deepLink('/login'),
             supportUrl:         null,
         });
         await send({ to: user.email, from: FROM_TRANSACTIONAL, subject, html, text });

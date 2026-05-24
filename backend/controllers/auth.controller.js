@@ -9,42 +9,12 @@ const OAuthCode = require('../models/OAuthCode');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const jwt = require('jsonwebtoken');
-const { Resend } = require('resend');
 const cloudinary = require('../config/cloudinary');
 const { invalidate, setKey } = require('../lib/cache');
 const { hardDeleteUser } = require('../services/account.service');
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-// In E2E / test environments, short-circuit all email sends so no real emails are sent
-// and no Resend quota is consumed regardless of which backend is running.
-if (process.env.RESEND_DISABLED === 'true') {
-    resend.emails.send = async () => ({ data: { id: 'e2e-noop' }, error: null });
-}
+const emailSvc = require('../services/email.service');
+const { INTEGRATIONS } = require('../config/integrations');
 const posthog = require('../lib/posthog');
-
-function emailTemplate(content) {
-    return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-</head>
-<body style="margin:0;padding:0;background:#F8F9FA;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8F9FA;padding:40px 0;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;border:1px solid #E5E7EB;padding:40px;max-width:560px;">
-        <tr><td>
-          ${content}
-          <hr style="border:none;border-top:1px solid #E5E7EB;margin:32px 0;" />
-          <p style="color:#6B7280;font-size:13px;margin:0 0 16px;">Team Continuum</p>
-          <img src="https://usecontinuum.dev/logo-lockup.svg" alt="Continuum" height="32" style="display:block;" />
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-}
 
 // ============================================================
 // AUTH CONTROLLER
@@ -180,6 +150,7 @@ exports.register = async (req, res) => {
 
     const regIp = req.ip || null;
     const regDeviceId = parseDeviceLabel(req.headers['user-agent'], req.headers);
+    const regIsNewDevice = !(await RefreshToken.findOne({ userId: user._id, deviceId: regDeviceId, revokedAt: null }));
     await RefreshToken.updateMany(
         { userId: user._id, deviceId: regDeviceId, revokedAt: null },
         { revokedAt: new Date() }
@@ -192,26 +163,27 @@ exports.register = async (req, res) => {
     );
     const token = signToken(user._id, user.tokenVersion, sessionId);
 
-    // Auto-send verification email — non-blocking, don't fail registration if it errors
+    // Auto-send verification email — non-blocking
     try {
         const rawToken = user.createEmailVerificationToken();
         await User.findByIdAndUpdate(user._id, {
             emailVerificationToken: user.emailVerificationToken,
             emailVerificationExpires: user.emailVerificationExpires,
         });
-        const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`;
-        await resend.emails.send({
-            from: 'Continuum <noreply@usecontinuum.dev>',
-            to: user.email,
-            subject: 'Verify your Continuum email',
-            html: emailTemplate(`
-                <p style="color:#111827;font-size:16px;margin:0 0 12px;">Hi ${user.firstName} ${user.lastName},</p>
-                <p style="color:#374151;font-size:15px;margin:0 0 24px;">Welcome to Continuum! Click the button below to verify your email address. This link expires in 24 hours.</p>
-                <a href="${verifyUrl}" style="display:inline-block;background:#6B21A8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600;">Verify Email</a>
-                <p style="color:#6B7280;font-size:13px;margin:24px 0 0;">If you didn't create a Continuum account, you can safely ignore this email.</p>
-            `),
-        });
+        await emailSvc.sendVerificationEmail(user, rawToken);
     } catch (_) { /* non-blocking */ }
+
+    if (!user.isDemo) {
+        emailSvc.sendWelcomeEmail(user);
+        if (regIsNewDevice && !user.isSeedUser) {
+            emailSvc.sendNewDeviceLoginEmail(user, {
+                deviceDescription: regDeviceId,
+                ipLocation:        resolveLocation(regIp),
+                timestamp:         new Date().toUTCString(),
+                securityUrl:       null,
+            });
+        }
+    }
 
     const userObj = user.toObject();
     delete userObj.password;
@@ -260,6 +232,7 @@ exports.login = async (req, res) => {
 
     const loginIp = req.ip || null;
     const loginDeviceId = parseDeviceLabel(req.headers['user-agent'], req.headers);
+    const loginIsNewDevice = !(await RefreshToken.findOne({ userId: user._id, deviceId: loginDeviceId, revokedAt: null }));
     await RefreshToken.updateMany(
         { userId: user._id, deviceId: loginDeviceId, revokedAt: null },
         { revokedAt: new Date() }
@@ -271,6 +244,15 @@ exports.login = async (req, res) => {
         resolveLocation(loginIp)
     );
     const token = signToken(user._id, user.tokenVersion, sessionId);
+
+    if (loginIsNewDevice && !user.isDemo && !user.isSeedUser) {
+        emailSvc.sendNewDeviceLoginEmail(user, {
+            deviceDescription: loginDeviceId,
+            ipLocation:        resolveLocation(loginIp),
+            timestamp:         new Date().toUTCString(),
+            securityUrl:       null,
+        });
+    }
 
     const userObj = user.toObject();
     delete userObj.password;
@@ -311,19 +293,7 @@ exports.forgotPassword = async (req, res) => {
     const rawToken = user.createPasswordResetToken();
     await user.save();
 
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
-
-    await resend.emails.send({
-        from: 'Continuum <noreply@usecontinuum.dev>',
-        to: user.email,
-        subject: 'Reset your Continuum password',
-        html: emailTemplate(`
-            <p style="color:#111827;font-size:16px;margin:0 0 12px;">Reset your password</p>
-            <p style="color:#374151;font-size:15px;margin:0 0 24px;">Click the button below to set a new password. This link expires in 1 hour.</p>
-            <a href="${resetUrl}" style="display:inline-block;background:#6B21A8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600;">Reset Password</a>
-            <p style="color:#6B7280;font-size:13px;margin:24px 0 0;">If you didn't request a password reset, you can safely ignore this email.</p>
-        `),
-    });
+    emailSvc.sendPasswordResetEmail(user, rawToken);
 
     res.status(200).json({ success: true, message: 'If that email exists, a reset link was sent' });
 };
@@ -417,6 +387,8 @@ exports.googleExchange = async (req, res) => {
 
     const oauthIp = req.ip || null;
     const oauthDeviceId = parseDeviceLabel(req.headers['user-agent'], req.headers);
+    const oauthIsNewDevice = !(await RefreshToken.findOne({ userId: record.userId, deviceId: oauthDeviceId, revokedAt: null }));
+    const oauthIsNewUser   = (Date.now() - user.createdAt.getTime()) < 30_000;
     await RefreshToken.updateMany(
         { userId: record.userId, deviceId: oauthDeviceId, revokedAt: null },
         { revokedAt: new Date() }
@@ -428,6 +400,18 @@ exports.googleExchange = async (req, res) => {
         resolveLocation(oauthIp)
     );
     const token = signToken(user._id, user.tokenVersion, sessionId);
+
+    if (!user.isDemo && !user.isSeedUser) {
+        if (oauthIsNewUser) emailSvc.sendWelcomeEmail(user);
+        if (oauthIsNewDevice) {
+            emailSvc.sendNewDeviceLoginEmail(user, {
+                deviceDescription: oauthDeviceId,
+                ipLocation:        resolveLocation(oauthIp),
+                timestamp:         new Date().toUTCString(),
+                securityUrl:       null,
+            });
+        }
+    }
 
     setRefreshCookie(res, refreshToken);
     res.status(200).json({ success: true, token });
@@ -471,6 +455,7 @@ exports.googleLink = async (req, res) => {
     await req.user.save();
 
     posthog.capture(req.user, 'google_auth_linked');
+    emailSvc.sendIntegrationEmail(req.user, { action: 'connected', ...INTEGRATIONS['google-drive'] });
 
     res.status(200).json({ success: true, user: req.user });
 };
@@ -511,6 +496,7 @@ exports.googleUnlink = async (req, res) => {
 
     // Invalidate Redis cache so subsequent /auth/me calls reflect the unlinked state
     await invalidate(`user:${req.user._id}`).catch(() => {});
+    emailSvc.sendIntegrationEmail(req.user, { action: 'disconnected', ...INTEGRATIONS['google-drive'] });
 
     res.status(200).json({ success: true, user: updated });
 };
@@ -823,23 +809,7 @@ exports.sendVerificationEmail = async (req, res) => {
         emailVerificationExpires: tokenExpires,
     });
 
-    const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`;
-
-    try {
-        await resend.emails.send({
-            from: 'Continuum <noreply@usecontinuum.dev>',
-            to: req.user.email,
-            subject: 'Verify your Continuum email',
-            html: emailTemplate(`
-            <p style="color:#111827;font-size:16px;margin:0 0 12px;">Hi ${req.user.firstName},</p>
-            <p style="color:#374151;font-size:15px;margin:0 0 24px;">Click the button below to verify your email address. This link expires in 24 hours.</p>
-            <a href="${verifyUrl}" style="display:inline-block;background:#6B21A8;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600;">Verify Email</a>
-            <p style="color:#6B7280;font-size:13px;margin:24px 0 0;">If you didn't request this, you can safely ignore this email.</p>
-        `),
-        });
-    } catch (emailErr) {
-        return res.status(500).json({ success: false, error: 'Failed to send verification email. Please try again.' });
-    }
+    emailSvc.sendVerificationEmail(req.user, rawToken);
 
     res.status(200).json({ success: true, message: 'Verification email sent' });
 };
@@ -965,26 +935,23 @@ exports.deleteAccount = async (req, res) => {
 
     // Soft-mark for deletion — hard delete cascades lazily when scheduledDeletionAt passes
     const scheduledDeletionAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-    await User.findByIdAndUpdate(userId, { pendingDeletion: true, scheduledDeletionAt });
+
+    // Generate a signed one-click restore token — SHA-256 hash stored, raw token in email link
+    const rawRestoreToken  = crypto.randomBytes(32).toString('hex');
+    const hashedRestoreToken = crypto.createHash('sha256').update(rawRestoreToken).digest('hex');
+
+    const updatedUser = await User.findByIdAndUpdate(userId, {
+        pendingDeletion:          true,
+        scheduledDeletionAt,
+        restorationToken:         hashedRestoreToken,
+        restorationTokenExpires:  scheduledDeletionAt,
+    }, { new: true });
 
     // Revoke all active sessions
     await RefreshToken.updateMany({ userId, revokedAt: null }, { revokedAt: new Date() });
 
-    // Send deletion notice email — non-blocking
-    try {
-        const restoreDeadline = scheduledDeletionAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        await resend.emails.send({
-            from: 'Continuum <noreply@usecontinuum.dev>',
-            to: user.email,
-            subject: 'Your Continuum account has been scheduled for deletion',
-            html: emailTemplate(`
-                <p style="color:#111827;font-size:16px;margin:0 0 12px;">Hi ${user.firstName} ${user.lastName},</p>
-                <p style="color:#374151;font-size:15px;margin:0 0 12px;">Your account has been scheduled for deletion. <strong>All your data (notes, tasks, flashcards, messages, and more) will be permanently deleted on ${restoreDeadline}.</strong></p>
-                <p style="color:#374151;font-size:15px;margin:0 0 24px;">Changed your mind? Simply log in before ${restoreDeadline} and your account will be fully restored.</p>
-                <p style="color:#6B7280;font-size:13px;margin:0;">If you did not request this, log in immediately to restore your account.</p>
-            `),
-        });
-    } catch (_) { /* non-blocking */ }
+    const restoreUrl = emailSvc.deepLink(`/api/auth/me/restore?token=${rawRestoreToken}`);
+    emailSvc.sendAccountDeletionEmail(updatedUser, 'immediate', restoreUrl);
 
     posthog.capture(req.user, 'account_deletion_requested', { scheduledDeletionAt: scheduledDeletionAt.toISOString() });
 
@@ -1002,16 +969,67 @@ exports.restoreAccount = async (req, res) => {
     }
 
     await User.findByIdAndUpdate(req.user._id, {
-        pendingDeletion: false,
-        scheduledDeletionAt: null,
+        pendingDeletion:         false,
+        scheduledDeletionAt:     null,
+        restorationToken:        null,
+        restorationTokenExpires: null,
     });
 
     posthog.capture(req.user, 'account_restored');
+    emailSvc.sendAccountRestoredEmail(req.user);
 
     // Re-fetch the clean user object to return
     const restored = await User.findById(req.user._id);
     res.status(200).json({ success: true, user: restored });
 };
+
+// ----------------------------------------
+// GET /api/auth/me/restore?token=
+// Purpose: One-click public restore from the deletion email link.
+//          No auth required — the signed token is proof of intent.
+//          Returns a self-contained HTML page (not JSON).
+// ----------------------------------------
+exports.restoreAccountPublic = async (req, res) => {
+    const { token } = req.query;
+    if (!token) {
+        return res.status(400).send(publicRestoreHtml('invalid', null));
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await User.findOne({
+        restorationToken: hashedToken,
+        restorationTokenExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+        return res.status(400).send(publicRestoreHtml('invalid', null));
+    }
+    if (!user.pendingDeletion) {
+        return res.status(400).send(publicRestoreHtml('not_pending', null));
+    }
+
+    await User.findByIdAndUpdate(user._id, {
+        pendingDeletion:         false,
+        scheduledDeletionAt:     null,
+        restorationToken:        null,
+        restorationTokenExpires: null,
+    });
+
+    emailSvc.sendAccountRestoredEmail(user);
+
+    res.status(200).send(publicRestoreHtml('success', user.firstName));
+};
+
+function publicRestoreHtml(status, firstName) {
+    const messages = {
+        success:     { heading: 'Account restored', body: firstName ? `Welcome back, ${firstName}! Your account has been restored and your scheduled deletion cancelled.` : 'Your account has been restored successfully.' },
+        invalid:     { heading: 'Link expired or invalid', body: 'This restore link has expired or has already been used. Log in to your account to restore it manually.' },
+        not_pending: { heading: 'Account is not pending deletion', body: 'This account is not currently scheduled for deletion.' },
+    };
+    const { heading, body } = messages[status] || messages.invalid;
+    const loginUrl = emailSvc.deepLink('/login');
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>Continuum</title></head><body style="margin:0;padding:40px 0;background:#F8F9FA;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;"><div style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #E5E7EB;padding:40px;"><h1 style="color:#111827;font-size:20px;font-weight:700;margin:0 0 12px;">${heading}</h1><p style="color:#374151;font-size:15px;margin:0 0 24px;">${body}</p><a href="${loginUrl}" style="display:inline-block;background:#6B21A8;color:#fff;border-radius:8px;padding:12px 24px;font-size:15px;font-weight:600;text-decoration:none;">Sign in to Continuum</a><hr style="border:none;border-top:1px solid #E5E7EB;margin:32px 0;"/><img src="https://usecontinuum.dev/logo-lockup.svg" alt="Continuum" height="32"/></div></body></html>`;
+}
 
 // ----------------------------------------
 // POST /api/auth/me/onboarding/complete

@@ -458,6 +458,7 @@ router.delete('/me', authMiddleware, authController.deleteAccount);
  *         $ref: '#/components/responses/Unauthorized'
  */
 router.post('/me/restore', authMiddleware, authController.restoreAccount);
+router.get('/me/restore', authController.restoreAccountPublic);
 
 /**
  * @swagger
