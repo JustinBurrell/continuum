@@ -31,8 +31,8 @@ function buildUnsubscribeUrl(userId, type) {
 }
 
 async function send({ to, from, subject, html, text }) {
-    if (process.env.NODE_ENV === 'test') {
-        logger.debug('[EMAIL SKIPPED] NODE_ENV=test — no Resend call made');
+    if (process.env.NODE_ENV !== 'production') {
+        logger.debug(`[EMAIL SKIPPED] NODE_ENV=${process.env.NODE_ENV} — only sends in production`);
         return;
     }
     await resend.emails.send({ from, to, subject, html, text });
