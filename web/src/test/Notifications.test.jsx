@@ -201,8 +201,13 @@ describe('Mark all read on page', () => {
 describe('Item click', () => {
   it('fires PostHog notification_page_item_clicked on item click', async () => {
     const user = userEvent.setup();
+    // actorId: null makes the message render as a direct text node, so
+    // getByText('Notif n1') can find it. With an actorId, the component splits
+    // the actor's full name into a Link + sliced message, making the original
+    // message string unfindable as a single text node.
+    const notif = { ...makeNotif('n1', 'comment_added', MS_HOUR), actorId: null };
     renderPage([{
-      notifications: [makeNotif('n1', 'comment_added', MS_HOUR)],
+      notifications: [notif],
       unreadCount: 0,
       hasMore: false,
       nextCursor: null,
