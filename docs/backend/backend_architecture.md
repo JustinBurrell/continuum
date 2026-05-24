@@ -15,7 +15,8 @@ backend/
 ├── config/
 │   ├── database.js               # MongoDB connection
 │   ├── cloudinary.js             # Cloudinary client setup
-│   └── passport.js               # Google OAuth strategy (passport-google-oauth20)
+│   ├── passport.js               # Google OAuth strategy (passport-google-oauth20)
+│   └── integrations.js           # Static integration config (Google Drive capabilities, etc.)
 ├── middleware/
 │   └── auth.middleware.js        # JWT verification — attaches req.user
 ├── models/
@@ -67,19 +68,25 @@ backend/
 │   ├── conversations.routes.js   # /api/conversations/*
 │   ├── messages.routes.js        # /api/messages/*
 │   ├── sync.routes.js            # /api/sync (stretch)
-│   └── activity.routes.js        # /api/activity (stretch)
+│   ├── activity.routes.js        # /api/activity (stretch)
+│   └── email.routes.js           # /api/email/unsubscribe (public HTML, signed JWT)
 ├── lib/
 │   ├── cache.js                  # invalidate / invalidatePattern — Redis client (JWT revocation + AI rate limiting only)
 │   ├── socket.js                 # Socket.io init + getIO() singleton
 │   ├── posthog.js                # PostHog server-side capture wrapper (skips demo/seed users)
 │   └── logger.js                 # Pino logger
+├── jobs/
+│   └── digest.job.js             # BullMQ repeatable jobs: smart daily (8AM UTC), weekly summary (6PM UTC Sun), deletion warnings (9AM UTC)
+├── templates/
+│   └── email/                    # HTML + plain-text email templates (base.layout + per-type)
 ├── services/
 │   ├── groq.service.js           # Groq API client + prompt templates
 │   ├── google.service.js         # Google Drive/Docs API client
 │   ├── cloudinary.service.js     # Cloudinary upload helper
-│   └── studyStreak.service.js    # computeStreak / getCachedStreak / invalidateStreakCache
+│   ├── studyStreak.service.js    # computeStreak / getCachedStreak / invalidateStreakCache
+│   └── email.service.js          # All outbound email — wraps Resend, exports send* functions
 ├── tests/
-│   ├── jest/                     # Jest + Supertest integration tests (8 suites)
+│   ├── jest/                     # Jest + Supertest integration tests (25 suites)
 │   │   ├── setup.js              # Env vars + skip flags loaded before every suite
 │   │   ├── testDb.js             # mongodb-memory-server connect/clear/close helpers
 │   │   ├── testHelpers.js        # registerAndLogin() — creates user, returns token
@@ -231,7 +238,7 @@ Request Reset:
   Client POST /api/auth/forgot-password { email }
   → Find user by email
   → user.createPasswordResetToken() → generates crypto token, stores hash + 1hr expiry
-  → Send email via Resend with reset link:
+  → Send email via `email.service.js` → Resend (`sendPasswordResetEmail`):
     http://localhost:5173/reset-password?token=<plaintext_token>
   → Return success (even if email not found, to prevent enumeration)
 
@@ -245,6 +252,26 @@ Reset Password:
 ```
 
 **Email service**: Resend — free tier (3,000 emails/month). Add `RESEND_API_KEY` to `.env`.
+
+### Email Architecture
+
+All email sends go through `email.service.js` — no controller imports Resend directly.
+
+**Tier 1 — Transactional** (always sent, no user toggle):
+- Welcome — on register and Google OAuth new user
+- New device login — when no active RefreshToken exists for the deviceId before revocation
+- Integration connected/disconnected — on Google Drive link/unlink
+- Account deletion (immediate + 5-day warning via BullMQ)
+- Account restored
+
+**Tier 2 — Digest** (gated by `user.settings.emailNotifications` subdocument):
+- Smart Daily Digest — 8:00 AM UTC daily via BullMQ. Queries Notification collection for undigested `friend_request`, `share_received`, `task_assigned` events from the last 24h.
+- Weekly Summary — 6:00 PM UTC every Sunday via BullMQ. Comments, likes, friend activity, study streak, stale applications.
+- Deletion Warning — 9:00 AM UTC daily via BullMQ. Users where `scheduledDeletionAt` is within 5 days and `deletionWarningEmailSentAt` is null.
+
+**Suppression** (applied at DB query level for digest workers): `emailNotifications.enabled`, specific digest flag, `pendingDeletion`, `deletedAt`, `lastLoginAt` within 30 days, `isDemo`, `isSeedUser`.
+
+**Unsubscribe**: signed JWT (`EMAIL_UNSUBSCRIBE_SECRET`, 30d). `GET /api/email/unsubscribe` returns self-contained HTML. No redirect to React app.
 
 ### Middleware Pattern
 
@@ -489,7 +516,7 @@ Redis is provisioned as an add-on in Railway/Render. The platform injects `REDIS
 | Google OAuth | Authentication + Drive/Docs linking | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Session 3 (API-2) |
 | Google Drive API | Note import | Uses Google OAuth tokens | Session 3 (API-5) |
 | Groq | AI summaries, flashcards, resume feedback | `GROQ_API_KEY` | Session 4 (API-7) |
-| Resend | Password reset emails | `RESEND_API_KEY` | Session 3 (API-1) |
+| Resend | Transactional (`noreply@usecontinuum.dev`) + digest (`hello@usecontinuum.dev`); centralised in `email.service.js` | `RESEND_API_KEY` | Session 3 (API-1) |
 
 ---
 

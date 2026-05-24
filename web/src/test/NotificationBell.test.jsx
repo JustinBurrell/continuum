@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -183,8 +183,15 @@ describe('Notification items', () => {
 
     await user.click(screen.getByRole('button', { name: /Notifications/i }));
 
-    expect(screen.getByText('Alice commented on your note')).toBeInTheDocument();
-    expect(screen.getByText('Bob sent you a message')).toBeInTheDocument();
+    // The component renders actorName ("Alice Smith") in a Link + the rest as plain
+    // text inside the same <p>, so getByText on the full original message string fails.
+    // Match on the <p> element's combined textContent instead.
+    expect(screen.getByText((_, el) =>
+      el?.tagName === 'P' && el?.textContent?.includes('commented on your note')
+    )).toBeInTheDocument();
+    expect(screen.getByText((_, el) =>
+      el?.tagName === 'P' && el?.textContent?.includes('sent you a message')
+    )).toBeInTheDocument();
   });
 });
 
@@ -198,7 +205,10 @@ describe('Mark one read', () => {
 
     await user.click(screen.getByRole('button', { name: /Notifications/i }));
 
-    const item = screen.getByText('Alice commented on your note');
+    // Actor name renders in a Link; click the <p> whose textContent includes the action
+    const item = screen.getByText((_, el) =>
+      el?.tagName === 'P' && el?.textContent?.includes('commented on your note')
+    );
     await user.click(item);
 
     expect(api.patch).toHaveBeenCalledWith('/notifications/n1/read');

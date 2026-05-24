@@ -71,6 +71,7 @@ app.use('/api/conversations', require('./routes/conversations.routes'));
 app.use('/api/messages', require('./routes/messages.routes'));
 app.use('/api/activity', require('./routes/activity.routes'));
 app.use('/api/notifications', require('./routes/notifications.routes'));
+app.use('/api/email', require('./routes/email.routes'));
 app.use('/api/sync', require('./routes/sync.routes'));
 app.use('/api/waitlist', require('./routes/waitlist.routes'));
 
@@ -109,5 +110,8 @@ app.use((err, req, res, next) => {
   }
   res.status(err.status || 500).json({ success: false, error: message });
 });
+
+const { initDigestJobs } = require('./jobs/digest.job');
+initDigestJobs();
 
 module.exports = app;

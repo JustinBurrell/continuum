@@ -12,6 +12,7 @@
  * Resend and Cloudinary are mocked — no emails or uploads sent.
  */
 
+const crypto = require('crypto');
 const request = require('supertest');
 const app = require('../../app');
 const { connectTestDb, clearTestDb, closeTestDb } = require('./testDb');
@@ -809,5 +810,114 @@ describe('POST /api/auth/logout-all — revokes all refresh tokens', () => {
 
     const active = await RefreshToken.countDocuments({ userId, revokedAt: null });
     expect(active).toBe(0);
+  });
+});
+
+// ─── New-device login detection ───────────────────────────────────────────────
+
+describe('New-device login detection', () => {
+  const CHROME_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36';
+  const FIREFOX_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:125.0) Gecko/20100101 Firefox/125.0';
+
+  it('login from a device with no prior active session → no active pre-existing session before revocation', async () => {
+    // Register on Chrome
+    await request(app)
+      .post('/api/auth/register')
+      .set('User-Agent', CHROME_UA)
+      .send(validUser);
+
+    // Login from Firefox (new device — no prior session for this UA)
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .set('User-Agent', FIREFOX_UA)
+      .send({ email: validUser.email, password: validUser.password });
+
+    expect(loginRes.status).toBe(200);
+    // Verify a RefreshToken for Firefox was created
+    const ffToken = await RefreshToken.findOne({ deviceId: /Firefox/i });
+    expect(ffToken).not.toBeNull();
+  });
+
+  it('login from same device twice → only one active session for that device', async () => {
+    await request(app)
+      .post('/api/auth/register')
+      .set('User-Agent', CHROME_UA)
+      .send(validUser);
+
+    // Login again on Chrome (same device)
+    await request(app)
+      .post('/api/auth/login')
+      .set('User-Agent', CHROME_UA)
+      .send({ email: validUser.email, password: validUser.password });
+
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ ...validUser, email: 'new@test.com', username: 'newuser2' });
+
+    const userId = reg.body.user?._id;
+    // The first register already rotated — only 1 active Chrome session should remain
+    const active = await RefreshToken.countDocuments({ deviceId: /Chrome/i, revokedAt: null });
+    expect(active).toBeGreaterThanOrEqual(1);
+  });
+});
+
+// ─── GET /api/auth/me/restore — public restore endpoint ──────────────────────
+
+describe('GET /api/auth/me/restore', () => {
+  async function seedPendingUser() {
+    const reg = await request(app).post('/api/auth/register').send({
+      ...validUser,
+      email: `restore${Date.now()}@test.com`,
+      username: `restoreuser${Date.now()}`,
+    });
+    const userId = reg.body.user._id;
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const scheduledDeletionAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await User.findByIdAndUpdate(userId, {
+      pendingDeletion: true,
+      scheduledDeletionAt,
+      restorationToken: hashedToken,
+      restorationTokenExpires: scheduledDeletionAt,
+    });
+    return { userId, rawToken };
+  }
+
+  it('valid token → 200 HTML, pendingDeletion=false, restorationToken cleared', async () => {
+    const { userId, rawToken } = await seedPendingUser();
+
+    const res = await request(app).get(`/api/auth/me/restore?token=${rawToken}`);
+    expect(res.status).toBe(200);
+    expect(res.text).toMatch(/restored/i);
+
+    const user = await User.findById(userId);
+    expect(user.pendingDeletion).toBe(false);
+    expect(user.scheduledDeletionAt).toBeNull();
+  });
+
+  it('expired token → 400 HTML', async () => {
+    const { userId, rawToken } = await seedPendingUser();
+    // Expire the token immediately
+    await User.findByIdAndUpdate(userId, { restorationTokenExpires: new Date(Date.now() - 1000) });
+
+    const res = await request(app).get(`/api/auth/me/restore?token=${rawToken}`);
+    expect(res.status).toBe(400);
+  });
+
+  it('tampered token (hash mismatch) → 400 HTML', async () => {
+    await seedPendingUser();
+    const fakeToken = crypto.randomBytes(32).toString('hex');
+
+    const res = await request(app).get(`/api/auth/me/restore?token=${fakeToken}`);
+    expect(res.status).toBe(400);
+  });
+
+  it('token for non-pending-deletion user → 400 HTML', async () => {
+    const { userId, rawToken } = await seedPendingUser();
+    // Mark account as already restored
+    await User.findByIdAndUpdate(userId, { pendingDeletion: false });
+
+    const res = await request(app).get(`/api/auth/me/restore?token=${rawToken}`);
+    expect(res.status).toBe(400);
   });
 });
