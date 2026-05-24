@@ -43,7 +43,7 @@ function renderFriendActivity({ items }) {
 function renderStudyStreak(studyDays) {
     if (!studyDays) return '';
     const label = studyDays === 7
-        ? '🔥 Perfect week — 7 days of studying!'
+        ? '🔥 Perfect week: 7 days of studying!'
         : `📚 You studied ${studyDays} day${studyDays !== 1 ? 's' : ''} this week.`;
     return `
       <div style="margin-bottom:24px;background:#F5F3FF;border-radius:8px;padding:16px;">
@@ -56,7 +56,7 @@ function renderStaleApplications({ items }) {
         <tr>
           <td style="padding:8px 0;border-bottom:1px solid #F3F4F6;">
             <span style="color:#374151;font-size:14px;font-weight:500;">${app.title}</span>
-            ${app.company ? `<span style="color:#6B7280;font-size:13px;"> — ${app.company}</span>` : ''}
+            ${app.company ? `<span style="color:#6B7280;font-size:13px;"> at ${app.company}</span>` : ''}
             <span style="display:inline-block;background:#FEF3C7;color:#92400E;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:600;margin-left:6px;">${app.status}</span>
           </td>
         </tr>`).join('');

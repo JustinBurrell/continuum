@@ -859,7 +859,7 @@ export default function Profile() {
             <p style={sectionLabel}>Personal info</p>
             {user?.isDemo && (
               <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 12, fontStyle: 'italic' }}>
-                Demo account — profile is read-only.
+                Demo account. Profile is read-only.
               </p>
             )}
             <form onSubmit={hProfile(onProfileSave)}>
@@ -931,8 +931,8 @@ export default function Profile() {
                   }}
                   {...regProfile('settings.activityVisibility')}
                 >
-                  <option value="private">Private — only you</option>
-                  <option value="friends">Friends — your accepted friends</option>
+                  <option value="private">Private (only you)</option>
+                  <option value="friends">Friends (your accepted friends)</option>
                 </select>
               </div>
               {!user?.isDemo && (
@@ -1148,7 +1148,7 @@ export default function Profile() {
               <p style={sectionLabel}>Email</p>
               <NotifToggleRow
                 label="Email notifications"
-                desc="Master toggle — enables or disables all digest emails"
+                desc="Master toggle. Enables or disables all digest emails."
                 checked={!!notifForm.watch('emailEnabled')}
                 onChange={() => notifForm.setValue('emailEnabled', !notifForm.watch('emailEnabled'), { shouldDirty: true })}
               />
@@ -1260,7 +1260,7 @@ export default function Profile() {
             {me?.googleId && (
               <div style={{ marginTop: 12, padding: '10px 12px', background: 'rgba(107,33,168,0.08)', borderRadius: 10 }}>
                 <p style={{ fontSize: 12, color: '#6b21a8', margin: 0 }}>
-                  Google Drive connected — select Google Docs to import as notes from the Notes page.
+                  Google Drive connected. Select Google Docs to import as notes from the Notes page.
                 </p>
               </div>
             )}

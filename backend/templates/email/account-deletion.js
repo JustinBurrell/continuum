@@ -33,7 +33,7 @@ function accountDeletionEmail({ firstName, variant, scheduledDeletionAt, restore
       <h1 style="color:#111827;font-size:20px;font-weight:700;margin:0 0 16px;">${heading}</h1>
       <p style="color:#374151;font-size:15px;margin:0 0 16px;">${intro}</p>
       <p style="color:#374151;font-size:15px;margin:0 0 24px;">
-        Changed your mind? You can restore your account with one click — no password required.
+        Changed your mind? You can restore your account with one click. No password required.
       </p>
       <a href="${restoreUrl}" style="display:inline-block;background:#6B21A8;color:#ffffff;border-radius:8px;padding:12px 24px;font-size:15px;font-weight:600;text-decoration:none;">Restore my account</a>
       ${supportUrl ? `<p style="color:#6B7280;font-size:13px;margin:24px 0 0;">Questions? <a href="${supportUrl}" style="color:#6B21A8;text-decoration:none;">Contact support</a></p>` : ''}
