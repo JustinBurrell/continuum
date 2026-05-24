@@ -26,7 +26,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | Frontend screens (Android) | 30+ |
 | Web UI components | 27 |
 | Android composables | 40+ (reusable + screen-level) |
-| Backend tests | ~380 Jest + Supertest across 25 suites |
+| Backend tests | 404 Jest + Supertest across 25 suites |
 | Web unit tests | 76 Vitest tests -- utils, error helpers, hooks, components |
 | Web E2E tests | Playwright -- auth, notes, flashcards, tasks, career, mobile gate |
 | Android unit tests | 176 MockK tests -- 10 ViewModels, 6 repositories, 2 utility modules |
@@ -535,7 +535,7 @@ A formal security audit lives at `docs/security/backend_security_audit.md`.
 
 Continuum has three test layers, all running in parallel on every PR via GitHub Actions.
 
-### 1. Backend — 355 Jest + Supertest integration tests across 24 suites
+### 1. Backend — 404 Jest + Supertest integration tests across 25 suites
 
 | Suite | What it covers |
 |-------|----------------|
