@@ -187,12 +187,12 @@ Android only. Requires notification bell infrastructure above.
 - [x] Android: quick reply from DM notification tray without opening the app
 - [x] Web: per-type push toggles in Profile settings (mirrors Android settings screen)
 
-### 6. Notification Email Delivery
+### 6. Notification Email Delivery ✅
 Requires notification bell infrastructure. Send on events users care about when they're not in the app.
-- [ ] Configure transactional email provider (e.g. Resend or SendGrid) with `noreply@usecontinuum.dev`
-- [ ] Email template for comment, friend request, and shared content notifications
-- [ ] Respect `emailNotifications` user setting (already exists on the profile model)
-- [ ] Unsubscribe link in every email (CAN-SPAM)
+- [x] Configure transactional email provider (e.g. Resend or SendGrid) with `noreply@usecontinuum.dev`
+- [x] Email template for comment, friend request, and shared content notifications
+- [x] Respect `emailNotifications` user setting (already exists on the profile model)
+- [x] Unsubscribe link in every email (CAN-SPAM)
 
 ### 7. Accessibility Audit
 Play Store IARC questionnaire surfaces a11y failures, and it fits the All Star Code / TEA profile.

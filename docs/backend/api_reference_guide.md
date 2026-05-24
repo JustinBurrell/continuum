@@ -41,8 +41,9 @@ All four endpoints are defined in `routes/auth.routes.js` and handled by `contro
 - `PATCH /api/auth/me/profile` - Update user profile information (name, bio, avatarUrl, settings)
 - `PATCH /api/auth/me/username` - Change username. Validates format (3–30 chars, letters/numbers/underscores/hyphens) and checks uniqueness. Returns 409 if taken.
 - `PATCH /api/auth/me/password` - Change password. Body: `{ currentPassword, newPassword }`. Verifies current password before updating. Applies same validation rules as registration (8+ chars, letter, number, special char). Returns 400 for Google-only accounts with no password set.
-- `DELETE /api/auth/me` - Soft-mark account for deletion with a 30-day grace period. Body: `{ password }` — required for email/password users; optional for Google-only accounts. Revokes all active sessions and sends a deletion notice email. User can restore by logging in or calling `POST /api/auth/me/restore` before the deadline. After 30 days, a lazy cascade hard-deletes all data (User, Notes, FlashcardSets, Tasks, Applications, Resumes, Activity, Comments, Messages, Friendships, RefreshTokens, SyncQueue, Cloudinary assets). Returns 401 "Invalid credentials" if grace period has expired.
-- `POST /api/auth/me/restore` - Cancel a pending deletion and restore the account. Clears `pendingDeletion` and `scheduledDeletionAt`. Logging in during the grace period also restores automatically.
+- `DELETE /api/auth/me` - Soft-mark account for deletion with a 30-day grace period. Body: `{ password }` — required for email/password users; optional for Google-only accounts. Revokes all active sessions and sends a deletion notice email (includes a one-click restore link — signed 30-day token, SHA-256 hash stored in DB). User can restore by logging in or calling `POST /api/auth/me/restore` before the deadline. After 30 days, a lazy cascade hard-deletes all data (User, Notes, FlashcardSets, Tasks, Applications, Resumes, Activity, Comments, Messages, Friendships, RefreshTokens, SyncQueue, Cloudinary assets). Returns 401 "Invalid credentials" if grace period has expired.
+- `POST /api/auth/me/restore` - Cancel a pending deletion and restore the account (authenticated). Clears `pendingDeletion` and `scheduledDeletionAt`. Logging in during the grace period also restores automatically.
+- `GET /api/auth/me/restore?token=` - Public (no auth). One-click restore from the deletion email link. Verifies SHA-256-hashed restore token, clears `pendingDeletion`. Returns a self-contained HTML confirmation page (not JSON).
 
 ### **Google Account Linking**
 - `POST /api/auth/me/google/link` - Initiate Google OAuth to link Google account to existing user
@@ -180,6 +181,18 @@ In-app notification bell and history feed. Each notification is a recipient-scop
 **Target types**: `note`, `flashcardSet`, `task`, `comment`, `conversation`, `friendship`.
 
 **Debounce**: `comment_added`, `comment_reply`, and `like_added` events are debounced per `actorId + targetId` within a 2-minute window. `new_message` is debounced per `actorId + recipientId` within a 5-minute window. Share and friend events are never debounced.
+
+**`digestSentAt`**: Set on Notification documents after they are included in a digest email, preventing duplicate digest sends. Queried by the BullMQ digest workers.
+
+All email sends are centralised in `email.service.js` — no controller imports Resend directly.
+
+---
+
+## Email
+
+### **Unsubscribe**
+
+- `GET /api/email/unsubscribe?token=` - Public. Verifies JWT signed with `EMAIL_UNSUBSCRIBE_SECRET`. Sets `settings.emailNotifications.smartDaily`, `.weeklySummary`, or `.enabled` false based on token `type`. Returns self-contained HTML (200 success / 400 error). Idempotent — already-unsubscribed users get 200.
 
 ---
 

@@ -6,7 +6,9 @@
 - **FCM push notifications** are implemented (Android): `firebase-admin` initialized, `sendPush()` in `notification.service.js` fires alongside every `notify()` call, data-only for `new_message`, `notification+data` for all other types.
 - `User.settings.pushNotifications` is now a per-type nested object (messages, comments, likes, friendRequests, tasks, sharedContent) — Instagram model, iOS-ready. The legacy Boolean is handled via backward-compat guard.
 - `User.fcmTokens` array stores up to 5 FCM tokens per device. Session-FCM linkage: revoking a session also removes that device's FCM token.
-- `Resend` is already integrated (`resend` v6.9.2 in `package.json`) and used for password reset and email verification — the infrastructure exists.
+- `Resend` is fully integrated (`resend` v6.9.2) via `email.service.js` — all sends centralised, no controller imports Resend directly.
+- `User.settings.emailNotifications` is now a subdocument with `{ enabled, smartDaily, weeklySummary }` — migrated via `migrate-email-notifications.js`.
+- BullMQ digest jobs run at 8AM UTC (smartDaily) and 6PM UTC Sunday (weeklySummary). Unsubscribe route at `GET /api/email/unsubscribe` (signed JWT, returns self-contained HTML).
 - An in-app activity feed exists (`GET /api/activity`) as a secondary notification surface.
 
 ---
@@ -241,13 +243,13 @@ Update `backend/.env.example` accordingly.
 
 ## Implementation Order
 
-1. `email.service.js` — refactor existing Resend usage, no new behavior
-2. `Notification` model + CRUD endpoints
-3. `notification.service.js` — wire in one event first (e.g., comment on your content)
-4. In-app notification bell on frontend
-5. Email delivery via `email.service.js` gated by user preference
-6. `push.service.js` + FCM setup
-7. Device token registration endpoint + frontend SDK integration
+1. ✅ Implemented — `email.service.js` — refactor existing Resend usage, no new behavior
+2. ✅ Implemented — `Notification` model + CRUD endpoints
+3. ✅ Implemented — `notification.service.js` — wire in one event first (e.g., comment on your content)
+4. ✅ Implemented — In-app notification bell on frontend
+5. ✅ Implemented — Email delivery via `email.service.js` gated by user preference
+6. ✅ Implemented — `push.service.js` + FCM setup
+7. ✅ Implemented — Device token registration endpoint + frontend SDK integration
 8. Granular per-event preferences (future)
 
 ---

@@ -23,11 +23,14 @@ erDiagram
         String emailVerificationToken "select:false SHA-256 hash"
         Date emailVerificationExpires
         Boolean emailVerified
-        Object settings
+        Object settings "emailNotifications{enabled,smartDaily,weeklySummary} pushNotifications activityVisibility"
         Date lastLoginAt
         Date lastViewedActivityAt "null until user first visits /activity"
         Boolean pendingDeletion "soft-mark for 30-day grace period deletion"
         Date scheduledDeletionAt "hard delete runs when this date passes"
+        Date deletionWarningEmailSentAt "null until 5-day warning email sent"
+        String restorationToken "select:false SHA-256 hash"
+        Date restorationTokenExpires
         Array roles "[] by default — values: founder|team|admin — auto-assigned via FOUNDER_EMAILS/TEAM_EMAILS env vars, supports multiple simultaneously"
         Date deletedAt
         Date createdAt
@@ -280,8 +283,10 @@ erDiagram
         ObjectId targetId
         String targetType
         String message "pre-rendered display text"
+        Mixed metadata "optional context e.g. commentPreview, commentId"
         Boolean read
         Date readAt
+        Date digestSentAt "null until included in a digest email"
         Date createdAt "TTL 90 days"
     }
 

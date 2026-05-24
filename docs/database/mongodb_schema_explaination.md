@@ -161,7 +161,7 @@ await Comment.updateMany(
 7. Forgot password
    └─> POST /api/auth/forgot-password { email }
    └─> user.createPasswordResetToken() → hashed token + 1hr expiry
-   └─> Send reset link via email (Resend)
+   └─> Send reset link via `email.service.js` → Resend (`sendPasswordResetEmail`)
    └─> POST /api/auth/reset-password { token, newPassword }
    └─> Verify token not expired → hash new password → clear reset fields
 ```
@@ -212,6 +212,13 @@ await Comment.updateMany(
 4. Google OAuth users: emailVerified set to true automatically
    └─> Google has already verified the email address
 ```
+
+**Email Notifications**: `User.settings.emailNotifications` is a subdocument (not a Boolean):
+- `enabled` — master toggle; disabling it suppresses all digest emails
+- `smartDaily` — daily action digest (friend requests, shares, assignments)
+- `weeklySummary` — weekly reflection digest (comments, likes, activity, study streak, stale applications)
+
+Tier 1 transactional emails (welcome, device login, integration events, account lifecycle) are always sent — no user toggle. `restorationToken` stores a SHA-256 hash (same pattern as `passwordResetToken`). All sends are centralised in `email.service.js` — no controller imports Resend directly. `Notification.digestSentAt` is set after a notification is included in a digest, preventing duplicate sends.
 
 ---
 
