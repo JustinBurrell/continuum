@@ -74,6 +74,12 @@ const notificationSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+
+    // Set after this notification is included in a digest email — prevents re-sending
+    digestSentAt: {
+        type: Date,
+        default: null,
+    },
 });
 
 // ============================================================

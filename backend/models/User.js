@@ -136,8 +136,9 @@ const userSchema = new mongoose.Schema({
      */
     settings: {
         emailNotifications: {
-            type: Boolean,
-            default: true,
+            enabled:       { type: Boolean, default: true },
+            smartDaily:    { type: Boolean, default: true },
+            weeklySummary: { type: Boolean, default: true },
         },
         pushNotifications: {
             messages:       { type: Boolean, default: true },
@@ -192,13 +193,27 @@ const userSchema = new mongoose.Schema({
      * Pending Deletion (30-day grace period)
      * Purpose: Soft-mark an account for deletion. User can restore by logging in
      *          within 30 days. Hard delete cascades when scheduledDeletionAt passes.
-     * Fields: pendingDeletion, scheduledDeletionAt
+     * Fields: pendingDeletion, scheduledDeletionAt, deletionWarningEmailSentAt
+     *         restorationToken, restorationTokenExpires (for one-click email restore)
      */
     pendingDeletion: {
         type: Boolean,
         default: false,
     },
     scheduledDeletionAt: {
+        type: Date,
+        default: null,
+    },
+    deletionWarningEmailSentAt: {
+        type: Date,
+        default: null,
+    },
+    restorationToken: {
+        type: String,
+        default: null,
+        select: false,
+    },
+    restorationTokenExpires: {
         type: Date,
         default: null,
     },
