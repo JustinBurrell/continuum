@@ -98,7 +98,8 @@ export default function Login() {
     setError('');
     try {
       await login(data.email, data.password);
-      navigate('/dashboard');
+      const next = searchParams.get('next');
+      navigate(next?.startsWith('/') ? next : '/dashboard', { replace: true });
     } catch (err) {
       setError(friendlyError(err, 'Invalid email or password.'));
     }

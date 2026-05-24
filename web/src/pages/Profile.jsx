@@ -328,7 +328,9 @@ export default function Profile() {
   // Notifications form
   const notifForm = useForm({
     defaultValues: {
-      emailNotifications:       user?.settings?.emailNotifications ?? true,
+      emailEnabled:             user?.settings?.emailNotifications?.enabled      ?? true,
+      emailSmartDaily:          user?.settings?.emailNotifications?.smartDaily   ?? true,
+      emailWeeklySummary:       user?.settings?.emailNotifications?.weeklySummary ?? true,
       pushMessages:             user?.settings?.pushNotifications?.messages       ?? true,
       pushComments:             user?.settings?.pushNotifications?.comments       ?? true,
       pushLikes:                user?.settings?.pushNotifications?.likes          ?? true,
@@ -360,9 +362,12 @@ export default function Profile() {
         instagramHandle: fresh.instagramHandle || '',
         'settings.activityVisibility': fresh.settings?.activityVisibility || 'friends',
       });
+      const en = fresh.settings?.emailNotifications;
       const pn = fresh.settings?.pushNotifications;
       notifForm.reset({
-        emailNotifications:   fresh.settings?.emailNotifications ?? true,
+        emailEnabled:         (typeof en === 'object' ? en?.enabled        : en) ?? true,
+        emailSmartDaily:      (typeof en === 'object' ? en?.smartDaily     : true),
+        emailWeeklySummary:   (typeof en === 'object' ? en?.weeklySummary  : true),
         pushMessages:         (typeof pn === 'object' ? pn?.messages       : pn) ?? true,
         pushComments:         (typeof pn === 'object' ? pn?.comments       : pn) ?? true,
         pushLikes:            (typeof pn === 'object' ? pn?.likes          : pn) ?? true,
@@ -416,7 +421,9 @@ export default function Profile() {
   const notifMutation = useMutation({
     mutationFn: (vals) => {
       const fd = new FormData();
-      fd.append('settings.emailNotifications',                vals.emailNotifications);
+      fd.append('settings.emailNotifications.enabled',        vals.emailEnabled);
+      fd.append('settings.emailNotifications.smartDaily',     vals.emailSmartDaily);
+      fd.append('settings.emailNotifications.weeklySummary',  vals.emailWeeklySummary);
       fd.append('settings.pushNotifications.messages',        vals.pushMessages);
       fd.append('settings.pushNotifications.comments',        vals.pushComments);
       fd.append('settings.pushNotifications.likes',           vals.pushLikes);
@@ -1139,13 +1146,24 @@ export default function Profile() {
             <form onSubmit={notifForm.handleSubmit(vals => notifMutation.mutate(vals))}>
               {/* Email */}
               <p style={sectionLabel}>Email</p>
+              <NotifToggleRow
+                label="Email notifications"
+                desc="Master toggle — enables or disables all digest emails"
+                checked={!!notifForm.watch('emailEnabled')}
+                onChange={() => notifForm.setValue('emailEnabled', !notifForm.watch('emailEnabled'), { shouldDirty: true })}
+              />
               {[
-                { key: 'emailNotifications', label: 'Email notifications', desc: 'Receive activity updates via email' },
+                { key: 'emailSmartDaily',    label: 'Smart daily digest',   desc: 'Daily summary of friend requests, shares, and task assignments' },
+                { key: 'emailWeeklySummary', label: 'Weekly summary',       desc: 'Weekly recap of comments, likes, activity, and study streak' },
               ].map(({ key, label, desc }) => (
-                <NotifToggleRow key={key} label={label} desc={desc}
-                  checked={!!notifForm.watch(key)}
-                  onChange={() => notifForm.setValue(key, !notifForm.watch(key), { shouldDirty: true })}
-                />
+                <div key={key} style={{ opacity: notifForm.watch('emailEnabled') ? 1 : 0.45, pointerEvents: notifForm.watch('emailEnabled') ? 'auto' : 'none', marginLeft: 16 }}>
+                  <NotifToggleRow
+                    label={label}
+                    desc={desc}
+                    checked={!!notifForm.watch(key)}
+                    onChange={() => notifForm.setValue(key, !notifForm.watch(key), { shouldDirty: true })}
+                  />
+                </div>
               ))}
 
               {/* Push notifications */}
