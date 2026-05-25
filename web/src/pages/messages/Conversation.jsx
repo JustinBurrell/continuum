@@ -200,7 +200,7 @@ export default function Conversation({ conversationId }) {
       {/* Header */}
       <div style={{ borderBottom: '1px solid #E5E7EB', background: '#fff', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px' }}>
-          <Link to="/messages" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, color: '#9CA3AF', textDecoration: 'none', flexShrink: 0, transition: 'background 0.15s' }}
+          <Link to="/messages" aria-label="Back to messages" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, color: '#9CA3AF', textDecoration: 'none', flexShrink: 0, transition: 'background 0.15s' }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(107,33,168,0.08)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
@@ -227,6 +227,7 @@ export default function Conversation({ conversationId }) {
           )}
 
           <button
+            aria-label="Search messages"
             onClick={() => {
               setShowSearch(s => !s);
               setMsgSearch('');
@@ -239,12 +240,12 @@ export default function Conversation({ conversationId }) {
               color: showSearch ? '#6b21a8' : '#9CA3AF',
               cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s',
             }}
-            title="Search messages"
           >
             <Search size={16} />
           </button>
 
           <button
+            aria-label="Delete conversation"
             onClick={() => setShowDeleteConvConfirm(s => !s)}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -255,7 +256,6 @@ export default function Conversation({ conversationId }) {
             }}
             onMouseEnter={e => { if (!showDeleteConvConfirm) { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#dc2626'; } }}
             onMouseLeave={e => { if (!showDeleteConvConfirm) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9CA3AF'; } }}
-            title="Delete conversation"
           >
             <Trash2 size={15} />
           </button>
@@ -314,6 +314,7 @@ export default function Conversation({ conversationId }) {
               </span>
             )}
             <button
+              aria-label="Close search"
               onClick={() => { setShowSearch(false); setMsgSearch(''); }}
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 6, border: 'none', background: 'transparent', color: '#9CA3AF', cursor: 'pointer', flexShrink: 0 }}
             >
@@ -460,6 +461,7 @@ export default function Conversation({ conversationId }) {
 
                   {!msg._temp && (
                     <button
+                      aria-label="Delete message"
                       onClick={() => deleteMessageMutation.mutate(msg._id)}
                       className="opacity-0 group-hover:opacity-100"
                       style={{
@@ -470,7 +472,6 @@ export default function Conversation({ conversationId }) {
                       }}
                       onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
                       onMouseLeave={e => e.currentTarget.style.color = '#D1D5DB'}
-                      title="Delete for me"
                     >
                       <Trash2 size={11} />
                     </button>

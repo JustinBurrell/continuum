@@ -136,6 +136,7 @@ export default function AppLayout() {
         {/* Mobile header with hamburger */}
         <div className="mobile-header">
           <button
+            aria-label="Open navigation"
             onClick={() => setSidebarOpen(true)}
             style={{
               display: 'flex',

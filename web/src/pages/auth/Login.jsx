@@ -70,6 +70,7 @@ function PasswordInput({ label, error, register, name, rules }) {
         />
         <button
           type="button"
+          aria-label={show ? 'Hide password' : 'Show password'}
           onClick={() => setShow(s => !s)}
           style={{
             position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',

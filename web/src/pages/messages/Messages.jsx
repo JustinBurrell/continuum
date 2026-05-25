@@ -226,6 +226,7 @@ export default function Messages() {
                 </div>
               </Link>
                 <button
+                  aria-label="Delete conversation"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteConvMutation.mutate(conv._id); }}
                   className="opacity-0 group-hover:opacity-100"
                   style={{
@@ -238,7 +239,6 @@ export default function Messages() {
                   }}
                   onMouseEnter={e => e.currentTarget.style.color = '#dc2626'}
                   onMouseLeave={e => e.currentTarget.style.color = '#D1D5DB'}
-                  title="Delete conversation"
                 >
                   <Trash2 size={13} />
                 </button>
