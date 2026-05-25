@@ -74,7 +74,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto space-y-4" style={{ padding: '12px 8px' }}>
+      <nav aria-label="App navigation" className="flex-1 overflow-y-auto space-y-4" style={{ padding: '12px 8px' }}>
         {navGroups.map((group) => (
           <div key={group.label}>
             <p style={{

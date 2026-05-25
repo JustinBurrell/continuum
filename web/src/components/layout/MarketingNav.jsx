@@ -73,7 +73,7 @@ export default function MarketingNav() {
         </Link>
 
         {/* Center nav links */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <nav aria-label="Main navigation" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {navLinks.map(({ to, label }) => {
             const active = pathname === to || pathname.startsWith(to + '/');
             return (
