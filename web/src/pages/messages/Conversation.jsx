@@ -294,7 +294,9 @@ export default function Conversation({ conversationId }) {
           <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8, alignItems: 'center' }}>
             <div style={{ position: 'relative', flex: 1 }}>
               <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
+              <label htmlFor="message-search" className="sr-only">Search messages</label>
               <input
+                id="message-search"
                 ref={searchInputRef}
                 value={msgSearch}
                 onChange={e => setMsgSearch(e.target.value)}

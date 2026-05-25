@@ -169,7 +169,9 @@ export default function ApplicationsList() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
         <div style={{ position: 'relative' }}>
           <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
+          <label htmlFor="application-search" className="sr-only">Search company or role</label>
           <input
+            id="application-search"
             className="input-field"
             style={{ paddingLeft: 36 }}
             placeholder="Search company or role..."

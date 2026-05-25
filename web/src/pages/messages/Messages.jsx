@@ -75,7 +75,9 @@ export default function Messages() {
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: 16 }}>
         <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
+        <label htmlFor="conversation-search" className="sr-only">Search conversations</label>
         <input
+          id="conversation-search"
           style={{
             width: '100%',
             paddingLeft: 36,
