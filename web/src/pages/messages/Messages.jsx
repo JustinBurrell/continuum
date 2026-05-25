@@ -116,7 +116,7 @@ export default function Messages() {
           }}>
             <MessageCircle size={28} style={{ color: '#6b21a8' }} />
           </div>
-          <h3 style={{ fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>No conversations yet</h3>
+          <p style={{ fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>No conversations yet</p>
           <p style={{ color: '#6B7280', fontSize: 14, marginBottom: 16 }}>Start a conversation with a friend.</p>
           <Button size="sm" onClick={() => setShowNew(true)}>
             <Plus size={14} /> New message

@@ -283,12 +283,12 @@ export default function ApplicationsList() {
             <Briefcase size={40} style={{ margin: '0 auto 12px', color: '#D1D5DB' }} />
             {stageFilter !== 'all' || search ? (
               <>
-                <h3 style={{ fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>No applications found</h3>
+                <p style={{ fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>No applications found</p>
                 <p style={{ color: '#6B7280', fontSize: 14 }}>No applications match this filter.</p>
               </>
             ) : (
               <>
-                <h3 style={{ fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>No applications yet</h3>
+                <p style={{ fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>No applications yet</p>
                 <p style={{ color: '#6B7280', fontSize: 14, marginBottom: 16 }}>Start tracking your job applications.</p>
                 <Button size="sm" onClick={() => setShowCreate(true)}>Add your first application</Button>
               </>

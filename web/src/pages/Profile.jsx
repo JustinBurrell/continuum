@@ -137,7 +137,7 @@ function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading 
         background: '#fff', borderRadius: 20, padding: 28, width: 420, maxWidth: '92vw',
         boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
       }}>
-        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#dc2626', margin: '0 0 6px' }}>Delete account</h3>
+        <p style={{ fontSize: 16, fontWeight: 700, color: '#dc2626', margin: '0 0 6px' }}>Delete account</p>
         <p style={{ fontSize: 13, color: '#374151', margin: '0 0 16px', lineHeight: 1.5 }}>
           Your account will be <strong>scheduled for deletion in 30 days</strong>. All your notes, tasks,
           flashcards, messages, and data will be permanently removed.

@@ -121,9 +121,9 @@ export default function Login() {
 
         {/* Brand copy */}
         <div style={{ marginBottom: 48, position: 'relative', zIndex: 1 }}>
-          <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: 32, color: '#ffffff', lineHeight: 1.2, marginBottom: 16 }}>
+          <p style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: 32, color: '#ffffff', lineHeight: 1.2, marginBottom: 16 }}>
             Your academic life, all in one place.
-          </h2>
+          </p>
           <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, maxWidth: 280 }}>
             Notes, flashcards, tasks, applications, and more, organized so you can focus on what matters.
           </p>
