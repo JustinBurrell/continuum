@@ -176,13 +176,13 @@ async function initDigestJobs() {
     const { Queue, Worker } = require('bullmq');
     const connection = { url: process.env.REDIS_URL };
 
-    const dailyQueue    = new Queue('digest:smart-daily',   { connection });
-    const weeklyQueue   = new Queue('digest:weekly-summary', { connection });
-    const deletionQueue = new Queue('digest:deletion-warn',  { connection });
+    const dailyQueue    = new Queue('digest-smart-daily',   { connection });
+    const weeklyQueue   = new Queue('digest-weekly-summary', { connection });
+    const deletionQueue = new Queue('digest-deletion-warn',  { connection });
 
-    new Worker('digest:smart-daily',   async () => { await runSmartDaily();    }, { connection });
-    new Worker('digest:weekly-summary', async () => { await runWeeklySummary(); }, { connection });
-    new Worker('digest:deletion-warn',  async () => { await runDeletionWarn();  }, { connection });
+    new Worker('digest-smart-daily',   async () => { await runSmartDaily();    }, { connection });
+    new Worker('digest-weekly-summary', async () => { await runWeeklySummary(); }, { connection });
+    new Worker('digest-deletion-warn',  async () => { await runDeletionWarn();  }, { connection });
 
     try {
         await dailyQueue.upsertJobScheduler(
