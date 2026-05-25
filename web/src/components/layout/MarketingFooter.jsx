@@ -54,6 +54,7 @@ export default function MarketingFooter() {
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <li><FooterLink to="/privacy">Privacy Policy</FooterLink></li>
                 <li><FooterLink to="/terms">Terms of Service</FooterLink></li>
+                <li><FooterLink to="/accessibility">Accessibility</FooterLink></li>
               </ul>
             </div>
           </div>
@@ -80,6 +81,14 @@ export default function MarketingFooter() {
               onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}
             >
               Terms of Service
+            </Link>
+            <Link
+              to="/accessibility"
+              style={{ fontSize: 12, color: '#9CA3AF', textDecoration: 'none', transition: 'color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#111827'}
+              onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}
+            >
+              Accessibility
             </Link>
           </div>
         </div>
