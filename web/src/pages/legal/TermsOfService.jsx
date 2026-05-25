@@ -155,7 +155,7 @@ export default function TermsOfService() {
     <div className="font-marketing min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
       <MarketingNav />
 
-      <main style={{ maxWidth: 768, margin: '0 auto', padding: '64px 24px 96px' }}>
+      <main id="main-content" style={{ maxWidth: 768, margin: '0 auto', padding: '64px 24px 96px' }}>
         <h1
           style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 2.75rem)', color: '#111827', marginBottom: 8, lineHeight: 1.15 }}
         >

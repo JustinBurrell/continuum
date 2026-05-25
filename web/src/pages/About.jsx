@@ -41,7 +41,7 @@ export default function About() {
       <MarketingNav active="about" />
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section id="main-content" className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)', width: 800, height: 600, borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(107,33,168,0.07) 0%, transparent 70%)' }} />
         </div>

@@ -65,6 +65,12 @@ export default function AppLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg)' }}>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-white focus:text-purple-800 focus:rounded focus:shadow"
+      >
+        Skip to main content
+      </a>
       {/* Mobile overlay backdrop */}
       {sidebarOpen && (
         <div
@@ -93,7 +99,7 @@ export default function AppLayout() {
       </div>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto min-w-0">
+      <main id="main-content" className="flex-1 overflow-y-auto min-w-0">
         {/* Demo account banner */}
         {user?.isDemo && (
           <div style={{

@@ -440,7 +440,7 @@ export default function Product() {
       </div>
 
       {/* Hero */}
-      <section className="max-w-3xl mx-auto px-6 pt-20 pb-10 text-center">
+      <section id="main-content" className="max-w-3xl mx-auto px-6 pt-20 pb-10 text-center">
         <div
           className="mb-6"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'white', border: '1px solid #E5E7EB', color: '#6B21A8', fontSize: '0.75rem', fontWeight: 500, borderRadius: 999, padding: '6px 14px' }}

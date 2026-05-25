@@ -115,7 +115,7 @@ export default function Landing() {
       <MarketingNav active="landing" />
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section id="main-content" className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div style={{ position: 'absolute', top: -120, left: '50%', transform: 'translateX(-50%)', width: 1000, height: 700, borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(107,33,168,0.08) 0%, transparent 65%)' }} />
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.3 }}>
