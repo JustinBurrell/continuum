@@ -184,7 +184,7 @@ export default function TourStep({ config, tourIndex, onNext, onBack, onSkipTour
 
           <button
             onClick={handleSkipTour}
-            style={{ background: 'none', border: 'none', color: '#a087b0', fontSize: 13, cursor: 'pointer', width: '100%' }}
+            style={{ background: 'none', border: 'none', color: '#6B7280', fontSize: 13, cursor: 'pointer', width: '100%' }}
           >
             Skip tour
           </button>

@@ -50,7 +50,7 @@ export default class ErrorBoundary extends Component {
           <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0 }}>
             Something went wrong
           </p>
-          <p style={{ fontSize: 13, color: '#a087b0', margin: 0, maxWidth: 320 }}>
+          <p style={{ fontSize: 13, color: '#6B7280', margin: 0, maxWidth: 320 }}>
             This section ran into an error. The rest of the app is still working.
           </p>
           <button

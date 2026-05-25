@@ -173,7 +173,7 @@ export default function OnboardingModal({ isReplay, onClose }) {
     >
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 0' }}>
-        <span style={{ fontSize: 11, fontWeight: 500, color: '#a087b0', letterSpacing: '0.02em' }}>
+        <span style={{ fontSize: 11, fontWeight: 500, color: '#6B7280', letterSpacing: '0.02em' }}>
           {isDone ? '' : `Step ${stepNumber} of ${totalSteps}`}
         </span>
         <button
@@ -182,7 +182,7 @@ export default function OnboardingModal({ isReplay, onClose }) {
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: 24, height: 24, borderRadius: 6, border: '1px solid #e5d3f0',
-            background: 'transparent', cursor: 'pointer', color: '#a087b0', transition: 'background 0.15s',
+            background: 'transparent', cursor: 'pointer', color: '#6B7280', transition: 'background 0.15s',
           }}
           onMouseEnter={e => e.currentTarget.style.background = '#f3e8ff'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}

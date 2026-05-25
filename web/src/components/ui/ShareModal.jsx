@@ -102,7 +102,7 @@ export default function ShareModal({
         {/* Visibility options (default mode only) */}
         {mode !== 'task' && (
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 8 }}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B7280', marginBottom: 8 }}>
               Visibility
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -137,7 +137,7 @@ export default function ShareModal({
                   }} />
                   <div>
                     <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#111827', margin: 0 }}>{opt.label}</p>
-                    <p style={{ fontSize: '0.75rem', color: '#a087b0', margin: 0 }}>{opt.desc}</p>
+                    <p style={{ fontSize: '0.75rem', color: '#6B7280', margin: 0 }}>{opt.desc}</p>
                   </div>
                 </button>
               ))}
@@ -148,15 +148,15 @@ export default function ShareModal({
         {/* Friend picker */}
         {showFriendPicker && (
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a087b0', marginBottom: 8 }}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B7280', marginBottom: 8 }}>
               {mode === 'task' ? 'Add collaborators' : 'Select friends'}
             </label>
             {friendsLoading ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0', color: '#a087b0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0', color: '#6B7280' }}>
                 <Loader2 size={18} className="animate-spin" />
               </div>
             ) : friends.length === 0 ? (
-              <p style={{ fontSize: '0.875rem', color: '#a087b0', textAlign: 'center', padding: '16px 0' }}>
+              <p style={{ fontSize: '0.875rem', color: '#6B7280', textAlign: 'center', padding: '16px 0' }}>
                 No friends yet. Add friends to share content.
               </p>
             ) : (
@@ -187,7 +187,7 @@ export default function ShareModal({
                           {fullName(friend)}
                         </p>
                         {friend.username && (
-                          <p style={{ fontSize: '0.75rem', color: '#a087b0', margin: 0 }}>@{friend.username}</p>
+                          <p style={{ fontSize: '0.75rem', color: '#6B7280', margin: 0 }}>@{friend.username}</p>
                         )}
                       </div>
                       <div style={{
