@@ -327,7 +327,7 @@ export default function Conversation({ conversationId }) {
       </div>
 
       {/* Messages */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px', background: '#F8F9FA' }}>
+      <div aria-live="polite" aria-label="Message thread" style={{ flex: 1, overflowY: 'auto', padding: '20px 16px', background: '#F8F9FA' }}>
         {isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {Array.from({ length: 5 }).map((_, i) => (

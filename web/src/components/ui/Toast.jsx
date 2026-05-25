@@ -28,7 +28,7 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+      <div aria-live="polite" aria-atomic="false" className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
         {toasts.map((t) => (
           <div
             key={t.id}
@@ -39,6 +39,7 @@ export function ToastProvider({ children }) {
             <div className="mt-0.5 flex-shrink-0">{icons[t.type]}</div>
             <p className="text-sm text-foreground flex-1">{t.message}</p>
             <button
+              aria-label="Dismiss notification"
               onClick={() => dismiss(t.id)}
               className="text-secondary hover:text-foreground flex-shrink-0"
             >
