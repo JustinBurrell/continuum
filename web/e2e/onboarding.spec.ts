@@ -1,4 +1,5 @@
 import { test, expect, APIRequestContext } from '@playwright/test';
+import { checkA11y } from 'axe-playwright';
 import { registerUser, registerAndStartOnboarding } from './helpers/auth';
 
 const API = 'http://localhost:5001/api';
@@ -56,6 +57,7 @@ async function skipUntilVisible(
 test.describe('Route guards', () => {
   test('unauthenticated /onboarding redirects to /login', async ({ page }) => {
     await page.goto('/onboarding');
+    await checkA11y(page, null, { detailedReport: true });
     await expect(page).toHaveURL(/\/login/, { timeout: 5_000 });
   });
 

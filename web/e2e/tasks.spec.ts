@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { checkA11y } from 'axe-playwright';
 import { registerUser } from './helpers/auth';
 
 // A fixed due date in the future so the task is never overdue in the test
@@ -8,6 +9,7 @@ test.describe('Tasks', () => {
   test.beforeEach(async ({ page }) => {
     await registerUser(page);
     await page.goto('/tasks');
+    await checkA11y(page, null, { detailedReport: true });
   });
 
   test('create task appears in To Do column', async ({ page }) => {

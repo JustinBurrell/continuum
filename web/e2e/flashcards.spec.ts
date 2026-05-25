@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { checkA11y } from 'axe-playwright';
 import { registerUser } from './helpers/auth';
 
 test.describe('Flashcards — core value path', () => {
   test.beforeEach(async ({ page }) => {
     await registerUser(page);
     await page.goto('/flashcards');
+    await checkA11y(page, null, { detailedReport: true });
   });
 
   test('create flashcard set appears in list', async ({ page }) => {

@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { checkA11y } from 'axe-playwright';
 import { registerUser } from './helpers/auth';
 
 test.describe('Career — Applications', () => {
   test.beforeEach(async ({ page }) => {
     await registerUser(page);
     await page.goto('/applications');
+    await checkA11y(page, null, { detailedReport: true });
   });
 
   test('create application appears in list', async ({ page }) => {
