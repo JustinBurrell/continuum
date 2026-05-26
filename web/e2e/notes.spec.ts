@@ -1,11 +1,14 @@
 import { test, expect } from '@playwright/test';
-import { checkA11y } from 'axe-playwright';
+import { injectAxe, checkA11y } from 'axe-playwright';
 import { registerUser } from './helpers/auth';
 
 test.describe('Notes', () => {
   test.beforeEach(async ({ page }) => {
     await registerUser(page);
     await page.goto('/notes');
+    await page.locator('h1').waitFor({ state: 'visible', timeout: 10_000 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await injectAxe(page);
     await checkA11y(page, null, { detailedReport: true });
   });
 
@@ -102,6 +105,7 @@ test.describe('Notes', () => {
     await page.locator('.ProseMirror').click();
     await page.keyboard.type('Lecture content');
     await page.click('button:has-text("Save")');
+    await page.waitForURL('**/notes/view');
 
     await page.goto('/notes');
     await expect(page.locator('text=Lecture Note')).toBeVisible({ timeout: 10_000 });
@@ -119,6 +123,7 @@ test.describe('Notes', () => {
     await page.locator('.ProseMirror').click();
     await page.keyboard.type('Content');
     await page.click('button:has-text("Save")');
+    await page.waitForURL('**/notes/view');
 
     await page.goto('/notes');
 

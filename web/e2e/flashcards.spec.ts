@@ -1,11 +1,14 @@
 import { test, expect } from '@playwright/test';
-import { checkA11y } from 'axe-playwright';
+import { injectAxe, checkA11y } from 'axe-playwright';
 import { registerUser } from './helpers/auth';
 
 test.describe('Flashcards — core value path', () => {
   test.beforeEach(async ({ page }) => {
     await registerUser(page);
     await page.goto('/flashcards');
+    await page.locator('h1').waitFor({ state: 'visible', timeout: 10_000 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await injectAxe(page);
     await checkA11y(page, null, { detailedReport: true });
   });
 
