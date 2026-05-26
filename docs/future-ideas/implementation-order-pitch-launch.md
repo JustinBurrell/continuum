@@ -201,10 +201,10 @@ Play Store IARC questionnaire surfaces a11y failures, and it fits the All Star C
 - [x] `Accessibility.jsx` page at `/accessibility` + footer link
 - [x] Android: contentDescription on password visibility toggle IconButtons (Register, ResetPassword); all other null contentDescriptions are legitimately decorative (icons alongside text labels)
 
-### 8. Email Inbound Routing
+### 8. Email Inbound Routing ✅
 Quick win — needed before real support traffic comes in.
-- [ ] Confirm `usecontinuum.dev` is 30+ days old
-- [ ] ImprovMX MX records + forwarding rules for `hello@`, `support@`, `noreply@`
+- [x] Confirm `usecontinuum.dev` is 30+ days old
+- [x] ImprovMX MX records + forwarding rules for `hello@`, `support@`, `noreply@`
 
 ---
 
@@ -229,4 +229,4 @@ Quick win — needed before real support traffic comes in.
 
 ---
 
-*Last updated: May 26, 2026 — Accessibility audit complete: web (PR #240) + Android*
+*Last updated: May 26, 2026 — Email inbound routing complete: ImprovMX + Vercel DNS configured for `usecontinuum.dev`*
