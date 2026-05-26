@@ -395,6 +395,9 @@ export default function MobileGate() {
             <Link to="/terms" style={{ color: '#6B7280', fontSize: '0.75rem', textDecoration: 'underline' }}>
               Terms of Service
             </Link>
+            <Link to="/accessibility" style={{ color: '#6B7280', fontSize: '0.75rem', textDecoration: 'underline' }}>
+              Accessibility
+            </Link>
           </div>
         </div>
       </footer>
