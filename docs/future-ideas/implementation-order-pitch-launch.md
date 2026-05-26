@@ -194,12 +194,12 @@ Requires notification bell infrastructure. Send on events users care about when 
 - [x] Respect `emailNotifications` user setting (already exists on the profile model)
 - [x] Unsubscribe link in every email (CAN-SPAM)
 
-### 7. Accessibility Audit ✅ (web — PR #240)
+### 7. Accessibility Audit ✅ (web PR #240 + Android)
 Play Store IARC questionnaire surfaces a11y failures, and it fits the All Star Code / TEA profile.
 - [x] axe-playwright checks on all web routes — runs in CI on every PR
 - [x] Fix contrast, keyboard nav, focus indicators, aria-label, modal focus trap, alt text
 - [x] `Accessibility.jsx` page at `/accessibility` + footer link
-- [ ] Android: content descriptions on all icon-only buttons and images (still pending)
+- [x] Android: contentDescription on password visibility toggle IconButtons (Register, ResetPassword); all other null contentDescriptions are legitimately decorative (icons alongside text labels)
 
 ### 8. Email Inbound Routing
 Quick win — needed before real support traffic comes in.
@@ -229,4 +229,4 @@ Quick win — needed before real support traffic comes in.
 
 ---
 
-*Last updated: May 26, 2026 — Web accessibility audit complete (PR #240)*
+*Last updated: May 26, 2026 — Accessibility audit complete: web (PR #240) + Android*
