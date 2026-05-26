@@ -18,8 +18,8 @@ export default function MobileAccessibilityPage() {
           <Link to="/">
             <img src="/logo-lockup.svg" alt="Continuum" style={{ height: 28 }} />
           </Link>
-          <Link to="/register" style={{ color: '#6B21A8', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none' }}>
-            Get started
+          <Link to="/" state={{ scrollToForm: true }} style={{ color: '#6B21A8', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none' }}>
+            Join the waitlist
           </Link>
         </div>
       </nav>
