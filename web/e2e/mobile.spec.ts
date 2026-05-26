@@ -170,6 +170,34 @@ test.describe('Mobile legal pages', () => {
     await page.click('a:has-text("Google Drive Data")');
     await expect(page.locator('#google-drive')).toBeInViewport({ timeout: 2000 });
   });
+
+  test('footer shows accessibility link on mobile gate (/)', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('footer a:has-text("Accessibility")')).toBeVisible();
+  });
+
+  test('footer shows accessibility link on /terms', async ({ page }) => {
+    await page.goto('/terms');
+    await expect(page.locator('footer a:has-text("Accessibility")')).toBeVisible();
+  });
+
+  test('footer shows accessibility link on /privacy', async ({ page }) => {
+    await page.goto('/privacy');
+    await expect(page.locator('footer a:has-text("Accessibility")')).toBeVisible();
+  });
+
+  test('/accessibility nav has "Join the waitlist" not "Get started"', async ({ page }) => {
+    await page.goto('/accessibility');
+    await expect(page.locator('nav a:has-text("Join the waitlist")')).toBeVisible();
+    await expect(page.locator('nav a:has-text("Get started")')).not.toBeVisible();
+  });
+
+  test('"Join the waitlist" on /accessibility navigates to gate and scrolls to form', async ({ page }) => {
+    await page.goto('/accessibility');
+    await page.click('nav a:has-text("Join the waitlist")');
+    await expect(page).toHaveURL('/');
+    await expect(page.locator('#waitlist-form')).toBeInViewport({ timeout: 3000 });
+  });
 });
 
 // ─── Legal pages (desktop UA) ─────────────────────────────────────────────────
