@@ -25,4 +25,14 @@ class NotificationRouter @Inject constructor() {
         val route = resolveNavFromFcm(data)
         if (route.isNotBlank()) _destination.tryEmit(route)
     }
+
+    // Cold-start pending route: set before the NavHost is composed, consumed once auth is confirmed.
+    private var pendingRoute: String? = null
+
+    fun storePendingFromFcmData(data: Map<String, String>) {
+        val route = resolveNavFromFcm(data)
+        if (route.isNotBlank()) pendingRoute = route
+    }
+
+    fun consumePendingRoute(): String? = pendingRoute?.also { pendingRoute = null }
 }
