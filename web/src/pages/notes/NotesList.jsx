@@ -402,9 +402,9 @@ export default function NotesList() {
           }}>
             <FileText size={28} style={{ color: '#6b21a8' }} />
           </div>
-          <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '1rem', marginBottom: 6 }}>
+          <p style={{ fontWeight: 600, color: '#111827', fontSize: '1rem', marginBottom: 6 }}>
             No notes found
-          </h3>
+          </p>
           <p style={{ color: '#6B7280', fontSize: '0.875rem', marginBottom: 20 }}>
             {sharedTab
               ? (sharedSearch ? 'No shared notes match your search.' : 'No notes have been shared with you yet.')
@@ -635,11 +635,11 @@ export default function NotesList() {
                 }}
               >
                 <Upload size={22} style={{ color: uploadFile ? '#6b21a8' : '#9CA3AF' }} />
-                <span style={{ fontSize: '0.875rem', color: uploadFile ? '#6b21a8' : '#9CA3AF' }}>
+                <span style={{ fontSize: '0.875rem', color: uploadFile ? '#6b21a8' : '#6B7280' }}>
                   {uploadFile ? uploadFile.name : 'Click to select a PDF'}
                 </span>
                 {uploadFile && (
-                  <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>
                     {(uploadFile.size / 1024 / 1024).toFixed(2)} MB
                   </span>
                 )}
@@ -790,7 +790,7 @@ function NoteCard({ note, onDelete }) {
 
       {/* Title + preview */}
       <Link to="/notes/view" state={{ id: note._id }} style={{ flex: 1, textDecoration: 'none' }}>
-        <h3 style={{
+        <h2 style={{
           fontWeight: 600,
           color: '#111827',
           fontSize: '0.9375rem',
@@ -806,7 +806,7 @@ function NoteCard({ note, onDelete }) {
         onMouseLeave={e => e.currentTarget.style.color = '#111827'}
         >
           {note.title}
-        </h3>
+        </h2>
         <p style={{
           fontSize: '0.8125rem',
           color: '#6B7280',
@@ -825,13 +825,13 @@ function NoteCard({ note, onDelete }) {
         {note.tags?.length > 0 ? (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {note.tags.slice(0, 3).map(tag => (
-              <span key={tag} style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>
+              <span key={tag} style={{ fontSize: '0.75rem', color: '#6B7280' }}>
                 {tag}
               </span>
             ))}
           </div>
         ) : <span />}
-        <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{formatRelative(note.updatedAt)}</span>
+        <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>{formatRelative(note.updatedAt)}</span>
       </div>
     </div>
   );

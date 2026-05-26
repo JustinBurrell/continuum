@@ -79,7 +79,7 @@ export default function Activity() {
         <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
           Activity
         </h1>
-        <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>
+        <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>
           {activities.length > 0 ? `${activities.length} item${activities.length === 1 ? '' : 's'} loaded` : 'Track what\'s happening'}
         </p>
       </div>

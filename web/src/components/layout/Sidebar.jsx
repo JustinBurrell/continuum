@@ -82,7 +82,7 @@ export default function Sidebar() {
               fontWeight: 600,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: '#9CA3AF',
+              color: '#6B7280',
               marginBottom: 4,
               padding: '8px 10px 4px',
             }}>
@@ -172,7 +172,7 @@ export default function Sidebar() {
             </p>
             <p style={{
               fontSize: 11,
-              color: '#9CA3AF',
+              color: '#6B7280',
               lineHeight: 1.3,
               overflow: 'hidden',
               textOverflow: 'ellipsis',

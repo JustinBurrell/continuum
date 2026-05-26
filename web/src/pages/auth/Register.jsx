@@ -26,12 +26,14 @@ const inputFocusStyle = {
 
 const AuthInput = forwardRef(function AuthInput({ label, error, type = 'text', onBlur, onFocus, ...props }, ref) {
   const [focused, setFocused] = useState(false);
+  const inputId = `auth-${(label || type).toLowerCase().replace(/\s+/g, '-')}`;
   return (
     <div>
-      <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
+      <label htmlFor={inputId} style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
         {label}
       </label>
       <input
+        id={inputId}
         ref={ref}
         type={type}
         style={{ ...inputStyle, ...(focused ? inputFocusStyle : {}), ...(error ? { borderColor: '#EF4444' } : {}) }}
@@ -48,13 +50,15 @@ function PasswordInput({ label, error, register, name, rules, onChange: onChange
   const [show, setShow] = useState(false);
   const [focused, setFocused] = useState(false);
   const reg = register(name, rules);
+  const inputId = `auth-${name}`;
   return (
     <div>
-      <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
+      <label htmlFor={inputId} style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
         {label}
       </label>
       <div style={{ position: 'relative' }}>
         <input
+          id={inputId}
           type={show ? 'text' : 'password'}
           style={{
             ...inputStyle,
@@ -113,7 +117,7 @@ export default function Register() {
   return (
     <div className="font-marketing" style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '40% 60%' }}>
       {/* Left panel */}
-      <div style={{ background: '#3B0764', display: 'flex', flexDirection: 'column', padding: '48px 40px', position: 'relative', overflow: 'hidden' }}>
+      <aside aria-label="About Continuum" style={{ background: '#3B0764', display: 'flex', flexDirection: 'column', padding: '48px 40px', position: 'relative', overflow: 'hidden' }}>
         {/* Decorative blobs */}
         <div style={{ position: 'absolute', top: -80, right: -80, width: 280, height: 280, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
         <div style={{ position: 'absolute', bottom: -60, left: -60, width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
@@ -128,7 +132,7 @@ export default function Register() {
           <p style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: 32, color: '#ffffff', lineHeight: 1.2, marginBottom: 16 }}>
             Join thousands of students already ahead.
           </p>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, maxWidth: 280 }}>
+          <p style={{ fontSize: 15, color: '#c8bce0', lineHeight: 1.6, maxWidth: 280 }}>
             Set up your account in under a minute and get every tool you need to stay organized and focused.
           </p>
 
@@ -145,17 +149,17 @@ export default function Register() {
                     <path d="M2 5l2 2 4-4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>{feat}</span>
+                <span style={{ fontSize: 13, color: '#d4c8e8' }}>{feat}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Bottom */}
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', position: 'relative', zIndex: 1 }}>
+        <p style={{ fontSize: 12, color: '#b8a8d5', position: 'relative', zIndex: 1 }}>
           Free forever. No credit card required.
         </p>
-      </div>
+      </aside>
 
       {/* Right panel */}
       <div style={{ background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 40px' }}>
@@ -200,7 +204,7 @@ export default function Register() {
           {/* Divider */}
           <div style={{ margin: '20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ flex: 1, height: 1, background: '#E5E7EB' }} />
-            <span style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 500 }}>or sign up with email</span>
+            <span style={{ fontSize: 12, color: '#6B7280', fontWeight: 500 }}>or sign up with email</span>
             <div style={{ flex: 1, height: 1, background: '#E5E7EB' }} />
           </div>
 
@@ -277,7 +281,7 @@ export default function Register() {
           </form>
 
           {/* Legal */}
-          <p style={{ marginTop: 16, textAlign: 'center', fontSize: 11, color: '#9CA3AF', lineHeight: 1.6 }}>
+          <p style={{ marginTop: 16, textAlign: 'center', fontSize: 11, color: '#6B7280', lineHeight: 1.6 }}>
             By signing up, you agree to our{' '}
             <Link to="/terms" style={{ color: '#6B21A8', fontWeight: 500, textDecoration: 'none' }}
               onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}

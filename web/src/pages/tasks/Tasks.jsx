@@ -242,7 +242,7 @@ export default function Tasks() {
           <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
             Tasks
           </h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{allTasks.length} tasks</p>
+          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>{allTasks.length} tasks</p>
         </div>
         {!user?.isDemo && (
           <Button onClick={() => setShowCreate(true)} data-tour-highlight="tasks-new">
@@ -620,7 +620,7 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
             alignItems: 'center',
             gap: 4,
             fontSize: 11,
-            color: isOverdue ? '#ef4444' : '#9CA3AF',
+            color: isOverdue ? '#ef4444' : '#6B7280',
           }}>
             {isOverdue ? <AlertCircle size={11} /> : <Clock size={11} />}
             {isOverdue ? 'Overdue · ' : ''}{formatDate(task.dueDate)}

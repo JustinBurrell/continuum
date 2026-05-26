@@ -62,31 +62,31 @@ export default function MarketingFooter() {
 
         {/* Bottom bar */}
         <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>
+          <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
             &copy; 2026 Continuum. All rights reserved.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
             <Link
               to="/privacy"
-              style={{ fontSize: 12, color: '#9CA3AF', textDecoration: 'none', transition: 'color 0.15s' }}
+              style={{ fontSize: 12, color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.color = '#111827'}
-              onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}
+              onMouseLeave={e => e.currentTarget.style.color = '#6B7280'}
             >
               Privacy Policy
             </Link>
             <Link
               to="/terms"
-              style={{ fontSize: 12, color: '#9CA3AF', textDecoration: 'none', transition: 'color 0.15s' }}
+              style={{ fontSize: 12, color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.color = '#111827'}
-              onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}
+              onMouseLeave={e => e.currentTarget.style.color = '#6B7280'}
             >
               Terms of Service
             </Link>
             <Link
               to="/accessibility"
-              style={{ fontSize: 12, color: '#9CA3AF', textDecoration: 'none', transition: 'color 0.15s' }}
+              style={{ fontSize: 12, color: '#6B7280', textDecoration: 'none', transition: 'color 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.color = '#111827'}
-              onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}
+              onMouseLeave={e => e.currentTarget.style.color = '#6B7280'}
             >
               Accessibility
             </Link>

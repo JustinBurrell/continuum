@@ -513,7 +513,7 @@ function FlashcardSetCard({ set, onDelete }) {
 
       {/* Footer */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
-        <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{formatRelative(set.updatedAt)}</span>
+        <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>{formatRelative(set.updatedAt)}</span>
         <Link to="/flashcards/study" state={{ id: set._id }}>
           <button
             style={{

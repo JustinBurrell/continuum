@@ -293,8 +293,10 @@
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: none; }
 }
-.page-fade-in {
-  animation: fadeInUp 0.2s ease-out both;
+@media (prefers-reduced-motion: no-preference) {
+  .page-fade-in {
+    animation: fadeInUp 0.2s ease-out both;
+  }
 }
 
 /* ---- Onboarding modal step transition ---- */
@@ -302,8 +304,10 @@
   from { opacity: 0; transform: translateX(28px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-.onboarding-step-enter {
-  animation: onboardingSlideIn 0.25s ease-out both;
+@media (prefers-reduced-motion: no-preference) {
+  .onboarding-step-enter {
+    animation: onboardingSlideIn 0.25s ease-out both;
+  }
 }
 
 /* ---- Responsive layout ---- */

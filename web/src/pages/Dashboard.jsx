@@ -78,7 +78,7 @@ function StatCard({ icon: Icon, label, value, to, accent }) {
         >
           {value ?? '\u2014'}
         </p>
-        <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4, fontWeight: 500 }}>{label}</p>
+        <p style={{ fontSize: 12, color: '#6B7280', marginTop: 4, fontWeight: 500 }}>{label}</p>
       </div>
     </div>
   );
@@ -135,7 +135,7 @@ function NoteCard({ note }) {
           >
             {note.type || 'note'}
           </span>
-          <span style={{ fontSize: 11, color: '#9CA3AF' }}>{formatRelative(note.updatedAt)}</span>
+          <span style={{ fontSize: 11, color: '#6B7280' }}>{formatRelative(note.updatedAt)}</span>
         </div>
         <p
           style={{
@@ -213,7 +213,7 @@ function FlashcardSetCard({ set }) {
           >
             {set.isAIGenerated ? 'AI Generated' : 'Manual Creation'}
           </span>
-          <span style={{ fontSize: 11, color: '#9CA3AF' }}>
+          <span style={{ fontSize: 11, color: '#6B7280' }}>
             {set.totalCards || 0} card{(set.totalCards || 0) !== 1 ? 's' : ''}
           </span>
         </div>
@@ -237,7 +237,7 @@ function FlashcardSetCard({ set }) {
           </p>
         )}
         {set.lastStudiedAt && (
-          <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <p style={{ fontSize: 11, color: '#6B7280', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
             <Clock size={10} /> Studied {formatRelative(set.lastStudiedAt)}
           </p>
         )}
@@ -300,7 +300,7 @@ function TaskItem({ task, onView }) {
           <p
             style={{
               fontSize: 11,
-              color: '#9CA3AF',
+              color: '#6B7280',
               display: 'flex',
               alignItems: 'center',
               gap: 4,
@@ -339,7 +339,7 @@ function AppItem({ app }) {
     interview: { background: 'rgba(217,119,6,0.08)', color: '#D97706' },
     offer:     { background: 'rgba(5,150,105,0.08)', color: '#059669' },
     rejected:  { background: '#FEE2E2', color: '#DC2626' },
-    withdrawn: { background: '#F3F4F6', color: '#9CA3AF' },
+    withdrawn: { background: '#F3F4F6', color: '#6B7280' },
   };
   const badgeStyle = sc[app.status] || sc.applied;
 
@@ -426,7 +426,7 @@ function Section({ label, to, children, count }) {
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.12em',
-              color: '#9CA3AF',
+              color: '#6B7280',
             }}
           >
             {label}
@@ -478,7 +478,7 @@ const PIPELINE_BADGE = {
   interview: { background: 'rgba(217,119,6,0.08)', color: '#D97706' },
   offer:     { background: 'rgba(5,150,105,0.08)', color: '#059669' },
   rejected:  { background: '#FEE2E2', color: '#DC2626' },
-  withdrawn: { background: '#F3F4F6', color: '#9CA3AF' },
+  withdrawn: { background: '#F3F4F6', color: '#6B7280' },
 };
 
 /* ════════════════════════════════════════
@@ -608,7 +608,7 @@ export default function Dashboard() {
                   padding: '2.25rem',
                   textAlign: 'center',
                   fontSize: 14,
-                  color: '#9CA3AF',
+                  color: '#6B7280',
                   background: '#F8F9FA',
                 }}
               >
@@ -637,7 +637,7 @@ export default function Dashboard() {
                   padding: '2.25rem',
                   textAlign: 'center',
                   fontSize: 14,
-                  color: '#9CA3AF',
+                  color: '#6B7280',
                   background: '#F8F9FA',
                 }}
               >
@@ -664,7 +664,7 @@ export default function Dashboard() {
                 ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 my-3" />)
                 : activities.length === 0
                   ? (
-                    <p style={{ textAlign: 'center', fontSize: 13, color: '#9CA3AF', padding: '1.75rem 0' }}>
+                    <p style={{ textAlign: 'center', fontSize: 13, color: '#6B7280', padding: '1.75rem 0' }}>
                       No activity yet.
                     </p>
                   )
@@ -692,7 +692,7 @@ export default function Dashboard() {
                 ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 my-2" />)
                 : tasks.length === 0
                   ? (
-                    <p style={{ textAlign: 'center', fontSize: 13, color: '#9CA3AF', padding: '1.75rem 0' }}>
+                    <p style={{ textAlign: 'center', fontSize: 13, color: '#6B7280', padding: '1.75rem 0' }}>
                       No open tasks.
                     </p>
                   )
@@ -744,7 +744,7 @@ export default function Dashboard() {
                 ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 my-2" />)
                 : apps.length === 0
                   ? (
-                    <p style={{ textAlign: 'center', fontSize: 13, color: '#9CA3AF', padding: '1.75rem 0' }}>
+                    <p style={{ textAlign: 'center', fontSize: 13, color: '#6B7280', padding: '1.75rem 0' }}>
                       No applications.{' '}
                       <Link to="/applications" style={{ color: '#6b21a8', fontWeight: 600 }}>
                         Add one
