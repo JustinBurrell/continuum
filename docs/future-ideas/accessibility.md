@@ -1,3 +1,7 @@
+> **Status: Implemented** — `feat/accessibility` (May 2026)
+> All items in this spec were addressed. The public Accessibility Statement is live at `/accessibility`.
+> This file is retained as the original design spec.
+
 # Accessibility — Audit + Statement Page
 
 ## Goal

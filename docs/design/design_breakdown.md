@@ -312,7 +312,7 @@ Left Column (Web)          Gap (200px)          Right Column (Mobile)
 3. **Component Reusability**: Design shared components that work for both platforms
 4. **State Variations**: Design loading, error, empty states for key pages
 5. **User Flows**: Connect pages to show complete user journeys
-6. **Accessibility**: Ensure proper contrast, touch target sizes, keyboard navigation
+6. **Accessibility**: WCAG 2.1 AA compliance audited May 2026. See `/accessibility` for the public statement. Key standards: 4.5:1 contrast for normal text (use `#6B7280` not `#a087b0` for secondary purple text), `aria-label` on all icon-only buttons, focus trap in modals, `aria-live` on toasts and message threads, `prefers-reduced-motion` respected for animations. Automated axe checks run on every PR via `axe-playwright`.
 7. **Responsive Breakpoints**: Define breakpoints for web (mobile, tablet, desktop)
 
 ---

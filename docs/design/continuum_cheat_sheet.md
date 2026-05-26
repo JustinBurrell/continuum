@@ -77,6 +77,21 @@
 
 ---
 
+## Accessibility — Color Contrast (WCAG AA)
+
+All text colors must meet a minimum contrast ratio of 4.5:1 on their background (3:1 for large text ≥ 18px bold or 24px regular). Decorative elements and non-text icons are exempt.
+
+### Verified Text Colors on White (#ffffff)
+| Color | Hex | Contrast Ratio | Status |
+|-------|-----|----------------|--------|
+| Primary purple | `#6B21A8` | 9.0:1 | Pass |
+| Secondary text | `#6B7280` | 4.6:1 | Pass |
+| **Legacy secondary (do not use for text)** | `#a087b0` | 2.9:1 | **Fail** |
+
+`#a087b0` fails WCAG AA for body text. Use `#6B7280` or `#6B21A8` instead. It remains acceptable only for purely decorative elements (borders, background tints) where no text contrast requirement applies.
+
+---
+
 ## Design Principles
 
 ### 1. Clarity Over Cleverness
