@@ -287,18 +287,18 @@ export default function OnboardingPage() {
                   <button
                     onClick={goBack}
                     aria-label="Go back"
-                    style={{ fontSize: 12, color: '#a087b0', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', lineHeight: 1, display: 'flex', alignItems: 'center', gap: 4 }}
+                    style={{ fontSize: 12, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', lineHeight: 1, display: 'flex', alignItems: 'center', gap: 4 }}
                   >
                     ← Back
                   </button>
                 )}
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#a087b0', letterSpacing: '0.02em' }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#6B7280', letterSpacing: '0.02em' }}>
                   {showActivation ? 'Almost done' : `Step ${displayStepNumber} of ${totalDisplaySteps}`}
                 </span>
               </div>
               <button
                 onClick={handleExit}
-                style={{ fontSize: 12, color: '#a087b0', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', lineHeight: 1 }}
+                style={{ fontSize: 12, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', lineHeight: 1 }}
               >
                 Skip setup
               </button>

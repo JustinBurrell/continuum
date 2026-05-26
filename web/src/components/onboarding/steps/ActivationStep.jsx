@@ -53,7 +53,7 @@ export default function ActivationStep({ headline, body, cta, route, onGo, onSki
           padding: '10px',
           background: 'none',
           border: 'none',
-          color: '#a087b0',
+          color: '#6B7280',
           cursor: 'pointer',
           fontSize: 13,
           textAlign: 'center',

@@ -1,9 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { injectAxe, checkA11y } from 'axe-playwright';
 import { registerUser, loginUser } from './helpers/auth';
 
 /** Navigate to the Profile Security tab and wait for the sessions section to be ready. */
 async function goToSecurityTab(page: import('@playwright/test').Page) {
   await page.goto('/profile');
+  await page.locator('h1').waitFor({ state: 'visible', timeout: 10_000 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await injectAxe(page);
+  await checkA11y(page, null, { detailedReport: true });
   await page.waitForURL('**/profile', { timeout: 8_000 });
   // Wait for the profile page's initial data fetch to finish before interacting
   await page.waitForLoadState('networkidle', { timeout: 10_000 });

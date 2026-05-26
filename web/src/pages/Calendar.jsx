@@ -135,6 +135,35 @@ export default function Calendar() {
     ? new Date(selected + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
     : null;
 
+  function handleCalendarKeyDown(e, key, date) {
+    const delta = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+    let next;
+    if (delta !== undefined) {
+      e.preventDefault();
+      next = new Date(date);
+      next.setDate(date.getDate() + delta);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      next = new Date(date);
+      next.setDate(date.getDate() - date.getDay());
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      next = new Date(date);
+      next.setDate(date.getDate() + (6 - date.getDay()));
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setSelected(s => s === key ? null : key);
+      return;
+    } else return;
+    const nextKey = toISO(next);
+    setSelected(nextKey);
+    if (next.getMonth() !== month || next.getFullYear() !== year) {
+      setYear(next.getFullYear());
+      setMonth(next.getMonth());
+    }
+    setTimeout(() => document.querySelector(`[data-date="${nextKey}"]`)?.focus(), 0);
+  }
+
   return (
     <div>
       {/* Page header */}
@@ -169,7 +198,9 @@ export default function Calendar() {
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: 24 }}>
         <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
+        <label htmlFor="calendar-search" className="sr-only">Search tasks by name</label>
         <input
+          id="calendar-search"
           style={{
             width: '100%',
             paddingLeft: 36,
@@ -274,13 +305,13 @@ export default function Calendar() {
             <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)', minHeight: 520 }}>
               {/* Month nav */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
-                <button onClick={prevMonth} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
+                <button aria-label="Previous month" onClick={prevMonth} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
                   <ChevronLeft size={16} />
                 </button>
                 <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1rem', fontWeight: 700, color: '#111827', margin: 0 }}>
                   {MONTHS[month]} {year}
                 </h2>
-                <button onClick={nextMonth} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
+                <button aria-label="Next month" onClick={nextMonth} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
                   <ChevronRight size={16} />
                 </button>
               </div>
@@ -296,74 +327,87 @@ export default function Calendar() {
 
               {/* Date cells */}
               {isLoading ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', flex: 1 }}>
-                  {Array.from({ length: 42 }).map((_, i) => (
-                    <Skeleton key={i} className="h-20 rounded-none" />
-                  ))}
+                <div role="grid" aria-label="Calendar" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', flex: 1 }}>
+                  <div role="row" style={{ display: 'contents' }}>
+                    {Array.from({ length: 42 }).map((_, i) => (
+                      <div key={i} role="gridcell"><Skeleton className="h-20 rounded-none" /></div>
+                    ))}
+                  </div>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridTemplateRows: 'repeat(6, 1fr)', flex: 1, overflow: 'hidden' }}>
-                  {dates.map(({ date, current }, i) => {
-                    const key = toISO(date);
-                    const tasksForDay = days[key] || [];
-                    const isToday = key === toISO(now);
-                    const isSelected = key === selected;
-                    return (
-                      <div
-                        key={i}
-                        onClick={() => setSelected(isSelected ? null : key)}
-                        style={{
-                          padding: '6px 6px',
-                          borderBottom: '1px solid #E5E7EB',
-                          borderRight: '1px solid #E5E7EB',
-                          cursor: 'pointer',
-                          transition: 'background 0.12s',
-                          background: isSelected ? 'rgba(107,33,168,0.06)' : isToday ? 'rgba(107,33,168,0.04)' : '#fff',
-                          opacity: current ? 1 : 0.35,
-                          overflow: 'hidden',
-                          display: 'flex',
-                          flexDirection: 'column',
-                        }}
-                      >
-                        <div style={{
-                          width: 26, height: 26, borderRadius: '50%',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 12, fontWeight: isToday ? 700 : 500,
-                          background: isToday ? '#6b21a8' : isSelected ? 'rgba(107,33,168,0.12)' : 'transparent',
-                          color: isToday ? '#fff' : '#374151',
-                          marginBottom: 3, flexShrink: 0,
-                        }}>
-                          {date.getDate()}
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflow: 'hidden' }}>
-                          {tasksForDay.slice(0, 2).map(task => {
-                            const ps = priorityStyle(task.priority);
-                            return (
-                              <div
-                                key={task._id}
-                                onClick={e => { e.stopPropagation(); setViewingTaskId(task._id); }}
-                                style={{
-                                  fontSize: 10, background: ps.bg, color: ps.text,
-                                  borderRadius: 4, padding: '1px 5px',
-                                  overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
-                                  fontWeight: 500, cursor: 'pointer', transition: 'opacity 0.12s', flexShrink: 0,
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
-                                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                              >
-                                {task.title}
-                              </div>
-                            );
-                          })}
-                          {tasksForDay.length > 2 && (
-                            <div style={{ fontSize: 9, color: '#9CA3AF', paddingLeft: 2, fontWeight: 500, flexShrink: 0 }}>
-                              +{tasksForDay.length - 2} more
+                <div role="grid" aria-label="Calendar" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridTemplateRows: 'repeat(6, 1fr)', flex: 1, overflow: 'hidden' }}>
+                  {Array.from({ length: 6 }, (_, rowIdx) => (
+                    <div key={rowIdx} role="row" style={{ display: 'contents' }}>
+                      {dates.slice(rowIdx * 7, rowIdx * 7 + 7).map(({ date, current }, colIdx) => {
+                        const i = rowIdx * 7 + colIdx;
+                        const key = toISO(date);
+                        const tasksForDay = days[key] || [];
+                        const isToday = key === toISO(now);
+                        const isSelected = key === selected;
+                        return (
+                          <div
+                            key={i}
+                            role="gridcell"
+                            data-date={key}
+                            tabIndex={isSelected || (!selected && isToday) ? 0 : -1}
+                            aria-selected={isSelected}
+                            aria-label={date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                            onClick={() => setSelected(isSelected ? null : key)}
+                            onKeyDown={(e) => handleCalendarKeyDown(e, key, date)}
+                            style={{
+                              padding: '6px 6px',
+                              borderBottom: '1px solid #E5E7EB',
+                              borderRight: '1px solid #E5E7EB',
+                              cursor: 'pointer',
+                              transition: 'background 0.12s',
+                              background: isSelected ? 'rgba(107,33,168,0.06)' : isToday ? 'rgba(107,33,168,0.04)' : '#fff',
+                              opacity: current ? 1 : 0.35,
+                              overflow: 'hidden',
+                              display: 'flex',
+                              flexDirection: 'column',
+                            }}
+                          >
+                            <div style={{
+                              width: 26, height: 26, borderRadius: '50%',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 12, fontWeight: isToday ? 700 : 500,
+                              background: isToday ? '#6b21a8' : isSelected ? 'rgba(107,33,168,0.12)' : 'transparent',
+                              color: isToday ? '#fff' : '#374151',
+                              marginBottom: 3, flexShrink: 0,
+                            }}>
+                              {date.getDate()}
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflow: 'hidden' }}>
+                              {tasksForDay.slice(0, 2).map(task => {
+                                const ps = priorityStyle(task.priority);
+                                return (
+                                  <div
+                                    key={task._id}
+                                    onClick={e => { e.stopPropagation(); setViewingTaskId(task._id); }}
+                                    style={{
+                                      fontSize: 10, background: ps.bg, color: ps.text,
+                                      borderRadius: 4, padding: '1px 5px',
+                                      overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+                                      fontWeight: 500, cursor: 'pointer', transition: 'opacity 0.12s', flexShrink: 0,
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+                                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                                  >
+                                    {task.title}
+                                  </div>
+                                );
+                              })}
+                              {tasksForDay.length > 2 && (
+                                <div style={{ fontSize: 9, color: '#9CA3AF', paddingLeft: 2, fontWeight: 500, flexShrink: 0 }}>
+                                  +{tasksForDay.length - 2} more
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -382,6 +426,7 @@ export default function Calendar() {
                     {selectedDateLabel}
                   </h3>
                   <button
+                    aria-label="Deselect day"
                     onClick={() => setSelected(null)}
                     style={{ padding: 2, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center', borderRadius: 4 }}
                   >
@@ -517,11 +562,11 @@ function WeekView({ days, weekDates, now, selected, onSelect, onPrev, onNext, on
     }}>
       {/* Week nav */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
-        <button onClick={onPrev} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
+        <button aria-label="Previous week" onClick={onPrev} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
           <ChevronLeft size={16} />
         </button>
         <h2 style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>{weekLabel}</h2>
-        <button onClick={onNext} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
+        <button aria-label="Next week" onClick={onNext} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
           <ChevronRight size={16} />
         </button>
       </div>

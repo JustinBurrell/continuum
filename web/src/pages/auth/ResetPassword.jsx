@@ -73,9 +73,9 @@ function LeftPanel() {
       </Link>
 
       <div style={{ marginBottom: 48, position: 'relative', zIndex: 1 }}>
-        <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: 32, color: '#ffffff', lineHeight: 1.2, marginBottom: 16 }}>
+        <p style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: 32, color: '#ffffff', lineHeight: 1.2, marginBottom: 16 }}>
           Your academic life, all in one place.
-        </h2>
+        </p>
         <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, maxWidth: 280 }}>
           Notes, flashcards, tasks, applications, and more, organized so you can focus on what matters.
         </p>
@@ -122,9 +122,9 @@ export default function ResetPassword() {
             <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
               <CheckCircle size={28} style={{ color: '#16a34a' }} />
             </div>
-            <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: 24, color: '#111827', marginBottom: 8 }}>
+            <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: 24, color: '#111827', marginBottom: 8 }}>
               Password updated
-            </h2>
+            </h1>
             <p style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.6, maxWidth: 300, margin: '0 auto 28px' }}>
               Your password has been reset. Redirecting you to sign in...
             </p>
@@ -152,9 +152,9 @@ export default function ResetPassword() {
             <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
               <AlertCircle size={28} style={{ color: '#DC2626' }} />
             </div>
-            <h2 style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: 24, color: '#111827', marginBottom: 8 }}>
+            <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, fontSize: 24, color: '#111827', marginBottom: 8 }}>
               Link expired
-            </h2>
+            </h1>
             <p style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.6, maxWidth: 300, margin: '0 auto 28px' }}>
               This reset link is invalid or has expired. Please request a new one.
             </p>

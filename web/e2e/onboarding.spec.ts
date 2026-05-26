@@ -1,4 +1,5 @@
 import { test, expect, APIRequestContext } from '@playwright/test';
+import { injectAxe, checkA11y } from 'axe-playwright';
 import { registerUser, registerAndStartOnboarding } from './helpers/auth';
 
 const API = 'http://localhost:5001/api';
@@ -57,6 +58,10 @@ test.describe('Route guards', () => {
   test('unauthenticated /onboarding redirects to /login', async ({ page }) => {
     await page.goto('/onboarding');
     await expect(page).toHaveURL(/\/login/, { timeout: 5_000 });
+    await page.locator('h1').waitFor({ state: 'visible', timeout: 10_000 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await injectAxe(page);
+    await checkA11y(page, null, { detailedReport: true });
   });
 
   test('fully-completed user visiting /onboarding is redirected to /dashboard', async ({ page }) => {

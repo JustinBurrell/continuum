@@ -60,6 +60,12 @@ export default function MarketingNav() {
         borderBottom: '1px solid #E5E7EB',
       }}
     >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-white focus:text-purple-800 focus:rounded focus:shadow"
+      >
+        Skip to main content
+      </a>
       <div style={{ maxWidth: 1152, margin: '0 auto', padding: '0 24px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* Logo */}
         <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}>
@@ -67,7 +73,7 @@ export default function MarketingNav() {
         </Link>
 
         {/* Center nav links */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <nav aria-label="Main navigation" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {navLinks.map(({ to, label }) => {
             const active = pathname === to || pathname.startsWith(to + '/');
             return (

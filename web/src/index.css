@@ -269,8 +269,12 @@
 
 /* ---- Flashcard flip ---- */
 .flashcard-inner {
-  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .flashcard-inner {
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
 .flashcard-inner.flipped {
   transform: rotateY(180deg);
@@ -289,8 +293,10 @@
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: none; }
 }
-.page-fade-in {
-  animation: fadeInUp 0.2s ease-out both;
+@media (prefers-reduced-motion: no-preference) {
+  .page-fade-in {
+    animation: fadeInUp 0.2s ease-out both;
+  }
 }
 
 /* ---- Onboarding modal step transition ---- */
@@ -298,8 +304,10 @@
   from { opacity: 0; transform: translateX(28px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-.onboarding-step-enter {
-  animation: onboardingSlideIn 0.25s ease-out both;
+@media (prefers-reduced-motion: no-preference) {
+  .onboarding-step-enter {
+    animation: onboardingSlideIn 0.25s ease-out both;
+  }
 }
 
 /* ---- Responsive layout ---- */
@@ -443,6 +451,17 @@
   pointer-events: none;
   float: left;
   height: 0;
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .page-fade-in,
+  .onboarding-step-enter {
+    animation: none;
+  }
+  .sidebar-wrapper {
+    transition: none;
+  }
 }
 
 /* ---- Tiptap editor content styles (Tailwind preflight resets these) ---- */

@@ -21,7 +21,7 @@ const STAGE_STYLES = {
   interview: { bg: 'rgba(217,119,6,0.08)', color: '#D97706',  border: 'rgba(217,119,6,0.2)' },
   offer:     { bg: 'rgba(5,150,105,0.08)', color: '#059669',  border: 'rgba(5,150,105,0.2)' },
   rejected:  { bg: '#FEE2E2',              color: '#DC2626',  border: '#FECACA' },
-  withdrawn: { bg: '#F3F4F6',              color: '#9CA3AF',  border: '#E5E7EB' },
+  withdrawn: { bg: '#F3F4F6',              color: '#6B7280',  border: '#E5E7EB' },
 };
 
 const emptyForm = {
@@ -134,7 +134,7 @@ export default function ApplicationsList() {
           <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
             Applications
           </h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{data?.total ?? apps.length} total</p>
+          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>{data?.total ?? apps.length} total</p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {['pipeline', 'list'].map(v => (
@@ -168,8 +168,10 @@ export default function ApplicationsList() {
       {/* Filters */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
         <div style={{ position: 'relative' }}>
-          <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
+          <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#6B7280' }} />
+          <label htmlFor="application-search" className="sr-only">Search company or role</label>
           <input
+            id="application-search"
             className="input-field"
             style={{ paddingLeft: 36 }}
             placeholder="Search company or role..."
@@ -256,7 +258,7 @@ export default function ApplicationsList() {
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}>
-                      <p style={{ fontSize: 11, color: '#9CA3AF' }}>Empty</p>
+                      <p style={{ fontSize: 11, color: '#6B7280' }}>Empty</p>
                     </div>
                   ) : (
                     byStage[stage].map(app => (
@@ -281,12 +283,12 @@ export default function ApplicationsList() {
             <Briefcase size={40} style={{ margin: '0 auto 12px', color: '#D1D5DB' }} />
             {stageFilter !== 'all' || search ? (
               <>
-                <h3 style={{ fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>No applications found</h3>
+                <p style={{ fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>No applications found</p>
                 <p style={{ color: '#6B7280', fontSize: 14 }}>No applications match this filter.</p>
               </>
             ) : (
               <>
-                <h3 style={{ fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>No applications yet</h3>
+                <p style={{ fontWeight: 600, color: '#111827', margin: '0 0 6px' }}>No applications yet</p>
                 <p style={{ color: '#6B7280', fontSize: 14, marginBottom: 16 }}>Start tracking your job applications.</p>
                 <Button size="sm" onClick={() => setShowCreate(true)}>Add your first application</Button>
               </>
@@ -331,11 +333,11 @@ export default function ApplicationsList() {
                   >
                     <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0 }}>{app.company}</p>
                   </Link>
-                  <p style={{ fontSize: 12, color: '#9CA3AF', margin: '2px 0 0' }}>{app.position}</p>
-                  {app.location && <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>{app.location}</p>}
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{app.position}</p>
+                  {app.location && <p style={{ fontSize: 11, color: '#6B7280', margin: '2px 0 0' }}>{app.location}</p>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  {app.appliedAt && <p style={{ fontSize: 12, color: '#9CA3AF' }}>{formatDate(app.appliedAt)}</p>}
+                  {app.appliedAt && <p style={{ fontSize: 12, color: '#6B7280' }}>{formatDate(app.appliedAt)}</p>}
                   <StageBadge stage={app.status} />
                   <Link to="/applications/view" state={{ id: app._id, application: app }}>
                     <Button variant="ghost" size="sm">View</Button>
@@ -463,8 +465,8 @@ function PipelineCard({ app, stages, onStageChange, stateApp }) {
       onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 6px rgba(107,33,168,0.06)'}
     >
       <p style={{ fontWeight: 700, fontSize: 13, color: '#111827', margin: 0 }}>{app.company}</p>
-      <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 8px' }}>{app.position}</p>
-      {app.location && <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 8 }}>{app.location}</p>}
+      <p style={{ fontSize: 11, color: '#6B7280', margin: '3px 0 8px' }}>{app.position}</p>
+      {app.location && <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 8 }}>{app.location}</p>}
       <select
         value={app.status}
         onChange={e => onStageChange(e.target.value)}

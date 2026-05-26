@@ -22,7 +22,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 |--------|-------|
 | Database collections | 17 |
 | API endpoints | ~117 across 19 route groups |
-| Frontend pages (web) | 31 |
+| Frontend pages (web) | 32 |
 | Frontend screens (Android) | 30+ |
 | Web UI components | 27 |
 | Android composables | 40+ (reusable + screen-level) |
@@ -51,7 +51,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 | Auth | JWT access tokens, httpOnly refresh cookies, Google OAuth 2.0 |
 | Monitoring | Sentry (backend `@sentry/node` + frontend `@sentry/react`), PostHog (product analytics + session replay) |
 | Deployment | Vercel (frontend) + Render Starter (backend) + Upstash Redis |
-| CI | GitHub Actions — Jest, Playwright E2E, and Android unit tests run in parallel on every PR |
+| CI | GitHub Actions — Jest, Playwright E2E (including axe-playwright accessibility checks), and Android unit tests run in parallel on every PR |
 
 ---
 
@@ -68,6 +68,7 @@ Built over 8 weeks for the 2026 All Star Code Technical Entrepreneurship Incubat
 - **Auth** — email/password and Google OAuth (`drive.file` scope — non-sensitive, no CASA assessment required) with JWT + httpOnly refresh cookie rotation; welcome email on register; new device login alert on first-time device fingerprint; one-click account restore via SHA-256 hashed token (same pattern as password reset)
 - **Mobile marketing page** — purpose-built waitlist landing page shown to visitors on phones and tablets (<1024px). Hero split layout (text + iPhone device frame), six feature highlights each with a mini device preview, platform-interest waitlist form (iOS/Android/Both), Resend welcome email with platform-personalized copy. `/privacy` and `/terms` serve mobile-optimized legal pages without hitting the gate. Legal docs on Android now open in the device browser via `LocalUriHandler` instead of an in-app screen.
 - **Dashboard** — accurate total counts pulled from paginated response metadata (not capped list lengths)
+- **Accessibility** — WCAG 2.1 Level AA and Section 508 compliant. Skip links on every page, focus trap in all modals (focus-trap-react), aria-label on all icon-only buttons, aria-live on toasts and the message thread, prefers-reduced-motion respected for all CSS animations, ARIA grid roles with full arrow key navigation on the calendar, visible priority labels on task cards. Automated axe-playwright checks run on every PR across all 8 Playwright specs. Public Accessibility Statement at `/accessibility` (linked in marketing footer) names supported screen readers (VoiceOver, NVDA, TalkBack), browsers, and known limitations with workarounds.
 - **Onboarding** — goal-personalized multi-step profile setup (web full-page, Android full-screen) → activation step with coach mark on the goal-relevant CTA; "Show me everything" goal opens the full 11-step feature tour instead. Replay tour available from Profile on both platforms. Web tour uses a React portal-rendered backdrop (bypasses CSS stacking context from `animation-fill-mode: both`) + pulsing purple ring via `getBoundingClientRect` screen coords. Android replay tour uses a `TourOverlay` composable (full-width bottom card, dimmed backdrop, back/next/skip) that navigates through each section in sidebar order while showing the real app UI behind it. Demo and seed accounts bypass all onboarding flows.
 
 ---
@@ -590,6 +591,7 @@ Playwright boots the real Express backend (with `mongodb-memory-server`) and the
 | Tasks | Create, status change (regression: no `old?.pages` TypeError), dashboard stat count |
 | Career | Create application, edit status, delete, Resumes tab renders |
 | Mobile | Gate renders at <1024px; desktop renders at ≥1024px; /privacy and /terms accessible without hitting gate; waitlist form validation (platform pills mutually exclusive, submit gated on all three fields); successful signup shows platform-personalized success state; duplicate email error; scroll-to-form from nav and legal pages; "Join the waitlist" on legal pages navigates and scrolls; TOC anchor links |
+| All specs (axe-playwright) | `checkA11y` runs in every spec after primary page navigation — catches WCAG violations as CI failures, preventing accessibility regressions from merging |
 
 The `old?.pages` TypeError was a production bug caught by the delete-note and status-change tests. Guard: `if (!old?.pages) return old` in both `NotesList.jsx` and `Tasks.jsx`.
 
@@ -771,7 +773,9 @@ For full details see `docs/android/architecture.md`, `docs/android/react-to-andr
 
 6. **Deployed and accessible** — Not a localhost demo. Live at a real URL with a public API explorer.
 
-7. **True cross-platform with shared backend** — Web and Android consume the exact same REST API. The Android app adds 4 mobile-specific auth endpoints and a full offline layer — the same pattern used at companies like Instagram and Notion.
+7. **WCAG AA + Section 508 compliance with automated regression coverage** — Most senior projects have zero accessibility work. Continuum has a formal compliance pass, a public Accessibility Statement naming supported screen readers and known limitations, and `axe-playwright` checks blocking merges on violations. The Section 508 callout specifically targets university and school district procurement — the exact customer segment that runs formal accessibility reviews before adopting edtech tools.
+
+8. **True cross-platform with shared backend** — Web and Android consume the exact same REST API. The Android app adds 4 mobile-specific auth endpoints and a full offline layer — the same pattern used at companies like Instagram and Notion.
 
 ---
 

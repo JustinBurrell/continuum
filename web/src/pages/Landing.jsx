@@ -115,7 +115,7 @@ export default function Landing() {
       <MarketingNav active="landing" />
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section id="main-content" className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div style={{ position: 'absolute', top: -120, left: '50%', transform: 'translateX(-50%)', width: 1000, height: 700, borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(107,33,168,0.08) 0%, transparent 65%)' }} />
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.3 }}>
@@ -191,7 +191,7 @@ export default function Landing() {
             <div className="flex-1 mx-3">
               <div
                 className="rounded px-3 py-0.5 text-xs text-center max-w-xs mx-auto"
-                style={{ background: 'white', color: '#9CA3AF', border: '1px solid #E5E7EB' }}
+                style={{ background: 'white', color: '#6B7280', border: '1px solid #E5E7EB' }}
               >
                 usecontinuum.dev/dashboard
               </div>
@@ -207,7 +207,7 @@ export default function Landing() {
               </div>
 
               <div className="mb-5">
-                <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#9CA3AF', marginBottom: 6, paddingLeft: 6 }}>Workspace</div>
+                <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#6B7280', marginBottom: 6, paddingLeft: 6 }}>Workspace</div>
                 {[
                   { label: 'Dashboard', active: true },
                   { label: 'Notes' },
@@ -232,14 +232,14 @@ export default function Landing() {
               </div>
 
               <div className="mb-5">
-                <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#9CA3AF', marginBottom: 6, paddingLeft: 6 }}>Career</div>
+                <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#6B7280', marginBottom: 6, paddingLeft: 6 }}>Career</div>
                 {['Applications', 'Resumes'].map(label => (
                   <div key={label} style={{ padding: '6px 8px', borderRadius: 5, fontSize: 12, color: '#4B5563', marginBottom: 1 }}>{label}</div>
                 ))}
               </div>
 
               <div>
-                <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#9CA3AF', marginBottom: 6, paddingLeft: 6 }}>Social</div>
+                <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#6B7280', marginBottom: 6, paddingLeft: 6 }}>Social</div>
                 {['Messages', 'Friends'].map(label => (
                   <div key={label} style={{ padding: '6px 8px', borderRadius: 5, fontSize: 12, color: '#4B5563', marginBottom: 1 }}>{label}</div>
                 ))}
@@ -249,7 +249,7 @@ export default function Landing() {
                 <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg, #a087b0, #6B21A8)', flexShrink: 0 }} />
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: '#111827' }}>Alex Chen</div>
-                  <div style={{ fontSize: 10, color: '#9CA3AF' }}>Student</div>
+                  <div style={{ fontSize: 10, color: '#6B7280' }}>Student</div>
                 </div>
               </div>
             </div>
@@ -273,7 +273,7 @@ export default function Landing() {
                 <div className="flex flex-col gap-5">
                   <div>
                     <div className="flex items-center justify-between mb-3" style={{ borderBottom: '1px solid #E5E7EB', paddingBottom: 6 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#9CA3AF' }}>Recent Notes</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#6B7280' }}>Recent Notes</span>
                       <span style={{ fontSize: 10, color: '#6B21A8', fontWeight: 600 }}>View all</span>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
@@ -290,13 +290,13 @@ export default function Landing() {
                           <div style={{ height: 2, width: 28, background: n.accent ? '#6B21A8' : '#E5E7EB', borderRadius: 1 }} />
                         </div>
                       ))}
-                      <div style={{ border: '1px dashed #D1D5DB', borderRadius: 8, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9CA3AF', fontSize: 18 }}>+</div>
+                      <div style={{ border: '1px dashed #D1D5DB', borderRadius: 8, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280', fontSize: 18 }}>+</div>
                     </div>
                   </div>
 
                   <div>
                     <div style={{ borderBottom: '1px solid #E5E7EB', paddingBottom: 6, marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#9CA3AF' }}>Priority Tasks</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#6B7280' }}>Priority Tasks</span>
                     </div>
                     <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 8, padding: 4 }}>
                       {[
@@ -320,7 +320,7 @@ export default function Landing() {
                 <div className="flex flex-col gap-5">
                   <div>
                     <div style={{ borderBottom: '1px solid #E5E7EB', paddingBottom: 6, marginBottom: 8 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#9CA3AF' }}>Activity Feed</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#6B7280' }}>Activity Feed</span>
                     </div>
                     {[
                       { who: 'Sarah', text: ' shared "Calc II Midterm Prep" with you.', time: '10 min ago', active: true },
@@ -331,7 +331,7 @@ export default function Landing() {
                         <div style={{ width: 9, height: 9, borderRadius: '50%', border: `2px solid ${a.active ? '#6B21A8' : '#D1D5DB'}`, background: a.active ? '#6B21A8' : 'white', marginTop: 3, flexShrink: 0 }} />
                         <div style={{ fontSize: 11, color: '#6B7280' }}>
                           <strong style={{ color: '#111827', fontWeight: 600 }}>{a.who}</strong>{a.text}
-                          <span style={{ display: 'block', fontSize: 10, color: '#9CA3AF', marginTop: 1 }}>{a.time}</span>
+                          <span style={{ display: 'block', fontSize: 10, color: '#6B7280', marginTop: 1 }}>{a.time}</span>
                         </div>
                       </div>
                     ))}
@@ -339,7 +339,7 @@ export default function Landing() {
 
                   <div>
                     <div style={{ borderBottom: '1px solid #E5E7EB', paddingBottom: 6, marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#9CA3AF' }}>Applications</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#6B7280' }}>Applications</span>
                     </div>
                     <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 8, padding: '4px 12px' }}>
                       {[

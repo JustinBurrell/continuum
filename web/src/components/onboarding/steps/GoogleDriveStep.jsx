@@ -64,7 +64,7 @@ export default function GoogleDriveStep({ onContinue, onSkip }) {
       <button
         type="button"
         onClick={onSkip}
-        style={{ background: 'none', border: 'none', color: '#a087b0', fontSize: '0.875rem', cursor: 'pointer', width: '100%' }}
+        style={{ background: 'none', border: 'none', color: '#6B7280', fontSize: '0.875rem', cursor: 'pointer', width: '100%' }}
       >
         Skip for now
       </button>

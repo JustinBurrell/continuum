@@ -33,10 +33,11 @@ const TYPE_COLORS = {
 };
 
 const PRIORITY_COLORS = {
-  high: { border: '#ef4444', bg: 'rgba(239,68,68,0.08)', dot: '#ef4444' },
-  medium: { border: '#f59e0b', bg: 'rgba(245,158,11,0.08)', dot: '#f59e0b' },
-  low: { border: '#d1d5db', bg: 'transparent', dot: '#9ca3af' },
+  high: { border: '#ef4444', bg: 'rgba(239,68,68,0.08)', dot: '#ef4444', text: '#DC2626' },
+  medium: { border: '#f59e0b', bg: 'rgba(245,158,11,0.08)', dot: '#f59e0b', text: '#D97706' },
+  low: { border: '#d1d5db', bg: 'transparent', dot: '#9ca3af', text: '#6B7280' },
 };
+const PRIORITY_LABELS = { high: 'High', medium: 'Medium', low: 'Low' };
 
 const COLUMN_META = {
   todo: { label: 'To Do', accent: '#6b21a8' },
@@ -241,7 +242,7 @@ export default function Tasks() {
           <h1 style={{ fontFamily: 'Fraunces, Georgia, serif', fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0 }}>
             Tasks
           </h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{allTasks.length} tasks</p>
+          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>{allTasks.length} tasks</p>
         </div>
         {!user?.isDemo && (
           <Button onClick={() => setShowCreate(true)} data-tour-highlight="tasks-new">
@@ -585,35 +586,47 @@ function TaskCard({ task, onStatusChange, onDelete, onView, isSharedTab, current
         </p>
       )}
 
-      {(task.type || task.dueDate) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-          {task.type && (
-            <span style={{
-              fontSize: 10,
-              fontWeight: 600,
-              padding: '2px 8px',
-              borderRadius: 20,
-              background: (TYPE_COLORS[task.type] || TYPE_COLORS.other).bg,
-              color: (TYPE_COLORS[task.type] || TYPE_COLORS.other).text,
-              textTransform: 'capitalize',
-            }}>
-              {task.type}
-            </span>
-          )}
-          {task.dueDate && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              fontSize: 11,
-              color: isOverdue ? '#ef4444' : '#9CA3AF',
-            }}>
-              {isOverdue ? <AlertCircle size={11} /> : <Clock size={11} />}
-              {isOverdue ? 'Overdue · ' : ''}{formatDate(task.dueDate)}
-            </div>
-          )}
-        </div>
-      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+        <span style={{
+          fontSize: 10,
+          fontWeight: 600,
+          padding: '2px 7px',
+          borderRadius: 20,
+          background: priorityStyle.bg || 'rgba(107,33,168,0.06)',
+          color: priorityStyle.text,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+        }}>
+          <span style={{ width: 5, height: 5, borderRadius: '50%', background: priorityStyle.dot, flexShrink: 0, display: 'inline-block' }} />
+          {PRIORITY_LABELS[task.priority] || 'Low'}
+        </span>
+        {task.type && (
+          <span style={{
+            fontSize: 10,
+            fontWeight: 600,
+            padding: '2px 8px',
+            borderRadius: 20,
+            background: (TYPE_COLORS[task.type] || TYPE_COLORS.other).bg,
+            color: (TYPE_COLORS[task.type] || TYPE_COLORS.other).text,
+            textTransform: 'capitalize',
+          }}>
+            {task.type}
+          </span>
+        )}
+        {task.dueDate && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            fontSize: 11,
+            color: isOverdue ? '#ef4444' : '#6B7280',
+          }}>
+            {isOverdue ? <AlertCircle size={11} /> : <Clock size={11} />}
+            {isOverdue ? 'Overdue · ' : ''}{formatDate(task.dueDate)}
+          </div>
+        )}
+      </div>
 
       {/* Footer: status + delete */}
       <div style={{

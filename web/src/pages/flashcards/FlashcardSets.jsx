@@ -240,9 +240,9 @@ export default function FlashcardSets() {
           }}>
             <BookOpen size={28} style={{ color: '#6b21a8' }} />
           </div>
-          <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '1rem', marginBottom: 6 }}>
+          <p style={{ fontWeight: 600, color: '#111827', fontSize: '1rem', marginBottom: 6 }}>
             {sharedTab ? 'No shared sets' : 'No flashcard sets'}
-          </h3>
+          </p>
           <p style={{ color: '#6B7280', fontSize: '0.875rem', marginBottom: 20 }}>
             {sharedTab
               ? 'No flashcard sets have been shared with you yet.'
@@ -478,7 +478,7 @@ function FlashcardSetCard({ set, onDelete }) {
 
       {/* Title + subject */}
       <Link to="/flashcards/view" state={{ id: set._id }} style={{ flex: 1, textDecoration: 'none' }}>
-        <h3 style={{
+        <h2 style={{
           fontWeight: 600,
           color: '#111827',
           fontSize: '0.9375rem',
@@ -494,7 +494,7 @@ function FlashcardSetCard({ set, onDelete }) {
         onMouseLeave={e => e.currentTarget.style.color = '#111827'}
         >
           {set.title}
-        </h3>
+        </h2>
         {set.subject && (
           <p style={{ fontSize: '0.8125rem', color: '#6B7280', marginBottom: 8 }}>{set.subject}</p>
         )}
@@ -513,7 +513,7 @@ function FlashcardSetCard({ set, onDelete }) {
 
       {/* Footer */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
-        <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{formatRelative(set.updatedAt)}</span>
+        <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>{formatRelative(set.updatedAt)}</span>
         <Link to="/flashcards/study" state={{ id: set._id }}>
           <button
             style={{

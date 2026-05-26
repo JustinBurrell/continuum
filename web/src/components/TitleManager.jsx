@@ -10,6 +10,7 @@ const TITLES = {
   '/about': 'Continuum | About',
   '/privacy': 'Continuum | Privacy Policy',
   '/terms': 'Continuum | Terms of Service',
+  '/accessibility': 'Continuum | Accessibility',
 
   // Auth
   '/login': 'Continuum | Sign In',
@@ -47,6 +48,7 @@ const DESCRIPTIONS = {
   '/about': 'Learn about the team behind Continuum and why we built it.',
   '/privacy': 'How Continuum collects, uses, and protects your data.',
   '/terms': 'The terms and conditions governing your use of Continuum.',
+  '/accessibility': 'Our commitment to digital accessibility and WCAG AA compliance.',
 };
 
 function setMeta(selector, attr, value) {

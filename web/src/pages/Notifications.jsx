@@ -130,7 +130,7 @@ export default function Notifications() {
 
             {/* Loading state */}
             {isLoading && (
-                <p style={{ color: '#9CA3AF', fontSize: 14, textAlign: 'center', paddingTop: 48 }}>
+                <p style={{ color: '#6B7280', fontSize: 14, textAlign: 'center', paddingTop: 48 }}>
                     Loading...
                 </p>
             )}
@@ -139,7 +139,7 @@ export default function Notifications() {
             {!isLoading && allNotifications.length === 0 && (
                 <div style={{ textAlign: 'center', paddingTop: 64 }}>
                     <p style={{ fontSize: 15, color: '#6B7280', margin: 0 }}>No notifications yet</p>
-                    <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 6 }}>
+                    <p style={{ fontSize: 13, color: '#6B7280', marginTop: 6 }}>
                         Activity from your friends will appear here.
                     </p>
                 </div>
@@ -153,7 +153,7 @@ export default function Notifications() {
                         fontWeight: 600,
                         letterSpacing: '0.08em',
                         textTransform: 'uppercase',
-                        color: '#9CA3AF',
+                        color: '#6B7280',
                         marginBottom: 8,
                         padding: '0 4px',
                     }}>
@@ -183,7 +183,7 @@ export default function Notifications() {
                 <div ref={sentinelRef} style={{ height: 1 }} />
             )}
             {isFetchingNextPage && (
-                <p style={{ color: '#9CA3AF', fontSize: 13, textAlign: 'center', paddingTop: 12 }}>
+                <p style={{ color: '#6B7280', fontSize: 13, textAlign: 'center', paddingTop: 12 }}>
                     Loading more...
                 </p>
             )}
@@ -273,7 +273,7 @@ function PageNotifItem({ notif, isLast, onClick, onDelete }) {
                         "{notif.metadata.commentPreview ?? notif.metadata.messagePreview}"
                     </p>
                 )}
-                <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0' }}>
+                <p style={{ fontSize: 11, color: '#6B7280', margin: '3px 0 0' }}>
                     {formatRelative(notif.createdAt)}
                 </p>
             </div>

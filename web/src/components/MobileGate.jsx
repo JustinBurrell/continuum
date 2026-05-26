@@ -141,6 +141,7 @@ export default function MobileGate() {
         </div>
       </nav>
 
+      <main id="main-content">
       {/* ── Section 1: Hero — Mogul pattern: left-aligned text, phone centered below ── */}
       {/* Phone sits in normal flow below the CTA; its height naturally bleeds off   */}
       {/* the viewport bottom on smaller devices, revealing more as the user scrolls. */}
@@ -219,6 +220,8 @@ export default function MobileGate() {
         {/* Horizontal scroll carousel — one feature per card */}
         <div
           ref={carouselRef}
+          tabIndex={0}
+          aria-label="Feature carousel"
           style={{
             display: 'flex',
             overflowX: 'auto',
@@ -376,6 +379,8 @@ export default function MobileGate() {
           </p>
         </div>
       </section>
+
+      </main>
 
       {/* ── Footer ── */}
       <footer className="relative w-full">

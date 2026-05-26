@@ -748,6 +748,7 @@ POL-14. [ ] `build: prepare android build for google play`
 
 ### Completed
 - [x] `fix: form validation audit` — Added inline error messages and red `*` required indicators across all forms: Login, ForgotPassword, Register, ResetPassword, NoteEditor, Tasks create, FlashcardSets create, FlashcardSetDetail add/edit card, ApplicationsList create, ApplicationDetail edit (also added missing disabled guard on Save button), Profile (lastName now required, all required fields have * indicators). Updated Input, FieldInput, and PasswordInput components to support `required` prop.
+- [x] `feat: wcag aa accessibility audit` — Full WCAG 2.1 AA / Section 508 compliance pass on all web routes. Fixed: skip links, modal focus trap (focus-trap-react), aria-label on all icon-only buttons, sr-only labels on search inputs, aria-live on toasts and message thread, prefers-reduced-motion for flashcard and nav animations, ARIA grid roles + keyboard arrow navigation on calendar, visible priority labels on task cards, navigation landmark labels. Added axe-playwright to all 8 E2E specs for CI regression coverage. Published `/accessibility` statement page (linked in marketing footer under Legal).
 
 ### Reference Documents
 - **Database schemas & data flows**: [MongoDB Schema Explanation](./database/mongodb_schema_explaination.md) and [MongoDB Schema Implementation Order](./database/mongodb_schema_implementation_order.md)

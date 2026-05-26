@@ -1,4 +1,5 @@
 import { test, expect, devices } from '@playwright/test';
+import { injectAxe, checkA11y } from 'axe-playwright';
 
 const DESKTOP = { width: 1280, height: 800 };
 
@@ -12,6 +13,10 @@ test.describe('Mobile gate', () => {
 
   test('shows mobile gate (not app) at mobile viewport', async ({ page }) => {
     await page.goto('/');
+    await page.locator('h1').waitFor({ state: 'visible', timeout: 10_000 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await injectAxe(page);
+    await checkA11y(page, null, { detailedReport: true });
     await expect(page.locator('h1')).toContainText('Stop switching between 8 apps');
     await expect(page.locator('text=Dashboard')).not.toBeVisible();
   });

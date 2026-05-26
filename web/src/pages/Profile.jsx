@@ -41,7 +41,7 @@ const sectionLabel = {
   fontWeight: 700,
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
-  color: '#9CA3AF',
+  color: '#6B7280',
   marginBottom: 10,
   marginTop: 4,
 };
@@ -137,7 +137,7 @@ function DeleteAccountModal({ username, googleOnly, onClose, onConfirm, loading 
         background: '#fff', borderRadius: 20, padding: 28, width: 420, maxWidth: '92vw',
         boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
       }}>
-        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#dc2626', margin: '0 0 6px' }}>Delete account</h3>
+        <p style={{ fontSize: 16, fontWeight: 700, color: '#dc2626', margin: '0 0 6px' }}>Delete account</p>
         <p style={{ fontSize: 13, color: '#374151', margin: '0 0 16px', lineHeight: 1.5 }}>
           Your account will be <strong>scheduled for deletion in 30 days</strong>. All your notes, tasks,
           flashcards, messages, and data will be permanently removed.
@@ -651,7 +651,7 @@ export default function Profile() {
                   <span style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>{fullName}</span>
                   <VerifiedBadge roles={me?.roles} />
                 </span>
-                <p style={{ fontSize: 13, color: '#9CA3AF', margin: '2px 0 6px' }}>@{me?.username}</p>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: '2px 0 6px' }}>@{me?.username}</p>
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <CalendarIcon size={11} /> Joined {formatDate(me?.createdAt)}
@@ -679,7 +679,7 @@ export default function Profile() {
                   </div>
                   <div>
                     <span style={{ fontWeight: 700, fontSize: 20, color: '#111827', lineHeight: 1 }}>{streak}</span>
-                    <span style={{ fontSize: 13, color: '#9CA3AF', marginLeft: 6 }}>day study streak</span>
+                    <span style={{ fontSize: 13, color: '#6B7280', marginLeft: 6 }}>day study streak</span>
                   </div>
                 </div>
                 <Link to="/flashcards" style={{ fontSize: 12, color: '#6b21a8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -704,7 +704,7 @@ export default function Profile() {
                     <Icon size={14} style={{ color: '#6b21a8' }} />
                   </div>
                   <span style={{ fontWeight: 600, fontSize: 14, color: '#111827' }}>{label}</span>
-                  <span style={{ fontSize: 11, color: '#9CA3AF', background: 'rgba(107,33,168,0.08)', padding: '1px 7px', borderRadius: 20 }}>{items.length}</span>
+                  <span style={{ fontSize: 11, color: '#6B7280', background: 'rgba(107,33,168,0.08)', padding: '1px 7px', borderRadius: 20 }}>{items.length}</span>
                 </div>
                 <Link to={path} style={{ fontSize: 12, color: '#6b21a8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 2 }}>
                   View all <ChevronRight size={12} />
@@ -811,7 +811,7 @@ export default function Profile() {
               </div>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 2px' }}>{fullName}</p>
-                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>JPG or PNG, max 5 MB</p>
+                <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>JPG or PNG, max 5 MB</p>
                 {!user?.isDemo && (
                   <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                     {/* Edit crop on existing avatar — shown when no new file is pending */}
@@ -858,7 +858,7 @@ export default function Profile() {
           <div style={card}>
             <p style={sectionLabel}>Personal info</p>
             {user?.isDemo && (
-              <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 12, fontStyle: 'italic' }}>
+              <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 12, fontStyle: 'italic' }}>
                 Demo account. Profile is read-only.
               </p>
             )}
@@ -960,7 +960,7 @@ export default function Profile() {
                     },
                   })}
                 />
-                <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 5 }}>
+                <p style={{ fontSize: 11, color: '#6B7280', marginTop: 5 }}>
                   3–30 characters. Letters, numbers, underscores and hyphens only.
                 </p>
               </div>
@@ -1051,9 +1051,9 @@ export default function Profile() {
             <div style={card}>
               <p style={sectionLabel}>Active sessions</p>
               {sessionsLoading ? (
-                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>Loading sessions...</p>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>Loading sessions...</p>
               ) : !sessionsData || sessionsData.length === 0 ? (
-                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>No active sessions found.</p>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>No active sessions found.</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {sessionsData.map((s) => {
@@ -1086,7 +1086,7 @@ export default function Profile() {
                                 </span>
                               )}
                             </div>
-                            <p style={{ fontSize: 11, color: '#9CA3AF', margin: '3px 0 0' }}>
+                            <p style={{ fontSize: 11, color: '#6B7280', margin: '3px 0 0' }}>
                               <span>Signed in {new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                               {relativeTime && (
                                 <> &middot; <span title={absoluteTime}>Last active {relativeTime}</span></>

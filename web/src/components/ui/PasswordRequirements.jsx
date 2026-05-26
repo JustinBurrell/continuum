@@ -27,12 +27,12 @@ export default function PasswordRequirements({ password }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
-              <span style={{ fontSize: 9, fontWeight: 700, color: pending ? '#a087b0' : ok ? '#16a34a' : '#dc2626' }}>
+              <span style={{ fontSize: 9, fontWeight: 700, color: pending ? '#6B7280' : ok ? '#16a34a' : '#dc2626' }}>
                 {pending ? '·' : ok ? '✓' : '✗'}
               </span>
             </span>
             <span
-              style={{ fontSize: 12, color: pending ? '#a087b0' : ok ? '#16a34a' : '#dc2626' }}
+              style={{ fontSize: 12, color: pending ? '#6B7280' : ok ? '#16a34a' : '#dc2626' }}
               aria-label={`${label}: ${pending ? 'not entered' : ok ? 'met' : 'not met'}`}
             >
               {label}

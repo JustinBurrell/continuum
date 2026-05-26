@@ -7,6 +7,7 @@ import { useMobile } from '@/hooks/useMobile';
 import MobileGate from '@/components/MobileGate';
 import MobilePrivacyPage from '@/pages/MobilePrivacyPage';
 import MobileTermsPage from '@/pages/MobileTermsPage';
+import MobileAccessibilityPage from '@/pages/MobileAccessibilityPage';
 
 import AppLayout from '@/components/layout/AppLayout';
 import AuthLayout from '@/components/layout/AuthLayout';
@@ -26,6 +27,7 @@ import Product from '@/pages/Product';
 import About from '@/pages/About';
 import PrivacyPolicy from '@/pages/legal/PrivacyPolicy';
 import TermsOfService from '@/pages/legal/TermsOfService';
+import Accessibility from '@/pages/legal/Accessibility';
 import Dashboard from '@/pages/Dashboard';
 import NotesList from '@/pages/notes/NotesList';
 import NoteDetail from '@/pages/notes/NoteDetail';
@@ -60,6 +62,7 @@ export default function App() {
             {/* Legal pages reachable on mobile without hitting the gate */}
             <Route path="/privacy" element={<MobilePrivacyPage />} />
             <Route path="/terms" element={<MobileTermsPage />} />
+            <Route path="/accessibility" element={<MobileAccessibilityPage />} />
             <Route path="*" element={<MobileGate />} />
           </Routes> : <Routes>
             {/* Public pages */}
@@ -68,6 +71,7 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/accessibility" element={<Accessibility />} />
 
             {/* Auth — unauthenticated only */}
             <Route element={<AuthLayout />}>

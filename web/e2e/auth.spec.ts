@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { injectAxe, checkA11y } from 'axe-playwright';
 import { registerUser, loginUser } from './helpers/auth';
 
 /** Wait for the sign-out navigation (Sidebar calls navigate('/') after logout) to settle,
@@ -15,6 +16,10 @@ async function signOut(page: import('@playwright/test').Page) {
 test.describe('Auth', () => {
   test('register with valid data lands on dashboard', async ({ page }) => {
     await registerUser(page);
+    await page.locator('h1').waitFor({ state: 'visible', timeout: 10_000 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await injectAxe(page);
+    await checkA11y(page, null, { detailedReport: true });
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
