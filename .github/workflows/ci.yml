@@ -56,7 +56,10 @@ jobs:
   playwright:
     name: Playwright E2E (web)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
+    concurrency:
+      group: playwright-${{ github.head_ref || github.ref_name }}
+      cancel-in-progress: true
 
     steps:
       - name: Checkout code
