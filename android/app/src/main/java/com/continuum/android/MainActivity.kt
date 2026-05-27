@@ -54,6 +54,14 @@ class MainActivity : ComponentActivity() {
         notificationRouter.routeFromFcmData(data)
     }
 
+    private fun storePendingFcmIntent(intent: Intent?) {
+        val type = intent?.extras?.getString("type") ?: return
+        val data = intent.extras!!.keySet()
+            .filterNotNull()
+            .associateWith { intent.extras!!.getString(it) ?: "" }
+        notificationRouter.storePendingFromFcmData(data)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -93,7 +101,7 @@ class MainActivity : ComponentActivity() {
             iconView.postDelayed({ provider.remove() }, 560L)
         }
 
-        handleFcmIntent(intent)
+        storePendingFcmIntent(intent)
 
         setContent {
             val isAuthenticated by tokenManager.isLoggedIn.collectAsStateWithLifecycle()

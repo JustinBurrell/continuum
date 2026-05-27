@@ -56,6 +56,12 @@ jobs:
   playwright:
     name: Playwright E2E (web)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Chromium is pre-installed in this image — no download or install step needed.
+    # --ipc=host gives Chrome the shared memory it needs inside a container.
+    container:
+      image: mcr.microsoft.com/playwright:v1.59.1-noble
+      options: --ipc=host
 
     steps:
       - name: Checkout code
@@ -74,10 +80,12 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      # mongodb-memory-server downloads a MongoDB binary on first run.
+      # Use an explicit path because ~ is ambiguous inside the container.
       - name: Cache mongodb-memory-server binary
         uses: actions/cache@v4
         with:
-          path: ~/.cache/mongodb-binaries
+          path: /root/.cache/mongodb-binaries
           key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
           restore-keys: |
             mongodb-binaries-${{ runner.os }}-
@@ -86,14 +94,14 @@ jobs:
         working-directory: web
         run: npm ci
 
-      - name: Install Playwright browsers
-        working-directory: web
-        run: npx playwright install --with-deps chromium
-
       - name: Run Playwright tests
         working-directory: web
         env:
           CI: true
+          # GitHub Actions overrides HOME to /github/home inside containers.
+          # Playwright looks for its pre-installed browsers under /root/.cache/ms-playwright,
+          # so we restore HOME to match where the image baked them.
+          HOME: /root
           NODE_ENV: test
           JWT_SECRET: ci-test-secret-not-real
           FRONTEND_URL: http://localhost:5173

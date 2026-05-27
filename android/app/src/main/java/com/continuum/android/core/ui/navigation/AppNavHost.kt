@@ -261,6 +261,15 @@ fun AppNavHost(
         }
     }
 
+    LaunchedEffect(isAuthenticated) {
+        if (isAuthenticated) {
+            val pending = notificationRouter.consumePendingRoute()
+            if (pending != null) {
+                navController.navigate(pending) { launchSingleTop = true }
+            }
+        }
+    }
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
