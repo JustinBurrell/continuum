@@ -1,19 +1,15 @@
 /**
  * digest.job.test.js
  *
- * Tests for initDigestJobs — verifies queue and worker names are valid
- * (no colons, which BullMQ v5 forbids as they clash with Redis key separators).
+ * Tests for initDigestJobs — verifies digest jobs are registered as
+ * UTC cron schedules with the expected patterns.
  */
 
-jest.mock('bullmq', () => {
-    const QueueMock = jest.fn().mockImplementation((name) => ({
-        name,
-        upsertJobScheduler: jest.fn().mockResolvedValue(undefined),
-    }));
-    const WorkerMock = jest.fn();
-    return { Queue: QueueMock, Worker: WorkerMock };
-});
+jest.mock('node-cron', () => ({
+    schedule: jest.fn(),
+}));
 
+const cron = require('node-cron');
 const { initDigestJobs } = require('../../jobs/digest.job');
 
 describe('initDigestJobs', () => {
@@ -22,47 +18,36 @@ describe('initDigestJobs', () => {
     beforeEach(() => {
         savedNodeEnv = process.env.NODE_ENV;
         process.env.NODE_ENV = 'staging';
-        process.env.REDIS_URL = 'redis://localhost:6379';
-        const { Queue, Worker } = require('bullmq');
-        Queue.mockClear();
-        Worker.mockClear();
+        cron.schedule.mockClear();
     });
 
     afterEach(() => {
         process.env.NODE_ENV = savedNodeEnv;
-        delete process.env.REDIS_URL;
     });
 
-    it('registers 3 queues with no colons in their names', async () => {
-        const { Queue } = require('bullmq');
-        await initDigestJobs();
-        const names = Queue.mock.calls.map(([name]) => name);
-        expect(names).toHaveLength(3);
-        names.forEach(name => expect(name).not.toMatch(/:/));
+    it('registers 3 cron schedules', () => {
+        initDigestJobs();
+        expect(cron.schedule).toHaveBeenCalledTimes(3);
     });
 
-    it('registers 3 workers with no colons in their names', async () => {
-        const { Worker } = require('bullmq');
-        await initDigestJobs();
-        const names = Worker.mock.calls.map(([name]) => name);
-        expect(names).toHaveLength(3);
-        names.forEach(name => expect(name).not.toMatch(/:/));
+    it('schedules each job in UTC', () => {
+        initDigestJobs();
+        cron.schedule.mock.calls.forEach(([, , options]) => {
+            expect(options).toEqual({ timezone: 'UTC' });
+        });
     });
 
-    it('uses the expected hyphenated queue names', async () => {
-        const { Queue, Worker } = require('bullmq');
-        await initDigestJobs();
-        const queueNames  = Queue.mock.calls.map(([name]) => name).sort();
-        const workerNames = Worker.mock.calls.map(([name]) => name).sort();
-        const expected = ['digest-deletion-warn', 'digest-smart-daily', 'digest-weekly-summary'];
-        expect(queueNames).toEqual(expected);
-        expect(workerNames).toEqual(expected);
+    it('uses the expected cron patterns', () => {
+        initDigestJobs();
+        const patterns = cron.schedule.mock.calls.map(([pattern]) => pattern);
+        expect(patterns).toEqual(
+            expect.arrayContaining(['0 8 * * *', '0 18 * * 0', '0 9 * * *'])
+        );
     });
 
-    it('skips queue creation when REDIS_URL is not set', async () => {
-        delete process.env.REDIS_URL;
-        const { Queue } = require('bullmq');
-        await initDigestJobs();
-        expect(Queue).not.toHaveBeenCalled();
+    it('does not schedule jobs in the test environment', () => {
+        process.env.NODE_ENV = 'test';
+        initDigestJobs();
+        expect(cron.schedule).not.toHaveBeenCalled();
     });
 });

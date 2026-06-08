@@ -182,7 +182,7 @@ In-app notification bell and history feed. Each notification is a recipient-scop
 
 **Debounce**: `comment_added`, `comment_reply`, and `like_added` events are debounced per `actorId + targetId` within a 2-minute window. `new_message` is debounced per `actorId + recipientId` within a 5-minute window. Share and friend events are never debounced.
 
-**`digestSentAt`**: Set on Notification documents after they are included in a digest email, preventing duplicate digest sends. Queried by the BullMQ digest workers.
+**`digestSentAt`**: Set on Notification documents after they are included in a digest email, preventing duplicate digest sends. Queried by the digest cron jobs (node-cron).
 
 All email sends are centralised in `email.service.js` — no controller imports Resend directly.
 

@@ -76,7 +76,7 @@ backend/
 │   ├── posthog.js                # PostHog server-side capture wrapper (skips demo/seed users)
 │   └── logger.js                 # Pino logger
 ├── jobs/
-│   └── digest.job.js             # BullMQ repeatable jobs: smart daily (8AM UTC), weekly summary (6PM UTC Sun), deletion warnings (9AM UTC)
+│   └── digest.job.js             # node-cron schedules: smart daily (8AM UTC), weekly summary (6PM UTC Sun), deletion warnings (9AM UTC)
 ├── templates/
 │   └── email/                    # HTML + plain-text email templates (base.layout + per-type)
 ├── services/
@@ -261,13 +261,13 @@ All email sends go through `email.service.js` — no controller imports Resend d
 - Welcome — on register and Google OAuth new user
 - New device login — when no active RefreshToken exists for the deviceId before revocation
 - Integration connected/disconnected — on Google Drive link/unlink
-- Account deletion (immediate + 5-day warning via BullMQ)
+- Account deletion (immediate + 5-day warning via node-cron)
 - Account restored
 
 **Tier 2 — Digest** (gated by `user.settings.emailNotifications` subdocument):
-- Smart Daily Digest — 8:00 AM UTC daily via BullMQ. Queries Notification collection for undigested `friend_request`, `share_received`, `task_assigned` events from the last 24h.
-- Weekly Summary — 6:00 PM UTC every Sunday via BullMQ. Comments, likes, friend activity, study streak, stale applications.
-- Deletion Warning — 9:00 AM UTC daily via BullMQ. Users where `scheduledDeletionAt` is within 5 days and `deletionWarningEmailSentAt` is null.
+- Smart Daily Digest — 8:00 AM UTC daily via node-cron. Queries Notification collection for undigested `friend_request`, `share_received`, `task_assigned` events from the last 24h.
+- Weekly Summary — 6:00 PM UTC every Sunday via node-cron. Comments, likes, friend activity, study streak, stale applications.
+- Deletion Warning — 9:00 AM UTC daily via node-cron. Users where `scheduledDeletionAt` is within 5 days and `deletionWarningEmailSentAt` is null.
 
 **Suppression** (applied at DB query level for digest workers): `emailNotifications.enabled`, specific digest flag, `pendingDeletion`, `deletedAt`, `lastLoginAt` within 30 days, `isDemo`, `isSeedUser`.
 
