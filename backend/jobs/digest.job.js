@@ -1,3 +1,4 @@
+const cron   = require('node-cron');
 const logger = require('../lib/logger');
 
 const User         = require('../models/User');
@@ -165,45 +166,25 @@ async function runDeletionWarn() {
     }
 }
 
-// ─── Init: register repeatable jobs (skipped in test env) ───────────────────
-async function initDigestJobs() {
+// ─── Init: register cron schedules (skipped in test env) ────────────────────
+function scheduleJob(pattern, name, fn) {
+    cron.schedule(pattern, async () => {
+        try {
+            await fn();
+        } catch (err) {
+            logger.error({ err }, `Digest job "${name}" failed`);
+        }
+    }, { timezone: 'UTC' });
+}
+
+function initDigestJobs() {
     if (process.env.NODE_ENV === 'test') return;
-    if (!process.env.REDIS_URL) {
-        logger.warn('REDIS_URL not set — digest jobs will not be scheduled');
-        return;
-    }
 
-    const { Queue, Worker } = require('bullmq');
-    const connection = { url: process.env.REDIS_URL };
+    scheduleJob('0 8 * * *', 'smart-daily', runSmartDaily);
+    scheduleJob('0 18 * * 0', 'weekly-summary', runWeeklySummary);
+    scheduleJob('0 9 * * *', 'deletion-warn', runDeletionWarn);
 
-    const dailyQueue    = new Queue('digest-smart-daily',   { connection });
-    const weeklyQueue   = new Queue('digest-weekly-summary', { connection });
-    const deletionQueue = new Queue('digest-deletion-warn',  { connection });
-
-    new Worker('digest-smart-daily',   async () => { await runSmartDaily();    }, { connection });
-    new Worker('digest-weekly-summary', async () => { await runWeeklySummary(); }, { connection });
-    new Worker('digest-deletion-warn',  async () => { await runDeletionWarn();  }, { connection });
-
-    try {
-        await dailyQueue.upsertJobScheduler(
-            'smart-daily-cron',
-            { pattern: '0 8 * * *', tz: 'UTC' },
-            { name: 'smart-daily', data: {} }
-        );
-        await weeklyQueue.upsertJobScheduler(
-            'weekly-summary-cron',
-            { pattern: '0 18 * * 0', tz: 'UTC' },
-            { name: 'weekly-summary', data: {} }
-        );
-        await deletionQueue.upsertJobScheduler(
-            'deletion-warn-cron',
-            { pattern: '0 9 * * *', tz: 'UTC' },
-            { name: 'deletion-warn', data: {} }
-        );
-        logger.info('Digest jobs scheduled (smart-daily 08:00, weekly-summary Sun 18:00, deletion-warn 09:00 — all UTC)');
-    } catch (err) {
-        logger.error({ err }, 'Failed to schedule digest jobs');
-    }
+    logger.info('Digest jobs scheduled (smart-daily 08:00, weekly-summary Sun 18:00, deletion-warn 09:00 — all UTC)');
 }
 
 module.exports = { initDigestJobs, runSmartDaily, runWeeklySummary, runDeletionWarn };
