@@ -159,13 +159,19 @@ const pagedFilter = cursorTs
 - Without the adapter, two users on different backend instances can't communicate in real-time — User A's event never reaches User B's instance.
 - With the adapter, every instance subscribes to the same Redis pub/sub channel. Event from any instance reaches all relevant user rooms, regardless of which instance they're connected to.
 - This means the app is horizontally scalable from day one. Adding a second backend instance requires zero code changes.
+- **Fail-open startup:** the connection attempt is wrapped in try/catch — if Redis is unreachable at boot (down, quota exceeded, network blip), the adapter is skipped with a logged warning and the server still starts and serves traffic single-instance. Without this, an `unhandledRejection` from `pubClient.connect()` would silently prevent `httpServer.listen()` from ever being called — exactly what happened on a real deploy when the Upstash free-tier request quota was exhausted.
 
 **Initialization:**
 ```js
 if (process.env.REDIS_URL) {
-  const pubClient = createClient({ url: process.env.REDIS_URL });
-  const subClient = pubClient.duplicate();
-  io.adapter(createAdapter(pubClient, subClient));
+  try {
+    const pubClient = createClient({ url: process.env.REDIS_URL });
+    const subClient = pubClient.duplicate();
+    await Promise.all([pubClient.connect(), subClient.connect()]);
+    io.adapter(createAdapter(pubClient, subClient));
+  } catch (err) {
+    logger.warn({ err }, 'Redis pub/sub adapter unavailable — running single-instance without it');
+  }
 }
 ```
 
@@ -986,6 +992,8 @@ io.adapter(createAdapter(pubClient, subClient));
 ```
 
 Two separate clients are needed because a Redis connection in subscribe mode can't issue other commands. `pubClient.duplicate()` creates an identical connection with independent state.
+
+**Production incident — unhandled rejection blocked server startup:** `server.js` calls `initSocket(httpServer).then(() => httpServer.listen(PORT))`. Originally, `pubClient.connect()` was awaited with no try/catch. When the Upstash Redis quota was exhausted, `connect()` rejected with `ERR max requests limit exceeded`, the rejection propagated out of `initSocket`, the `.then()` callback never ran, and `httpServer.listen()` was never called. The process stayed alive (the rejection was merely logged by the process-level `unhandledRejection` handler) but never bound to a port — Render's port scan timed out and the deploy failed, even though MongoDB had connected and the rest of the app was healthy. The fix wraps the adapter connection in try/catch (matching the fail-open pattern already used in `lib/cache.js`): log a warning and continue without the adapter so the server always starts, with or without Redis.
 
 ### Frontend Socket Connection
 

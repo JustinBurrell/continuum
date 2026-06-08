@@ -67,7 +67,7 @@ Atlas M10+ adds **Continuous Cloud Backup** with point-in-time restore down to t
 
 1. **Roll back Render** to the previous deploy first — this is the fastest fix and covers most cases
 2. **Roll back Vercel** if the frontend is the issue
-3. **Check Upstash Redis** — if Redis is returning errors, the backend falls back to MongoDB automatically (no-op cache). No action needed unless the Redis adapter is crashing Socket.io
+3. **Check Upstash Redis** — if Redis is returning errors, the backend falls back to MongoDB automatically (no-op cache), and the Socket.io pub/sub adapter fails open (logs a warning, runs single-instance) rather than blocking server startup. No action needed beyond monitoring — a Redis outage no longer takes the backend down with it
 4. **Check MongoDB Atlas** — go to **Metrics** tab to see if the cluster is under abnormal load. If a migration ran bad data, restore from the most recent manual export
 
 ---

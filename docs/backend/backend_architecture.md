@@ -461,6 +461,8 @@ Redis is used for two things only — JWT revocation and per-user AI rate limiti
 
 If Redis is unavailable, both fail open — the app continues to work, rate limiting is just skipped.
 
+The Socket.io Redis pub/sub adapter (`lib/socket.js`) follows the same fail-open principle: its connection attempt is wrapped in try/catch, so a Redis outage or quota error logs a warning and the server still starts and serves traffic single-instance, instead of the `unhandledRejection` silently preventing `httpServer.listen()` from ever running.
+
 ### Running Redis locally
 
 Redis is required locally if you want AI rate limiting to work. Without it the app still runs — rate limits are just not enforced.
