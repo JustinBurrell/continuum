@@ -16,7 +16,7 @@ services:
       # under the project tree so it survives between builds; render-build.sh
       # writes it here and the app reads it from the same place at runtime.
       - key: PUPPETEER_CACHE_DIR
-        value: /opt/render/.cache/puppeteer
+        value: /opt/render/project/src/.cache/puppeteer
       # All secrets are managed in the Render dashboard.
       # sync: false tells Render to copy the value from the production service
       # into each preview environment automatically — no manual setup per PR.
