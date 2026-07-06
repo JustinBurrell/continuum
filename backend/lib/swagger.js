@@ -110,6 +110,7 @@ const options = {
             { name: 'Comments', description: 'Comments and likes on notes' },
             { name: 'Google', description: 'Google Drive integration' },
             { name: 'Sync', description: 'Offline sync processing' },
+            { name: 'Integrations', description: 'Shared integration utilities (content rendering, ops health checks)' },
         ],
     },
     apis: ['./routes/*.js'],

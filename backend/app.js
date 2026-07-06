@@ -74,6 +74,7 @@ app.use('/api/notifications', require('./routes/notifications.routes'));
 app.use('/api/email', require('./routes/email.routes'));
 app.use('/api/sync', require('./routes/sync.routes'));
 app.use('/api/waitlist', require('./routes/waitlist.routes'));
+app.use('/api/integrations', require('./routes/integrations.routes'));
 
 // Share pages — public HTML with OG meta tags, no /api prefix
 // (Vercel proxies https://usecontinuum.dev/share/* → https://api.usecontinuum.dev/share/*)

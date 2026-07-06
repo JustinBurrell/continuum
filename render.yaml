@@ -5,13 +5,18 @@ services:
     plan: starter
     region: virginia
     rootDir: backend
-    buildCommand: npm install
+    buildCommand: ./render-build.sh
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 5001
+      # Puppeteer (contentToPdf service) needs its Chrome binary somewhere
+      # under the project tree so it survives between builds; render-build.sh
+      # writes it here and the app reads it from the same place at runtime.
+      - key: PUPPETEER_CACHE_DIR
+        value: /opt/render/.cache/puppeteer
       # All secrets are managed in the Render dashboard.
       # sync: false tells Render to copy the value from the production service
       # into each preview environment automatically — no manual setup per PR.
