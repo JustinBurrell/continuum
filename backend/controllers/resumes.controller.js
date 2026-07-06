@@ -1,8 +1,8 @@
-const { PDFParse } = require('pdf-parse');
 const Resume = require('../models/Resume');
 const cloudinary = require('../config/cloudinary');
 const groqService = require('../services/groq.service');
 const posthog = require('../lib/posthog');
+const { parseOfficeFile } = require('../services/fileParser.service');
 
 // ============================================================
 // RESUMES CONTROLLER
@@ -51,14 +51,7 @@ exports.uploadResume = async (req, res) => {
     const { version, targetRole } = req.body;
 
     // Extract plain text from PDF buffer — cached so AI feedback is instant later
-    const parser = new PDFParse({ data: req.file.buffer });
-    const pdfData = await parser.getText();
-    await parser.destroy();
-    const extractedText = pdfData.text;
-
-    if (!extractedText || extractedText.trim().length === 0) {
-        return res.status(400).json({ success: false, error: 'Could not extract text from PDF — ensure the file is not scanned/image-only' });
-    }
+    const extractedText = await parseOfficeFile(req.file.buffer, 'application/pdf');
 
     // Upload to Cloudinary
     const cloudinaryResult = await uploadBufferToCloudinary(req.file.buffer, req.file.originalname);
