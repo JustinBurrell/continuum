@@ -8,7 +8,8 @@
     "dev": "node server.js",
     "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch --runInBand",
-    "start:e2e": "node tests/e2e/server.js"
+    "start:e2e": "node tests/e2e/server.js",
+    "postinstall": "node scripts/ensure-chrome.js"
   },
   "jest": {
     "testEnvironment": "node",
@@ -31,6 +32,8 @@
   "dependencies": {
     "@sentry/node": "^10.46.0",
     "@socket.io/redis-adapter": "^8.3.0",
+    "anki-apkg-export": "^4.0.3",
+    "axios": "^1.18.1",
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.2.2",
     "cloudinary": "^2.9.0",
@@ -45,26 +48,32 @@
     "googleapis": "^171.4.0",
     "groq-sdk": "^0.37.0",
     "helmet": "^8.1.0",
+    "ical-generator": "^11.0.0",
     "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
+    "marked": "^15.0.12",
     "mongo-sanitize": "^1.1.0",
     "mongodb": "^7.0.0",
     "mongoose": "^9.1.4",
     "multer": "^2.1.0",
     "node-cron": "^4.2.1",
+    "officeparser": "^7.2.3",
+    "p-queue": "^6.6.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "pdf-parse": "^2.4.5",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "posthog-node": "^5.21.2",
+    "puppeteer": "^24.43.1",
     "redis": "^5.11.0",
     "resend": "^6.9.2",
     "sanitize-html": "^2.17.1",
     "socket.io": "^4.8.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "ua-parser-js": "^2.0.10"
+    "ua-parser-js": "^2.0.10",
+    "youtube-transcript-plus": "^2.0.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

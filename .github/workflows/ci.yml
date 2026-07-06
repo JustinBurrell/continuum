@@ -24,6 +24,16 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
+      # puppeteer (contentToPdf service) downloads a Chrome binary on install.
+      # Caching it avoids a slow re-download on every CI run.
+      - name: Cache puppeteer Chrome binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/puppeteer
+          key: puppeteer-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+          restore-keys: |
+            puppeteer-${{ runner.os }}-
+
       - name: Install backend dependencies
         working-directory: backend
         run: npm ci
@@ -78,6 +88,10 @@ jobs:
 
       - name: Install backend dependencies
         working-directory: backend
+        env:
+          # This job never generates PDFs, so skip downloading Chrome for
+          # puppeteer; the Playwright image already ships its own browsers.
+          PUPPETEER_SKIP_DOWNLOAD: 1
         run: npm ci
 
       # mongodb-memory-server downloads a MongoDB binary on first run.

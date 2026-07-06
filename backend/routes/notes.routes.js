@@ -22,7 +22,13 @@ router.param('id', validateObjectId);
  * @swagger
  * /api/notes/import:
  *   post:
- *     summary: Import a note from a Google Doc URL
+ *     summary: Import a note from a Google Doc, Slides, or Sheets file
+ *     description: >
+ *       Looks up the Drive file's mimeType and exports it accordingly — Docs export as
+ *       plain text, Slides export as PPTX (parsed to text), Sheets export as XLSX (parsed
+ *       to text). A PDF is also exported for all three and stored as pdfUrl. The resulting
+ *       note's `source` field is set to google_docs, google_slides, or google_sheets.
+ *       Other Google file types (Forms, Drawings, etc.) return 400.
  *     tags: [Notes]
  *     requestBody:
  *       required: true
@@ -30,18 +36,28 @@ router.param('id', validateObjectId);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [url]
+ *             required: [googleDocId, googleDocUrl]
  *             properties:
- *               url: { type: string, example: "https://docs.google.com/document/d/..." }
+ *               googleDocId: { type: string, example: "1a2b3c4d5e6f" }
+ *               googleDocUrl: { type: string, example: "https://docs.google.com/document/d/1a2b3c4d5e6f/edit" }
+ *               title: { type: string, example: "Lecture 3 Notes" }
  *     responses:
  *       201:
  *         description: Note imported and saved
  *       400:
- *         $ref: '#/components/responses/BadRequest'
+ *         description: Missing required fields, or an unsupported Google file type was selected
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: Google account not linked, or access to the file has been revoked
+ *       404:
+ *         description: Google file not found
+ *       409:
+ *         description: This file has already been imported
+ *       429:
+ *         description: Too many requests — per-user write rate limit exceeded
  */
-router.post('/import', notesController.importNote);
+router.post('/import', perUserWriteLimit, notesController.importNote);
 
 /**
  * @swagger
@@ -210,7 +226,12 @@ router.put('/:id', notesController.updateNote);
  * @swagger
  * /api/notes/{id}/refresh:
  *   put:
- *     summary: Re-import content from the original Google Doc or uploaded file
+ *     summary: Re-import content from the original Google Doc, Slides, or Sheets file
+ *     description: >
+ *       Re-exports the note's content according to its stored `source` — google_docs
+ *       re-exports plain text, google_slides re-exports PPTX (parsed to text), google_sheets
+ *       re-exports XLSX (parsed to text). Notes imported before the source field existed
+ *       default to google_docs. Requires the note to be linked to a Google file (googleDocId).
  *     tags: [Notes]
  *     parameters:
  *       - in: path
@@ -220,6 +241,8 @@ router.put('/:id', notesController.updateNote);
  *     responses:
  *       200:
  *         description: Note content refreshed
+ *       400:
+ *         description: This note is not linked to a Google file
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  *       403:

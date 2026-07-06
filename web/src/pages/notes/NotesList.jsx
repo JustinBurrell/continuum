@@ -236,15 +236,21 @@ export default function NotesList() {
         .setAppId(import.meta.env.VITE_GOOGLE_APP_ID)
         .addView(
           new window.google.picker.DocsView()
-            .setMimeTypes('application/vnd.google-apps.document')
+            .setMimeTypes('application/vnd.google-apps.document,application/vnd.google-apps.presentation,application/vnd.google-apps.spreadsheet')
         )
         .setCallback((pickerData) => {
           if (pickerData.action === 'picked') {
             const doc = pickerData.docs[0];
+            const fallbackUrlByMimeType = {
+              'application/vnd.google-apps.presentation': `https://docs.google.com/presentation/d/${doc.id}/edit`,
+              'application/vnd.google-apps.spreadsheet': `https://docs.google.com/spreadsheets/d/${doc.id}/edit`,
+              'application/vnd.google-apps.document': `https://docs.google.com/document/d/${doc.id}/edit`,
+            };
+            const fallbackUrl = fallbackUrlByMimeType[doc.mimeType] || `https://docs.google.com/document/d/${doc.id}/edit`;
             setSelectedFile({
               id: doc.id,
               name: doc.name,
-              url: doc.url || `https://docs.google.com/document/d/${doc.id}/edit`,
+              url: doc.url || fallbackUrl,
             });
           }
         })
@@ -508,7 +514,7 @@ export default function NotesList() {
           !user?.googleId ? (
             <div style={{ textAlign: 'center', padding: '24px 0' }}>
               <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: 12 }}>
-                Connect your Google account to import documents from Drive.
+                Connect your Google account to import Docs, Slides, or Sheets from Drive.
               </p>
               <a
                 href="/profile"

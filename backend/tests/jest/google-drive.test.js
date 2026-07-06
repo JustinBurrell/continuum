@@ -25,6 +25,10 @@ const getGoogleDriveClient = require('../../config/googleDrive');
 // ─── Cloudinary mock (auto-loaded from __mocks__/cloudinary.js) ──────────────
 const cloudinaryMock = require('cloudinary');
 
+// ─── fileParser.service mock — avoids running real officeparser on fake bytes ─
+jest.mock('../../services/fileParser.service');
+const { parseOfficeFile } = require('../../services/fileParser.service');
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function makeReadable(content = 'fake pdf bytes') {
@@ -46,7 +50,8 @@ const CLOUDINARY_RESULT = {
 };
 
 const mockDriveExport = jest.fn();
-const mockDriveClient = { files: { export: mockDriveExport } };
+const mockDriveGet = jest.fn();
+const mockDriveClient = { files: { export: mockDriveExport, get: mockDriveGet } };
 
 /**
  * Register a user and set googleId so Drive endpoints are accessible.
@@ -75,6 +80,9 @@ afterAll(closeTestDb);
 beforeEach(() => {
     // Default: Drive client resolves successfully
     getGoogleDriveClient.mockResolvedValue(mockDriveClient);
+
+    // Default: file lookup resolves as a Google Doc — matches pre-Slides/Sheets behavior
+    mockDriveGet.mockResolvedValue({ data: { mimeType: 'application/vnd.google-apps.document', name: 'Fake Doc' } });
 
     // Default: export returns a stream (PDF) or arraybuffer (text)
     mockDriveExport.mockImplementation((_params, { responseType }) => {
@@ -109,7 +117,62 @@ describe('POST /api/notes/import', () => {
         expect(res.body.success).toBe(true);
         expect(res.body.note.googleDocId).toBe('test-doc-id-abc');
         expect(res.body.note.title).toBe('My Imported Note');
+        expect(res.body.note.source).toBe('google_docs');
         expect(mockDriveExport).toHaveBeenCalledTimes(2); // PDF + text
+    });
+
+    it('imports a Google Slides presentation and returns a note with source google_slides', async () => {
+        const { token } = await registerAndLinkGoogle();
+
+        mockDriveGet.mockResolvedValueOnce({
+            data: { mimeType: 'application/vnd.google-apps.presentation', name: 'Fake Slides' },
+        });
+        parseOfficeFile.mockResolvedValueOnce('Parsed slide text content');
+
+        const res = await request(app)
+            .post('/api/notes/import')
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                googleDocId: 'test-slides-id-abc',
+                googleDocUrl: 'https://docs.google.com/presentation/d/test-slides-id-abc/edit',
+                title: 'My Imported Slides',
+            });
+
+        expect(res.statusCode).toBe(201);
+        expect(res.body.success).toBe(true);
+        expect(res.body.note.source).toBe('google_slides');
+        expect(res.body.note.content).toBe('Parsed slide text content');
+        expect(res.body.note.content.length).toBeGreaterThan(0);
+        // PPTX export (arraybuffer) + PDF export (stream)
+        expect(mockDriveExport).toHaveBeenCalledTimes(2);
+        expect(parseOfficeFile).toHaveBeenCalledWith(
+            expect.any(Buffer),
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            { putNotesAtLast: true }
+        );
+    });
+
+    it('returns 400 for an unsupported Google file type', async () => {
+        const { token } = await registerAndLinkGoogle();
+
+        mockDriveGet.mockResolvedValueOnce({
+            data: { mimeType: 'application/vnd.google-apps.form', name: 'Fake Form' },
+        });
+
+        const res = await request(app)
+            .post('/api/notes/import')
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                googleDocId: 'test-form-id-abc',
+                googleDocUrl: 'https://docs.google.com/forms/d/test-form-id-abc/edit',
+                title: 'My Form',
+            });
+
+        expect(res.statusCode).toBe(400);
+        expect(res.body.success).toBe(false);
+        expect(res.body.error).toMatch(/not supported/i);
+        // Must not attempt any export for an unsupported type
+        expect(mockDriveExport).not.toHaveBeenCalled();
     });
 
     it('returns 400 when googleDocId is missing', async () => {
