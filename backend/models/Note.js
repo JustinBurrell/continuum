@@ -65,6 +65,24 @@ const noteSchema = new mongoose.Schema({
     },
 
     /**
+     * Source Tracking
+     * Purpose: Record where a note's content originated, for analytics and
+     *          for choosing the correct re-export/refresh path
+     * Fields: source, externalUrl
+     * - source: drives the note_created PostHog event property and refreshNote branching
+     * - externalUrl: link to the original file in its source service (non-Google sources only)
+     */
+    source: {
+        type: String,
+        enum: ['manual', 'google_docs', 'google_slides', 'google_sheets', 'pdf_upload', 'office_upload', 'dropbox', 'onedrive', 'notion', 'youtube'],
+        default: 'manual',
+        index: true,
+    },
+    externalUrl: {
+        type: String,
+    },
+
+    /**
      * Organization
      * Purpose: Categorize and organize notes with tags, subjects, and folders
      * Fields: type, tags, subject, folder

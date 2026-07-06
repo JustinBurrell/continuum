@@ -11,6 +11,7 @@ const { createActivity, createShareActivities } = require('../services/activity.
 const { sendShareMessage } = require('../services/share.service');
 const { notify } = require('../services/notification.service');
 const { PDFParse } = require('pdf-parse');
+const { parseOfficeFile } = require('../services/fileParser.service');
 
 // ============================================================
 // NOTES CONTROLLER
@@ -25,10 +26,38 @@ const sanitizeHtml = require('sanitize-html');
 const posthog = require('../lib/posthog');
 
 function getNoteSource(note) {
-    if (note.googleDocId) return 'google_doc';
+    // Prefer the stored source field — falls back to computed logic for notes
+    // created before the source field existed (legacy Google Docs / PDF uploads)
+    if (note.source) return note.source;
+    if (note.googleDocId) return 'google_docs';
     if (note.pdfUrl) return 'pdf_upload';
     return 'manual';
 }
+
+// ----------------------------------------
+// Google Workspace MIME types + their Office export equivalents
+// Purpose: importNote/refreshNote branch on these to decide how to export
+//          a Drive file and which parser to run on the export
+// ----------------------------------------
+const GOOGLE_DOC_MIME = 'application/vnd.google-apps.document';
+const GOOGLE_SLIDES_MIME = 'application/vnd.google-apps.presentation';
+const GOOGLE_SHEETS_MIME = 'application/vnd.google-apps.spreadsheet';
+const PPTX_EXPORT_MIME = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+const XLSX_EXPORT_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+const MAX_NOTE_CONTENT_LENGTH = 200000;
+
+// ----------------------------------------
+// Helper: truncateNoteContent
+// Purpose: Keep parser output within the Note.content maxlength so Note.create/
+//          findOneAndUpdate never fails validation on a long Slides/Sheets export
+// ----------------------------------------
+const truncateNoteContent = (text) => {
+    if (typeof text === 'string' && text.length > MAX_NOTE_CONTENT_LENGTH) {
+        return text.slice(0, MAX_NOTE_CONTENT_LENGTH);
+    }
+    return text;
+};
 
 // ----------------------------------------
 // Helper: handleDriveError
@@ -44,7 +73,7 @@ const handleDriveError = (err, res) => {
         return res.status(404).json({ success: false, error: 'Google Doc not found. It may have been deleted or moved.' });
     }
     if (status === 400) {
-        return res.status(400).json({ success: false, error: 'Only Google Docs can be imported.' });
+        return res.status(400).json({ success: false, error: 'This file could not be imported. Please pick a Google Doc, Slides, or Sheets file.' });
     }
     throw err;
 };
@@ -138,6 +167,7 @@ exports.uploadNote = async (req, res) => {
         tags: tagList,
         pdfUrl: cloudinaryResult.secure_url,
         pdfPublicId: cloudinaryResult.public_id,
+        source: 'pdf_upload',
     });
 
     posthog.capture(req.user, 'note_created', { platform: 'web', source: getNoteSource(note) });
@@ -197,6 +227,7 @@ exports.createNote = async (req, res) => {
         subject,
         folder,
         visibility,
+        source: 'manual',
     });
 
     posthog.capture(req.user, 'note_created', { platform: 'web', source: getNoteSource(note) });
@@ -383,10 +414,75 @@ exports.deleteNote = async (req, res) => {
 };
 
 // ----------------------------------------
+// Helper: exportGoogleDocAsPdfAndText
+// Purpose: Existing Google Docs import path — export PDF (for viewing) and
+//          plain text (for Groq AI), unchanged behavior from before Slides/Sheets support
+// ----------------------------------------
+const exportGoogleDocAsPdfAndText = async (drive, fileId) => {
+    const pdfResponse = await drive.files.export(
+        { fileId, mimeType: 'application/pdf' },
+        { responseType: 'stream' }
+    );
+    const cloudinaryResult = await uploadPdfToCloudinary(pdfResponse.data, fileId);
+
+    const textResponse = await drive.files.export(
+        { fileId, mimeType: 'text/plain' },
+        { responseType: 'arraybuffer' }
+    );
+    const content = Buffer.from(textResponse.data).toString('utf-8');
+
+    return { cloudinaryResult, content };
+};
+
+// ----------------------------------------
+// Helper: exportGoogleSlidesAsPptxAndPdf
+// Purpose: Export a Google Slides file as PPTX (parsed to plain text via
+//          officeparser) and as PDF (uploaded to Cloudinary for viewing)
+// ----------------------------------------
+const exportGoogleSlidesAsPptxAndPdf = async (drive, fileId) => {
+    const pptxResponse = await drive.files.export(
+        { fileId, mimeType: PPTX_EXPORT_MIME },
+        { responseType: 'arraybuffer' }
+    );
+    const content = await parseOfficeFile(Buffer.from(pptxResponse.data), PPTX_EXPORT_MIME, { putNotesAtLast: true });
+
+    const pdfResponse = await drive.files.export(
+        { fileId, mimeType: 'application/pdf' },
+        { responseType: 'stream' }
+    );
+    const cloudinaryResult = await uploadPdfToCloudinary(pdfResponse.data, fileId);
+
+    return { cloudinaryResult, content };
+};
+
+// ----------------------------------------
+// Helper: exportGoogleSheetsAsXlsxAndPdf
+// Purpose: Export a Google Sheets file as XLSX (parsed to plain text via
+//          officeparser) and as PDF (uploaded to Cloudinary for viewing)
+// ----------------------------------------
+const exportGoogleSheetsAsXlsxAndPdf = async (drive, fileId) => {
+    const xlsxResponse = await drive.files.export(
+        { fileId, mimeType: XLSX_EXPORT_MIME },
+        { responseType: 'arraybuffer' }
+    );
+    const content = await parseOfficeFile(Buffer.from(xlsxResponse.data), XLSX_EXPORT_MIME);
+
+    const pdfResponse = await drive.files.export(
+        { fileId, mimeType: 'application/pdf' },
+        { responseType: 'stream' }
+    );
+    const cloudinaryResult = await uploadPdfToCloudinary(pdfResponse.data, fileId);
+
+    return { cloudinaryResult, content };
+};
+
+// ----------------------------------------
 // POST /api/notes/import
-// Purpose: Import a Google Doc as a note snapshot
-//   - Exports PDF via Drive API → uploads to Cloudinary → stores pdfUrl (for viewing)
-//   - Exports plain text via Drive API → stores as content field (for Groq AI)
+// Purpose: Import a Google Doc, Slides, or Sheets file as a note snapshot
+//   - Looks up the file's mimeType to decide which export path to use
+//   - Exports a PDF via Drive API → uploads to Cloudinary → stores pdfUrl (for viewing)
+//   - Exports the text-bearing format (plain text / PPTX / XLSX) → parses to
+//     plain text → stores as content field (for Groq AI)
 // Body: { googleDocId, googleDocUrl, title }
 // ----------------------------------------
 exports.importNote = async (req, res) => {
@@ -408,36 +504,42 @@ exports.importNote = async (req, res) => {
 
     const drive = await getGoogleDriveClient(req.user);
 
-    let cloudinaryResult, content;
+    let cloudinaryResult, content, source;
     try {
-        // Export Google Doc as PDF stream → upload to Cloudinary
-        // responseType: 'stream' gives us a readable stream to pipe directly to Cloudinary
-        const pdfResponse = await drive.files.export(
-            { fileId: googleDocId, mimeType: 'application/pdf' },
-            { responseType: 'stream' }
-        );
-        cloudinaryResult = await uploadPdfToCloudinary(pdfResponse.data, googleDocId);
+        // Look up the file's mimeType first — decides which export path to use
+        const fileMeta = await drive.files.get({ fileId: googleDocId, fields: 'mimeType,name' });
+        const mimeType = fileMeta.data.mimeType;
 
-        // Export Google Doc as plain text → used by Groq for summaries/flashcards
-        // responseType: 'arraybuffer' → convert buffer to UTF-8 string
-        const textResponse = await drive.files.export(
-            { fileId: googleDocId, mimeType: 'text/plain' },
-            { responseType: 'arraybuffer' }
-        );
-        content = Buffer.from(textResponse.data).toString('utf-8');
+        if (mimeType === GOOGLE_DOC_MIME) {
+            source = 'google_docs';
+            ({ cloudinaryResult, content } = await exportGoogleDocAsPdfAndText(drive, googleDocId));
+        } else if (mimeType === GOOGLE_SLIDES_MIME) {
+            source = 'google_slides';
+            ({ cloudinaryResult, content } = await exportGoogleSlidesAsPptxAndPdf(drive, googleDocId));
+        } else if (mimeType === GOOGLE_SHEETS_MIME) {
+            source = 'google_sheets';
+            ({ cloudinaryResult, content } = await exportGoogleSheetsAsXlsxAndPdf(drive, googleDocId));
+        } else {
+            return res.status(400).json({ success: false, error: 'This Google file type is not supported. Please pick a Doc, Slides, or Sheets file.' });
+        }
     } catch (err) {
+        // Friendly errors thrown by fileParser.service (e.g. no extractable text) — pass through as-is
+        if (err.isUserFacing) {
+            return res.status(err.status || 400).json({ success: false, error: err.message });
+        }
         return handleDriveError(err, res);
     }
 
     const note = await Note.create({
         userId: req.user._id,
         title: title || 'Untitled',
-        content,
+        content: truncateNoteContent(content),
         contentType: 'plain',
         pdfUrl: cloudinaryResult.secure_url,
         pdfPublicId: cloudinaryResult.public_id,
         googleDocId,
         googleDocUrl,
+        source,
         lastSyncedAt: new Date(),
         lastViewedAt: new Date(), // ensures new import sorts to top (list sorts by lastViewedAt desc)
     });
@@ -452,9 +554,11 @@ exports.importNote = async (req, res) => {
 
 // ----------------------------------------
 // PUT /api/notes/:id/refresh
-// Purpose: Re-sync an imported note from its source Google Doc
+// Purpose: Re-sync an imported note from its source Google Doc, Slides, or Sheets
+//   - Re-exports according to the note's stored source (defaults to google_docs
+//     for notes imported before the source field existed)
 //   - Re-exports PDF → overwrites existing Cloudinary asset (same public_id = googleDocId)
-//   - Re-exports plain text → updates content field
+//   - Re-exports the text-bearing format → updates content field
 //   - Updates lastSyncedAt timestamp
 // ----------------------------------------
 exports.refreshNote = async (req, res) => {
@@ -474,28 +578,29 @@ exports.refreshNote = async (req, res) => {
 
     const drive = await getGoogleDriveClient(req.user);
 
+    // Legacy notes (imported before the source field existed) have googleDocId
+    // set but no source — they were always Google Docs, so default there
+    const source = note.source || 'google_docs';
+
     let cloudinaryResult, content;
     try {
-        // Re-export PDF → overwrite the existing Cloudinary asset (public_id = googleDocId)
-        const pdfResponse = await drive.files.export(
-            { fileId: note.googleDocId, mimeType: 'application/pdf' },
-            { responseType: 'stream' }
-        );
-        cloudinaryResult = await uploadPdfToCloudinary(pdfResponse.data, note.googleDocId);
-
-        // Re-export plain text → update content field for Groq AI
-        const textResponse = await drive.files.export(
-            { fileId: note.googleDocId, mimeType: 'text/plain' },
-            { responseType: 'arraybuffer' }
-        );
-        content = Buffer.from(textResponse.data).toString('utf-8');
+        if (source === 'google_slides') {
+            ({ cloudinaryResult, content } = await exportGoogleSlidesAsPptxAndPdf(drive, note.googleDocId));
+        } else if (source === 'google_sheets') {
+            ({ cloudinaryResult, content } = await exportGoogleSheetsAsXlsxAndPdf(drive, note.googleDocId));
+        } else {
+            ({ cloudinaryResult, content } = await exportGoogleDocAsPdfAndText(drive, note.googleDocId));
+        }
     } catch (err) {
+        if (err.isUserFacing) {
+            return res.status(err.status || 400).json({ success: false, error: err.message });
+        }
         return handleDriveError(err, res);
     }
 
     const updatedNote = await Note.findOneAndUpdate(
         { _id: note._id, userId: req.user._id },
-        { content, pdfUrl: cloudinaryResult.secure_url, pdfPublicId: cloudinaryResult.public_id, lastSyncedAt: new Date() },
+        { content: truncateNoteContent(content), pdfUrl: cloudinaryResult.secure_url, pdfPublicId: cloudinaryResult.public_id, lastSyncedAt: new Date() },
         { new: true }
     );
 
