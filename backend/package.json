@@ -31,6 +31,8 @@
   "dependencies": {
     "@sentry/node": "^10.46.0",
     "@socket.io/redis-adapter": "^8.3.0",
+    "anki-apkg-export": "^4.0.3",
+    "axios": "^1.18.1",
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.2.2",
     "cloudinary": "^2.9.0",
@@ -45,8 +47,10 @@
     "googleapis": "^171.4.0",
     "groq-sdk": "^0.37.0",
     "helmet": "^8.1.0",
+    "ical-generator": "^11.0.0",
     "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
+    "marked": "^18.0.5",
     "mongo-sanitize": "^1.1.0",
     "mongodb": "^7.0.0",
     "mongoose": "^9.1.4",
@@ -65,7 +69,8 @@
     "socket.io": "^4.8.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "ua-parser-js": "^2.0.10"
+    "ua-parser-js": "^2.0.10",
+    "youtube-transcript-plus": "^2.0.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
